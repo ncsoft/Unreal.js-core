@@ -68,7 +68,6 @@ class FJavascriptIsolateImplementation : public FJavascriptIsolate
 public:
 	FJavascriptContext* GetContext()
 	{
-
 		return FJavascriptContext::FromV8(isolate_->GetCurrentContext());
 	}
 
@@ -881,8 +880,10 @@ public:
 
 		add_fn("access", [](const FunctionCallbackInfo<Value>& info)
 		{
-			FIsolateHelper I(info.GetIsolate());
+			auto isolate = info.GetIsolate();
 
+			FIsolateHelper I(isolate);
+			
 			if (info.Length() == 1)
 			{
 				auto Source = Cast<UJavascriptMemoryObject>(UObjectFromV8(info[0]));
@@ -895,51 +896,7 @@ public:
 					return;
 				}
 			}
-			else if (info.Length() == 2 && info[1]->IsFunction())
-			{
-				auto Instance = FStructMemoryInstance::FromV8(info[0]);
-				auto function = info[1].As<Function>();
 
-				// If given value is an instance
-				if (Instance)
-				{
-					auto Memory = Instance->GetMemory();
-					auto GivenStruct = Instance->Struct;
-					if (Memory && Instance->Struct->IsChildOf(FJavascriptMemoryStruct::StaticStruct()))
-					{
-						auto Source = reinterpret_cast<FJavascriptMemoryStruct*>(Memory);
-
-						Handle<Value> argv[1];
-
-						auto Dimension = Source->GetDimension();
-						auto Indices = (int32*)FMemory_Alloca(sizeof(int32) * Dimension);
-						if (Dimension == 1)
-						{
-							auto ab = ArrayBuffer::New(info.GetIsolate(), Source->GetMemory(nullptr), Source->GetSize(0));
-							argv[0] = ab;
-
-							function->Call(info.This(), 1, argv);
-							return;
-						}
-						else if (Dimension == 2)
-						{
-							auto Outer = Source->GetSize(0);
-							auto Inner = Source->GetSize(1);
-							auto out_arr = Array::New(info.GetIsolate(), Outer);
-							argv[0] = out_arr;
-							for (auto Index = 0; Index < Outer; ++Index)
-							{
-								Indices[0] = Index;
-								auto ab = ArrayBuffer::New(info.GetIsolate(), Source->GetMemory(Indices), Inner);
-								out_arr->Set(Index, ab);
-							}							
-
-							function->Call(info.This(), 1, argv);
-							return;
-						}						
-					}
-				}				
-			}
 			I.Throw(TEXT("memory.fork requires JavascriptMemoryObject"));
 		});
 
@@ -2211,7 +2168,8 @@ public:
 
 	void RegisterScriptStructInstance(TSharedPtr<FStructMemoryInstance> MemoryObject, Local<Value> value)
 	{
-		auto& result = GetContext()->MemoryToObjectMap.Add(MemoryObject, UniquePersistent<Value>(isolate_, value));
+		auto context = GetContext();
+		auto& result = context->MemoryToObjectMap.Add(MemoryObject, UniquePersistent<Value>(isolate_, value));
 		SetWeak(result, MemoryObject.Get());
 	}
 
@@ -2257,6 +2215,12 @@ void FPendingClassConstruction::Finalize(FJavascriptIsolate* Isolate, UObject* U
 	static_cast<FJavascriptIsolateImplementation*>(Isolate)->RegisterObject(UnrealObject, Object);
 	Object->SetAlignedPointerInInternalField(0, UnrealObject);
 }
+
+Local<Value> FJavascriptIsolate::ExportStructInstance(Isolate* isolate, UScriptStruct* Struct, uint8* Buffer, const IPropertyOwner& Owner)
+{
+	return FJavascriptIsolateImplementation::GetSelf(isolate)->ExportStructInstance(Struct, Buffer, Owner);
+}
+
 
 template <typename CppType>
 bool TStructReader<CppType>::Read(Isolate* isolate, Local<Value> Value, CppType& Target) const

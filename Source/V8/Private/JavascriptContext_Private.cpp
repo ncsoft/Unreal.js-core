@@ -723,6 +723,8 @@ public:
 		ExposeRequire();
 		ExportUnrealEngineClasses();
 		ExportUnrealEngineStructs();
+
+		ExposeMemory2();
 	}
 
 	void PurgeModules()
@@ -1366,6 +1368,130 @@ public:
 			info.GetReturnValue().Set(out);
 		};
 		global->SetAccessor(V8_KeywordString(isolate(), "modules"), getter, 0, self);
+	}
+
+	void ExposeMemory2()
+	{
+		FIsolateHelper I(isolate());
+		auto global = context()->Global();
+
+		Local<FunctionTemplate> Template = I.FunctionTemplate();
+
+		auto add_fn = [&](const char* name, FunctionCallback fn) {
+			global->Set(I.Keyword(name), I.FunctionTemplate(fn)->GetFunction());
+		};
+
+		add_fn("$memaccess", [](const FunctionCallbackInfo<Value>& info)
+		{
+			auto isolate = info.GetIsolate();
+
+			FIsolateHelper I(isolate);
+
+			if (info.Length() == 3 && info[2]->IsFunction())
+			{
+				HandleScope handle_scope(isolate);
+
+				auto Instance = FStructMemoryInstance::FromV8(info[0]);
+				auto function = info[2].As<Function>();
+
+				// If given value is an instance
+				if (Instance)
+				{
+					auto Memory = Instance->GetMemory();
+					auto GivenStruct = Instance->Struct;
+
+					if (Memory && Instance->Struct->IsChildOf(FJavascriptRawAccess::StaticStruct()))
+					{
+						auto Source = reinterpret_cast<FJavascriptRawAccess*>(Memory);
+
+						Handle<Value> argv[1];
+
+						auto Name = StringFromV8(info[1]);
+
+						for (auto Index = 0; Index < Source->GetNumData(); ++Index)
+						{
+							if (Source->GetDataName(Index).ToString() == Name)
+							{
+								auto ProxyStruct = Source->GetScriptStruct(Index);
+								auto Proxy = Source->GetData(Index);
+								if (ProxyStruct && Proxy)
+								{
+									argv[0] = FJavascriptIsolate::ExportStructInstance(isolate, ProxyStruct, (uint8*)Proxy, FStructMemoryPropertyOwner(Instance));
+								}
+
+								function->Call(info.This(), 1, argv);
+								return;
+							}
+						}
+					}
+				}
+			}
+
+			if (info.Length() == 2 && info[1]->IsFunction())
+			{
+				HandleScope handle_scope(isolate);
+
+				auto Instance = FStructMemoryInstance::FromV8(info[0]);
+				auto function = info[1].As<Function>();
+
+				// If given value is an instance
+				if (Instance)
+				{
+					auto Memory = Instance->GetMemory();
+					auto GivenStruct = Instance->Struct;
+					if (Memory && Instance->Struct->IsChildOf(FJavascriptMemoryStruct::StaticStruct()))
+					{
+						auto Source = reinterpret_cast<FJavascriptMemoryStruct*>(Memory);
+
+						Handle<Value> argv[1];
+
+						auto Dimension = Source->GetDimension();
+						auto Indices = (int32*)FMemory_Alloca(sizeof(int32) * Dimension);
+						if (Dimension == 1)
+						{
+							auto ab = ArrayBuffer::New(info.GetIsolate(), Source->GetMemory(nullptr), Source->GetSize(0));
+							argv[0] = ab;
+
+							function->Call(info.This(), 1, argv);
+							return;
+						}
+						else if (Dimension == 2)
+						{
+							auto Outer = Source->GetSize(0);
+							auto Inner = Source->GetSize(1);
+							auto out_arr = Array::New(info.GetIsolate(), Outer);
+							argv[0] = out_arr;
+							for (auto Index = 0; Index < Outer; ++Index)
+							{
+								Indices[0] = Index;
+								auto ab = ArrayBuffer::New(info.GetIsolate(), Source->GetMemory(Indices), Inner);
+								out_arr->Set(Index, ab);
+							}
+
+							function->Call(info.This(), 1, argv);
+							return;
+						}
+					}
+					if (Memory && Instance->Struct->IsChildOf(FJavascriptRawAccess::StaticStruct()))
+					{
+						auto Source = reinterpret_cast<FJavascriptRawAccess*>(Memory);
+
+						Handle<Value> argv[1];
+
+						auto ProxyStruct = Source->GetScriptStruct(0);
+						auto Proxy = Source->GetData(0);
+						if (ProxyStruct && Proxy)
+						{
+							argv[0] = FJavascriptIsolate::ExportStructInstance(isolate, ProxyStruct, (uint8*)Proxy, FStructMemoryPropertyOwner(Instance));
+						}
+
+						function->Call(info.This(), 1, argv);
+						return;
+					}
+				}
+			}
+			I.Throw(TEXT("memory.fork requires JavascriptMemoryObject"));
+		});
 	}
 
 	FString GetScriptFileFullPath(const FString& Filename)

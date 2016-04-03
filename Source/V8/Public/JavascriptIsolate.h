@@ -6,6 +6,24 @@ class UJavascriptContext;
 class FJavascriptIsolate;
 
 USTRUCT()
+struct FJavascriptRawAccess_Data
+{
+	GENERATED_BODY()
+};
+
+USTRUCT()
+struct FJavascriptRawAccess
+{
+	GENERATED_BODY()
+
+public:
+	virtual UScriptStruct* GetScriptStruct(int32 Index) { return nullptr; }
+	virtual void* GetData(int32 Index) { return nullptr; }
+	virtual int32 GetNumData() { return 0; }
+	virtual FName GetDataName(int32 Index) { return FName(); }
+};
+
+USTRUCT()
 struct FJavascriptMemoryStruct
 {
 	GENERATED_BODY()
