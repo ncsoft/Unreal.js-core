@@ -175,4 +175,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void SetObjectFlags(UObject* Obj, int32 Flags);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static float GetLastRenderTime(AActor* Actor);
 };

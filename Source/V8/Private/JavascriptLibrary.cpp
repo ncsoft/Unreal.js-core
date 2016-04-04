@@ -310,3 +310,8 @@ void UJavascriptLibrary::SetObjectFlags(UObject* Obj, int32 Flags)
 {
 	Obj->SetFlags((EObjectFlags)Flags);
 }
+
+float UJavascriptLibrary::GetLastRenderTime(AActor* Actor)
+{
+	return Actor->GetLastRenderTime();
+}
