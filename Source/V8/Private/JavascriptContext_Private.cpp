@@ -488,8 +488,8 @@ void UJavascriptGeneratedFunction::Thunk(FFrame& Stack, RESULT_DECL)
 		}
 	};
 
-	bool bIsVMVirtual = Function->GetSuperStruct() && Cast<UBlueprintGeneratedClass>(Function->GetSuperStruct()->GetOuter()) != nullptr;
-	if (bIsVMVirtual)
+	bool bIsVMVirtual = Function->GetSuperFunction() && Cast<UBlueprintGeneratedClass>(Function->GetSuperFunction()->GetOuter()) != nullptr;
+	if (bIsVMVirtual && *Stack.Code != EX_EndFunctionParms)
 	{
 		uint8* Frame = NULL;
 /*#if USE_UBER_GRAPH_PERSISTENT_FRAME
@@ -515,7 +515,7 @@ void UJavascriptGeneratedFunction::Thunk(FFrame& Stack, RESULT_DECL)
 				if (Property->HasAnyPropertyFlags(CPF_ReturnParm))
 				{
 					CA_SUPPRESS(6263)
-						FOutParmRec* RetVal = (FOutParmRec*)FMemory_Alloca(sizeof(FOutParmRec));
+					FOutParmRec* RetVal = (FOutParmRec*)FMemory_Alloca(sizeof(FOutParmRec));
 
 					// Our context should be that we're in a variable assignment to the return value, so ensure that we have a valid property to return to
 					check(RESULT_PARAM != NULL);
