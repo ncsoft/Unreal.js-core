@@ -26,10 +26,14 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorTab : public UObject, public IEditor
 
 public:	
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(UWidget*, FSpawnTab, UObject*, Context);
+	DECLARE_DYNAMIC_DELEGATE_OneParam(FCloseTab, UWidget*, Widget);
 
 #if WITH_EDITOR
 	UPROPERTY()
 	FSpawnTab OnSpawnTab;	
+
+	UPROPERTY()
+	FCloseTab OnCloseTab;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
 	FName TabId;

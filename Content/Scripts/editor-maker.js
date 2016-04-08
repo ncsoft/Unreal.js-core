@@ -1,11 +1,11 @@
-function box_extension(where) {
+﻿function box_extension(where) {
     return function (opts) {
-        var menux = new JavascriptUIExtender    
+        var menux = new JavascriptUIExtender
         var builders = {}
         var exts = []
         for (var k in opts) {
             var v = opts[k]
-            var position = v.position || 'After'            
+            var position = v.position || 'After'
             exts.push({ExtensionHook : k, HookPosition : position})
 
             var fn = v.builder
@@ -17,25 +17,53 @@ function box_extension(where) {
             var fn = builders[hook]
             if (fn) {
                 fn(menux)
-            }           
+            }
         })
         return menux
-    }       
-}   
+    }
+}
 
+function MakeTab(opts,tab_fn,del_fn) {
+    opts = opts || {}
+
+    var tab = new JavascriptEditorTab
+    tab.TabId = opts.TabId || 'TestJSTab'
+    tab.Role = opts.Role || 'NomadTab'
+    tab.DisplayName = opts.DisplayName || '안녕하세요!'
+    tab.OnSpawnTab.Add(tab_fn)
+    if (del_fn) {
+        tab.OnCloseTab.Add(del_fn)    
+    }
+    return tab
+}
 
 module.exports = {
     menu : box_extension('MenuExtensions'),
     toolbar : box_extension('ToolbarExtensions'),
-    tab : function MakeTab(opts,tab_fn) {
-        opts = opts || {}
-            
-        var tab = new JavascriptEditorTab
-        tab.TabId = opts.TabId || 'TestJSTab'
-        tab.Role = opts.Role || 'NomadTab'        
-        tab.DisplayName = opts.DisplayName || '안녕하세요!'
-        tab.OnSpawnTab.Add(tab_fn)
-        return tab
+    tab : MakeTab,
+    tabSpawner : function (opts,main) {
+        let $tabs = global.$tabs = global.$tabs || {}
+        let opened = $tabs[opts.TabId]
+        if (opened) {
+            console.log('reload!')
+            opened.forEach(open => {
+                VerticalBox.C(open).GetChildAt(0).RemoveFromParent()
+                open.AddChild(main())
+            })
+            return _ => {}
+        }        
+        
+        opened = $tabs[opts.TabId] = []
+        
+        let tab = MakeTab(opts, (context) => {
+            let widget = new VerticalBox()
+            widget.AddChild(main())
+            opened.push(widget)
+            return widget
+        },widget => {
+            opened.splice(opened.indexOf(widget),1)     
+        })
+        tab.Commit()
     },
     commands : function make_commands(opts) {
         var commands = new JavascriptUICommands
@@ -58,19 +86,19 @@ module.exports = {
                 ActionType : v.type || v.Type || 'Button'
             })
         }
-        commands.Commands = cmds    
+        commands.Commands = cmds
         commands.OnExecuteAction.Add( function (action) {
             var fn = org_cmds[action]
             fn && fn.execute && fn.execute()
             fn && fn.Execute && fn.Execute()
-        })      
+        })
 
         "OnCanExecuteAction/enabled OnIsActionChecked/checked OnIsActionButtonVisible/visible".split(' ')
         .forEach( function (v) {
             var xy = v.split('/')
             var x = xy[0]
             var y = xy[1]
-            commands[x].Add( function (action) { 
+            commands[x].Add( function (action) {
                 var fn = org_cmds[action]
                 if (fn && fn.query) {
                     return fn.query(y)
@@ -88,22 +116,22 @@ module.exports = {
         editor.ToolkitFName = 'jseditor'
         editor.BaseToolkitFName = 'jseditor_base'
         editor.ToolkitName = 'jseditor toolkit'
-        editor.WorldCentricTabPrefix = 'jseditor'       
-        
+        editor.WorldCentricTabPrefix = 'jseditor'
+
         editor.Layout = JSON.stringify(opts.layout)
-                
+
         if (opts.tabs != undefined) {
-            editor.Tabs = opts.tabs         
+            editor.Tabs = opts.tabs
         }
         if (opts.commands != undefined) {
             editor.Commands = opts.commands
         }
         if (opts.menu != undefined) {
             editor.MenuExtender = opts.menu
-        }       
+        }
         if (opts.toolbar != undefined) {
             editor.ToolbarExtender = opts.toolbar
-        }       
+        }
         return editor
     }
 }

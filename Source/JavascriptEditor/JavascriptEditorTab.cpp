@@ -84,7 +84,8 @@ void UJavascriptEditorTab::Register(TSharedRef<FTabManager> TabManager, UObject*
 
 		const TSharedRef<SDockTab> MajorTab = SNew(SDockTab)
 			.TabRole(ETabRole(Role.GetValue()))
-			.OnTabClosed_Lambda([Widget](TSharedRef<SDockTab> ClosedTab){
+			.OnTabClosed_Lambda([Widget,this](TSharedRef<SDockTab> ClosedTab){
+				this->OnCloseTab.ExecuteIfBound(Widget);
 				Widget->RemoveFromRoot();
 			});
 
