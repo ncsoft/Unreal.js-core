@@ -43,24 +43,37 @@ module.exports = {
     tab : MakeTab,
     tabSpawner : function (opts,main) {
         let $tabs = global.$tabs = global.$tabs || {}
-        let opened = $tabs[opts.TabId]
+        let $inner = global.$tabinner = global.$tabinner || []        
+        let $fns = global.$tabfns = global.$tabfns || {}
+        const id = opts.TabId
+        
+        $fns[id] = main
+        let opened = $tabs[id]
         if (opened) {
-            console.log('reload!')
             opened.forEach(open => {
-                VerticalBox.C(open).GetChildAt(0).RemoveFromParent()
-                open.AddChild(main())
+                let old = VerticalBox.C(open).GetChildAt(0)
+                old.destroy && old.destroy()
+                $inner.splice($inner.indexOf(old),1)
+                VerticalBox.C(open).RemoveChildAt(0)
+                let child = main()
+                $inner.push(child)                
+                open.AddChild(child)
             })
             return _ => {}
         }        
         
-        opened = $tabs[opts.TabId] = []
+        opened = $tabs[id] = []
         
         let tab = MakeTab(opts, (context) => {
             let widget = new VerticalBox()
-            widget.AddChild(main())
+            let fn = $fns[id]
+            let child = fn()
+            $inner.push(child)
+            widget.AddChild(child)
             opened.push(widget)
             return widget
         },widget => {
+            $inner.splice($inner.indexOf(widget.GetChildAt(0)),1)
             opened.splice(opened.indexOf(widget),1)     
         })
         tab.Commit()
