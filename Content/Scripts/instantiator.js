@@ -166,7 +166,7 @@ function set_attrs(instance, attrs, scope) {
 
 var next_id = 0
 
-let Outer = Root.GetEngine ? Root.GetEngine().GetEditorWorld() : GWorld
+let Outer = Root.GetEngine ? JavascriptLibrary.CreatePackage(null,'/Script/Javascript') : GWorld
 
 let proxied = {}
 
