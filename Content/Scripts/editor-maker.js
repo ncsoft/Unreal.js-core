@@ -49,15 +49,26 @@ module.exports = {
         
         $fns[id] = main
         let opened = $tabs[id]
+        
+        function create_inner(fn,where) {
+            let child
+            try {
+                child = fn()    
+            } catch (e) {
+                console.error(String(e),e.stack)
+                child = new TextBlock()
+                child.SetText(`ERROR:${String(e)}`)
+            }
+            $inner.push(child)
+            where.AddChild(child)
+        }
         if (opened) {
             opened.forEach(open => {
                 let old = VerticalBox.C(open).GetChildAt(0)
                 old.destroy && old.destroy()
                 $inner.splice($inner.indexOf(old),1)
                 VerticalBox.C(open).RemoveChildAt(0)
-                let child = main()
-                $inner.push(child)                
-                open.AddChild(child)
+                create_inner(main,open)                
             })
             return _ => {}
         }        
@@ -67,9 +78,7 @@ module.exports = {
         let tab = MakeTab(opts, (context) => {
             let widget = new VerticalBox()
             let fn = $fns[id]
-            let child = fn()
-            $inner.push(child)
-            widget.AddChild(child)
+            create_inner(fn,widget)
             opened.push(widget)
             return widget
         },widget => {
