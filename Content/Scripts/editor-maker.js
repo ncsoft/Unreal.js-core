@@ -77,15 +77,17 @@ module.exports = {
         
         let tab = MakeTab(opts, (context) => {
             let widget = new VerticalBox()
-            let fn = $fns[id]
-            create_inner(fn,widget)
+            let fn = $fns[id]            
             opened.push(widget)
+            create_inner(fn,widget)
             return widget
         },widget => {
             $inner.splice($inner.indexOf(widget.GetChildAt(0)),1)
             opened.splice(opened.indexOf(widget),1)     
         })
         tab.Commit()
+        
+        opened.$instance = tab
     },
     commands : function make_commands(opts) {
         var commands = new JavascriptUICommands
