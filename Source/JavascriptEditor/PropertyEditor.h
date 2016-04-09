@@ -6,6 +6,18 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPropertyEditorParameterChanged, FName, ParameterName);
 
+UENUM()
+enum class EPropertyEditorNameAreaSettings : uint8
+{
+	/** The name area should never be displayed */
+	HideNameArea,
+	/** All object types use name area */
+	ObjectsUseNameArea,
+	/** Only Actors use name area */
+	ActorsUseNameArea,
+	/** Components and actors use the name area. Components will display their actor owner as the name */
+	ComponentsAndActorsUseNameArea,
+};
 /**
  * 
  */
@@ -20,6 +32,21 @@ class JAVASCRIPTEDITOR_API UPropertyEditor : public UWidget
 
 	UPROPERTY(BlueprintAssignable, Category = "PropertyEditor")
 	FPropertyEditorParameterChanged OnChange;
+
+	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
+	bool bUpdateFromSelection;
+
+	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
+	bool bLockable;
+
+	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
+	bool bAllowSearch;
+	
+	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
+	bool bHideSelectionTip;
+
+	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
+	EPropertyEditorNameAreaSettings NameAreaSettings;
 	
 	FWeakObjectPtr ObjectToInspect;
 
