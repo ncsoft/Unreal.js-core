@@ -7,7 +7,7 @@ class SAutoRefreshEditorViewport;
  * 
  */
 UCLASS()
-class JAVASCRIPTEDITOR_API UJavascriptEditorViewport : public UContentWidget
+class JAVASCRIPTEDITOR_API UJavascriptEditorViewport : public UPanelWidget
 {
 	GENERATED_BODY()
 
@@ -23,4 +23,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void Redraw();
+
+	// UPanelWidget
+	virtual UClass* GetSlotClass() const override;
+	virtual void OnSlotAdded(UPanelSlot* Slot) override;
+	virtual void OnSlotRemoved(UPanelSlot* Slot) override;
+	// End UPanelWidget
 };

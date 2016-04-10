@@ -43,6 +43,11 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 		return EditorViewportClient.ToSharedRef();
 	}
 
+	TSharedPtr<SOverlay> GetOverlay()
+	{
+		return ViewportOverlay;
+	}
+
 	void Redraw()
 	{
 		SceneViewport->InvalidateDisplay();
@@ -71,6 +76,15 @@ TSharedRef<SWidget> UJavascriptEditorViewport::RebuildWidget()
 	else
 	{
 		ViewportWidget = SNew(SAutoRefreshEditorViewport);
+
+		for (UPanelSlot* Slot : Slots)
+		{
+			if (UOverlaySlot* TypedSlot = Cast<UOverlaySlot>(Slot))
+			{
+				TypedSlot->Parent = this;
+				TypedSlot->BuildSlot(ViewportWidget->GetOverlay().ToSharedRef());
+			}
+		}
 		
 		return BuildDesignTimeWidget(ViewportWidget.ToSharedRef());
 	}
@@ -93,5 +107,34 @@ void UJavascriptEditorViewport::Redraw()
 	if (ViewportWidget.IsValid())
 	{
 		ViewportWidget->Redraw();
+	}
+}
+
+UClass* UJavascriptEditorViewport::GetSlotClass() const
+{
+	return UOverlaySlot::StaticClass();
+}
+
+void UJavascriptEditorViewport::OnSlotAdded(UPanelSlot* Slot)
+{
+	// Add the child to the live canvas if it already exists
+	if (ViewportWidget.IsValid())
+	{
+		auto MyOverlay = ViewportWidget->GetOverlay();
+		Cast<UOverlaySlot>(Slot)->BuildSlot(MyOverlay.ToSharedRef());
+	}
+}
+
+void UJavascriptEditorViewport::OnSlotRemoved(UPanelSlot* Slot)
+{
+	// Remove the widget from the live slot if it exists.
+	if (ViewportWidget.IsValid())
+	{
+		TSharedPtr<SWidget> Widget = Slot->Content->GetCachedWidget();
+		if (Widget.IsValid())
+		{
+			auto MyOverlay = ViewportWidget->GetOverlay();
+			MyOverlay->RemoveSlot(Widget.ToSharedRef());
+		}
 	}
 }
