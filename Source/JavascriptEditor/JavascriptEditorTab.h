@@ -56,6 +56,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	void Refresh();
 
+	UPROPERTY(Transient)
+	TArray<UWidget*> Widgets;
+
 	bool bRegistered;
 
 	UWidget* TakeWidget(UObject* Context);

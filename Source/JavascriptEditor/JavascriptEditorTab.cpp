@@ -86,13 +86,13 @@ void UJavascriptEditorTab::Register(TSharedRef<FTabManager> TabManager, UObject*
 			.TabRole(ETabRole(Role.GetValue()))
 			.OnTabClosed_Lambda([Widget,this](TSharedRef<SDockTab> ClosedTab){
 				this->OnCloseTab.ExecuteIfBound(Widget);
-				Widget->RemoveFromRoot();
+				this->Widgets.Remove(Widget);
 			});
 
 		auto OldTab = UJavascriptEditorTab::MajorTab;
 		UJavascriptEditorTab::MajorTab = MajorTab;
-
-		Widget->AddToRoot();
+		 
+		Widgets.Add(Widget);
 		MajorTab->SetContent(Widget->TakeWidget());
 		auto entry = new(GHackFindDocktabs)FHackFindDocktab;
 		entry->Widget = Widget;
