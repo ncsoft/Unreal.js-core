@@ -178,19 +178,7 @@ void FJavascriptUMGViewportClient::Draw(FViewport* InViewport, FCanvas* Canvas)
 	// workaround for hacky renderer code that uses GFrameNumber to decide whether to resize render targets
 	--GFrameNumber;
 	GetRendererModule().BeginRenderingViewFamily(Canvas, &ViewFamily);
-
-	// Remove temporary debug lines.
-	// Possibly a hack. Lines may get added without the scene being rendered etc.
-	if (World->LineBatcher != NULL && (World->LineBatcher->BatchedLines.Num() || World->LineBatcher->BatchedPoints.Num()))
-	{
-		World->LineBatcher->Flush();
-	}
-
-	if (World->ForegroundLineBatcher != NULL && (World->ForegroundLineBatcher->BatchedLines.Num() || World->ForegroundLineBatcher->BatchedPoints.Num()))
-	{
-		World->ForegroundLineBatcher->Flush();
-	}
-
+	
 	Viewport = ViewportBackup;
 }
 
@@ -303,10 +291,8 @@ FSceneView* FJavascriptUMGViewportClient::CalcSceneView(FSceneViewFamily* ViewFa
 class SJavascriptAutoRefreshViewport : public SViewport
 {
 	SLATE_BEGIN_ARGS(SJavascriptAutoRefreshViewport)
-		: _FullFeatured(false)
 	{}
 
-	SLATE_ARGUMENT(bool, FullFeatured);
 	SLATE_ATTRIBUTE(FVector2D, ViewportSize);
 	SLATE_END_ARGS()
 
@@ -314,17 +300,16 @@ class SJavascriptAutoRefreshViewport : public SViewport
 	{
 		SViewport::FArguments ParentArgs;
 		ParentArgs.IgnoreTextureAlpha(false);
-		ParentArgs.EnableBlending(true);
+		ParentArgs.ShowEffectWhenDisabled(false);
+		ParentArgs.EnableBlending(false);
+		ParentArgs.EnableGammaCorrection(false);
 		ParentArgs.ViewportSize(InArgs._ViewportSize);
-		//ParentArgs.RenderDirectlyToWindow(true);
+ 		// ParentArgs.RenderDirectlyToWindow(true);
 		SViewport::Construct(ParentArgs);
 
 		FJavascriptInGameScene::ConstructionValues CVS;
-		if (InArgs._FullFeatured)
-		{
-			CVS.SetCreateAISystem(true).SetCreateNavigation(true).SetRequiresHitProxies(true);
-		}
-		CVS.SetLightBrightness(0);
+		CVS.ShouldSimulatePhysics(true);
+
 		GameScene = MakeShareable(new FJavascriptInGameScene(CVS));
 
 		ViewportClient = MakeShareable(new FJavascriptUMGViewportClient(GameScene.Get()));
@@ -376,28 +361,14 @@ void UJavascriptGameViewport::ReleaseSlateResources(bool bReleaseChildren)
 
 TSharedRef<SWidget> UJavascriptGameViewport::RebuildWidget()
 {
-	if (IsDesignTime())
-	{
-		return BuildDesignTimeWidget(SNew(SBox)
-			.HAlign(HAlign_Center)
-			.VAlign(VAlign_Center)
-			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("Viewport", "Viewport"))
-			]);
-	}
-	else
-	{
-		ViewportWidget = SNew(SJavascriptAutoRefreshViewport)
-			.FullFeatured(FullFeatured);
+	ViewportWidget = SNew(SJavascriptAutoRefreshViewport);
 
-		if (GetChildrenCount() > 0)
-		{
-			ViewportWidget->SetContent(GetContentSlot()->Content ? GetContentSlot()->Content->TakeWidget() : SNullWidget::NullWidget);
-		}
-
-		return BuildDesignTimeWidget(ViewportWidget.ToSharedRef());
+	if (GetChildrenCount() > 0)
+	{
+		ViewportWidget->SetContent(GetContentSlot()->Content ? GetContentSlot()->Content->TakeWidget() : SNullWidget::NullWidget);
 	}
+
+	return ViewportWidget.ToSharedRef();
 }
 
 void UJavascriptGameViewport::SynchronizeProperties()

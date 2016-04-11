@@ -66,11 +66,6 @@ public:
 	UWorld* GetWorld() const { return PreviewWorld; }
 	FSceneInterface* GetScene() const { return PreviewWorld->Scene; }
 
-	/** Access to line drawing */
-	class ULineBatchComponent* GetLineBatcher() const { return LineBatcher; }
-	/** Clean out the line batcher each frame */
-	void ClearLineBatcher();
-
 	FRotator GetLightDirection();
 	void SetLightDirection(const FRotator& InLightDir);
 	void SetLightBrightness(float LightBrightness);
@@ -90,7 +85,6 @@ private:
 
 protected:
 	class UWorld* PreviewWorld;
-	class ULineBatchComponent* LineBatcher;
 
 	/** This controls whether or not all mip levels of textures used by UMeshComponents added to this preview window should be loaded and remain loaded. */
 	bool bForceAllUsedMipsResident;
