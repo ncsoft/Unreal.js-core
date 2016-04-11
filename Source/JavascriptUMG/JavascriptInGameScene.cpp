@@ -35,9 +35,6 @@ FJavascriptInGameScene::FJavascriptInGameScene(FJavascriptInGameScene::Construct
 	DirectionalLight->Intensity = CVS.LightBrightness;
 	DirectionalLight->LightColor = FColor::White;
 	AddComponent(DirectionalLight, FTransform(CVS.LightRotation));
-
-	LineBatcher = NewObject<ULineBatchComponent>(GetTransientPackage());
-	AddComponent(LineBatcher, FTransform::Identity);
 }
 
 FJavascriptInGameScene::~FJavascriptInGameScene()
@@ -128,14 +125,6 @@ void FJavascriptInGameScene::AddReferencedObjects(FReferenceCollector& Collector
 	Collector.AddReferencedObject(PreviewWorld);
 }
 
-void FJavascriptInGameScene::ClearLineBatcher()
-{
-	if (LineBatcher != NULL)
-	{
-		LineBatcher->Flush();
-	}
-}
-
 /** Accessor for finding the current direction of the preview scene's DirectionalLight. */
 FRotator FJavascriptInGameScene::GetLightDirection()
 {
@@ -145,36 +134,18 @@ FRotator FJavascriptInGameScene::GetLightDirection()
 /** Function for modifying the current direction of the preview scene's DirectionalLight. */
 void FJavascriptInGameScene::SetLightDirection(const FRotator& InLightDir)
 {
-#if WITH_EDITOR
-	DirectionalLight->PreEditChange(NULL);
-#endif // WITH_EDITOR
 	DirectionalLight->SetAbsolute(true, true, true);
 	DirectionalLight->SetRelativeRotation(InLightDir);
-#if WITH_EDITOR
-	DirectionalLight->PostEditChange();
-#endif // WITH_EDITOR
 }
 
 void FJavascriptInGameScene::SetLightBrightness(float LightBrightness)
 {
-#if WITH_EDITOR
-	DirectionalLight->PreEditChange(NULL);
-#endif // WITH_EDITOR
 	DirectionalLight->Intensity = LightBrightness;
-#if WITH_EDITOR
-	DirectionalLight->PostEditChange();
-#endif // WITH_EDITOR
 }
 
 void FJavascriptInGameScene::SetLightColor(const FColor& LightColor)
 {
-#if WITH_EDITOR
-	DirectionalLight->PreEditChange(NULL);
-#endif // WITH_EDITOR
 	DirectionalLight->LightColor = LightColor;
-#if WITH_EDITOR
-	DirectionalLight->PostEditChange();
-#endif // WITH_EDITOR
 }
 
 void FJavascriptInGameScene::SetSkyBrightness(float SkyBrightness)
