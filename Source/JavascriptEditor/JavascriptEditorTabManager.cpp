@@ -58,7 +58,7 @@ void UJavascriptEditorTabManager::Setup(TSharedRef<SVerticalBox> VerticalBox)
 	if (CachedLayout.IsValid())
 	{
 		VerticalBox->AddSlot()
-			.FillHeight(1.0f)
+			.AutoHeight()
 			[
 				TabManager->RestoreFrom(CachedLayout.ToSharedRef(), ConstructUnderWindow).ToSharedRef()
 			];
@@ -91,11 +91,6 @@ TSharedRef<SWidget> UJavascriptEditorTabManager::RebuildWidget()
 		Setup(PrimaryArea);
 		SpawnedAreas.Add(PrimaryArea);
 
-		if (SpawnedAreas.Num() == 1)
-		{
-			AddToRoot();
-		}
-
 		return PrimaryArea;
 	}
 	else
@@ -112,11 +107,6 @@ void UJavascriptEditorTabManager::Check(SVerticalBox* LastOne)
 		{
 			SpawnedAreas.RemoveAt(Index);
 		}
-	}
-
-	if (SpawnedAreas.Num() == 0 || SpawnedAreas.Num() == 1 && SpawnedAreas[0].Pin().Get() == LastOne)
-	{
-		RemoveFromRoot();
 	}
 }
 #endif
