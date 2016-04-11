@@ -19,13 +19,14 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	void Initialize()
+	UInGameSceneAccessor* Initialize()
 	{
 		FJavascriptInGameScene::ConstructionValues CVS;
 		CVS.ShouldSimulatePhysics(true);
 
 		GameScene = MakeShareable(new FJavascriptInGameScene(CVS));
 		DelegateHandle = GEngine->GameViewport->OnTick().AddUObject(this, &UInGameSceneAccessor::Tick);
+		return this;
 	}
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
