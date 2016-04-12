@@ -29,6 +29,7 @@
                     }
                 }
                 this.duration = meta.duration || 0.25
+                this.delay = (meta.delay || 0) + currentTime();
                 this.loop = meta.loop || 1
                 this.completed = meta.completed || function() {}
                 this.interrupted = meta.interrupted || function() {}
@@ -38,6 +39,13 @@
                 this.warm = meta.warm
             }
             tick(t) {
+                if(this.delay) {
+                    if(this.delay - t > 0)
+                        return
+                    this.started = currentTime()
+                    this.delay = 0
+                }
+
                 var alpha = (t - this.started) / this.duration
                 var lap = Math.floor(alpha)
                 
@@ -47,6 +55,7 @@
                 } else {
                     alpha -= lap
                 }
+                                
                 this.tracks.forEach(track => {
                     let fn = track[0]
                     let h = track[1]
