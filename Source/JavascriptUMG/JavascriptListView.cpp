@@ -48,5 +48,8 @@ void UJavascriptListView::ProcessEvent(UFunction* Function, void* Parms)
 
 void UJavascriptListView::RequestListRefresh()
 {
-	MyListView->RequestListRefresh();
+	if (MyListView.IsValid())
+	{
+		MyListView->RequestListRefresh();
+	}	
 }

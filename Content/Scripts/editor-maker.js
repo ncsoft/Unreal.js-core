@@ -64,10 +64,10 @@ module.exports = {
         }
         if (opened) {
             opened.forEach(open => {
-                let old = VerticalBox.C(open).GetChildAt(0)
+                let old = SizeBox.C(open).GetChildAt(0)
                 old.destroy && old.destroy()
                 $inner.splice($inner.indexOf(old),1)
-                VerticalBox.C(open).RemoveChildAt(0)
+                SizeBox.C(open).RemoveChildAt(0)
                 create_inner(main,open)                
             })
             return _ => {}
@@ -76,7 +76,7 @@ module.exports = {
         opened = $tabs[id] = []
         
         let tab = MakeTab(opts, (context) => {
-            let widget = new VerticalBox()
+            let widget = new SizeBox()
             let fn = $fns[id]            
             opened.push(widget)
             create_inner(fn,widget)
