@@ -3,6 +3,26 @@
 #include "JavascriptEditorGlobalDelegates.h"
 #include "JavascriptEditorLibrary.generated.h"
 
+USTRUCT()
+struct FJavascriptToolbarBuilder
+{
+	GENERATED_BODY()
+
+#if WITH_EDITOR
+	TSharedPtr<FToolBarBuilder> Handle;
+#endif
+};
+
+USTRUCT()
+struct FJavascriptUICommandList
+{
+	GENERATED_BODY()
+
+#if WITH_EDITOR
+	TSharedPtr<FUICommandList> Handle;
+#endif
+};
+
 /**
  * 
  */
@@ -84,13 +104,28 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static ABrush* csgAdd(ABrush* DefaultBrush, int32 PolyFlags, EBrushType BrushType);
 	
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript", DisplayName = "Modify")
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void ModifyObject(UObject* Object, bool bAlwaysMarkDirty = false);
 
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript", DisplayName = "Modify")
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void InvalidateModelGeometry(UWorld* World, ULevel* InLevel);
 
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript", DisplayName = "Modify")
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void UpdateModelComponents(ULevel* Level);	
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptUICommandList CreateUICommandList();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptToolbarBuilder CreateToolbarBuilder(FJavascriptUICommandList CommandList);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void BeginSection(FJavascriptToolbarBuilder& Builder, FName InExtensionHook);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void EndSection(FJavascriptToolbarBuilder& Builder);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddSeparator(FJavascriptToolbarBuilder& Builder);
 #endif
 };

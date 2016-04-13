@@ -241,4 +241,33 @@ void UJavascriptEditorLibrary::UpdateModelComponents(ULevel* Level)
 {
 	Level->UpdateModelComponents();
 }
+
+FJavascriptUICommandList UJavascriptEditorLibrary::CreateUICommandList()
+{
+	FJavascriptUICommandList Out;
+	Out.Handle = MakeShareable(new FUICommandList);
+	return Out;
+}
+
+FJavascriptToolbarBuilder UJavascriptEditorLibrary::CreateToolbarBuilder(FJavascriptUICommandList CommandList)
+{
+	FJavascriptToolbarBuilder Out;
+	Out.Handle = MakeShareable(new FToolBarBuilder(CommandList.Handle, FMultiBoxCustomization::None));
+	return Out;
+}
+
+void UJavascriptEditorLibrary::BeginSection(FJavascriptToolbarBuilder& Builder, FName InExtensionHook)
+{
+	Builder.Handle->BeginSection(InExtensionHook);
+}
+
+void UJavascriptEditorLibrary::EndSection(FJavascriptToolbarBuilder& Builder)
+{
+	Builder.Handle->EndSection();
+}
+
+void UJavascriptEditorLibrary::AddSeparator(FJavascriptToolbarBuilder& Builder)
+{
+	Builder.Handle->AddSeparator();
+}
 #endif
