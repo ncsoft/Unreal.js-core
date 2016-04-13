@@ -315,3 +315,24 @@ float UJavascriptLibrary::GetLastRenderTime(AActor* Actor)
 {
 	return Actor->GetLastRenderTime();
 }
+
+UEnum* UJavascriptLibrary::CreateEnum(UObject* Outer, FName Name, TArray<FName> DisplayNames)
+{
+	UEnum* Enum = NewObject<UEnum>(Outer,Name,RF_Public);
+
+	if (NULL != Enum)
+	{
+		TArray<TPair<FName, uint8>> Names;		
+
+		int32 Index = 0;
+
+		for (auto DisplayName : DisplayNames)
+		{
+			Names.Add(TPairInitializer<FName, uint8>(DisplayName, Index));
+			Index++;
+		}
+		Enum->SetEnums(Names, UEnum::ECppForm::Namespaced);
+	}
+
+	return Enum;
+}

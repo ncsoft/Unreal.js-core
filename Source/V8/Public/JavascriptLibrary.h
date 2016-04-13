@@ -178,4 +178,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static float GetLastRenderTime(AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static UEnum* CreateEnum(UObject* Outer, FName Name, TArray<FName> DisplayNames);
 };
