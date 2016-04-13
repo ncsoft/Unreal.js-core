@@ -324,6 +324,12 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 					q->Struct = p;
 					return q;
 				}
+				else if (auto p = Cast<UEnum>(TypeObject))
+				{
+					auto q = NewObject<UByteProperty>(Outer, Name);
+					q->Enum = p;
+					return q;
+				}
 				else
 				{
 					auto q = NewObject<UInt64Property>(Outer, Name);
