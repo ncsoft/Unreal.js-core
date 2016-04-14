@@ -285,7 +285,12 @@ public:
 	{
 		SCOPE_CYCLE_COUNTER(STAT_JavascriptDelegate);
 
-		auto Buffer = reinterpret_cast<uint8*>(Parms);
+		if (!Delegate->IsValidLowLevelFast())
+		{
+			return;
+		}
+
+		auto Buffer = reinterpret_cast<uint8*>(Parms);		
 
 		auto it = functions.Find(Delegate->UniqueId);
 		if (WeakObject.IsValid() && it)
