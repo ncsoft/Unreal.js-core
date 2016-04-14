@@ -33,6 +33,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Behavior")
 	void RequestListRefresh();
 
+	UFUNCTION(BlueprintCallable, Category = "Behavior")
+	void GetSelectedItems(TArray<UObject*>& OutItems);
+
 	// UWidget interface
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 	// End of UWidget interface

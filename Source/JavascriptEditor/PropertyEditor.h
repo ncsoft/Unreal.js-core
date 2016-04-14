@@ -28,7 +28,10 @@ class JAVASCRIPTEDITOR_API UPropertyEditor : public UWidget
 
 #if WITH_EDITOR
 	UFUNCTION(BlueprintCallable, Category = "PropertyEditor")
-	void SetObject(UObject* Object);
+	void SetObject(UObject* Object, bool bForceRefresh);
+
+	UFUNCTION(BlueprintCallable, Category = "PropertyEditor")
+	void SetObjects(TArray<UObject*> Objects, bool bForceRefresh, bool bOverrideLock);
 
 	UPROPERTY(BlueprintAssignable, Category = "PropertyEditor")
 	FPropertyEditorParameterChanged OnChange;
@@ -48,7 +51,7 @@ class JAVASCRIPTEDITOR_API UPropertyEditor : public UWidget
 	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
 	EPropertyEditorNameAreaSettings NameAreaSettings;
 	
-	FWeakObjectPtr ObjectToInspect;
+	TArray<FWeakObjectPtr> ObjectsToInspect;
 
 public:	
 	virtual void ReleaseSlateResources(bool bReleaseChildren) override;

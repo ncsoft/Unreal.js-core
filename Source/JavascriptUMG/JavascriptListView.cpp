@@ -53,3 +53,11 @@ void UJavascriptListView::RequestListRefresh()
 		MyListView->RequestListRefresh();
 	}	
 }
+
+void UJavascriptListView::GetSelectedItems(TArray<UObject*>& OutItems)
+{
+	if (MyListView.IsValid())
+	{
+		OutItems = MyListView->GetSelectedItems();
+	}
+}
