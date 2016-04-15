@@ -80,14 +80,18 @@ module.exports = {
             let fn = $fns[id]            
             opened.push(widget)
             create_inner(fn,widget)
+            
             return widget
         },widget => {
+            let content = widget.GetContentSlot().Content
+            content.destroy()
+            
             $inner.splice($inner.indexOf(widget.GetChildAt(0)),1)
             opened.splice(opened.indexOf(widget),1)     
         })
         tab.Commit()
         
-        opened.$instance = tab
+        opened.$spawner = tab
     },
     commands : function make_commands(opts) {
         var commands = new JavascriptUICommands

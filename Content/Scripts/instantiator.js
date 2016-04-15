@@ -368,7 +368,7 @@ function proxy(base) {
         destroy() {
             if (!this.has_unlink) return
             
-            this.design.$unlink && this.design.$unlink()
+            this.design.$unlink && this.design.$unlink(this)
             this.destroy_all_children()
         } 
         

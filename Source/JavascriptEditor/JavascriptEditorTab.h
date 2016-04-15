@@ -56,8 +56,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	void Refresh();
 
-	UPROPERTY(Transient)
-	TArray<UWidget*> Widgets;
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	void CloseTab(UWidget* Widget);
 
 	bool bRegistered;
 
