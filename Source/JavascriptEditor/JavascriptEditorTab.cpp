@@ -135,12 +135,33 @@ struct FJavascriptEditorTabTracker : public FGCObject
 		Collector.AddReferencedObjects(Spawners);
 	}
 
+	bool bInit{ false };
+
+	void MaybeInit()
+	{
+		if (bInit) return;
+
+		bInit = true;
+
+		FEditorDelegates::OnShutdownPostPackagesSaved.AddLambda([this]() {
+			FEditorScriptExecutionGuard ScriptGuard;
+
+			while (Tabs.Num())
+			{
+				RemoveIndex(Tabs.Num() - 1);
+			}
+		});
+	}
+
 	void Add(UJavascriptEditorTab* Spawner, UWidget* Widget, TWeakPtr<SDockTab> Tab)
 	{
+		MaybeInit();
+
 		Spawners.Add(Spawner);
 		Widgets.Add(Widget);
 		Tabs.Add(Tab);
 	}
+
 } GEditorTabTracker;
 
 void UJavascriptEditorTab::CloseTab(UWidget* Widget)
