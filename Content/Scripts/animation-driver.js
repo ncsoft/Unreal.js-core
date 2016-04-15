@@ -29,21 +29,33 @@
                     }
                 }
                 this.duration = meta.duration || 0.25
+                this.delay = (meta.delay || 0) + currentTime();
                 this.loop = meta.loop || 1
+                this.completed = meta.completed || function() {}
+                this.interrupted = meta.interrupted || function() {}
                 this.started = currentTime()
                 this.tracks = tracks
                 this.added = false
                 this.warm = meta.warm
             }
             tick(t) {
+                if(this.delay) {
+                    if(this.delay - t > 0)
+                        return
+                    this.started = currentTime()
+                    this.delay = 0
+                }
+
                 var alpha = (t - this.started) / this.duration
                 var lap = Math.floor(alpha)
+                
                 var shouldQuit = (this.loop != 0 && lap >= this.loop)
                 if (shouldQuit) {
                     alpha = 1
                 } else {
                     alpha -= lap
                 }
+                                
                 this.tracks.forEach(track => {
                     let fn = track[0]
                     let h = track[1]
@@ -60,7 +72,6 @@
                 if (this.added) return
                 this.added = true
                 animations.push(this)
-
                 if (this.warm) {
                     this.tick(0)
                 }
@@ -76,25 +87,35 @@
         }
         function applyAnim(target, meta, anim) {          
             let I = new Anim(target,meta,anim)      
-            
-            if (!running) {
-                run()
-            }
-            I.add()
-            return I.remove
+            return new Promise((resolve, reject) => {
+                I.add()
+                run(I, resolve)
+            })
+            .then(_=> {
+                I.completed()
+            }, _=>{
+                I.interrupted()                
+           }).catch(_=> {
+           })
         }
 
-        function loop() {
-            if (!running) return
+        function loop(I, resolve) {
+            if (!I.added || !running){
+                resolve()
+                return
+            } 
             var t = currentTime()
             animations.forEach(anim => anim.tick(t))
-            process.nextTick(loop)
+            process.nextTick(_=> loop(I, resolve))
         }
 
-        function run() {
-            if (running || !alive) return
+        function run(I, resolve) {
+            if (!alive) {
+                resolve()
+                return
+            }
             running = true
-            loop()
+            loop(I, resolve)
         }
 
         function stop() {

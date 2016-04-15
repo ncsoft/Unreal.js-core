@@ -4,7 +4,7 @@
 #define LOCTEXT_NAMESPACE "JavascriptTabManager"
 
 #if WITH_EDITOR
-class JAVASCRIPTEDITOR_API SPrimaryDockingArea : public SVerticalBox
+class JAVASCRIPTEDITOR_API SPrimaryDockingArea : public SBox
 {
 public:
 	SLATE_BEGIN_ARGS(SPrimaryDockingArea)
@@ -15,7 +15,7 @@ public:
 
 	void Construct(const FArguments& InArgs)
 	{
-		SVerticalBox::Construct(SVerticalBox::FArguments());
+		SBox::Construct(SBox::FArguments());
 	}
 
 	virtual ~SPrimaryDockingArea()
@@ -34,9 +34,9 @@ UJavascriptEditorTabManager::UJavascriptEditorTabManager(const FObjectInitialize
 }
 
 #if WITH_EDITOR	
-void UJavascriptEditorTabManager::Setup(TSharedRef<SVerticalBox> VerticalBox)
+void UJavascriptEditorTabManager::Setup(TSharedRef<SBox> Box)
 {	
-	auto DockArea = StaticCastSharedRef<SPrimaryDockingArea>(VerticalBox);
+	auto DockArea = StaticCastSharedRef<SPrimaryDockingArea>(Box);
 
 	TSharedRef<SDockTab> ConstructUnderMajorTab = DockArea->DockTab.Pin().ToSharedRef();
 	TSharedPtr<SWindow> ConstructUnderWindow;
@@ -51,17 +51,13 @@ void UJavascriptEditorTabManager::Setup(TSharedRef<SVerticalBox> VerticalBox)
 		Tab->Register(TabManager, nullptr, AppMenuGroup);
 	}
 
-	auto CachedLayout = FTabManager::FLayout::NewFromString(Layout);	
-
-	VerticalBox->ClearChildren();
+	auto CachedLayout = FTabManager::FLayout::NewFromString(Layout);		
 
 	if (CachedLayout.IsValid())
 	{
-		VerticalBox->AddSlot()
-			.FillHeight(1.0f)
-			[
-				TabManager->RestoreFrom(CachedLayout.ToSharedRef(), ConstructUnderWindow).ToSharedRef()
-			];
+		Box->SetContent(
+			TabManager->RestoreFrom(CachedLayout.ToSharedRef(), ConstructUnderWindow).ToSharedRef()
+			);
 	}	
 
 	DockArea->TabManager = TabManager;
@@ -91,11 +87,6 @@ TSharedRef<SWidget> UJavascriptEditorTabManager::RebuildWidget()
 		Setup(PrimaryArea);
 		SpawnedAreas.Add(PrimaryArea);
 
-		if (SpawnedAreas.Num() == 1)
-		{
-			AddToRoot();
-		}
-
 		return PrimaryArea;
 	}
 	else
@@ -104,7 +95,7 @@ TSharedRef<SWidget> UJavascriptEditorTabManager::RebuildWidget()
 	}	
 }
 
-void UJavascriptEditorTabManager::Check(SVerticalBox* LastOne)
+void UJavascriptEditorTabManager::Check(SBox* LastOne)
 {
 	for (int32 Index = SpawnedAreas.Num() - 1; Index >= 0; --Index)
 	{
@@ -112,11 +103,6 @@ void UJavascriptEditorTabManager::Check(SVerticalBox* LastOne)
 		{
 			SpawnedAreas.RemoveAt(Index);
 		}
-	}
-
-	if (SpawnedAreas.Num() == 0 || SpawnedAreas.Num() == 1 && SpawnedAreas[0].Pin().Get() == LastOne)
-	{
-		RemoveFromRoot();
 	}
 }
 #endif

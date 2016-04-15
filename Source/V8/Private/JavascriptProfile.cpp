@@ -20,7 +20,7 @@ void UJavascriptProfile::BeginDestroy()
 
 FJavascriptProfileNode UJavascriptProfile::GetTopDownRoot()
 {
-	FJavascriptProfileNode out;
+	FJavascriptProfileNode out{ nullptr };
 	
 	if (Profile)
 	{
@@ -42,7 +42,7 @@ int32 UJavascriptProfile::GetSamplesCount()
 
 FJavascriptProfileNode UJavascriptProfile::GetSample(int32 index)
 {
-	FJavascriptProfileNode out;
+	FJavascriptProfileNode out{ nullptr };
 
 	if (Profile)
 	{

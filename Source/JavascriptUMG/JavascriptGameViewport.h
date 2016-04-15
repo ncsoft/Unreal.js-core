@@ -220,9 +220,6 @@ class JAVASCRIPTUMG_API UJavascriptGameViewport : public UContentWidget
 	UPROPERTY(EditAnywhere, Category = Appearance)
 	FLinearColor BackgroundColor;
 
-	UPROPERTY(EditAnywhere, Category = Features)
-	bool FullFeatured;
-
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	UWorld* GetViewportWorld() const;
 
