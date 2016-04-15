@@ -3,10 +3,11 @@
 #include "Translator.h"
 #include "Delegates.h"
 #include "JavascriptStats.h"
+#include "UObject/GCObject.h"
 
 using namespace v8;
 
-class FJavascriptDelegate
+class FJavascriptDelegate : FGCObject
 {
 public:
 	FWeakObjectPtr WeakObject;
@@ -21,6 +22,11 @@ public:
 	bool IsValid() const
 	{
 		return WeakObject.IsValid();
+	}
+
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) override
+	{
+		Collector.AddReferencedObjects(DelegateObjects);
 	}
 
 	FJavascriptDelegate(UObject* InObject, UProperty* InProperty)
@@ -228,7 +234,6 @@ public:
 		}
 
 		DelegateObject->JavascriptDelegate = this;
-		DelegateObject->AddToRoot();
 		DelegateObjects.Add(DelegateObject);
 
 		functions.Add( DelegateObject->UniqueId, UniquePersistent<Function>(isolate_, function) );
@@ -256,7 +261,6 @@ public:
 		}
 
 		DelegateObject->JavascriptDelegate = nullptr;
-		DelegateObject->RemoveFromRoot();
 		DelegateObjects.Remove(DelegateObject);
 
 		if (!bAbandoned)
