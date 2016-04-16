@@ -15,7 +15,7 @@ function beautify(k) {
 }
 
 function conv(obj) {
-    var out = {};
+    var out = obj instanceof Array ? [] : {};
     for (var k in obj) {
         var v = obj[k];
         var index = k.indexOf('.');
@@ -29,8 +29,13 @@ function conv(obj) {
         }
         k = beautify(k);
         if (_.isObject(v) && !_.isFunction(v) && _.keys(v).length > 0) {
-            out[k] = out[k] || {};
-            _.extend(out[k], conv(v));
+            var sub = conv(v);
+            if (sub instanceof Array) {
+                out[k] = sub;
+            } else {
+                out[k] = out[k] || {};
+                _.extend(out[k], sub);
+            }            
         } else {
             out[k] = v;
         }
@@ -49,7 +54,13 @@ function set_attr(instance, k, attr) {
                 set_attrs(instance[k], attr)
                 return true
             } else {
-                instance[k] = attr
+                try {
+                    instance[k] = attr
+                } catch (e)
+                {
+                    console.error(String(e),k,JSON.stringify(attr))
+                }
+                
                 return true
             }
         } else {
