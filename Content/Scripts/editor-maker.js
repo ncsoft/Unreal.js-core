@@ -23,6 +23,10 @@
     }
 }
 
+if (!global.group) {
+    global.group = JavascriptEditorLibrary.GetGroup('Root').AddGroup('Unreal.js').AddGroup('Extension demo')
+} 
+
 function MakeTab(opts,tab_fn,del_fn) {
     opts = opts || {}
 
@@ -30,6 +34,7 @@ function MakeTab(opts,tab_fn,del_fn) {
     tab.TabId = opts.TabId || 'TestJSTab'
     tab.Role = opts.Role || 'NomadTab'
     tab.DisplayName = opts.DisplayName || '안녕하세요!'
+    tab.Group = global.group
     tab.OnSpawnTab.Add(tab_fn)
     if (del_fn) {
         tab.OnCloseTab.Add(del_fn)    

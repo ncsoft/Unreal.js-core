@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SDockTab.h"
+#include "JavascriptEditorLibrary.h"
 #include "JavascriptEditorTab.generated.h"
 
 UENUM()
@@ -35,6 +36,9 @@ public:
 	UPROPERTY()
 	FCloseTab OnCloseTab;
 
+	UPROPERTY()
+	FJavascriptWorkspaceItem Group;
+
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
 	FName TabId;
 
@@ -54,16 +58,11 @@ public:
 	void Discard();
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	void Refresh();
-
-	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	void CloseTab(UWidget* Widget);
 
 	bool bRegistered;
 
 	UWidget* TakeWidget(UObject* Context);
-
-	TArray<TWeakPtr<SDockTab>> SpawnedTabs;
 
 	virtual void Register() override;
 	virtual void Unregister() override;

@@ -63,20 +63,9 @@ void UJavascriptEditorTabManager::Setup(TSharedRef<SBox> Box)
 	DockArea->TabManager = TabManager;
 }
 
-//void UJavascriptEditorTabManager::Refresh()
-//{
-//	for (auto Area : SpawnedAreas)
-//	{
-//		auto Ptr = Area.Pin();
-//		if (Ptr.IsValid())
-//		{
-//			Setup(Ptr.ToSharedRef());
-//		}
-//	}
-//}
-
 TSharedRef<SWidget> UJavascriptEditorTabManager::RebuildWidget()
 {	
+	// Tab manager requires a parent (SDocktab)
 	auto DockTab = UJavascriptEditorTab::FindDocktab(this);
 	if (DockTab.IsValid())
 	{

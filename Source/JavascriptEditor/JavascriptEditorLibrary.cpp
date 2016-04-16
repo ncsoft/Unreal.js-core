@@ -270,4 +270,32 @@ void UJavascriptEditorLibrary::AddSeparator(FJavascriptToolbarBuilder& Builder)
 {
 	Builder.Handle->AddSeparator();
 }
+
+FJavascriptWorkspaceItem UJavascriptEditorLibrary::AddGroup(FJavascriptWorkspaceItem Parent, const FText& DisplayName)
+{
+	FJavascriptWorkspaceItem Out;
+
+	if (Parent.Handle.IsValid())
+	{
+		Out.Handle = Parent.Handle->AddGroup(DisplayName);
+	}
+
+	return Out;
+}
+
+FJavascriptWorkspaceItem UJavascriptEditorLibrary::GetGroup(const FString& Name)
+{
+	FJavascriptWorkspaceItem Out;
+
+	if (Name == TEXT("Root"))
+	{
+		Out.Handle = WorkspaceMenu::GetMenuStructure().GetStructureRoot();
+	} 
+	else if (Name == TEXT("DeveloperToolsMisc"))
+	{
+		Out.Handle = WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory();
+	}
+
+	return Out;
+}
 #endif

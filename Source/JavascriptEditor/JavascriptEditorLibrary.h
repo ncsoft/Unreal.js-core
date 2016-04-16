@@ -23,6 +23,18 @@ struct FJavascriptUICommandList
 #endif
 };
 
+USTRUCT()
+struct FJavascriptWorkspaceItem
+{
+	GENERATED_BODY()
+
+public:
+#if WITH_EDITOR
+	TSharedPtr<FWorkspaceItem> Handle;
+#endif
+};
+
+
 /**
  * 
  */
@@ -127,5 +139,11 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddSeparator(FJavascriptToolbarBuilder& Builder);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptWorkspaceItem AddGroup(FJavascriptWorkspaceItem Parent, const FText& DisplayName);
+	
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptWorkspaceItem GetGroup(const FString& Name);
 #endif
 };

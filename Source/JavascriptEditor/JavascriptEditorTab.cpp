@@ -40,32 +40,6 @@ void UJavascriptEditorTab::Discard()
 	bRegistered = false;
 }
 
-struct FHackFindDocktab
-{
-	UWidget* Widget;
-	TWeakPtr<SDockTab> DockTab;
-};
-
-TArray<FHackFindDocktab> GHackFindDocktabs;
-
-TSharedPtr<SDockTab> UJavascriptEditorTab::FindDocktab(UWidget* Widget)
-{
-	if (MajorTab.IsValid()) return MajorTab;
-
-	for (auto& entry : GHackFindDocktabs)
-	{
-		for (auto p = Widget; p; p = p->GetParent())
-		{
-			if (p == entry.Widget)
-			{
-				return entry.DockTab.Pin();
-			}
-		}
-	}
-
-	return TSharedPtr<SDockTab>();
-}
-
 UWidget* UJavascriptEditorTab::TakeWidget(UObject* Context)
 {
 	if (OnSpawnTab.IsBound())
@@ -162,7 +136,30 @@ struct FJavascriptEditorTabTracker : public FGCObject
 		Tabs.Add(Tab);
 	}
 
+	TSharedPtr<SDockTab> Find(UWidget* Widget)
+	{
+		for (int Index = Widgets.Num() - 1; Index >= 0; --Index)
+		{
+			for (auto p = Widget; p; p = p->GetParent())
+			{
+				if (p == Widgets[Index])
+				{
+					return Tabs[Index].Pin();
+				}
+			}
+		}
+
+		return TSharedPtr<SDockTab>();
+	}
 } GEditorTabTracker;
+
+TSharedPtr<SDockTab> UJavascriptEditorTab::FindDocktab(UWidget* Widget)
+{
+	// under construction?
+	if (MajorTab.IsValid()) return MajorTab;
+
+	return GEditorTabTracker.Find(Widget);
+}
 
 void UJavascriptEditorTab::CloseTab(UWidget* Widget)
 {
@@ -190,13 +187,8 @@ void UJavascriptEditorTab::Register(TSharedRef<FTabManager> TabManager, UObject*
 		UJavascriptEditorTab::MajorTab = MajorTab;		 
 		
 		MajorTab->SetContent(Widget->TakeWidget());
-		auto entry = new(GHackFindDocktabs)FHackFindDocktab;
-		entry->Widget = Widget;
-		entry->DockTab = MajorTab;
 		
 		UJavascriptEditorTab::MajorTab = OldTab;
-
-		SpawnedTabs.Add(MajorTab);
 
 		return MajorTab;
 	});	
@@ -221,28 +213,12 @@ void UJavascriptEditorTab::Unregister(TSharedRef<FTabManager> TabManager)
 }
 
 void UJavascriptEditorTab::Register()
-{
-	Register(FGlobalTabmanager::Get(), nullptr, WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory());
+{	
+	Register(FGlobalTabmanager::Get(), nullptr, Group.Handle.IsValid() ? Group.Handle.ToSharedRef() : WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory());
 }
 
 void UJavascriptEditorTab::Unregister()
 {
 	Unregister(FGlobalTabmanager::Get());
-}
-
-void UJavascriptEditorTab::Refresh()
-{
-	for (auto& tab : SpawnedTabs)
-	{		
-		if (tab.IsValid())
-		{
-			tab.Pin()->RequestCloseTab();
-			SpawnedTabs.Empty();
-			FGlobalTabmanager::Get()->InvokeTab(TabId);
-			return;
-		}
-	}
-
-	SpawnedTabs.Empty();	
 }
 #endif
