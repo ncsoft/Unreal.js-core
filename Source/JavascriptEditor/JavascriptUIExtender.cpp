@@ -50,7 +50,7 @@ void UJavascriptUIExtender::AddMenuEntry(UJavascriptUICommands* Commands, FStrin
 {
 	if (CurrentMenuBuilder)
 	{
-		auto Action = Commands->GetAction(Id);
+		auto Action = Commands->GetAction(Id).Handle;
 		if (Action.IsValid())
 		{
 			CurrentMenuBuilder->AddMenuEntry(Action);
@@ -70,12 +70,22 @@ void UJavascriptUIExtender::AddToolBarButton(UJavascriptUICommands* Commands, FS
 {
 	if (CurrentToolbarBuilder)
 	{
-		auto Action = Commands->GetAction(Id);
+		auto Action = Commands->GetAction(Id).Handle;
 		if (Action.IsValid())
 		{
 			CurrentToolbarBuilder->AddToolBarButton(Action);
 		}
 	}
+}
+
+FJavascriptUICommandList UJavascriptUIExtender::GetTopCommandList()
+{
+	FJavascriptUICommandList Out;
+	if (CurrentMenuBuilder)
+	{
+		Out.Handle = const_cast<FUICommandList*>(CurrentMenuBuilder->GetTopCommandList().Get())->AsShared();
+	}	
+	return Out;
 }
 
 void UJavascriptUIExtender::Bind(UJavascriptUICommands* Commands)

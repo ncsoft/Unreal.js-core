@@ -298,4 +298,41 @@ FJavascriptWorkspaceItem UJavascriptEditorLibrary::GetGroup(const FString& Name)
 
 	return Out;
 }
+
+FJavascriptBindingContext UJavascriptEditorLibrary::NewBindingContext(const FName InContextName, const FText& InContextDesc, const FName InContextParent, const FName InStyleSetName)
+{
+	FJavascriptBindingContext Out;
+	Out.Handle = MakeShareable(new FBindingContext(InContextName, InContextDesc, InContextParent, InStyleSetName.IsNone() ? FEditorStyle::GetStyleSetName() : InStyleSetName));
+	return Out;
+}
+
+void UJavascriptEditorLibrary::Destroy(FJavascriptBindingContext Context)
+{
+	Context.Destroy();
+}
+
+FJavascriptUICommandInfo UJavascriptEditorLibrary::UI_COMMAND_Function(FJavascriptBindingContext This, FJavascriptUICommand info)
+{
+	FJavascriptUICommandInfo Out;
+
+	if (info.FriendlyName.Len() == 0)
+	{
+		info.FriendlyName = info.Id;
+	}
+
+	::UI_COMMAND_Function(
+		This.Handle.Get(),
+		Out.Handle,
+		TEXT(""),
+		*info.Id,
+		*FString::Printf(TEXT("%s_Tooltip"), *info.Id),
+		TCHAR_TO_ANSI(*FString::Printf(TEXT(".%s"), *info.Id)),
+		*info.FriendlyName,
+		*info.Description,
+		EUserInterfaceActionType::Type(info.ActionType.GetValue()),
+		info.DefaultChord);
+
+	return Out;
+}
+
 #endif

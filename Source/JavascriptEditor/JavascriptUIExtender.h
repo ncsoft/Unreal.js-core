@@ -58,6 +58,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void EndSection();
 
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FJavascriptUICommandList GetTopCommandList();
+
 	// Menu
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void AddMenuEntry(UJavascriptUICommands* Commands, FString Id);

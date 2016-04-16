@@ -20,12 +20,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
 	TArray<UJavascriptEditorTab*> Tabs;
-
-	TArray<TWeakPtr<SBox>> SpawnedAreas;
 	
 	void Commit();
 	void Setup(TSharedRef<SBox> VerticalBox);
-	void Check(SBox* LastOne);
 
 	virtual TSharedRef<SWidget> RebuildWidget();
 #endif

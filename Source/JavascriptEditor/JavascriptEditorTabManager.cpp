@@ -11,16 +11,9 @@ public:
 	{}
 	SLATE_END_ARGS()
 
-	UJavascriptEditorTabManager* Owner;
-
 	void Construct(const FArguments& InArgs)
 	{
 		SBox::Construct(SBox::FArguments());
-	}
-
-	virtual ~SPrimaryDockingArea()
-	{
-		Owner->Check(this);
 	}
 	
 	TSharedPtr<FTabManager> TabManager;
@@ -71,10 +64,8 @@ TSharedRef<SWidget> UJavascriptEditorTabManager::RebuildWidget()
 	{
 		auto PrimaryArea = SNew(SPrimaryDockingArea);
 		PrimaryArea->DockTab = DockTab;
-		PrimaryArea->Owner = this;
 
 		Setup(PrimaryArea);
-		SpawnedAreas.Add(PrimaryArea);
 
 		return PrimaryArea;
 	}
@@ -82,16 +73,5 @@ TSharedRef<SWidget> UJavascriptEditorTabManager::RebuildWidget()
 	{
 		return SNew(SButton);
 	}	
-}
-
-void UJavascriptEditorTabManager::Check(SBox* LastOne)
-{
-	for (int32 Index = SpawnedAreas.Num() - 1; Index >= 0; --Index)
-	{
-		if (!SpawnedAreas[Index].IsValid())
-		{
-			SpawnedAreas.RemoveAt(Index);
-		}
-	}
 }
 #endif

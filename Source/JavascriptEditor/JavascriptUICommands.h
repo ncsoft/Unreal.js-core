@@ -1,46 +1,7 @@
 #pragma once
 
+#include "JavascriptEditorLibrary.h"
 #include "JavascriptUICommands.generated.h"
-
-UENUM()
-namespace EJavasrciptUserInterfaceActionType
-{
-	enum Type
-	{
-		/** Momentary buttons or menu items.  These support enable state, and execute a delegate when clicked. */
-		Button,
-
-		/** Toggleable buttons or menu items that store on/off state.  These support enable state, and execute a delegate when toggled. */
-		ToggleButton,
-		
-		/** Radio buttons are similar to toggle buttons in that they are for menu items that store on/off state.  However they should be used to indicate that menu items in a group can only be in one state */
-		RadioButton,
-
-		/** Similar to Button but will display a readonly checkbox next to the item. */
-		Check
-	};
-}
-
-USTRUCT(BlueprintType)
-struct FJavascriptUICommand
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
-	FString Id;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
-	FString FriendlyName;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
-	FString Description;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
-	FInputChord DefaultChord;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
-	TEnumAsByte<EJavasrciptUserInterfaceActionType::Type> ActionType;
-};
 
 /**
 *
@@ -92,10 +53,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	void Refresh();
 
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	void Bind(FJavascriptUICommandList List);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	void Unbind(FJavascriptUICommandList List);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void BroadcastCommandsChanged();
+
 	bool bRegistered;
 
-	TArray<TSharedPtr<FUICommandInfo>> CommandInfos;
-	TSharedPtr<FBindingContext> BindingContext;
+	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
+	TArray<FJavascriptUICommandInfo> CommandInfos;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
+	FJavascriptBindingContext BindingContext;
 
 	void Bind(FUICommandList* CommandList);
 	void Unbind(FUICommandList* CommandList);
@@ -105,6 +78,13 @@ public:
 
 	virtual void BeginDestroy() override;
 
-	TSharedPtr<FUICommandInfo> GetAction(FString Id);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	FJavascriptUICommandInfo GetAction(FString Id);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	void Initialize();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	void Uninitialize();
 #endif
 };

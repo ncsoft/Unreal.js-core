@@ -1,14 +1,14 @@
 #pragma once
 
 #include "JavascriptEditorLibrary.h"
-#include "JavascriptEditorMenu.generated.h"
+#include "JavascriptEditorToolbar.generated.h"
 
 
 /**
  * 
  */
 UCLASS()
-class JAVASCRIPTEDITOR_API UJavascriptEditorMenu : public UWidget
+class JAVASCRIPTEDITOR_API UJavascriptEditorToolbar : public UWidget
 {
 	GENERATED_UCLASS_BODY()
 
@@ -23,9 +23,9 @@ public:
 	FOnHook OnHook;
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void AddPullDownMenu(const FName& Id, const FText& MenuLabel, const FText& Tooltip);
+	static void AddToolBarButton(FJavascriptUICommandInfo CommandInfo);
 	
-	void Setup(TSharedRef<SBox> VerticalBox);
+	void Setup(TSharedRef<SBox> Box);
 	
 	virtual TSharedRef<SWidget> RebuildWidget();
 #endif
