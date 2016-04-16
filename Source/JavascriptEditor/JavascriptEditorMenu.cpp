@@ -8,42 +8,26 @@ UJavascriptEditorMenu::UJavascriptEditorMenu(const FObjectInitializer& ObjectIni
 }
 
 #if WITH_EDITOR	
-namespace 
-{
-	static FMenuBarBuilder* CurrentMenuBarBuilder{ nullptr };
-	static UJavascriptEditorMenu* CurrentEditorMenu{ nullptr };
-	static TSharedPtr<const FUICommandList> CurrentCommandList;
-}
 void UJavascriptEditorMenu::Setup(TSharedRef<SBox> Box)
 {	
-	CurrentCommandList = CommandList.Handle;
-
 	FMenuBarBuilder MenuBarBuilder = FMenuBarBuilder(CommandList.Handle);
-	CurrentMenuBarBuilder = &MenuBarBuilder;
-	CurrentEditorMenu = this;
-	OnHook.ExecuteIfBound("Menubar");	
-	CurrentMenuBarBuilder = nullptr;
-	CurrentEditorMenu = nullptr;
-	CurrentCommandList.Reset();
+	for (const auto& SubMenu : SubMenus)
+	{
+		auto Id = SubMenu.Id;
+		MenuBarBuilder.AddPullDownMenu(
+			SubMenu.Label,
+			SubMenu.Tooltip,
+			FNewMenuDelegate::CreateLambda([this, Id](FMenuBuilder& MenuBuilder) {
+				MenuBuilder.PushCommandList(CommandList.Handle.ToSharedRef());
+				UJavascriptUIExtender::PushMenuBuilder(MenuBuilder);
+				this->OnHook.ExecuteIfBound(Id);
+				UJavascriptUIExtender::Reset();
+			}),
+			Id
+		);
+	}	
 
 	Box->SetContent(MenuBarBuilder.MakeWidget());
-}
-
-void UJavascriptEditorMenu::AddPullDownMenu(const FName& Id, const FText& MenuLabel, const FText& Tooltip)
-{
-	auto Self = CurrentEditorMenu;
-	auto CommandList = CurrentCommandList.ToSharedRef();
-	CurrentMenuBarBuilder->AddPullDownMenu(
-		MenuLabel,
-		Tooltip,
-		FNewMenuDelegate::CreateLambda([Self, Id, CommandList](FMenuBuilder& MenuBuilder) {
-			MenuBuilder.PushCommandList(CommandList);
-			UJavascriptUIExtender::PushMenuBuilder(MenuBuilder);
-			Self->OnHook.ExecuteIfBound(Id);
-			UJavascriptUIExtender::Reset();
-		}),
-		Id
-	);
 }
 
 TSharedRef<SWidget> UJavascriptEditorMenu::RebuildWidget()

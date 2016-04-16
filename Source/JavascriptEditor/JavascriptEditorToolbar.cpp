@@ -1,30 +1,19 @@
 #include "JavascriptEditor.h"
 #include "JavascriptEditorToolbar.h"
-#include "JavascriptUIExtender.h"
-
-UJavascriptEditorToolbar::UJavascriptEditorToolbar(const FObjectInitializer& ObjectInitializer)
-: Super(ObjectInitializer)
-{	
-}
 
 #if WITH_EDITOR	
-namespace 
-{
-	static FToolBarBuilder* CurrentToolBarBuilder{ nullptr };
-}
 void UJavascriptEditorToolbar::Setup(TSharedRef<SBox> Box)
 {	
-	FToolBarBuilder ToolBarBuilder = FToolBarBuilder(CommandList.Handle, FMultiBoxCustomization::None);
-	CurrentToolBarBuilder = &ToolBarBuilder;
-	OnHook.ExecuteIfBound("ToolBar");	
-	CurrentToolBarBuilder = nullptr;
+	auto Builder = OnHook.Execute();	
 
-	Box->SetContent(ToolBarBuilder.MakeWidget());
-}
-
-void UJavascriptEditorToolbar::AddToolBarButton(FJavascriptUICommandInfo CommandInfo)
-{
-	CurrentToolBarBuilder->AddToolBarButton(CommandInfo.Handle);
+	if (Builder.Handle.IsValid())
+	{
+		Box->SetContent(Builder.Handle->MakeWidget());
+	}
+	else
+	{
+		Box->SetContent(SNew(SSpacer));
+	}	
 }
 
 TSharedRef<SWidget> UJavascriptEditorToolbar::RebuildWidget()

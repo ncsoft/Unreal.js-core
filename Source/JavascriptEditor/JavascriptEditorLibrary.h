@@ -43,6 +43,15 @@ struct FJavascriptUICommand
 	TEnumAsByte<EJavasrciptUserInterfaceActionType::Type> ActionType;
 };
 
+USTRUCT()
+struct FJavascriptMenuBarBuilder
+{
+	GENERATED_BODY()
+
+#if WITH_EDITOR
+	TSharedPtr<FMenuBarBuilder> Handle;
+#endif
+};
 
 USTRUCT()
 struct FJavascriptToolbarBuilder
@@ -210,6 +219,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddSeparator(FJavascriptToolbarBuilder& Builder);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddToolBarButton(FJavascriptToolbarBuilder& Builder, FJavascriptUICommandInfo CommandInfo);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptWorkspaceItem AddGroup(FJavascriptWorkspaceItem Parent, const FText& DisplayName);

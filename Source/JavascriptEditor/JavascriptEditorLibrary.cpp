@@ -271,6 +271,11 @@ void UJavascriptEditorLibrary::AddSeparator(FJavascriptToolbarBuilder& Builder)
 	Builder.Handle->AddSeparator();
 }
 
+void UJavascriptEditorLibrary::AddToolBarButton(FJavascriptToolbarBuilder& Builder, FJavascriptUICommandInfo CommandInfo)
+{
+	Builder.Handle->AddToolBarButton(CommandInfo.Handle);
+}
+
 FJavascriptWorkspaceItem UJavascriptEditorLibrary::AddGroup(FJavascriptWorkspaceItem Parent, const FText& DisplayName)
 {
 	FJavascriptWorkspaceItem Out;

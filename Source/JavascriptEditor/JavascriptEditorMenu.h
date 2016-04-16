@@ -3,7 +3,20 @@
 #include "JavascriptEditorLibrary.h"
 #include "JavascriptEditorMenu.generated.h"
 
+USTRUCT()
+struct FJavascriptEditorPullDownMenu
+{
+	GENERATED_BODY()
 
+	UPROPERTY()
+	FName Id;
+
+	UPROPERTY()
+	FText Label;
+
+	UPROPERTY()
+	FText Tooltip;
+};
 /**
  * 
  */
@@ -17,13 +30,13 @@ public:
 
 #if WITH_EDITOR
 	UPROPERTY()
+	TArray<FJavascriptEditorPullDownMenu> SubMenus;
+
+	UPROPERTY()
 	FJavascriptUICommandList CommandList;
 
 	UPROPERTY()
 	FOnHook OnHook;
-
-	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void AddPullDownMenu(const FName& Id, const FText& MenuLabel, const FText& Tooltip);
 	
 	void Setup(TSharedRef<SBox> VerticalBox);
 	
