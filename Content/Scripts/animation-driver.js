@@ -24,7 +24,6 @@
 
                     if (typeof h == 'function') {
                         tracks.push([fn,h])
-                        fn(0) && h.call(null, fn(0))
                     } else {
                         console.error(`No such track{${k}}`)
                     }
@@ -74,7 +73,14 @@
                 this.added = true
                 animations.push(this)
                 if (this.warm) {
-                    this.tick(0)
+                    this.tracks.forEach(track => {
+                        let fn = track[0]
+                        let h = track[1]
+                        let value = fn(0)
+                        if (value != undefined) {
+                            h.call(null,value)
+                        }
+                    })
                 }
             }
             remove() {
