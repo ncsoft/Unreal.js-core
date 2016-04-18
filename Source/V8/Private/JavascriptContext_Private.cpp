@@ -1265,11 +1265,23 @@ public:
 
 			auto inner_json = [&](const FString& script_path)
 			{
+				auto full_path = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*script_path);
+#if PLATFORM_WINDOWS
+				full_path = full_path.Replace(TEXT("/"), TEXT("\\"));
+#endif
+				auto it = Self->Modules.Find(full_path);
+				if (it)
+				{
+					info.GetReturnValue().Set(Local<Value>::New(isolate, *it));
+					found = true;
+					return true;
+				}
+
 				FString Text;
 				if (FFileHelper::LoadFileToString(Text, *script_path))
 				{
 					Text = FString::Printf(TEXT("(function (json) {return json;})(%s);"), *Text);
-					auto full_path = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*script_path);
+					
 #if PLATFORM_WINDOWS
 					full_path = full_path.Replace(TEXT("/"), TEXT("\\"));
 #endif
@@ -1280,6 +1292,7 @@ public:
 					}
 					else
 					{
+						Self->Modules.Add(full_path, UniquePersistent<Value>(isolate, exports));
 						info.GetReturnValue().Set(exports);
 						found = true;
 						return true;
