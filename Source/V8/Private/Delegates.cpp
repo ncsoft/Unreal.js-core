@@ -7,7 +7,7 @@
 
 using namespace v8;
 
-class FJavascriptDelegate : FGCObject
+class FJavascriptDelegate : public FGCObject, public TSharedFromThis<FJavascriptDelegate>
 {
 public:
 	FWeakObjectPtr WeakObject;
@@ -233,7 +233,7 @@ public:
 			}
 		}
 
-		DelegateObject->JavascriptDelegate = this;
+		DelegateObject->JavascriptDelegate = AsShared();
 		DelegateObjects.Add(DelegateObject);
 
 		functions.Add( DelegateObject->UniqueId, UniquePersistent<Function>(isolate_, function) );
@@ -260,7 +260,7 @@ public:
 			}
 		}
 
-		DelegateObject->JavascriptDelegate = nullptr;
+		DelegateObject->JavascriptDelegate.Reset();
 		DelegateObjects.Remove(DelegateObject);
 
 		if (!bAbandoned)
@@ -333,7 +333,7 @@ struct FDelegateManager : IDelegateManager
 		delete this;
 	}
 
-	TSet<FJavascriptDelegate*> Delegates;
+	TSet<TSharedPtr<FJavascriptDelegate>> Delegates;
 
 	void CollectGarbageDelegates()
 	{
@@ -342,7 +342,6 @@ struct FDelegateManager : IDelegateManager
 			auto d = *it;
 			if (!d->IsValid())
 			{
-				delete d;
 				it.RemoveCurrent();
 			}
 		}
@@ -350,10 +349,6 @@ struct FDelegateManager : IDelegateManager
 
 	void PurgeAllDelegates()
 	{
-		for (auto d : Delegates)
-		{
-			delete d;
-		}
 		Delegates.Empty();
 	}
 
@@ -362,7 +357,7 @@ struct FDelegateManager : IDelegateManager
 		//@HACK
 		CollectGarbageDelegates();
 
-		auto payload = new FJavascriptDelegate(Object, Property);
+		TSharedPtr<FJavascriptDelegate> payload = MakeShareable(new FJavascriptDelegate(Object, Property));
 		auto created = payload->Initialize(isolate_->GetCurrentContext());
 
 		Delegates.Add(payload);
@@ -401,8 +396,8 @@ void UJavascriptDelegate::Fire()
 
 void UJavascriptDelegate::ProcessEvent(UFunction* Function, void* Parms)
 {
-	if (JavascriptDelegate)
+	if (JavascriptDelegate.IsValid())
 	{
-		JavascriptDelegate->Fire(Parms, this);
+		JavascriptDelegate.Pin()->Fire(Parms, this);
 	}
 }

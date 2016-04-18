@@ -12,7 +12,7 @@ class V8_API UJavascriptDelegate : public UObject
 public:
 	int32 UniqueId;
 
-	FJavascriptDelegate* JavascriptDelegate;	
+	TWeakPtr<FJavascriptDelegate> JavascriptDelegate;	
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	void Fire();
