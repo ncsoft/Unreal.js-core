@@ -24,6 +24,7 @@
 
                     if (typeof h == 'function') {
                         tracks.push([fn,h])
+                        fn(0) && h.call(null, fn(0))
                     } else {
                         console.error(`No such track{${k}}`)
                     }
