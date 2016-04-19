@@ -52,3 +52,11 @@ void UJavascriptListView::GetSelectedItems(TArray<UObject*>& OutItems)
 		OutItems = MyListView->GetSelectedItems();
 	}
 }
+
+void UJavascriptListView::SetSelection(UObject* SoleSelectedItem)
+{
+	if (MyListView.IsValid())
+	{
+		MyListView->SetSelection(SoleSelectedItem);
+	}
+}
