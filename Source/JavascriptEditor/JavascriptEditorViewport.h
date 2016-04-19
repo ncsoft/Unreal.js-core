@@ -54,6 +54,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void SetSkyBrightness(float SkyBrightness);
 
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void SetSimulatePhysics(bool bShouldSimulatePhysics);
+
 	// UPanelWidget
 	virtual UClass* GetSlotClass() const override;
 	virtual void OnSlotAdded(UPanelSlot* Slot) override;

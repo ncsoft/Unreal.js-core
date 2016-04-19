@@ -144,6 +144,11 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 		PreviewScene.SetSkyBrightness(SkyBrightness);
 	}
 
+	void SetSimulatePhysics(bool bShouldSimulatePhysics)
+	{
+		PreviewScene.GetWorld()->bShouldSimulatePhysics = bShouldSimulatePhysics;
+	}
+
 public:
 	TSharedPtr<FJavascriptEditorViewportClient> EditorViewportClient;
 	
@@ -307,5 +312,13 @@ void UJavascriptEditorViewport::SetSkyBrightness(float SkyBrightness)
 	if (ViewportWidget.IsValid())
 	{
 		ViewportWidget->SetSkyBrightness(SkyBrightness);
+	}
+}
+
+void UJavascriptEditorViewport::SetSimulatePhysics(bool bShouldSimulatePhysics)
+{
+	if (ViewportWidget.IsValid())
+	{
+		ViewportWidget->SetSimulatePhysics(bShouldSimulatePhysics);
 	}
 }
