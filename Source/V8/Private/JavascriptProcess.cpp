@@ -76,3 +76,15 @@ bool UJavascriptProcess::GetReturnCode(int32& ReturnCode)
 {
 	return FPlatformProcess::GetProcReturnCode(ProcessHandle,&ReturnCode);
 }
+
+void UJavascriptProcess::SetEnvironmentVar(const FString& VarName, const FString& VarValue)
+{
+	FPlatformMisc::SetEnvironmentVar(*VarName, *VarValue);
+}
+
+FString UJavascriptProcess::GetEnvironmentVar(const FString& VarName)
+{
+	TCHAR Result[4096];
+	FPlatformMisc::GetEnvironmentVariable(*VarName, Result, ARRAY_COUNT(Result));
+	return Result;
+}

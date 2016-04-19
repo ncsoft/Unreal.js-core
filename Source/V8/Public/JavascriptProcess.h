@@ -20,6 +20,12 @@ public:
 	static UJavascriptProcess* Create(const FString& URL, const FString& Parms, bool bLaunchDetached, bool bLaunchHidden, bool bLaunchReallyHidden, int32 PriorityModifier, const FString& OptionalWorkingDirectory, bool bUsePipe);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
+	static void SetEnvironmentVar(const FString& VarName, const FString& VarValue);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
+	static FString GetEnvironmentVar(const FString& VarName);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
 	bool IsRunning();
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")

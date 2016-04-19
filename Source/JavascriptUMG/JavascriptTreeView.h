@@ -71,8 +71,17 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Javascript")
 	void OnSelectionChanged(UObject* Object, ESelectInfo::Type Type);
 
-	UFUNCTION(BlueprintCallable, Category = "Behavior")
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	void GetSelectedItems(TArray<UObject*>& OutItems);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	void SetItemExpansion(UObject* InItem, bool InShouldExpandItem);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	void SetSingleExpandedItem(UObject* InItem);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	bool IsItemExpanded(UObject* InItem);
 
 	TSharedRef<ITableRow> HandleOnGenerateRow(UObject* Item, const TSharedRef< STableViewBase >& OwnerTable);
 

@@ -217,3 +217,24 @@ void UJavascriptTreeView::GetSelectedItems(TArray<UObject*>& OutItems)
 		OutItems = MyTreeView->GetSelectedItems();
 	}
 }
+
+void UJavascriptTreeView::SetItemExpansion(UObject* InItem, bool InShouldExpandItem)
+{
+	if (MyTreeView.IsValid())
+	{
+		MyTreeView->SetItemExpansion(InItem, InShouldExpandItem);
+	}
+}
+
+void UJavascriptTreeView::SetSingleExpandedItem(UObject* InItem)
+{
+	if (MyTreeView.IsValid())
+	{
+		MyTreeView->SetSingleExpandedItem(InItem);
+	}
+}
+
+bool UJavascriptTreeView::IsItemExpanded(UObject* InItem)
+{
+	return MyTreeView.IsValid() && MyTreeView->IsItemExpanded(InItem);
+}
