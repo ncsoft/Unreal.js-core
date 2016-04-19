@@ -10,7 +10,7 @@ UJavascriptTreeView::UJavascriptTreeView(const FObjectInitializer& ObjectInitial
 	SelectionMode = ESelectionMode::Single;
 }
 
-TSharedRef<SWidget> UJavascriptTreeView::RebuildWidget()
+TSharedPtr<SHeaderRow> UJavascriptTreeView::GetHeaderRowWidget()
 {
 	TSharedPtr<SHeaderRow> HeaderRowWidget;
 	if (Columns.Num())
@@ -21,14 +21,15 @@ TSharedRef<SWidget> UJavascriptTreeView::RebuildWidget()
 		{
 			if (!Column.Widget)
 			{
-				if (OnGetColumn.IsBound())
+				if (OnGenerateRowEvent.IsBound())
 				{
-					Column.Widget = OnGetColumn.Execute(Column.Id, this);
+					Column.Widget = OnGenerateRowEvent.Execute(nullptr, Column.Id, this);
 				}
-				else
-				{
-					continue;
-				}
+			}
+
+			if (!Column.Widget)
+			{
+				continue;
 			}
 
 			HeaderRowWidget->AddColumn(
@@ -40,6 +41,11 @@ TSharedRef<SWidget> UJavascriptTreeView::RebuildWidget()
 			);
 		}
 	}
+	return HeaderRowWidget;
+}
+
+TSharedRef<SWidget> UJavascriptTreeView::RebuildWidget()
+{
 	MyTreeView = SNew(STreeView< UObject* >)
 		.SelectionMode(SelectionMode)
 		.TreeItemsSource(&Items)
@@ -51,7 +57,7 @@ TSharedRef<SWidget> UJavascriptTreeView::RebuildWidget()
 		.OnMouseButtonDoubleClick_Lambda([this](UObject* Object) {
 			OnDoubleClick(Object);
 		})
-		.HeaderRow(HeaderRowWidget)
+		.HeaderRow(GetHeaderRowWidget())
 		//.OnContextMenuOpening(this, &SSocketManager::OnContextMenuOpening)
 		//.OnItemScrolledIntoView(this, &SSocketManager::OnItemScrolledIntoView)
 		//	.HeaderRow
@@ -130,7 +136,7 @@ public:
 			}
 		}
 
-		if (ColumnName == TreeView->Columns[0].Id)
+		if (TreeView->IsA(UJavascriptTreeView::StaticClass()) && ColumnName == TreeView->Columns[0].Id)
 		{
 			// The first column gets the tree expansion arrow for this row
 			return

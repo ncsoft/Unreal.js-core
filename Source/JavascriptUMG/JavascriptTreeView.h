@@ -32,9 +32,6 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnGetChildrenUObject, UObject*, Item, UJavascriptTreeView*, Instance);
 
 	/** Delegate for constructing a UWidget based on a UObject */
-	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(UWidget*, FOnGetColumn, FName, Id, UJavascriptTreeView*, Instance);
-
-	/** Delegate for constructing a UWidget based on a UObject */
 	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(UWidget*, FOnGenerateRow, UObject*, Object, FName, Id, UJavascriptTreeView*, Instance);
 
 	/** Called when a widget needs to be generated */
@@ -44,10 +41,6 @@ public:
 	/** Called when a widget needs to be generated */
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetChildrenUObject OnGetChildren;	
-
-	/** Called when a widget needs to be generated */
-	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnGetColumn OnGetColumn;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript")
 	UJavascriptContext* JavascriptContext;
@@ -94,4 +87,6 @@ public:
 	// End of UObject interface
 
 	TSharedPtr< STreeView<UObject*> > MyTreeView;
+
+	TSharedPtr<SHeaderRow> GetHeaderRowWidget();
 };

@@ -23,6 +23,7 @@ TSharedRef<SWidget> UJavascriptListView::RebuildWidget()
 		.OnMouseButtonDoubleClick_Lambda([this](UObject* Object){
 			OnDoubleClick(Object);
 		})
+		.HeaderRow(GetHeaderRowWidget())
 		//.OnContextMenuOpening(this, &SSocketManager::OnContextMenuOpening)
 		//.OnItemScrolledIntoView(this, &SSocketManager::OnItemScrolledIntoView)
 		//	.HeaderRow
@@ -34,16 +35,6 @@ TSharedRef<SWidget> UJavascriptListView::RebuildWidget()
 		;
 
 	return BuildDesignTimeWidget(MyListView.ToSharedRef());
-}
-
-void UJavascriptListView::ProcessEvent(UFunction* Function, void* Parms)
-{
-	if (JavascriptContext && JavascriptContext->CallProxyFunction(this, this, Function, Parms))
-	{
-		return;
-	}
-
-	Super::ProcessEvent(Function, Parms);
 }
 
 void UJavascriptListView::RequestListRefresh()
