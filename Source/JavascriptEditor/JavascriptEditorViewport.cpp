@@ -146,7 +146,9 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 
 	void SetSimulatePhysics(bool bShouldSimulatePhysics)
 	{
-		PreviewScene.GetWorld()->bShouldSimulatePhysics = bShouldSimulatePhysics;
+		auto World = PreviewScene.GetWorld();
+		if (::IsValid(World) == true)
+			World->bShouldSimulatePhysics = bShouldSimulatePhysics;
 	}
 
 public:
