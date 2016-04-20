@@ -165,6 +165,18 @@ bool UJavascriptLibrary::WriteFile(UObject* Object, FString Filename)
 	return Writer->Close();
 }
 
+FString UJavascriptLibrary::ReadStringFromFile(UObject* Object, FString Filename)
+{
+	FString Result;
+	FFileHelper::LoadFileToString(Result, *Filename);
+	return Result;
+}
+
+bool UJavascriptLibrary::WriteStringToFile(UObject* Object, FString Filename, const FString& Data)
+{
+	return FFileHelper::SaveStringToFile(*Data, *Filename);
+}
+
 FString UJavascriptLibrary::GetDir(UObject* Object, FString WhichDir)
 {
 	if (WhichDir == TEXT("Launch")) return FPaths::LaunchDir();

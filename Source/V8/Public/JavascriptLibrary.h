@@ -91,6 +91,12 @@ public:
 	static bool WriteFile(UObject* Object, FString Filename);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static FString ReadStringFromFile(UObject* Object, FString Filename);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static bool WriteStringToFile(UObject* Object, FString Filename, const FString& Data);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static FString GetDir(UObject* Object, FString WhichDir);
 		
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
