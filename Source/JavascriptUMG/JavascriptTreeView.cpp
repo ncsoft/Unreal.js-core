@@ -234,6 +234,15 @@ void UJavascriptTreeView::SetSingleExpandedItem(UObject* InItem)
 	}
 }
 
+void UJavascriptTreeView::SetSelection(UObject* SoleSelectedItem)
+{
+	if (MyTreeView.IsValid())
+	{
+		MyTreeView->SetSelection(SoleSelectedItem);
+	}
+}
+
+
 bool UJavascriptTreeView::IsItemExpanded(UObject* InItem)
 {
 	return MyTreeView.IsValid() && MyTreeView->IsItemExpanded(InItem);

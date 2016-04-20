@@ -75,6 +75,9 @@ public:
 	void GetSelectedItems(TArray<UObject*>& OutItems);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	void SetSelection(UObject* SoleSelectedItem);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	void SetItemExpansion(UObject* InItem, bool InShouldExpandItem);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
