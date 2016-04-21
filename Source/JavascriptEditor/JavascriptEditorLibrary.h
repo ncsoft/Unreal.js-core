@@ -209,6 +209,12 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static FJavascriptUICommandList CreateUICommandList();
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool ProcessCommandBindings_KeyEvent(FJavascriptUICommandList CommandList, const FKeyEvent& InKeyEvent);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool ProcessCommandBindings_PointerEvent(FJavascriptUICommandList CommandList, const FPointerEvent& InMouseEvent);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptToolbarBuilder CreateToolbarBuilder(FJavascriptUICommandList CommandList);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")

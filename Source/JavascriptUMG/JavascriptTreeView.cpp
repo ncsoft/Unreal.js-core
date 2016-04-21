@@ -51,6 +51,7 @@ TSharedRef<SWidget> UJavascriptTreeView::RebuildWidget()
 		.TreeItemsSource(&Items)
 		.OnGenerateRow(BIND_UOBJECT_DELEGATE(STreeView< UObject* >::FOnGenerateRow, HandleOnGenerateRow))
 		.OnGetChildren(BIND_UOBJECT_DELEGATE(STreeView< UObject* >::FOnGetChildren, HandleOnGetChildren))
+		.OnExpansionChanged(BIND_UOBJECT_DELEGATE(STreeView< UObject* >::FOnExpansionChanged, HandleOnExpansionChanged))
 		.OnSelectionChanged_Lambda([this](UObject* Object, ESelectInfo::Type SelectInfo) {
 			OnSelectionChanged(Object, SelectInfo);
 		})
@@ -209,6 +210,13 @@ void UJavascriptTreeView::HandleOnGetChildren(UObject* Item, TArray<UObject*>& O
 	}
 }
 
+void UJavascriptTreeView::HandleOnExpansionChanged(UObject* Item, bool bExpanded)
+{
+	if (OnExpansionChanged.IsBound())
+	{
+		OnExpansionChanged.Execute(Item, bExpanded, this);
+	}
+}
 
 void UJavascriptTreeView::GetSelectedItems(TArray<UObject*>& OutItems)
 {

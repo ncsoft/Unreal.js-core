@@ -32,11 +32,17 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnGetChildrenUObject, UObject*, Item, UJavascriptTreeView*, Instance);
 
 	/** Delegate for constructing a UWidget based on a UObject */
+	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnExpansionChanged, UObject*, Item, bool, bExpanded, UJavascriptTreeView*, Instance);
+
+	/** Delegate for constructing a UWidget based on a UObject */
 	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(UWidget*, FOnGenerateRow, UObject*, Object, FName, Id, UJavascriptTreeView*, Instance);
 
 	/** Called when a widget needs to be generated */
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGenerateRow OnGenerateRowEvent;
+	
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnExpansionChanged OnExpansionChanged;
 
 	/** Called when a widget needs to be generated */
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
@@ -89,6 +95,7 @@ public:
 	TSharedRef<ITableRow> HandleOnGenerateRow(UObject* Item, const TSharedRef< STableViewBase >& OwnerTable);
 
 	void HandleOnGetChildren(UObject* Item, TArray<UObject*>& OutChildItems);
+	void HandleOnExpansionChanged(UObject* Item, bool bExpanded);
 
 	// UWidget interface
 	virtual TSharedRef<SWidget> RebuildWidget() override;

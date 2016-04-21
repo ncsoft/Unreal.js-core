@@ -249,6 +249,16 @@ FJavascriptUICommandList UJavascriptEditorLibrary::CreateUICommandList()
 	return Out;
 }
 
+bool UJavascriptEditorLibrary::ProcessCommandBindings_KeyEvent(FJavascriptUICommandList CommandList, const FKeyEvent& InKeyEvent)
+{
+	return CommandList.Handle->ProcessCommandBindings(InKeyEvent);
+}
+
+bool UJavascriptEditorLibrary::ProcessCommandBindings_PointerEvent(FJavascriptUICommandList CommandList, const FPointerEvent& InMouseEvent)
+{
+	return CommandList.Handle->ProcessCommandBindings(InMouseEvent);
+}
+
 FJavascriptToolbarBuilder UJavascriptEditorLibrary::CreateToolbarBuilder(FJavascriptUICommandList CommandList)
 {
 	FJavascriptToolbarBuilder Out;
