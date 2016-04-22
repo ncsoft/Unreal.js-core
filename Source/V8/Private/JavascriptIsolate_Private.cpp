@@ -1607,7 +1607,7 @@ public:
 				}
 				else
 				{
-					return V8_String(isolate, Object->GetName());
+					return V8_String(isolate, Object->GetPathName());
 				}
 			};
 
