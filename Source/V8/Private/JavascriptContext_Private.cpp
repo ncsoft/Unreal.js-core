@@ -1031,7 +1031,7 @@ public:
 
 				for (decltype(len) Index = 0; Index < len; ++Index)
 				{
-					auto PropertyDecl = arr->Get(Index);
+					auto PropertyDecl = arr->Get(len - Index - 1);
 					if (PropertyDecl->IsObject())
 					{
 						auto Property = CreatePropertyFromDecl(I, Class, PropertyDecl);
