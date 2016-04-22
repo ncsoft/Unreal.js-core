@@ -17,6 +17,8 @@ TSharedPtr<SHeaderRow> UJavascriptTreeView::GetHeaderRowWidget()
 	{
 		HeaderRowWidget = SNew(SHeaderRow);
 
+		ColumnWidgets.Empty();
+
 		for (auto& Column : Columns)
 		{
 			if (!Column.Widget)
@@ -24,6 +26,7 @@ TSharedPtr<SHeaderRow> UJavascriptTreeView::GetHeaderRowWidget()
 				if (OnGenerateRowEvent.IsBound())
 				{
 					Column.Widget = OnGenerateRowEvent.Execute(nullptr, Column.Id, this);
+					ColumnWidgets.Add(Column.Widget);
 				}
 			}
 
@@ -94,7 +97,7 @@ void UJavascriptTreeView::RequestTreeRefresh()
 * Implements a row widget for the session console log.
 */
 class SJavascriptTableRow
-	: public SMultiColumnTableRow<UObject*>
+	: public SMultiColumnTableRow<UObject*>, public FGCObject
 {
 public:
 	SLATE_BEGIN_ARGS(SJavascriptTableRow) { }
@@ -103,6 +106,13 @@ public:
 	SLATE_END_ARGS()
 
 public:
+	// FSerializableObject interface
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) override
+	{
+		Collector.AddReferencedObjects(Widgets);
+		Collector.AddReferencedObject(Object);
+	}
+	// End of FSerializableObject interface
 
 	/**
 	* Constructs the widget.
@@ -134,6 +144,7 @@ public:
 			if (Widget)
 			{
 				ColumnWidget = Widget->TakeWidget();
+				Widgets.Add(Widget);
 			}
 		}
 
@@ -161,6 +172,8 @@ public:
 	}
 	END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
+	TArray<UWidget*> Widgets;
+
 private:
 	UObject* Object;
 	UJavascriptTreeView* TreeView;
@@ -180,10 +193,9 @@ TSharedRef<ITableRow> UJavascriptTreeView::HandleOnGenerateRow(UObject* Item, co
 			UWidget* Widget = OnGenerateRowEvent.Execute(Item, FName(), this);
 			if (Widget != NULL)
 			{
-				return SNew(STableRow< UObject* >, OwnerTable)
-					[
-						Widget->TakeWidget()
-					];
+				auto GeneratedWidget = Widget->TakeWidget();
+				CachedRows.Add(Widget, GeneratedWidget);
+				return SNew(STableRow< UObject* >, OwnerTable)[GeneratedWidget];
 			}
 		}		
 	}
@@ -254,4 +266,32 @@ void UJavascriptTreeView::SetSelection(UObject* SoleSelectedItem)
 bool UJavascriptTreeView::IsItemExpanded(UObject* InItem)
 {
 	return MyTreeView.IsValid() && MyTreeView->IsItemExpanded(InItem);
+}
+
+void UJavascriptTreeView::AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector)
+{
+	auto This = static_cast<UJavascriptTreeView*>(InThis);
+
+	if (This->MyTreeView.IsValid())
+	{
+		for (auto It = This->CachedRows.CreateIterator(); It;)
+		{
+			auto Key = It->Key;
+			auto Value = It->Value;
+
+			if (Value.IsValid())
+			{
+				Collector.AddReferencedObject(Key, This);
+				++It;
+			}
+			else
+			{
+				It.RemoveCurrent();
+			}
+		}
+	}
+	else
+	{
+		This->CachedRows.Empty();
+	}
 }

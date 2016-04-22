@@ -108,4 +108,12 @@ public:
 	TSharedPtr< STreeView<UObject*> > MyTreeView;
 
 	TSharedPtr<SHeaderRow> GetHeaderRowWidget();
+
+	UPROPERTY(Transient)
+	TArray<UWidget*> ColumnWidgets;
+
+	// UObject interface.
+	static void AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector);
+
+	TMultiMap<UObject*, TWeakPtr<SWidget>> CachedRows;
 };
