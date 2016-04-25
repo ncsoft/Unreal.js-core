@@ -1,5 +1,6 @@
 #include "JavascriptUMG.h"
 #include "JavascriptMenuLibrary.h"
+#include "SJavascriptBox.h"
 
 FJavascriptUICommandList UJavascriptMenuLibrary::CreateUICommandList()
 {
@@ -85,6 +86,28 @@ void UJavascriptMenuLibrary::AddToolBarButton(FJavascriptMenuBuilder& Builder, F
 	{
 		Builder.Menu->AddMenuEntry(CommandInfo.Handle);
 	}
+}
+
+void UJavascriptMenuLibrary::AddWidget(FJavascriptMenuBuilder& Builder, UWidget* Widget, const FText& Label, bool bNoIndent, FName InTutorialHighlightName, bool bSearchable)
+{
+	if (Builder.ToolBar.IsValid())
+	{
+		Builder.ToolBar->AddWidget(
+			SNew(SJavascriptBox).Widget(Widget)[Widget->TakeWidget()],
+			InTutorialHighlightName,
+			bSearchable
+			);
+	}
+	else if (Builder.Menu.IsValid())
+	{
+		Builder.Menu->AddWidget(
+			SNew(SJavascriptBox).Widget(Widget)[Widget->TakeWidget()],
+			Label,
+			bNoIndent,
+			bSearchable
+			);
+	}
+	
 }
 
 void UJavascriptMenuLibrary::PushCommandList(FJavascriptMenuBuilder& Builder, FJavascriptUICommandList List)

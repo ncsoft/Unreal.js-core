@@ -119,6 +119,9 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 	static void AddToolBarButton(FJavascriptMenuBuilder& Builder, FJavascriptUICommandInfo CommandInfo);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddWidget(FJavascriptMenuBuilder& Builder, UWidget* Widget, const FText& Label, bool bNoIndent, FName InTutorialHighlightName, bool bSearchable);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void PushCommandList(FJavascriptMenuBuilder& Builder, FJavascriptUICommandList List);
 	
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
