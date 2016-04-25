@@ -47,12 +47,10 @@ struct FJavascriptMenuBuilder
 {
 	GENERATED_BODY()
 
-#if WITH_EDITOR
 	TSharedPtr<FMultiBoxBuilder> MultiBox;
 	TSharedPtr<FMenuBuilder> Menu;
 	TSharedPtr<FMenuBarBuilder> MenuBar;
 	TSharedPtr<FToolBarBuilder> ToolBar;
-#endif
 };
 
 USTRUCT()
@@ -60,9 +58,7 @@ struct FJavascriptUICommandList
 {
 	GENERATED_BODY()
 
-#if WITH_EDITOR
 	TSharedPtr<FUICommandList> Handle;
-#endif
 };
 
 USTRUCT()
@@ -71,7 +67,6 @@ struct FJavascriptBindingContext
 	GENERATED_BODY()
 
 public:
-#if WITH_EDITOR
 	void Destroy()
 	{
 		if (Handle.IsValid())
@@ -82,7 +77,6 @@ public:
 	}
 
 	TSharedPtr<FBindingContext> Handle;
-#endif
 };
 
 
@@ -92,9 +86,7 @@ struct FJavascriptUICommandInfo
 	GENERATED_BODY()
 
 public:
-#if WITH_EDITOR
 	TSharedPtr<FUICommandInfo> Handle;
-#endif
 };
 
 /**
