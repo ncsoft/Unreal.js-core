@@ -12,6 +12,7 @@ public class JavascriptEditor : ModuleRules
 					"Engine",
 					"Slate",                    
                     "Landscape",
+                    "JavascriptUMG"
 				}
             );	// @todo Mac: for some reason CoreUObject and Engine are needed to link in debug on Mac
 

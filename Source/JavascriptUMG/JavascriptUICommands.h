@@ -1,13 +1,13 @@
 #pragma once
 
-#include "JavascriptEditorLibrary.h"
+#include "JavascriptMenuLibrary.h"
 #include "JavascriptUICommands.generated.h"
 
 /**
 *
 */
 UCLASS()
-class JAVASCRIPTEDITOR_API UJavascriptUICommands : public UObject, public IEditorExtension
+class JAVASCRIPTUMG_API UJavascriptUICommands : public UObject
 {
 	GENERATED_UCLASS_BODY()
 
@@ -16,7 +16,6 @@ public:
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FJavascriptCanExecuteAction, FString, Id);
 
-#if WITH_EDITOR
 	UPROPERTY()
 	FJavascriptExecuteAction OnExecuteAction;	
 
@@ -73,9 +72,6 @@ public:
 	void Bind(FUICommandList* CommandList);
 	void Unbind(FUICommandList* CommandList);
 
-	virtual void Register() override;
-	virtual void Unregister() override;
-
 	virtual void BeginDestroy() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
@@ -86,5 +82,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	void Uninitialize();
-#endif
 };

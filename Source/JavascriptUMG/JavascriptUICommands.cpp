@@ -1,4 +1,4 @@
-#include "JavascriptEditor.h"
+#include "JavascriptUMG.h"
 #include "JavascriptUICommands.h"
 #include "Framework/Commands/Commands.h"
 
@@ -9,7 +9,6 @@ UJavascriptUICommands::UJavascriptUICommands(const FObjectInitializer& ObjectIni
 {	
 }
 
-#if WITH_EDITOR
 void UJavascriptUICommands::BeginDestroy()
 {
 	Super::BeginDestroy();
@@ -21,7 +20,7 @@ void UJavascriptUICommands::Commit()
 {
 	Discard();
 
-	IJavascriptEditorModule::Get().AddExtension(this);
+//	IJavascriptEditorModule::Get().AddExtension(this);
 	
 	bRegistered = true;
 }
@@ -30,17 +29,10 @@ void UJavascriptUICommands::Discard()
 {
 	if (bRegistered)
 	{
-		IJavascriptEditorModule::Get().RemoveExtension(this);
+//		IJavascriptEditorModule::Get().RemoveExtension(this);
 	}
 
 	bRegistered = false;
-}
-
-void UJavascriptUICommands::Register()
-{	
-	BindingContext.Handle = MakeShareable(new FBindingContext(*ContextName, ContextDesc, ContextNameParent, StyleSetName.IsNone() ? FEditorStyle::GetStyleSetName() : StyleSetName));
-
-	Initialize();
 }
 
 void UJavascriptUICommands::Initialize()
@@ -72,13 +64,6 @@ void UJavascriptUICommands::Uninitialize()
 	CommandInfos.Empty();
 
 	BroadcastCommandsChanged();
-}
-
-void UJavascriptUICommands::Unregister()
-{
-	BindingContext.Destroy();
-
-	Uninitialize();
 }
 
 void UJavascriptUICommands::BroadcastCommandsChanged()
@@ -145,6 +130,5 @@ FJavascriptUICommandInfo UJavascriptUICommands::GetAction(FString Id)
 
 	return FJavascriptUICommandInfo();
 }
-#endif
 
 PRAGMA_ENABLE_OPTIMIZATION

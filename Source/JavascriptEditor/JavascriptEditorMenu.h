@@ -1,6 +1,6 @@
 #pragma once
 
-#include "JavascriptEditorLibrary.h"
+#include "JavascriptMenuLibrary.h"
 #include "JavascriptEditorMenu.generated.h"
 
 USTRUCT()
