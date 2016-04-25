@@ -1,14 +1,15 @@
 #include "JavascriptEditor.h"
 #include "JavascriptEditorToolbar.h"
+#include "SJavascriptBox.h"
 
 #if WITH_EDITOR	
 void UJavascriptEditorToolbar::Setup(TSharedRef<SBox> Box)
 {	
 	auto Builder = OnHook.Execute();	
 
-	if (Builder.Handle.IsValid())
+	if (Builder.MultiBox.IsValid())
 	{
-		Box->SetContent(Builder.Handle->MakeWidget());
+		Box->SetContent(Builder.MultiBox->MakeWidget());
 	}
 	else
 	{
@@ -18,7 +19,7 @@ void UJavascriptEditorToolbar::Setup(TSharedRef<SBox> Box)
 
 TSharedRef<SWidget> UJavascriptEditorToolbar::RebuildWidget()
 {	
-	auto PrimaryArea = SNew(SBox);
+	auto PrimaryArea = SNew(SJavascriptBox).Widget(this);
 
 	Setup(PrimaryArea);
 

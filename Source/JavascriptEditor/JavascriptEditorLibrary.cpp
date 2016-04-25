@@ -259,31 +259,66 @@ bool UJavascriptEditorLibrary::ProcessCommandBindings_PointerEvent(FJavascriptUI
 	return CommandList.Handle->ProcessCommandBindings(InMouseEvent);
 }
 
-FJavascriptToolbarBuilder UJavascriptEditorLibrary::CreateToolbarBuilder(FJavascriptUICommandList CommandList)
+FJavascriptMenuBuilder UJavascriptEditorLibrary::CreateToolbarBuilder(FJavascriptUICommandList CommandList)
 {
-	FJavascriptToolbarBuilder Out;
-	Out.Handle = MakeShareable(new FToolBarBuilder(CommandList.Handle, FMultiBoxCustomization::None));
+	FJavascriptMenuBuilder Out;
+	Out.MultiBox = Out.ToolBar = MakeShareable(new FToolBarBuilder(CommandList.Handle, FMultiBoxCustomization::None));
 	return Out;
 }
 
-void UJavascriptEditorLibrary::BeginSection(FJavascriptToolbarBuilder& Builder, FName InExtensionHook)
+FJavascriptMenuBuilder UJavascriptEditorLibrary::CreateMenuBuilder(FJavascriptUICommandList CommandList, bool bInShouldCloseWindowAfterMenuSelection)
 {
-	Builder.Handle->BeginSection(InExtensionHook);
+	FJavascriptMenuBuilder Out;
+	Out.MultiBox = Out.Menu = MakeShareable(new FMenuBuilder(bInShouldCloseWindowAfterMenuSelection, CommandList.Handle));
+	return Out;
 }
 
-void UJavascriptEditorLibrary::EndSection(FJavascriptToolbarBuilder& Builder)
+void UJavascriptEditorLibrary::BeginSection(FJavascriptMenuBuilder& Builder, FName InExtensionHook)
 {
-	Builder.Handle->EndSection();
+	if (Builder.ToolBar.IsValid())
+	{
+		Builder.ToolBar->BeginSection(InExtensionHook);
+	}
+	else if (Builder.Menu.IsValid())
+	{
+		Builder.Menu->BeginSection(InExtensionHook);
+	}
 }
 
-void UJavascriptEditorLibrary::AddSeparator(FJavascriptToolbarBuilder& Builder)
+void UJavascriptEditorLibrary::EndSection(FJavascriptMenuBuilder& Builder)
 {
-	Builder.Handle->AddSeparator();
+	if (Builder.ToolBar.IsValid())
+	{
+		Builder.ToolBar->EndSection();
+	}
+	else if (Builder.Menu.IsValid())
+	{
+		Builder.Menu->EndSection();
+	}	
 }
 
-void UJavascriptEditorLibrary::AddToolBarButton(FJavascriptToolbarBuilder& Builder, FJavascriptUICommandInfo CommandInfo)
+void UJavascriptEditorLibrary::AddSeparator(FJavascriptMenuBuilder& Builder)
 {
-	Builder.Handle->AddToolBarButton(CommandInfo.Handle);
+	if (Builder.ToolBar.IsValid())
+	{
+		Builder.ToolBar->AddSeparator();
+	}
+	else if (Builder.Menu.IsValid())
+	{
+		Builder.Menu->AddMenuSeparator();
+	}
+}
+
+void UJavascriptEditorLibrary::AddToolBarButton(FJavascriptMenuBuilder& Builder, FJavascriptUICommandInfo CommandInfo)
+{
+	if (Builder.ToolBar.IsValid())
+	{
+		Builder.ToolBar->AddToolBarButton(CommandInfo.Handle);
+	}
+	else if (Builder.Menu.IsValid())
+	{
+		Builder.Menu->AddMenuEntry(CommandInfo.Handle);
+	}
 }
 
 FJavascriptWorkspaceItem UJavascriptEditorLibrary::AddGroup(FJavascriptWorkspaceItem Parent, const FText& DisplayName)

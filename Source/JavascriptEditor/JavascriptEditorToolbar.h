@@ -13,7 +13,7 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorToolbar : public UWidget
 	GENERATED_BODY()
 
 public:	
-	DECLARE_DYNAMIC_DELEGATE_RetVal(FJavascriptToolbarBuilder, FOnHook);
+	DECLARE_DYNAMIC_DELEGATE_RetVal(FJavascriptMenuBuilder, FOnHook);
 
 #if WITH_EDITOR
 	UPROPERTY()

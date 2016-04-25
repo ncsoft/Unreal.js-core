@@ -44,22 +44,15 @@ struct FJavascriptUICommand
 };
 
 USTRUCT()
-struct FJavascriptMenuBarBuilder
+struct FJavascriptMenuBuilder
 {
 	GENERATED_BODY()
 
 #if WITH_EDITOR
-	TSharedPtr<FMenuBarBuilder> Handle;
-#endif
-};
-
-USTRUCT()
-struct FJavascriptToolbarBuilder
-{
-	GENERATED_BODY()
-
-#if WITH_EDITOR
-	TSharedPtr<FToolBarBuilder> Handle;
+	TSharedPtr<FMultiBoxBuilder> MultiBox;
+	TSharedPtr<FMenuBuilder> Menu;
+	TSharedPtr<FMenuBarBuilder> MenuBar;
+	TSharedPtr<FToolBarBuilder> ToolBar;
 #endif
 };
 
@@ -215,19 +208,22 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static bool ProcessCommandBindings_PointerEvent(FJavascriptUICommandList CommandList, const FPointerEvent& InMouseEvent);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FJavascriptToolbarBuilder CreateToolbarBuilder(FJavascriptUICommandList CommandList);
+	static FJavascriptMenuBuilder CreateToolbarBuilder(FJavascriptUICommandList CommandList);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void BeginSection(FJavascriptToolbarBuilder& Builder, FName InExtensionHook);
+	static FJavascriptMenuBuilder CreateMenuBuilder(FJavascriptUICommandList CommandList, bool bInShouldCloseWindowAfterMenuSelection);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void EndSection(FJavascriptToolbarBuilder& Builder);
+	static void BeginSection(FJavascriptMenuBuilder& Builder, FName InExtensionHook);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void AddSeparator(FJavascriptToolbarBuilder& Builder);
+	static void EndSection(FJavascriptMenuBuilder& Builder);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void AddToolBarButton(FJavascriptToolbarBuilder& Builder, FJavascriptUICommandInfo CommandInfo);
+	static void AddSeparator(FJavascriptMenuBuilder& Builder);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddToolBarButton(FJavascriptMenuBuilder& Builder, FJavascriptUICommandInfo CommandInfo);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptWorkspaceItem AddGroup(FJavascriptWorkspaceItem Parent, const FText& DisplayName);
