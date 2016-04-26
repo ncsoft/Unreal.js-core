@@ -11,17 +11,10 @@
 class FJavascriptEditorViewportClient : public FEditorViewportClient
 {
 public:
-	UJavascriptEditorViewport* Widget;
-
-	virtual void AddReferencedObjects(FReferenceCollector& Collector) override
-	{
-		FEditorViewportClient::AddReferencedObjects(Collector);
-
-		Collector.AddReferencedObject(Widget);
-	}
-
+	TWeakObjectPtr<UJavascriptEditorViewport> Widget;
+	
 	/** Constructor */
-	explicit FJavascriptEditorViewportClient(FPreviewScene& InPreviewScene, const TWeakPtr<class SEditorViewport>& InEditorViewportWidget = nullptr, UJavascriptEditorViewport* InWidget = nullptr)
+	explicit FJavascriptEditorViewportClient(FPreviewScene& InPreviewScene, const TWeakPtr<class SEditorViewport>& InEditorViewportWidget = nullptr, TWeakObjectPtr<UJavascriptEditorViewport> InWidget = nullptr)
 		: FEditorViewportClient(nullptr,&InPreviewScene,InEditorViewportWidget), Widget(InWidget), BackgroundColor(FColor(55,55,55))
 	{		
 	}
@@ -30,35 +23,35 @@ public:
 
 	virtual void ProcessClick(class FSceneView& View, class HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY) override
 	{
-		if (Widget->OnClick.IsBound())
+		if (Widget.IsValid() && Widget->OnClick.IsBound())
 		{
 			FJavascriptHitProxy Proxy;
 			Proxy.HitProxy = HitProxy;
-			Widget->OnClick.Execute(FJavascriptViewportClick(&View, this, Key, Event, HitX, HitY), Proxy, Widget);
+			Widget->OnClick.Execute(FJavascriptViewportClick(&View, this, Key, Event, HitX, HitY), Proxy, Widget.Get());
 		}
 	}
 
 	virtual void TrackingStarted(const struct FInputEventState& InInputState, bool bIsDraggingWidget, bool bNudge) override
 	{
-		if (Widget->OnTrackingStarted.IsBound())
+		if (Widget.IsValid() && Widget->OnTrackingStarted.IsBound())
 		{
-			Widget->OnTrackingStarted.Execute(FJavascriptInputEventState(InInputState), bIsDraggingWidget, bNudge, Widget);
+			Widget->OnTrackingStarted.Execute(FJavascriptInputEventState(InInputState), bIsDraggingWidget, bNudge, Widget.Get());
 		}
 	}
 
 	virtual void TrackingStopped() override 
 	{
-		if (Widget->OnTrackingStopped.IsBound())
+		if (Widget.IsValid() && Widget->OnTrackingStopped.IsBound())
 		{
-			Widget->OnTrackingStopped.Execute(Widget);
+			Widget->OnTrackingStopped.Execute(Widget.Get());
 		}
 	}
 
 	virtual bool InputWidgetDelta(FViewport* InViewport, EAxisList::Type CurrentAxis, FVector& Drag, FRotator& Rot, FVector& Scale) override
 	{
-		if (Widget->OnInputWidgetDelta.IsBound())
+		if (Widget.IsValid() && Widget->OnInputWidgetDelta.IsBound())
 		{
-			return Widget->OnInputWidgetDelta.Execute(Drag,Rot,Scale,Widget);
+			return Widget->OnInputWidgetDelta.Execute(Drag,Rot,Scale,Widget.Get());
 		}
 		else
 		{
@@ -70,17 +63,17 @@ public:
 	{
 		FEditorViewportClient::Draw(View, PDI);
 
-		if (Widget->OnDraw.IsBound())
+		if (Widget.IsValid() && Widget->OnDraw.IsBound())
 		{
-			Widget->OnDraw.Execute(FJavascriptPDI(PDI),Widget);
+			Widget->OnDraw.Execute(FJavascriptPDI(PDI),Widget.Get());
 		}
 	}
 
 	virtual FWidget::EWidgetMode GetWidgetMode() const override
 	{
-		if (Widget->OnGetWidgetMode.IsBound())
+		if (Widget.IsValid() && Widget->OnGetWidgetMode.IsBound())
 		{
-			return (FWidget::EWidgetMode)Widget->OnGetWidgetMode.Execute(Widget);
+			return (FWidget::EWidgetMode)Widget->OnGetWidgetMode.Execute(Widget.Get());
 		}
 		else
 		{
@@ -90,9 +83,9 @@ public:
 
 	virtual FVector GetWidgetLocation() const override
 	{
-		if (Widget->OnGetWidgetLocation.IsBound())
+		if (Widget.IsValid() && Widget->OnGetWidgetLocation.IsBound())
 		{
-			return Widget->OnGetWidgetLocation.Execute(Widget);
+			return Widget->OnGetWidgetLocation.Execute(Widget.Get());
 		}
 		else
 		{
@@ -102,9 +95,9 @@ public:
 	
 	virtual FMatrix GetWidgetCoordSystem() const override
 	{
-		if (Widget->OnGetWidgetRotation.IsBound())
+		if (Widget.IsValid() && Widget->OnGetWidgetRotation.IsBound())
 		{
-			return FRotationMatrix(Widget->OnGetWidgetRotation.Execute(Widget));
+			return FRotationMatrix(Widget->OnGetWidgetRotation.Execute(Widget.Get()));
 		}
 		else
 		{
@@ -148,17 +141,12 @@ public:
 	FLinearColor BackgroundColor;
 };
 
-class SAutoRefreshEditorViewport : public SEditorViewport, public FGCObject
+class SAutoRefreshEditorViewport : public SEditorViewport
 {
 	SLATE_BEGIN_ARGS(SAutoRefreshEditorViewport)
 	{}
-		SLATE_ARGUMENT(UJavascriptEditorViewport*, Widget)
+		SLATE_ARGUMENT(TWeakObjectPtr<UJavascriptEditorViewport>, Widget)
 	SLATE_END_ARGS()
-
-	virtual void AddReferencedObjects(FReferenceCollector& Collector) override
-	{
-		Collector.AddReferencedObject(Widget);
-	}
 
 	void Construct(const FArguments& InArgs)
 	{
@@ -276,7 +264,7 @@ public:
 	FPreviewScene PreviewScene;
 
 private:
-	UJavascriptEditorViewport* Widget;
+	TWeakObjectPtr<UJavascriptEditorViewport> Widget;
 };
 
 
