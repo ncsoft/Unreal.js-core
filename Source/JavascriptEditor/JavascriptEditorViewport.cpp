@@ -22,7 +22,7 @@ public:
 
 	/** Constructor */
 	explicit FJavascriptEditorViewportClient(FPreviewScene& InPreviewScene, const TWeakPtr<class SEditorViewport>& InEditorViewportWidget = nullptr, UJavascriptEditorViewport* InWidget = nullptr)
-		: FEditorViewportClient(nullptr,&InPreviewScene,InEditorViewportWidget), Widget(InWidget)
+		: FEditorViewportClient(nullptr,&InPreviewScene,InEditorViewportWidget), Widget(InWidget), BackgroundColor(FColor(55,55,55))
 	{		
 	}
 	~FJavascriptEditorViewportClient()
