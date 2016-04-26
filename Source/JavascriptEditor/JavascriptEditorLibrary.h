@@ -5,6 +5,18 @@
 #include "JavascriptInputEventStateLibrary.h"
 #include "JavascriptEditorLibrary.generated.h"
 
+UENUM()
+enum class EJavascriptWidgetMode : uint8
+{	
+	WM_Translate,
+	WM_TranslateRotateZ,
+	WM_2D,
+	WM_Rotate,
+	WM_Scale,
+	WM_Max,
+	WM_None = 255,
+};
+
 USTRUCT()
 struct FJavascriptWorkspaceItem
 {

@@ -74,6 +74,42 @@ public:
 		}
 	}
 
+	virtual FWidget::EWidgetMode GetWidgetMode() const override
+	{
+		if (Widget->OnGetWidgetMode.IsBound())
+		{
+			return (FWidget::EWidgetMode)Widget->OnGetWidgetMode.Execute(Widget);
+		}
+		else
+		{
+			return FEditorViewportClient::GetWidgetMode();
+		}		
+	}	
+
+	virtual FVector GetWidgetLocation() const override
+	{
+		if (Widget->OnGetWidgetLocation.IsBound())
+		{
+			return Widget->OnGetWidgetLocation.Execute(Widget);
+		}
+		else
+		{
+			return FEditorViewportClient::GetWidgetLocation();
+		}
+	}
+	
+	virtual FMatrix GetWidgetCoordSystem() const override
+	{
+		if (Widget->OnGetWidgetRotation.IsBound())
+		{
+			return FRotationMatrix(Widget->OnGetWidgetRotation.Execute(Widget));
+		}
+		else
+		{
+			return FEditorViewportClient::GetWidgetCoordSystem();
+		}
+	}
+
 	virtual FLinearColor GetBackgroundColor() const
 	{
 		return BackgroundColor;
@@ -206,6 +242,11 @@ class SAutoRefreshEditorViewport : public SEditorViewport, public FGCObject
 		auto World = PreviewScene.GetWorld();
 		if (::IsValid(World) == true)
 			World->bShouldSimulatePhysics = bShouldSimulatePhysics;
+	}
+
+	void SetWidgetMode(EJavascriptWidgetMode WidgetMode)
+	{
+		EditorViewportClient->SetWidgetMode(WidgetMode == EJavascriptWidgetMode::WM_None ? FWidget::WM_None : (FWidget::EWidgetMode)WidgetMode);
 	}
 
 public:
@@ -382,5 +423,13 @@ void UJavascriptEditorViewport::SetSimulatePhysics(bool bShouldSimulatePhysics)
 	if (ViewportWidget.IsValid())
 	{
 		ViewportWidget->SetSimulatePhysics(bShouldSimulatePhysics);
+	}
+}
+
+void UJavascriptEditorViewport::SetWidgetMode(EJavascriptWidgetMode WidgetMode)
+{
+	if (ViewportWidget.IsValid())
+	{
+		ViewportWidget->SetWidgetMode(WidgetMode);
 	}
 }

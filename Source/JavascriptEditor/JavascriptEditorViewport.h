@@ -26,6 +26,9 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnViewportTrackingStopped, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_RetVal_FourParams(bool, FOnInputWidgetDelta, FVector&, Drag, FRotator&, Rot, FVector&, Scale, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnViewportDraw, const FJavascriptPDI&, PDI, UJavascriptEditorViewport*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FVector, FOnGetWidgetLocation, UJavascriptEditorViewport*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FRotator, FOnGetWidgetRotation, UJavascriptEditorViewport*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(EJavascriptWidgetMode, FOnGetWidgetMode, UJavascriptEditorViewport*, Instance);
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnViewportClick OnClick;
@@ -41,6 +44,15 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnViewportDraw OnDraw;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetWidgetLocation OnGetWidgetLocation;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetWidgetRotation OnGetWidgetRotation;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetWidgetMode OnGetWidgetMode;
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	UWorld* GetViewportWorld() const;
@@ -80,6 +92,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void SetSimulatePhysics(bool bShouldSimulatePhysics);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void SetWidgetMode(EJavascriptWidgetMode WidgetMode);
 
 	// UPanelWidget
 	virtual UClass* GetSlotClass() const override;
