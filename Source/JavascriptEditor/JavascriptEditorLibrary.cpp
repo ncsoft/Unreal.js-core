@@ -315,6 +315,50 @@ void UJavascriptEditorLibrary::DrawWireDiamond(const FJavascriptPDI& PDI, const 
 	::DrawWireDiamond(PDI.PDI, Transform.ToMatrixWithScale(), Size, InColor, DepthPriority);
 }
 
+struct HJavascriptHitProxy : public HHitProxy
+{
+	DECLARE_HIT_PROXY(JAVASCRIPTEDITOR_API);
+
+	FName Name;
+	
+	HJavascriptHitProxy(FName InName) :
+		HHitProxy(HPP_UI),
+		Name(InName)
+	{}
+
+	virtual EMouseCursor::Type GetMouseCursor() override
+	{
+		return EMouseCursor::Crosshairs;
+	}
+
+	/**
+	* Method that specifies whether the hit proxy *always* allows translucent primitives to be associated with it or not,
+	* regardless of any other engine/editor setting. For example, if translucent selection was disabled, any hit proxies
+	*  returning true would still allow translucent selection. In this specific case, true is always returned because geometry
+	* mode hit proxies always need to be selectable or geometry mode will not function correctly.
+	*
+	* @return	true if translucent primitives are always allowed with this hit proxy; false otherwise
+	*/
+	virtual bool AlwaysAllowsTranslucentPrimitives() const override
+	{
+		return true;
+	}
+};
+
+IMPLEMENT_HIT_PROXY(HJavascriptHitProxy, HHitProxy);
+
+void UJavascriptEditorLibrary::SetHitProxy(const FJavascriptPDI& PDI, const FName& Name)
+{
+	if (Name.IsNone())
+	{
+		PDI.PDI->SetHitProxy(nullptr);
+	}
+	else
+	{
+		PDI.PDI->SetHitProxy(new HJavascriptHitProxy(Name));
+	}
+}
+
 AActor* UJavascriptEditorLibrary::GetActor(const FJavascriptHitProxy& Proxy)
 {
 	if (Proxy.HitProxy && Proxy.HitProxy->IsA(HActor::StaticGetType()))
@@ -327,6 +371,17 @@ AActor* UJavascriptEditorLibrary::GetActor(const FJavascriptHitProxy& Proxy)
 	}
 
 	return nullptr;
+}
+
+FName UJavascriptEditorLibrary::GetName(const FJavascriptHitProxy& Proxy)
+{
+	if (Proxy.HitProxy && Proxy.HitProxy->IsA(HJavascriptHitProxy::StaticGetType()))
+	{
+		HJavascriptHitProxy* ActorHit = static_cast<HJavascriptHitProxy*>(Proxy.HitProxy);
+		return ActorHit->Name;		
+	}
+
+	return FName();
 }
 
 #endif

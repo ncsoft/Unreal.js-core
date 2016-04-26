@@ -76,9 +76,6 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 #if WITH_EDITOR
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static AActor* GetActor(const FJavascriptHitProxy& Proxy);
-
-	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FIntPoint GetClickPos(const FJavascriptViewportClick& Click);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
@@ -191,5 +188,14 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void DrawWireDiamond(const FJavascriptPDI& PDI, const FTransform& Transform, float Size, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void SetHitProxy(const FJavascriptPDI& PDI, const FName& Name);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static AActor* GetActor(const FJavascriptHitProxy& Proxy);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FName GetName(const FJavascriptHitProxy& Proxy);
 #endif
 };
