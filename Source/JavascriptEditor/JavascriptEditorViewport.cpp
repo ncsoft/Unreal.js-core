@@ -11,9 +11,18 @@
 class FJavascriptEditorViewportClient : public FEditorViewportClient
 {
 public:
+	UJavascriptEditorViewport* Widget;
+
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) override
+	{
+		FEditorViewportClient::AddReferencedObjects(Collector);
+
+		Collector.AddReferencedObject(Widget);
+	}
+
 	/** Constructor */
-	explicit FJavascriptEditorViewportClient(FPreviewScene& InPreviewScene, const TWeakPtr<class SEditorViewport>& InEditorViewportWidget = nullptr)
-		: FEditorViewportClient(nullptr,&InPreviewScene,InEditorViewportWidget)
+	explicit FJavascriptEditorViewportClient(FPreviewScene& InPreviewScene, const TWeakPtr<class SEditorViewport>& InEditorViewportWidget = nullptr, UJavascriptEditorViewport* InWidget = nullptr)
+		: FEditorViewportClient(nullptr,&InPreviewScene,InEditorViewportWidget), Widget(InWidget)
 	{		
 	}
 	~FJavascriptEditorViewportClient()
@@ -21,7 +30,48 @@ public:
 
 	virtual void ProcessClick(class FSceneView& View, class HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY) override
 	{
-		
+		if (Widget->OnClick.IsBound())
+		{
+			Widget->OnClick.Execute(FJavascriptViewportClick(&View, this, Key, Event, HitX, HitY), Widget);
+		}
+	}
+
+	virtual void TrackingStarted(const struct FInputEventState& InInputState, bool bIsDraggingWidget, bool bNudge) override
+	{
+		if (Widget->OnTrackingStarted.IsBound())
+		{
+			Widget->OnTrackingStarted.Execute(FJavascriptInputEventState(InInputState), bIsDraggingWidget, bNudge, Widget);
+		}
+	}
+
+	virtual void TrackingStopped() override 
+	{
+		if (Widget->OnTrackingStopped.IsBound())
+		{
+			Widget->OnTrackingStopped.Execute(Widget);
+		}
+	}
+
+	virtual bool InputWidgetDelta(FViewport* InViewport, EAxisList::Type CurrentAxis, FVector& Drag, FRotator& Rot, FVector& Scale) override
+	{
+		if (Widget->OnInputWidgetDelta.IsBound())
+		{
+			return Widget->OnInputWidgetDelta.Execute(Drag,Rot,Scale,Widget);
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	virtual void Draw(const FSceneView* View, FPrimitiveDrawInterface* PDI) override
+	{
+		FEditorViewportClient::Draw(View, PDI);
+
+		if (Widget->OnDraw.IsBound())
+		{
+			Widget->OnDraw.Execute(FJavascriptPDI(PDI),Widget);
+		}
 	}
 
 	virtual FLinearColor GetBackgroundColor() const
@@ -60,15 +110,22 @@ public:
 	FLinearColor BackgroundColor;
 };
 
-class SAutoRefreshEditorViewport : public SEditorViewport
+class SAutoRefreshEditorViewport : public SEditorViewport, public FGCObject
 {
 	SLATE_BEGIN_ARGS(SAutoRefreshEditorViewport)
-	{
-	}
+	{}
+		SLATE_ARGUMENT(UJavascriptEditorViewport*, Widget)
 	SLATE_END_ARGS()
+
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) override
+	{
+		Collector.AddReferencedObject(Widget);
+	}
 
 	void Construct(const FArguments& InArgs)
 	{
+		Widget = InArgs._Widget;
+
 		SEditorViewport::Construct(
 			SEditorViewport::FArguments()
 				.IsEnabled(FSlateApplication::Get().GetNormalExecutionAttribute())
@@ -78,7 +135,7 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 
 	virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override
 	{
-		EditorViewportClient = MakeShareable(new FJavascriptEditorViewportClient(PreviewScene,SharedThis(this)));
+		EditorViewportClient = MakeShareable(new FJavascriptEditorViewportClient(PreviewScene,SharedThis(this),Widget));
 
 		return EditorViewportClient.ToSharedRef();
 	}
@@ -156,6 +213,9 @@ public:
 	
 	/** preview scene */
 	FPreviewScene PreviewScene;
+
+private:
+	UJavascriptEditorViewport* Widget;
 };
 
 
@@ -173,7 +233,7 @@ TSharedRef<SWidget> UJavascriptEditorViewport::RebuildWidget()
 	}
 	else
 	{
-		ViewportWidget = SNew(SAutoRefreshEditorViewport);
+		ViewportWidget = SNew(SAutoRefreshEditorViewport).Widget(this);
 
 		for (UPanelSlot* Slot : Slots)
 		{

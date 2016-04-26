@@ -1,8 +1,10 @@
 #pragma once
 
+#include "JavascriptEditorLibrary.h"
 #include "JavascriptEditorViewport.generated.h"
 
 class SAutoRefreshEditorViewport;
+
 /**
  * 
  */
@@ -17,6 +19,28 @@ public:
 
 	TSharedPtr<class SAutoRefreshEditorViewport> ViewportWidget;
 #endif
+
+	/** Delegate for constructing a UWidget based on a UObject */
+	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnViewportClick, const FJavascriptViewportClick&, ViewportClick, UJavascriptEditorViewport*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_FourParams(FOnViewportTrackingStarted, const FJavascriptInputEventState&, InputState, bool, bIsDraggingWidget, bool, bNudge, UJavascriptEditorViewport*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnViewportTrackingStopped, UJavascriptEditorViewport*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_FourParams(bool, FOnInputWidgetDelta, FVector&, Drag, FRotator&, Rot, FVector&, Scale, UJavascriptEditorViewport*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnViewportDraw, const FJavascriptPDI&, PDI, UJavascriptEditorViewport*, Instance);
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnViewportClick OnClick;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnViewportTrackingStarted OnTrackingStarted;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnViewportTrackingStopped OnTrackingStopped;	
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnInputWidgetDelta OnInputWidgetDelta;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnViewportDraw OnDraw;
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	UWorld* GetViewportWorld() const;

@@ -270,4 +270,49 @@ FJavascriptWorkspaceItem UJavascriptEditorLibrary::GetGroup(const FString& Name)
 	return Out;
 }
 
+FIntPoint UJavascriptEditorLibrary::GetClickPos(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->GetClickPos();
+}
+
+FKey UJavascriptEditorLibrary::GetKey(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->GetKey();
+}
+
+EInputEvent UJavascriptEditorLibrary::GetEvent(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->GetEvent();
+}
+
+bool UJavascriptEditorLibrary::IsControlDown(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->IsControlDown();
+}
+
+bool UJavascriptEditorLibrary::IsShiftDown(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->IsShiftDown();
+}
+
+bool UJavascriptEditorLibrary::IsAltDown(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->IsAltDown();
+}
+
+FVector UJavascriptEditorLibrary::GetOrigin(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->GetOrigin();
+}
+
+FVector UJavascriptEditorLibrary::GetDirection(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->GetDirection();
+}
+
+void UJavascriptEditorLibrary::DrawWireDiamond(const FJavascriptPDI& PDI, const FTransform& Transform, float Size, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority)
+{
+	::DrawWireDiamond(PDI.PDI, Transform.ToMatrixWithScale(), Size, InColor, DepthPriority);
+}
+
 #endif

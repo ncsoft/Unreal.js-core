@@ -2,6 +2,7 @@
 
 #include "JavascriptEditorGlobalDelegates.h"
 #include "JavascriptMenuLibrary.h"
+#include "JavascriptInputEventStateLibrary.h"
 #include "JavascriptEditorLibrary.generated.h"
 
 USTRUCT()
@@ -15,6 +16,36 @@ public:
 #endif
 };
 
+USTRUCT()
+struct FJavascriptViewportClick
+{
+	GENERATED_BODY()
+
+	FJavascriptViewportClick()
+	{}
+
+	FJavascriptViewportClick(const class FSceneView* View, class FEditorViewportClient* ViewportClient, FKey InKey, EInputEvent InEvent, int32 X, int32 Y)
+		: Click(MakeShareable(new FViewportClick(View, ViewportClient, InKey, InEvent, X, Y)))
+	{}
+
+	TSharedPtr<FViewportClick> Click;	
+};
+
+USTRUCT()
+struct FJavascriptPDI
+{
+	GENERATED_BODY()
+
+	FJavascriptPDI()
+	{}
+
+	FJavascriptPDI(FPrimitiveDrawInterface* InPDI)
+		: PDI(InPDI)
+	{}
+
+	FPrimitiveDrawInterface* PDI;
+};
+
 /**
  * 
  */
@@ -24,6 +55,30 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	GENERATED_BODY()
 
 #if WITH_EDITOR
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FIntPoint GetClickPos(const FJavascriptViewportClick& Click);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FKey GetKey(const FJavascriptViewportClick& Click);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static EInputEvent GetEvent(const FJavascriptViewportClick& Click);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool IsControlDown(const FJavascriptViewportClick& Click);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool IsShiftDown(const FJavascriptViewportClick& Click);
+	
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool IsAltDown(const FJavascriptViewportClick& Click);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FVector GetOrigin(const FJavascriptViewportClick& Click);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FVector GetDirection(const FJavascriptViewportClick& Click);
+	
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static ULandscapeInfo* GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor);
 
@@ -110,5 +165,8 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptWorkspaceItem GetGroup(const FString& Name);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void DrawWireDiamond(const FJavascriptPDI& PDI, const FTransform& Transform, float Size, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority);
 #endif
 };
