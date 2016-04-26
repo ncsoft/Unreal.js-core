@@ -270,4 +270,189 @@ FJavascriptWorkspaceItem UJavascriptEditorLibrary::GetGroup(const FString& Name)
 	return Out;
 }
 
+FIntPoint UJavascriptEditorLibrary::GetClickPos(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->GetClickPos();
+}
+
+FKey UJavascriptEditorLibrary::GetKey(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->GetKey();
+}
+
+EInputEvent UJavascriptEditorLibrary::GetEvent(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->GetEvent();
+}
+
+bool UJavascriptEditorLibrary::IsControlDown(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->IsControlDown();
+}
+
+bool UJavascriptEditorLibrary::IsShiftDown(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->IsShiftDown();
+}
+
+bool UJavascriptEditorLibrary::IsAltDown(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->IsAltDown();
+}
+
+FVector UJavascriptEditorLibrary::GetOrigin(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->GetOrigin();
+}
+
+FVector UJavascriptEditorLibrary::GetDirection(const FJavascriptViewportClick& Click)
+{
+	return Click.Click->GetDirection();
+}
+
+void UJavascriptEditorLibrary::DrawWireBox(const FJavascriptPDI& PDI, const FBox& Box, const FLinearColor& Color, ESceneDepthPriorityGroup DepthPriority, float Thickness, float DepthBias, bool bScreenSpace)
+{
+	::DrawWireBox(PDI.PDI, Box, Color, DepthPriority, Thickness, DepthBias, bScreenSpace);
+}
+void UJavascriptEditorLibrary::DrawWireBox2(const FJavascriptPDI& PDI, const FTransform& Matrix, const FBox& Box, const FLinearColor& Color, ESceneDepthPriorityGroup DepthPriority, float Thickness, float DepthBias, bool bScreenSpace)
+{
+	::DrawWireBox(PDI.PDI, Matrix.ToMatrixWithScale(), Box, Color, DepthPriority, Thickness, DepthBias, bScreenSpace);
+}
+void UJavascriptEditorLibrary::DrawCircle(const FJavascriptPDI& PDI, const FVector& Base, const FVector& X, const FVector& Y, const FLinearColor& Color, float Radius, int32 NumSides, ESceneDepthPriorityGroup DepthPriority, float Thickness, float DepthBias, bool bScreenSpace)
+{
+	::DrawCircle(PDI.PDI, Base, X, Y, Color, Radius, NumSides, DepthPriority, Thickness, DepthBias, bScreenSpace);
+}
+void UJavascriptEditorLibrary::DrawArc(const FJavascriptPDI& PDI, const FVector Base, const FVector X, const FVector Y, const float MinAngle, const float MaxAngle, const float Radius, const int32 Sections, const FLinearColor& Color, ESceneDepthPriorityGroup DepthPriority)
+{
+	::DrawArc(PDI.PDI, Base, X, Y, MinAngle, MaxAngle, Radius, Sections, Color, DepthPriority);
+}
+void UJavascriptEditorLibrary::DrawWireSphere(const FJavascriptPDI& PDI, const FVector& Base, const FLinearColor& Color, float Radius, int32 NumSides, ESceneDepthPriorityGroup DepthPriority, float Thickness, float DepthBias, bool bScreenSpace)
+{
+	::DrawWireSphere(PDI.PDI, Base, Color, Radius, NumSides, DepthPriority, Thickness, DepthBias, bScreenSpace);
+}
+void UJavascriptEditorLibrary::DrawWireSphere2(const FJavascriptPDI& PDI, const FTransform& Transform, const FLinearColor& Color, float Radius, int32 NumSides, ESceneDepthPriorityGroup DepthPriority, float Thickness, float DepthBias, bool bScreenSpace)
+{
+	::DrawWireSphere(PDI.PDI, Transform, Color, Radius, NumSides, DepthPriority, Thickness, DepthBias, bScreenSpace);
+}
+void UJavascriptEditorLibrary::DrawWireSphereAutoSides(const FJavascriptPDI& PDI, const FVector& Base, const FLinearColor& Color, float Radius, ESceneDepthPriorityGroup DepthPriority, float Thickness, float DepthBias, bool bScreenSpace)
+{
+	::DrawWireSphereAutoSides(PDI.PDI, Base, Color, Radius, DepthPriority, Thickness, DepthBias, bScreenSpace);
+}
+void UJavascriptEditorLibrary::DrawWireSphereAutoSides2(const FJavascriptPDI& PDI, const FTransform& Transform, const FLinearColor& Color, float Radius, ESceneDepthPriorityGroup DepthPriority, float Thickness, float DepthBias, bool bScreenSpace)
+{
+	::DrawWireSphereAutoSides(PDI.PDI, Transform, Color, Radius, DepthPriority, Thickness, DepthBias, bScreenSpace);
+}
+void UJavascriptEditorLibrary::DrawWireCylinder(const FJavascriptPDI& PDI, const FVector& Base, const FVector& X, const FVector& Y, const FVector& Z, const FLinearColor& Color, float Radius, float HalfHeight, int32 NumSides, ESceneDepthPriorityGroup DepthPriority, float Thickness, float DepthBias, bool bScreenSpace)
+{
+	::DrawWireCylinder(PDI.PDI, Base, X, Y, Z, Color, Radius, HalfHeight, NumSides, DepthPriority, Thickness, DepthBias, bScreenSpace);
+}
+void UJavascriptEditorLibrary::DrawWireCapsule(const FJavascriptPDI& PDI, const FVector& Base, const FVector& X, const FVector& Y, const FVector& Z, const FLinearColor& Color, float Radius, float HalfHeight, int32 NumSides, ESceneDepthPriorityGroup DepthPriority, float Thickness, float DepthBias, bool bScreenSpace)
+{
+	::DrawWireCapsule(PDI.PDI, Base, X, Y, Z, Color, Radius, HalfHeight, NumSides, DepthPriority, Thickness, DepthBias, bScreenSpace);
+}
+void UJavascriptEditorLibrary::DrawWireChoppedCone(const FJavascriptPDI& PDI, const FVector& Base, const FVector& X, const FVector& Y, const FVector& Z, const FLinearColor& Color, float Radius, float TopRadius, float HalfHeight, int32 NumSides, ESceneDepthPriorityGroup DepthPriority)
+{
+	::DrawWireChoppedCone(PDI.PDI, Base, X, Y, Z, Color, Radius, TopRadius, HalfHeight, NumSides, DepthPriority);
+}
+void UJavascriptEditorLibrary::DrawWireCone(const FJavascriptPDI& PDI, TArray<FVector>& Verts, const FTransform& Transform, float ConeRadius, float ConeAngle, int32 ConeSides, const FLinearColor& Color, ESceneDepthPriorityGroup DepthPriority, float Thickness, float DepthBias, bool bScreenSpace)
+{
+	::DrawWireCone(PDI.PDI, Verts, Transform.ToMatrixWithScale(), ConeRadius, ConeAngle, ConeSides, Color, DepthPriority, Thickness, DepthBias, bScreenSpace);
+}
+void UJavascriptEditorLibrary::DrawWireSphereCappedCone(const FJavascriptPDI& PDI, const FTransform& Transform, float ConeRadius, float ConeAngle, int32 ConeSides, int32 ArcFrequency, int32 CapSegments, const FLinearColor& Color, ESceneDepthPriorityGroup DepthPriority)
+{
+	::DrawWireSphereCappedCone(PDI.PDI, Transform, ConeRadius, ConeAngle, ConeSides, ArcFrequency, CapSegments, Color, DepthPriority);
+}
+void UJavascriptEditorLibrary::DrawOrientedWireBox(const FJavascriptPDI& PDI, const FVector& Base, const FVector& X, const FVector& Y, const FVector& Z, FVector Extent, const FLinearColor& Color, ESceneDepthPriorityGroup DepthPriority, float Thickness, float DepthBias, bool bScreenSpace)
+{
+	::DrawOrientedWireBox(PDI.PDI, Base, X, Y, Z, Extent, Color, DepthPriority, Thickness, DepthBias, bScreenSpace);
+}
+void UJavascriptEditorLibrary::DrawDirectionalArrow(const FJavascriptPDI& PDI, const FTransform& ArrowToWorld, const FLinearColor& InColor, float Length, float ArrowSize, ESceneDepthPriorityGroup DepthPriority, float Thickness)
+{
+	::DrawDirectionalArrow(PDI.PDI, ArrowToWorld.ToMatrixWithScale(), InColor, Length, ArrowSize, DepthPriority, Thickness);
+}
+void UJavascriptEditorLibrary::DrawConnectedArrow(const FJavascriptPDI& PDI, const FTransform& ArrowToWorld, const FLinearColor& Color, float ArrowHeight, float ArrowWidth, ESceneDepthPriorityGroup DepthPriority, float Thickness, int32 NumSpokes)
+{	
+	::DrawConnectedArrow(PDI.PDI, ArrowToWorld.ToMatrixWithScale(), Color, ArrowHeight, ArrowWidth, DepthPriority, Thickness, NumSpokes);
+}
+void UJavascriptEditorLibrary::DrawWireStar(const FJavascriptPDI& PDI, const FVector& Position, float Size, const FLinearColor& Color, ESceneDepthPriorityGroup DepthPriority)
+{
+	::DrawWireStar(PDI.PDI, Position, Size, Color, DepthPriority);
+}
+void UJavascriptEditorLibrary::DrawDashedLine(const FJavascriptPDI& PDI, const FVector& Start, const FVector& End, const FLinearColor& Color, float DashSize, ESceneDepthPriorityGroup DepthPriority, float DepthBias)
+{
+	::DrawDashedLine(PDI.PDI, Start, End, Color, DashSize, DepthPriority, DepthBias);
+}
+void UJavascriptEditorLibrary::DrawWireDiamond(const FJavascriptPDI& PDI, const FTransform& Transform, float Size, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority)
+{
+	::DrawWireDiamond(PDI.PDI, Transform.ToMatrixWithScale(), Size, InColor, DepthPriority);
+}
+
+struct HJavascriptHitProxy : public HHitProxy
+{
+	DECLARE_HIT_PROXY(JAVASCRIPTEDITOR_API);
+
+	FName Name;
+	
+	HJavascriptHitProxy(FName InName) :
+		HHitProxy(HPP_UI),
+		Name(InName)
+	{}
+
+	virtual EMouseCursor::Type GetMouseCursor() override
+	{
+		return EMouseCursor::Crosshairs;
+	}
+
+	/**
+	* Method that specifies whether the hit proxy *always* allows translucent primitives to be associated with it or not,
+	* regardless of any other engine/editor setting. For example, if translucent selection was disabled, any hit proxies
+	*  returning true would still allow translucent selection. In this specific case, true is always returned because geometry
+	* mode hit proxies always need to be selectable or geometry mode will not function correctly.
+	*
+	* @return	true if translucent primitives are always allowed with this hit proxy; false otherwise
+	*/
+	virtual bool AlwaysAllowsTranslucentPrimitives() const override
+	{
+		return true;
+	}
+};
+
+IMPLEMENT_HIT_PROXY(HJavascriptHitProxy, HHitProxy);
+
+void UJavascriptEditorLibrary::SetHitProxy(const FJavascriptPDI& PDI, const FName& Name)
+{
+	if (Name.IsNone())
+	{
+		PDI.PDI->SetHitProxy(nullptr);
+	}
+	else
+	{
+		PDI.PDI->SetHitProxy(new HJavascriptHitProxy(Name));
+	}
+}
+
+AActor* UJavascriptEditorLibrary::GetActor(const FJavascriptHitProxy& Proxy)
+{
+	if (Proxy.HitProxy && Proxy.HitProxy->IsA(HActor::StaticGetType()))
+	{
+		HActor* ActorHit = static_cast<HActor*>(Proxy.HitProxy);
+		if (ActorHit->Actor != NULL)
+		{
+			return ActorHit->Actor;
+		}
+	}
+
+	return nullptr;
+}
+
+FName UJavascriptEditorLibrary::GetName(const FJavascriptHitProxy& Proxy)
+{
+	if (Proxy.HitProxy && Proxy.HitProxy->IsA(HJavascriptHitProxy::StaticGetType()))
+	{
+		HJavascriptHitProxy* ActorHit = static_cast<HJavascriptHitProxy*>(Proxy.HitProxy);
+		return ActorHit->Name;		
+	}
+
+	return FName();
+}
 #endif
