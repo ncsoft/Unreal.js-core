@@ -29,6 +29,14 @@ public:
 };
 
 USTRUCT()
+struct FJavascriptHitProxy
+{
+	GENERATED_BODY()
+
+	class HHitProxy* HitProxy;
+};
+
+USTRUCT()
 struct FJavascriptViewportClick
 {
 	GENERATED_BODY()
@@ -67,6 +75,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	GENERATED_BODY()
 
 #if WITH_EDITOR
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static AActor* GetActor(const FJavascriptHitProxy& Proxy);
+
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FIntPoint GetClickPos(const FJavascriptViewportClick& Click);
 

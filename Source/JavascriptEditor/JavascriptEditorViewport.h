@@ -21,7 +21,7 @@ public:
 #endif
 
 	/** Delegate for constructing a UWidget based on a UObject */
-	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnViewportClick, const FJavascriptViewportClick&, ViewportClick, UJavascriptEditorViewport*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnViewportClick, const FJavascriptViewportClick&, ViewportClick, const FJavascriptHitProxy&, HitProxy, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_FourParams(FOnViewportTrackingStarted, const FJavascriptInputEventState&, InputState, bool, bIsDraggingWidget, bool, bNudge, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnViewportTrackingStopped, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_RetVal_FourParams(bool, FOnInputWidgetDelta, FVector&, Drag, FRotator&, Rot, FVector&, Scale, UJavascriptEditorViewport*, Instance);
@@ -95,6 +95,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void SetWidgetMode(EJavascriptWidgetMode WidgetMode);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	FString GetEngineShowFlags();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	bool SetEngineShowFlags(const FString& In);
 
 	// UPanelWidget
 	virtual UClass* GetSlotClass() const override;

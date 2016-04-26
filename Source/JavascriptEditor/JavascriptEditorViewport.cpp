@@ -32,7 +32,9 @@ public:
 	{
 		if (Widget->OnClick.IsBound())
 		{
-			Widget->OnClick.Execute(FJavascriptViewportClick(&View, this, Key, Event, HitX, HitY), Widget);
+			FJavascriptHitProxy Proxy;
+			Proxy.HitProxy = HitProxy;
+			Widget->OnClick.Execute(FJavascriptViewportClick(&View, this, Key, Event, HitX, HitY), Proxy, Widget);
 		}
 	}
 
@@ -249,6 +251,24 @@ class SAutoRefreshEditorViewport : public SEditorViewport, public FGCObject
 		EditorViewportClient->SetWidgetMode(WidgetMode == EJavascriptWidgetMode::WM_None ? FWidget::WM_None : (FWidget::EWidgetMode)WidgetMode);
 	}
 
+	FString GetEngineShowFlags()
+	{
+		return EditorViewportClient->EngineShowFlags.ToString();
+	}
+
+	bool SetEngineShowFlags(const FString& In)
+	{
+		if (EditorViewportClient->EngineShowFlags.SetFromString(*In))
+		{
+			EditorViewportClient->Invalidate();
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
 public:
 	TSharedPtr<FJavascriptEditorViewportClient> EditorViewportClient;
 	
@@ -431,5 +451,29 @@ void UJavascriptEditorViewport::SetWidgetMode(EJavascriptWidgetMode WidgetMode)
 	if (ViewportWidget.IsValid())
 	{
 		ViewportWidget->SetWidgetMode(WidgetMode);
+	}
+}
+
+FString UJavascriptEditorViewport::GetEngineShowFlags()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetEngineShowFlags();
+	}
+	else
+	{
+		return TEXT("");
+	}
+}
+
+bool UJavascriptEditorViewport::SetEngineShowFlags(const FString& In)
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->SetEngineShowFlags(In);
+	}
+	else
+	{
+		return false;
 	}
 }

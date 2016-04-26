@@ -315,4 +315,18 @@ void UJavascriptEditorLibrary::DrawWireDiamond(const FJavascriptPDI& PDI, const 
 	::DrawWireDiamond(PDI.PDI, Transform.ToMatrixWithScale(), Size, InColor, DepthPriority);
 }
 
+AActor* UJavascriptEditorLibrary::GetActor(const FJavascriptHitProxy& Proxy)
+{
+	if (Proxy.HitProxy && Proxy.HitProxy->IsA(HActor::StaticGetType()))
+	{
+		HActor* ActorHit = static_cast<HActor*>(Proxy.HitProxy);
+		if (ActorHit->Actor != NULL)
+		{
+			return ActorHit->Actor;
+		}
+	}
+
+	return nullptr;
+}
+
 #endif
