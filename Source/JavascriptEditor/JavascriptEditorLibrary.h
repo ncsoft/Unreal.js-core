@@ -45,10 +45,17 @@ struct FJavascriptViewportClick
 	{}
 
 	FJavascriptViewportClick(const class FSceneView* View, class FEditorViewportClient* ViewportClient, FKey InKey, EInputEvent InEvent, int32 X, int32 Y)
-		: Click(MakeShareable(new FViewportClick(View, ViewportClient, InKey, InEvent, X, Y)))
+		: Instance(MakeShareable(new FViewportClick(View, ViewportClient, InKey, InEvent, X, Y)))
+	{
+		Click = Instance.Get();
+	}
+
+	FJavascriptViewportClick(const FViewportClick* Other)
+		: Click(Other)
 	{}
 
-	TSharedPtr<FViewportClick> Click;	
+	const FViewportClick* Click;
+	TSharedPtr<FViewportClick> Instance;	
 };
 
 USTRUCT()
