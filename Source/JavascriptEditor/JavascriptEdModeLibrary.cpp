@@ -5,39 +5,73 @@
 
 void UJavascriptEdModeLibrary::SetDefaultMode(FJavascriptEditorModeTools& Tools, FName DefaultID)
 {
-	Tools.Tools->SetDefaultMode(DefaultID);
+	Tools->SetDefaultMode(DefaultID);
 }
 void UJavascriptEdModeLibrary::ActivateDefaultMode(FJavascriptEditorModeTools& Tools)
 {
-	Tools.Tools->ActivateDefaultMode();
+	Tools->ActivateDefaultMode();
 }
 bool UJavascriptEdModeLibrary::IsDefaultModeActive(FJavascriptEditorModeTools& Tools)
 {
-	return Tools.Tools->IsDefaultModeActive();
+	return Tools->IsDefaultModeActive();
 }
 void UJavascriptEdModeLibrary::ActivateMode(FJavascriptEditorModeTools& Tools, FName InID, bool bToggle)
 {
-	Tools.Tools->ActivateMode(InID, bToggle);
+	Tools->ActivateMode(InID, bToggle);
 }
 void UJavascriptEdModeLibrary::DeactivateMode(FJavascriptEditorModeTools& Tools, FName InID)
 {
-	Tools.Tools->DeactivateMode(InID);
+	Tools->DeactivateMode(InID);
 }
 void UJavascriptEdModeLibrary::DestroyMode(FJavascriptEditorModeTools& Tools, FName InID)
 {
-	Tools.Tools->DestroyMode(InID);
+	Tools->DestroyMode(InID);
 }
 void UJavascriptEdModeLibrary::DeactivateAllModes(FJavascriptEditorModeTools& Tools)
 {
-	Tools.Tools->DeactivateAllModes();
+	Tools->DeactivateAllModes();
 }
 bool UJavascriptEdModeLibrary::EnsureNotInMode(FJavascriptEditorModeTools& Tools, FName ModeID, const FText& ErrorMsg, bool bNotifyUser)
 {
-	return Tools.Tools->EnsureNotInMode(ModeID, ErrorMsg, bNotifyUser);
+	return Tools->EnsureNotInMode(ModeID, ErrorMsg, bNotifyUser);
 }
 bool UJavascriptEdModeLibrary::IsModeActive(FJavascriptEditorModeTools& Tools, FName InID)
 {
-	return Tools.Tools->IsModeActive(InID);
+	return Tools->IsModeActive(InID);
+}
+
+bool UJavascriptEdModeLibrary::StartTracking(FJavascriptEditorModeTools Tools, FJavascriptEdViewport Viewport)
+{
+	return Tools->StartTracking(Viewport.ViewportClient, Viewport.Viewport);
+}
+
+bool UJavascriptEdModeLibrary::EndTracking(FJavascriptEditorModeTools Tools, FJavascriptEdViewport Viewport)
+{
+	return Tools->EndTracking(Viewport.ViewportClient, Viewport.Viewport);
+}
+
+bool UJavascriptEdModeLibrary::IsTracking(FJavascriptEditorModeTools Tools)
+{
+	return Tools->IsTracking();
+}
+
+FJavascriptEditorModeTools UJavascriptEdModeLibrary::GetModeManager(FJavascriptEditorMode Mode)
+{
+	return Mode->GetModeManager();
+}
+
+int32 UJavascriptEdModeLibrary::GetCurrentWidgetAxis(FJavascriptEditorMode Mode)
+{
+	return Mode->GetCurrentWidgetAxis();
+}
+
+void UJavascriptEdModeLibrary::SetCurrentWidgetAxis(FJavascriptEditorMode Mode, int32 InAxis)
+{
+	Mode->SetCurrentWidgetAxis((EAxisList::Type)InAxis);
+}
+void UJavascriptEdModeLibrary::SelectNone(FJavascriptEditorMode Mode)
+{
+	Mode->SelectNone();
 }
 
 

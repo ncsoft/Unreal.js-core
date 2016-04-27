@@ -44,20 +44,6 @@ struct FJavascriptSlateIcon
 	}
 };
 
-USTRUCT()
-struct FJavascriptEdViewport
-{
-	GENERATED_BODY()
-
-	FJavascriptEdViewport() {}
-	FJavascriptEdViewport(FEditorViewportClient* InViewportClient, FViewport* InViewport)
-		: ViewportClient(InViewportClient), Viewport(InViewport)
-	{}
-
-	FEditorViewportClient* ViewportClient;
-	FViewport* Viewport;
-};
-
 UCLASS()
 class JAVASCRIPTEDITOR_API UJavascriptEdMode : public UObject
 {
@@ -66,21 +52,22 @@ class JAVASCRIPTEDITOR_API UJavascriptEdMode : public UObject
 public:	
 #if WITH_EDITOR
 	DECLARE_DYNAMIC_DELEGATE_RetVal(UWidget*, FOnGetWidget);
-	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnProcess, FName, Request);
-	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(EJavascriptEditAction, FOnGetAction, FName, Request);
 	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSelectionChanged, FJavascriptEditorModeTools&, Tools, UObject*, Item);
-	DECLARE_DYNAMIC_DELEGATE(FSimpleDelegate);	
-	DECLARE_DYNAMIC_DELEGATE_RetVal(FVector,FQueryVector);
-	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FActorDuplicated, TArray<AActor*>&, PreDuplicateSelection, TArray<AActor*>&, PostDuplicateSelection, bool, bOffsetLocations);
-	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(bool, FViewportXY, const FJavascriptEdViewport&, Viewport, int32, X, int32, Y);
-	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FViewport0, const FJavascriptEdViewport&, Viewport);
-	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(bool, FViewportKey, const FJavascriptEdViewport&, Viewport, FKey, Key, EInputEvent, Event);
-	DECLARE_DYNAMIC_DELEGATE_RetVal_FiveParams(bool, FViewportAxis, const FJavascriptEdViewport&, Viewport, int32, ControllerId, FKey, Key, float, Delta, float, DeltaTime);
-	DECLARE_DYNAMIC_DELEGATE_RetVal_FourParams(bool, FViewportDelta, const FJavascriptEdViewport&, Viewport, FVector&, Drag, FRotator&, Rot, FVector&, Scale);
-	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FOnClick, const FJavascriptViewportClick&, ViewportClick, const FJavascriptHitProxy&, HitProxy);
-	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FOnSelect, AActor*, Actor, bool, bSelected);	
-	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnDraw, const FJavascriptPDI&, PDI);
-	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnDrawHUD, UCanvas*, Canvas);
+
+	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FOnProcess, FName, Request, FJavascriptEditorMode, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(EJavascriptEditAction, FOnGetAction, FName, Request, FJavascriptEditorMode, Instance);	
+	DECLARE_DYNAMIC_DELEGATE_OneParam(FSimpleDelegate, FJavascriptEditorMode, Instance);	
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FVector,FQueryVector, FJavascriptEditorMode, Instance);
+	DECLARE_DYNAMIC_DELEGATE_FourParams(FActorDuplicated, TArray<AActor*>&, PreDuplicateSelection, TArray<AActor*>&, PostDuplicateSelection, bool, bOffsetLocations, FJavascriptEditorMode, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_FourParams(bool, FViewportXY, const FJavascriptEdViewport&, Viewport, int32, X, int32, Y, FJavascriptEditorMode, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FViewport0, const FJavascriptEdViewport&, Viewport, FJavascriptEditorMode, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_FourParams(bool, FViewportKey, const FJavascriptEdViewport&, Viewport, FKey, Key, EInputEvent, Event, FJavascriptEditorMode, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_SixParams(bool, FViewportAxis, const FJavascriptEdViewport&, Viewport, int32, ControllerId, FKey, Key, float, Delta, float, DeltaTime, FJavascriptEditorMode, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_FiveParams(bool, FViewportDelta, const FJavascriptEdViewport&, Viewport, FVector&, Drag, FRotator&, Rot, FVector&, Scale, FJavascriptEditorMode, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(bool, FOnClick, const FJavascriptViewportClick&, ViewportClick, const FJavascriptHitProxy&, HitProxy, FJavascriptEditorMode, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(bool, FOnSelect, AActor*, Actor, bool, bSelected, FJavascriptEditorMode, Instance);
+	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnDraw, const FJavascriptPDI&, PDI, FJavascriptEditorMode, Instance);
+	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnDrawHUD, UCanvas*, Canvas, FJavascriptEditorMode, Instance);
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FQueryVector OnGetWidgetLocation;

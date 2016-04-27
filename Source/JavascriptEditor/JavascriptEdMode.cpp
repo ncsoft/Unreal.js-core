@@ -95,10 +95,10 @@ private:
 	UJavascriptEdMode* Parent;
 };
 
-class FJavascriptEdMode : public FEdMode
+class FJavascriptEdModeInstance : public FEdMode
 {
 public:
-	FJavascriptEdMode(UJavascriptEdMode* InParent)
+	FJavascriptEdModeInstance(UJavascriptEdMode* InParent)
 		: Parent(InParent)
 	{}
 
@@ -116,48 +116,48 @@ public:
 
 	virtual bool MouseEnter(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 x, int32 y)
 	{
-		return Parent->OnMouseEnter.IsBound() && Parent->OnMouseEnter.Execute(FJavascriptEdViewport(ViewportClient, Viewport), x, y);
+		return Parent->OnMouseEnter.IsBound() && Parent->OnMouseEnter.Execute(FJavascriptEdViewport(ViewportClient, Viewport), x, y, this);
 	}
 
 	virtual bool MouseLeave(FEditorViewportClient* ViewportClient, FViewport* Viewport)
 	{
-		return Parent->OnMouseLeave.IsBound() && Parent->OnMouseLeave.Execute(FJavascriptEdViewport(ViewportClient, Viewport));
+		return Parent->OnMouseLeave.IsBound() && Parent->OnMouseLeave.Execute(FJavascriptEdViewport(ViewportClient, Viewport), this);
 	}
 	virtual bool MouseMove(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 x, int32 y)
 	{
-		return Parent->OnMouseMove.IsBound() && Parent->OnMouseMove.Execute(FJavascriptEdViewport(ViewportClient, Viewport), x, y);
+		return Parent->OnMouseMove.IsBound() && Parent->OnMouseMove.Execute(FJavascriptEdViewport(ViewportClient, Viewport), x, y, this);
 	}
 	virtual bool ReceivedFocus(FEditorViewportClient* ViewportClient, FViewport* Viewport)
 	{
-		return Parent->OnReceivedFocus.IsBound() && Parent->OnReceivedFocus.Execute(FJavascriptEdViewport(ViewportClient, Viewport));
+		return Parent->OnReceivedFocus.IsBound() && Parent->OnReceivedFocus.Execute(FJavascriptEdViewport(ViewportClient, Viewport), this);
 	}
 	virtual bool LostFocus(FEditorViewportClient* ViewportClient, FViewport* Viewport)
 	{
-		return Parent->OnLostFocus.IsBound() && Parent->OnLostFocus.Execute(FJavascriptEdViewport(ViewportClient, Viewport));
+		return Parent->OnLostFocus.IsBound() && Parent->OnLostFocus.Execute(FJavascriptEdViewport(ViewportClient, Viewport), this);
 	}
 	virtual bool CapturedMouseMove(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 InMouseX, int32 InMouseY)
 	{
-		return Parent->OnCapturedMouseMove.IsBound() && Parent->OnCapturedMouseMove.Execute(FJavascriptEdViewport(ViewportClient, Viewport), InMouseX, InMouseY);
+		return Parent->OnCapturedMouseMove.IsBound() && Parent->OnCapturedMouseMove.Execute(FJavascriptEdViewport(ViewportClient, Viewport), InMouseX, InMouseY, this);
 	}
 	virtual bool InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
 	{
-		return Parent->OnInputKey.IsBound() && Parent->OnInputKey.Execute(FJavascriptEdViewport(ViewportClient, Viewport),Key,Event);
+		return Parent->OnInputKey.IsBound() && Parent->OnInputKey.Execute(FJavascriptEdViewport(ViewportClient, Viewport),Key,Event, this);
 	}
 	virtual bool InputAxis(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 ControllerId, FKey Key, float Delta, float DeltaTime)
 	{
-		return Parent->OnInputAxis.IsBound() && Parent->OnInputAxis.Execute(FJavascriptEdViewport(ViewportClient, Viewport), ControllerId, Key, Delta, DeltaTime);
+		return Parent->OnInputAxis.IsBound() && Parent->OnInputAxis.Execute(FJavascriptEdViewport(ViewportClient, Viewport), ControllerId, Key, Delta, DeltaTime, this);
 	}
 	virtual bool InputDelta(FEditorViewportClient* ViewportClient, FViewport* Viewport, FVector& InDrag, FRotator& InRot, FVector& InScale)
 	{
-		return Parent->OnInputDelta.IsBound() && Parent->OnInputDelta.Execute(FJavascriptEdViewport(ViewportClient, Viewport), InDrag, InRot, InScale);
+		return Parent->OnInputDelta.IsBound() && Parent->OnInputDelta.Execute(FJavascriptEdViewport(ViewportClient, Viewport), InDrag, InRot, InScale, this);
 	}
 	virtual bool StartTracking(FEditorViewportClient* ViewportClient, FViewport* Viewport)
 	{
-		return Parent->OnStartTracking.IsBound() && Parent->OnStartTracking.Execute(FJavascriptEdViewport(ViewportClient, Viewport));
+		return Parent->OnStartTracking.IsBound() && Parent->OnStartTracking.Execute(FJavascriptEdViewport(ViewportClient, Viewport), this);
 	}
 	virtual bool EndTracking(FEditorViewportClient* ViewportClient, FViewport* Viewport)
 	{
-		return Parent->OnEndTracking.IsBound() && Parent->OnEndTracking.Execute(FJavascriptEdViewport(ViewportClient, Viewport));
+		return Parent->OnEndTracking.IsBound() && Parent->OnEndTracking.Execute(FJavascriptEdViewport(ViewportClient, Viewport), this);
 	}
 
 	/** FEdMode: widget handling */
@@ -165,7 +165,7 @@ public:
 	{
 		if (Parent->OnGetWidgetLocation.IsBound())
 		{
-			return Parent->OnGetWidgetLocation.Execute();
+			return Parent->OnGetWidgetLocation.Execute(this);
 		}
 		else
 		{
@@ -189,7 +189,7 @@ public:
 		{
 			FJavascriptHitProxy Proxy;
 			Proxy.HitProxy = HitProxy;
-			if (Parent->OnClick.Execute(FJavascriptViewportClick(&Click), Proxy)) return true;
+			if (Parent->OnClick.Execute(FJavascriptViewportClick(&Click), Proxy, this)) return true;
 		}
 		
 		return FEdMode::HandleClick(InViewportClient, HitProxy, Click);
@@ -200,7 +200,7 @@ public:
 	{ 
 		if (Parent->OnSelect.IsBound())
 		{
-			return Parent->OnSelect.Execute(InActor, bInSelected);
+			return Parent->OnSelect.Execute(InActor, bInSelected, this);
 		}
 		else
 		{
@@ -213,7 +213,7 @@ public:
 	{
 		if (Parent->IsSelectionAllowed.IsBound())
 		{
-			return Parent->IsSelectionAllowed.Execute(InActor, bInSelection);
+			return Parent->IsSelectionAllowed.Execute(InActor, bInSelection, this);
 		}
 		else
 		{
@@ -227,7 +227,7 @@ public:
 
 		if (Parent->OnDraw.IsBound())
 		{
-			Parent->OnDraw.Execute(FJavascriptPDI(PDI));
+			Parent->OnDraw.Execute(FJavascriptPDI(PDI), this);
 		}
 	}
 	//void DrawGridSection(int32 ViewportLocX,int32 ViewportGridY,FVector* A,FVector* B,float* AX,float* BX,int32 Axis,int32 AlphaCase,FSceneView* View,FPrimitiveDrawInterface* PDI);
@@ -247,7 +247,7 @@ public:
 			CanvasObject->Init(View->UnscaledViewRect.Width(), View->UnscaledViewRect.Height(), const_cast<FSceneView*>(View));
 			CanvasObject->ApplySafeZoneTransform();
 
-			Parent->OnDrawHUD.Execute(CanvasObject);
+			Parent->OnDrawHUD.Execute(CanvasObject, this);
 
 			CanvasObject->PopSafeZoneTransform();
 		}		
@@ -260,27 +260,27 @@ public:
 
 	virtual void ActorMoveNotify() 
 	{
-		Parent->OnActorMoved.ExecuteIfBound();		
+		Parent->OnActorMoved.ExecuteIfBound(this);		
 	}
 
 	virtual void ActorsDuplicatedNotify(TArray<AActor*>& PreDuplicateSelection, TArray<AActor*>& PostDuplicateSelection, bool bOffsetLocations)
 	{
-		Parent->OnActorsDuplicated.ExecuteIfBound(PreDuplicateSelection, PostDuplicateSelection, bOffsetLocations);
+		Parent->OnActorsDuplicated.ExecuteIfBound(PreDuplicateSelection, PostDuplicateSelection, bOffsetLocations, this);
 	}
 
 	virtual void ActorSelectionChangeNotify()
 	{
-		Parent->OnActorSelectionChanged.ExecuteIfBound();
+		Parent->OnActorSelectionChanged.ExecuteIfBound(this);
 	}
 
 	virtual void ActorPropChangeNotify()
 	{
-		Parent->OnActorPropChanged.ExecuteIfBound();
+		Parent->OnActorPropChanged.ExecuteIfBound(this);
 	}
 
 	virtual void MapChangeNotify()
 	{
-		Parent->OnMapChanged.ExecuteIfBound();
+		Parent->OnMapChanged.ExecuteIfBound(this);
 	}
 
 	virtual EEditAction::Type GetActionEditDuplicate() override { return GetAction(FName("EditDuplicate")); }
@@ -296,14 +296,14 @@ public:
 
 	EEditAction::Type GetAction(FName Request)
 	{
-		return Parent->OnGetAction.IsBound() ? (EEditAction::Type)(Parent->OnGetAction.Execute(Request)) : EEditAction::Skip;
+		return Parent->OnGetAction.IsBound() ? (EEditAction::Type)(Parent->OnGetAction.Execute(Request,this)) : EEditAction::Skip;
 	}
 
 	bool Process(FName Request,bool bDefaultValue = false) const
 	{
 		if (Parent->OnProcess.IsBound())
 		{
-			return Parent->OnProcess.Execute(Request);
+			return Parent->OnProcess.Execute(Request, this);
 		}
 		else
 		{
@@ -315,6 +315,8 @@ public:
 	{
 		FEdMode::Enter();
 
+		Process(FName("Enter"));
+
 		if (!Toolkit.IsValid())
 		{
 			Toolkit = MakeShareable(new FJavascriptEdToolkit(Parent));
@@ -324,6 +326,8 @@ public:
 
 	virtual void Exit() override
 	{
+		Process(FName("Exit"));
+
 		FToolkitManager::Get().CloseToolkit(Toolkit.ToSharedRef());
 		Toolkit.Reset();
 
@@ -361,7 +365,7 @@ public:
 
 	virtual TSharedRef<FEdMode> CreateMode() const override
 	{
-		return MakeShareable(new FJavascriptEdMode(Parent));
+		return MakeShareable(new FJavascriptEdModeInstance(Parent));
 	}
 
 	UJavascriptEdMode* Parent;
