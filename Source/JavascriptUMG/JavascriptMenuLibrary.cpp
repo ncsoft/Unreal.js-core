@@ -19,10 +19,10 @@ bool UJavascriptMenuLibrary::ProcessCommandBindings_PointerEvent(FJavascriptUICo
 	return CommandList.Handle->ProcessCommandBindings(InMouseEvent);
 }
 
-FJavascriptMenuBuilder UJavascriptMenuLibrary::CreateToolbarBuilder(FJavascriptUICommandList CommandList)
+FJavascriptMenuBuilder UJavascriptMenuLibrary::CreateToolbarBuilder(FJavascriptUICommandList CommandList, EOrientation Orientation)
 {
 	FJavascriptMenuBuilder Out;
-	Out.MultiBox = Out.ToolBar = MakeShareable(new FToolBarBuilder(CommandList.Handle, FMultiBoxCustomization::None));
+	Out.MultiBox = Out.ToolBar = MakeShareable(new FToolBarBuilder(CommandList.Handle, FMultiBoxCustomization::None, nullptr, Orientation));
 	return Out;
 }
 
