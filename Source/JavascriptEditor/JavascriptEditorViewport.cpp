@@ -201,6 +201,16 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 		EditorViewportClient->SetViewRotation(ViewRotation);
 	}
 
+	void SetViewFOV(float InViewFOV)
+	{
+		EditorViewportClient->ViewFOV = InViewFOV;
+	}
+
+	float GetViewFOV()
+	{
+		return EditorViewportClient->ViewFOV;
+	}
+
 	void OverridePostProcessSettings(const FPostProcessSettings& PostProcessSettings, float Weight)
 	{
 		EditorViewportClient->PostProcessSettings = PostProcessSettings;
@@ -392,6 +402,24 @@ void UJavascriptEditorViewport::SetViewRotation(const FRotator& ViewRotation)
 	{
 		ViewportWidget->SetViewRotation(ViewRotation);
 	}
+}
+
+void UJavascriptEditorViewport::SetViewFOV(float InViewFOV)
+{
+	if (ViewportWidget.IsValid())
+	{
+		ViewportWidget->SetViewFOV(InViewFOV);
+	}
+}
+
+float UJavascriptEditorViewport::GetViewFOV()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetViewFOV();
+	}
+
+	return -1.0f;
 }
 
 void UJavascriptEditorViewport::SetLightDirection(const FRotator& InLightDir)
