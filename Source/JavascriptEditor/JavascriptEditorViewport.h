@@ -82,6 +82,12 @@ public:
 	float GetViewFOV();
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void SetCameraSpeedSetting(int32 SpeedSetting);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	int32 GetCameraSpeedSetting();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void RestoreRealtime(bool bAllowDisable);
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
