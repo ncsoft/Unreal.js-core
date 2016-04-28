@@ -823,7 +823,7 @@ public:
 
 		auto exec_transaction = [](const FunctionCallbackInfo<Value>& info)
 		{
-			if (info.Length() == 0)
+			if (info.Length() == 2)
 			{
 				auto String = StringFromV8(info[0]);
 				FScopedTransaction Transaction(FText::FromString(String));

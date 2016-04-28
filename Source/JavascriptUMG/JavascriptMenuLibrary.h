@@ -98,7 +98,7 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 	GENERATED_BODY()
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FJavascriptMenuBuilder CreateToolbarBuilder(FJavascriptUICommandList CommandList);
+	static FJavascriptMenuBuilder CreateToolbarBuilder(FJavascriptUICommandList CommandList, EOrientation Orientation);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptMenuBuilder CreateMenuBuilder(FJavascriptUICommandList CommandList, bool bInShouldCloseWindowAfterMenuSelection);
