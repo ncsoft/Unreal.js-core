@@ -201,6 +201,26 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 		EditorViewportClient->SetViewRotation(ViewRotation);
 	}
 
+	void SetViewFOV(float InViewFOV)
+	{
+		EditorViewportClient->ViewFOV = InViewFOV;
+	}
+
+	float GetViewFOV()
+	{
+		return EditorViewportClient->ViewFOV;
+	}
+
+	void SetCameraSpeedSetting(int32 SpeedSetting)
+	{
+		EditorViewportClient->SetCameraSpeedSetting(SpeedSetting);
+	}
+
+	int32 GetCameraSpeedSetting()
+	{
+		return EditorViewportClient->GetCameraSpeedSetting();
+	}
+
 	void OverridePostProcessSettings(const FPostProcessSettings& PostProcessSettings, float Weight)
 	{
 		EditorViewportClient->PostProcessSettings = PostProcessSettings;
@@ -392,6 +412,42 @@ void UJavascriptEditorViewport::SetViewRotation(const FRotator& ViewRotation)
 	{
 		ViewportWidget->SetViewRotation(ViewRotation);
 	}
+}
+
+void UJavascriptEditorViewport::SetViewFOV(float InViewFOV)
+{
+	if (ViewportWidget.IsValid())
+	{
+		ViewportWidget->SetViewFOV(InViewFOV);
+	}
+}
+
+float UJavascriptEditorViewport::GetViewFOV()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetViewFOV();
+	}
+
+	return -1.0f;
+}
+
+void UJavascriptEditorViewport::SetCameraSpeedSetting(int32 SpeedSetting)
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->SetCameraSpeedSetting(SpeedSetting);
+	}
+}
+
+int32 UJavascriptEditorViewport::GetCameraSpeedSetting()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetCameraSpeedSetting();
+	}
+
+	return -1;
 }
 
 void UJavascriptEditorViewport::SetLightDirection(const FRotator& InLightDir)

@@ -76,6 +76,18 @@ public:
 	void SetViewRotation(const FRotator& ViewRotation);
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void SetViewFOV(float InViewFOV);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	float GetViewFOV();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void SetCameraSpeedSetting(int32 SpeedSetting);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	int32 GetCameraSpeedSetting();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void RestoreRealtime(bool bAllowDisable);
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
