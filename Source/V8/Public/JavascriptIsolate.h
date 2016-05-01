@@ -34,6 +34,20 @@ public:
 	virtual int32 GetSize(int32 Dim) { return 0; }
 };
 
+struct FPrivateJavascriptFunction;
+
+USTRUCT()
+struct V8_API FJavascriptFunction
+{
+	GENERATED_BODY()
+
+public:
+	void Execute();
+	void Execute(UScriptStruct* Struct, void* Buffer);
+
+	TSharedPtr<FPrivateJavascriptFunction> Handle;
+};
+
 UCLASS()
 class V8_API UJavascriptIsolate : public UObject
 {

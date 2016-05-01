@@ -1,5 +1,6 @@
 #pragma once
 
+#include "JavascriptIsolate.h"
 #include "JavascriptMenuLibrary.generated.h"
 
 UENUM()
@@ -42,30 +43,15 @@ struct FJavascriptUICommand
 	TEnumAsByte<EJavasrciptUserInterfaceActionType::Type> ActionType;
 };
 
-#if PLATFORM_MAC
-#define TakeBuilder(x) x
-#define IsValidBuilder(x) (x != nullptr)
-#else
-#define TakeBuilder(x) MakeShareable(x)
-#define IsValidBuilder(x) x.IsValid()
-#endif
-
 USTRUCT()
 struct FJavascriptMenuBuilder
 {
 	GENERATED_BODY()
 
-#if PLATFORM_MAC
 	FMultiBoxBuilder* MultiBox = nullptr;
 	FMenuBuilder* Menu = nullptr;
 	FMenuBarBuilder* MenuBar = nullptr;
 	FToolBarBuilder* ToolBar = nullptr;
-#else	
-	TSharedPtr<FMultiBoxBuilder> MultiBox;
-	TSharedPtr<FMenuBuilder> Menu;
-	TSharedPtr<FMenuBarBuilder> MenuBar;
-	TSharedPtr<FToolBarBuilder> ToolBar;
-#endif
 };
 
 USTRUCT()
@@ -113,13 +99,16 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 	GENERATED_BODY()
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FJavascriptMenuBuilder CreateToolbarBuilder(FJavascriptUICommandList CommandList, EOrientation Orientation);
+	static void Test(int a, FJavascriptFunction f);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FJavascriptMenuBuilder CreateMenuBuilder(FJavascriptUICommandList CommandList, bool bInShouldCloseWindowAfterMenuSelection);
+	static void CreateToolbarBuilder(FJavascriptUICommandList CommandList, EOrientation Orientation, FJavascriptFunction Function);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FJavascriptMenuBuilder CreateMenuBarBuilder(FJavascriptUICommandList CommandList);
+	static void CreateMenuBuilder(FJavascriptUICommandList CommandList, bool bInShouldCloseWindowAfterMenuSelection, FJavascriptFunction Function);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void CreateMenuBarBuilder(FJavascriptUICommandList CommandList, FJavascriptFunction Function);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void BeginSection(FJavascriptMenuBuilder& Builder, FName InExtensionHook);
