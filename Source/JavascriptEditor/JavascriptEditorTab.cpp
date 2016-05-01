@@ -6,7 +6,7 @@
 UJavascriptEditorTab::UJavascriptEditorTab(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 #if WITH_EDITOR
-, bRegistered(false), bIsNomad(true)
+, bIsNomad(true), bRegistered(false)
 #endif
 {	
 }

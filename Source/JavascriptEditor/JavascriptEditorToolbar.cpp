@@ -7,7 +7,7 @@ void UJavascriptEditorToolbar::Setup(TSharedRef<SBox> Box)
 {	
 	auto Builder = OnHook.Execute();	
 
-	if (Builder.MultiBox.IsValid())
+	if (IsValidBuilder(Builder.MultiBox))
 	{
 		Box->SetContent(Builder.MultiBox->MakeWidget());
 	}

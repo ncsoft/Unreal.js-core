@@ -460,7 +460,7 @@ public:
 		}
 		else if (auto p = Cast<UBoolProperty>(Property))
 		{
-			return Boolean::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+            return v8::Boolean::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
 		}
 		else if (auto p = Cast<UNameProperty>(Property))
 		{

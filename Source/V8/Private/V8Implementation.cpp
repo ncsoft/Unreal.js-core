@@ -144,6 +144,7 @@ bool UJavascriptContext::CallProxyFunction(UObject* Holder, UObject* This, UFunc
 	return JavascriptContext->CallProxyFunction(Holder, This, FunctionToCall, Parms);
 }
 
+#if !PLATFORM_MAC
 namespace fastcall
 {
 	enum { MaxArgs = 32 };
@@ -196,6 +197,7 @@ namespace fastcall
 		context->Exit();		
 	}
 }
+#endif
 
 void UJavascriptContext::BeginDestroy()
 {
@@ -205,6 +207,7 @@ void UJavascriptContext::BeginDestroy()
 	ContextId.Reset();
 }
 
+#if !PLATFORM_MAC
 void UJavascriptContext::InternalPushArgument(int32 Value)
 {
 	auto isolate = JavascriptContext->isolate();
@@ -220,7 +223,7 @@ void UJavascriptContext::InternalPushArgument(float Value)
 void UJavascriptContext::InternalPushArgument(bool Value)
 {
 	auto isolate = JavascriptContext->isolate();
-	fastcall::push(Boolean::New(isolate, Value));
+    fastcall::push(v8::Boolean::New(isolate, Value));
 }
 
 void UJavascriptContext::InternalPushArgument(const TCHAR* Value)
@@ -300,3 +303,4 @@ void UJavascriptContext::InternalEnd()
 	fastcall::exit(JavascriptContext->context());
 	fastcall::exit(JavascriptContext->isolate());
 }
+#endif

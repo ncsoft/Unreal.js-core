@@ -51,6 +51,8 @@ void UJavascriptGlobalDelegates::Bind(FString Key)
 	{
 		Handles.Add(Key, Handle);
 	}
+#undef OP_REFLECT
+#undef OP_REFLECT_WORLD
 }
 
 void UJavascriptGlobalDelegates::UnbindAll()
@@ -73,4 +75,6 @@ void UJavascriptGlobalDelegates::Unbind(FString Key)
 	DO_REFLECT_EDITOR_ONLY()
 
 	Handles.Remove(Key);
+#undef OP_REFLECT
+#undef OP_REFLECT_WORLD
 }

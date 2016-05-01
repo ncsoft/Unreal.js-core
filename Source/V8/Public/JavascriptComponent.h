@@ -92,6 +92,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	UClass* ResolveClass(FName Name);
 
+#if !PLATFORM_MAC
 	template <typename... Rest>
 	bool FastCall(Rest... rest)
 	{
@@ -103,4 +104,5 @@ public:
 	{
 		return JavascriptContext && JavascriptContext->FastCallWithReturn(this, rest...);
 	}
+#endif
 };

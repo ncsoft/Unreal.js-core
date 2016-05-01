@@ -84,3 +84,5 @@ void UPropertyEditor::OnFinishedChangingProperties(const FPropertyChangedEvent& 
 	}
 }
 #endif
+
+#undef LOCTEXT_NAMESPACE

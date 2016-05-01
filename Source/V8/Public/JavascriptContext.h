@@ -63,6 +63,7 @@ public:
 	bool HasProxyFunction(UObject* Holder, UFunction* Function);
 	bool CallProxyFunction(UObject* Holder, UObject* This, UFunction* Function, void* Parms);
 
+#if !PLATFORM_MAC
 	// FastCall
 	void InternalPushArgument(int32 Value);
 	void InternalPushArgument(float Value);
@@ -123,4 +124,5 @@ public:
 		InternalEnd();
 		return successful;
 	}
+#endif
 };

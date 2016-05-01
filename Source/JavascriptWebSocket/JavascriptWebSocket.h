@@ -8,6 +8,7 @@ class UJavascriptWebSocket : public UObject
 	GENERATED_BODY()
 
 public:
+#if !PLATFORM_MAC
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWebSocketDelegate);
 
 	UPROPERTY(BlueprintAssignable, Category = "Scripting | Javascript")
@@ -56,4 +57,5 @@ private:
 	void OnReceivedCallback(void* InData, int32 Count);
 	void OnConnectedCallback();
 	void OnErrorCallback();
+#endif	
 };

@@ -846,3 +846,5 @@ void SJavascriptLog::RequestForceScroll()
 		bIsUserScrolled = false;
 	}
 }
+
+#undef LOCTEXT_NAMESPACE

@@ -6,7 +6,7 @@ void UJavascriptMultiBox::Setup(TSharedRef<SBox> Box)
 {	
 	auto Builder = OnHook.Execute(FName("Main"),this,FJavascriptMenuBuilder());
 
-	if (Builder.MultiBox.IsValid())
+	if (IsValidBuilder(Builder.MultiBox))
 	{
 		Box->SetContent(Builder.MultiBox->MakeWidget());
 	}
@@ -27,16 +27,18 @@ TSharedRef<SWidget> UJavascriptMultiBox::RebuildWidget()
 
 void UJavascriptMultiBox::AddPullDownMenu(FJavascriptMenuBuilder& Builder, FName Id, const FText& Label, const FText& ToolTip)
 {
-	if (Builder.MenuBar.IsValid())
+	if (IsValidBuilder(Builder.MenuBar))
 	{
 		Builder.MenuBar->AddPullDownMenu(
 			Label,
 			ToolTip,
 			FNewMenuDelegate::CreateLambda([this, Id](FMenuBuilder& MenuBuilder) {
 				FJavascriptMenuBuilder Builder;
-				Builder.MultiBox = Builder.Menu = MakeShareable(new FMenuBuilder(MenuBuilder));
+				Builder.MultiBox = Builder.Menu = TakeBuilder(new FMenuBuilder(MenuBuilder));
 				this->OnHook.Execute(Id,this,Builder);
+#if !PLATFORM_MAC				
 				MenuBuilder = *Builder.Menu.Get();
+#endif
 			})
 		);
 	}
@@ -44,16 +46,18 @@ void UJavascriptMultiBox::AddPullDownMenu(FJavascriptMenuBuilder& Builder, FName
 
 void UJavascriptMultiBox::AddSubMenu(FJavascriptMenuBuilder& Builder, FName Id, const FText& Label, const FText& ToolTip, const bool bInOpenSubMenuOnClick)
 {
-	if (Builder.Menu.IsValid())
+	if (IsValidBuilder(Builder.Menu))
 	{
 		Builder.Menu->AddSubMenu(
 			Label,
 			ToolTip,
 			FNewMenuDelegate::CreateLambda([this, Id](FMenuBuilder& MenuBuilder) {
 				FJavascriptMenuBuilder Builder;
-				Builder.MultiBox = Builder.Menu = MakeShareable(new FMenuBuilder(MenuBuilder));
+				Builder.MultiBox = Builder.Menu = TakeBuilder(new FMenuBuilder(MenuBuilder));
 				this->OnHook.Execute(Id, this, Builder);
+#if !PLATFORM_MAC
 				MenuBuilder = *Builder.Menu.Get();
+#endif
 			}),
 			bInOpenSubMenuOnClick,
 			FSlateIcon()

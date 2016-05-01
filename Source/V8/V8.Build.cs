@@ -11,16 +11,28 @@ public class V8 : ModuleRules
 
     public V8(TargetInfo Target)
     {
-        PrivateIncludePaths.AddRange(new string[] 
-        { 
-            Path.Combine(ThirdPartyPath, "v8", "include"),
-            Path.Combine(ThirdPartyPath, "v8"),
-            Path.Combine("V8", "Private") 
-        });
-        
-        PublicIncludePaths.AddRange(new string[] 
-        { 
-            Path.Combine("V8", "Public") 
+        if (Target.Platform == UnrealTargetPlatform.Mac)
+        {
+            PrivateIncludePaths.AddRange(new string[]
+            {
+                Path.Combine("/usr/local/opt/v8/include"),
+                Path.Combine("/usr/local/opt/v8"),
+                Path.Combine("V8", "Private")
+            });
+        }
+        else
+        {
+            PrivateIncludePaths.AddRange(new string[]
+            {
+                Path.Combine(ThirdPartyPath, "v8", "include"),
+                Path.Combine(ThirdPartyPath, "v8"),
+                Path.Combine("V8", "Private")
+            });
+        }
+
+        PublicIncludePaths.AddRange(new string[]
+        {
+            Path.Combine("V8", "Public")
         });
 
         PublicDependencyModuleNames.AddRange(new string[] 
@@ -117,7 +129,22 @@ public class V8 : ModuleRules
 
             return true;
         }
+        else if (Target.Platform == UnrealTargetPlatform.Mac)
+        {
+            string LibPath = "/usr/local/opt/v8/lib/";
+            string DyLibPath = "/usr/local/lib/";
+            PublicLibraryPaths.Add("/usr/local/opt/v8/lib");
 
+            PublicAdditionalLibraries.Add(DyLibPath+"libv8.dylib");
+            PublicAdditionalLibraries.Add(LibPath+"libv8_base.a");
+            PublicAdditionalLibraries.Add(LibPath+"libv8_libbase.a");
+            PublicAdditionalLibraries.Add(LibPath+"libv8_libplatform.a");
+            PublicAdditionalLibraries.Add(LibPath+"libv8_nosnapshot.a");
+
+            Definitions.Add(string.Format("WITH_V8=1"));
+
+            return true;
+        }
         Definitions.Add(string.Format("WITH_V8=0"));
         return false;
     }

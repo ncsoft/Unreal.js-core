@@ -10,6 +10,7 @@ class UJavascriptWebSocketServer : public UObject
 {
 	GENERATED_BODY()
 
+#if !PLATFORM_MAC
 public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWebSocketServerDelegate,UJavascriptWebSocket*,WebSocket);
 
@@ -37,4 +38,5 @@ private:
 	TSharedPtr<FJavascriptWebSocketServer> WebSocketServer;
 
 	void OnConnectedCallback(FJavascriptWebSocket*);
+#endif	
 };

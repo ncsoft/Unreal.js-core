@@ -42,15 +42,30 @@ struct FJavascriptUICommand
 	TEnumAsByte<EJavasrciptUserInterfaceActionType::Type> ActionType;
 };
 
+#if PLATFORM_MAC
+#define TakeBuilder(x) x
+#define IsValidBuilder(x) (x != nullptr)
+#else
+#define TakeBuilder(x) MakeShareable(x)
+#define IsValidBuilder(x) x.IsValid()
+#endif
+
 USTRUCT()
 struct FJavascriptMenuBuilder
 {
 	GENERATED_BODY()
 
+#if PLATFORM_MAC
+	FMultiBoxBuilder* MultiBox = nullptr;
+	FMenuBuilder* Menu = nullptr;
+	FMenuBarBuilder* MenuBar = nullptr;
+	FToolBarBuilder* ToolBar = nullptr;
+#else	
 	TSharedPtr<FMultiBoxBuilder> MultiBox;
 	TSharedPtr<FMenuBuilder> Menu;
 	TSharedPtr<FMenuBarBuilder> MenuBar;
 	TSharedPtr<FToolBarBuilder> ToolBar;
+#endif
 };
 
 USTRUCT()
