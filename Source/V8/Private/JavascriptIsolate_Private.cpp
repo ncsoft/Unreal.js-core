@@ -2278,7 +2278,7 @@ namespace v8
 
 void FJavascriptFunction::Execute()
 {
-	if (Handle->Function.IsEmpty()) return;
+	if (!Handle.IsValid() || Handle->Function.IsEmpty()) return;
 
 	auto function = Local<Function>::New(Handle->isolate, Handle->Function);
 	function->Call(function, 0, nullptr);
@@ -2286,7 +2286,7 @@ void FJavascriptFunction::Execute()
 
 void FJavascriptFunction::Execute(UScriptStruct* Struct, void* Buffer)
 {
-	if (Handle->Function.IsEmpty()) return;
+	if (!Handle.IsValid() || Handle->Function.IsEmpty()) return;
 
 	auto arg = FJavascriptIsolateImplementation::GetSelf(Handle->isolate)->ExportStructInstance(Struct, (uint8*)Buffer, FNoPropertyOwner());
 	auto function = Local<Function>::New(Handle->isolate, Handle->Function);
