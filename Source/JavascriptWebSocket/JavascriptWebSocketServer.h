@@ -10,13 +10,13 @@ class UJavascriptWebSocketServer : public UObject
 {
 	GENERATED_BODY()
 
-#if !PLATFORM_MAC
 public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWebSocketServerDelegate,UJavascriptWebSocket*,WebSocket);
 
 	UPROPERTY(BlueprintAssignable, Category = "Scripting | Javascript")
 	FOnWebSocketServerDelegate OnConnected;
 
+#if !PLATFORM_MAC
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static UJavascriptWebSocketServer* Create(int32 Port);
 

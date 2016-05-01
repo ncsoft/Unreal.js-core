@@ -8,7 +8,6 @@ class UJavascriptWebSocket : public UObject
 	GENERATED_BODY()
 
 public:
-#if !PLATFORM_MAC
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWebSocketDelegate);
 
 	UPROPERTY(BlueprintAssignable, Category = "Scripting | Javascript")
@@ -20,6 +19,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Scripting | Javascript")
 	FOnWebSocketDelegate OnError;
 
+#if !PLATFORM_MAC
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static UJavascriptWebSocket* Connect(const FString& Endpoint);
 
