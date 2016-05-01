@@ -16,7 +16,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Scripting | Javascript")
 	FOnWebSocketServerDelegate OnConnected;
 
-#if !PLATFORM_MAC
+#if WITH_JSWEBSOCKET
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static UJavascriptWebSocketServer* Create(int32 Port);
 

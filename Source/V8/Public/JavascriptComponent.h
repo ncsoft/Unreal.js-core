@@ -92,7 +92,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	UClass* ResolveClass(FName Name);
 
-#if !PLATFORM_MAC
+#if WITH_V8_FAST_CALL
 	template <typename... Rest>
 	bool FastCall(Rest... rest)
 	{

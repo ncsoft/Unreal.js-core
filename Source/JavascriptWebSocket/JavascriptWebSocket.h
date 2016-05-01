@@ -19,7 +19,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Scripting | Javascript")
 	FOnWebSocketDelegate OnError;
 
-#if !PLATFORM_MAC
+#if WITH_JSWEBSOCKET
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static UJavascriptWebSocket* Connect(const FString& Endpoint);
 

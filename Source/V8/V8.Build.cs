@@ -86,8 +86,7 @@ public class V8 : ModuleRules
                 LibrariesPath = Path.Combine(LibrariesPath, "x64");
             }
             else
-            {
-                
+            {   
                 LibrariesPath = Path.Combine(LibrariesPath, "x86");
             }
 
@@ -108,7 +107,9 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libplatform.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_nosnapshot.lib"));
 
-            Definitions.Add(string.Format("WITH_V8=1"));                       
+            Definitions.Add(string.Format("WITH_V8=1"));
+            Definitions.Add(string.Format("WITH_V8_FAST_CALL=1"));
+            Definitions.Add(string.Format("WITH_JSWEBSOCKET=1"));
 
             return true;
         }
@@ -126,6 +127,8 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add("v8_nosnapshot");
 
             Definitions.Add(string.Format("WITH_V8=1"));
+            Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
+            Definitions.Add(string.Format("WITH_JSWEBSOCKET=0"));
 
             return true;
         }
@@ -142,10 +145,14 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add(LibPath+"libv8_nosnapshot.a");
 
             Definitions.Add(string.Format("WITH_V8=1"));
+            Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
+            Definitions.Add(string.Format("WITH_JSWEBSOCKET=0"));
 
             return true;
         }
         Definitions.Add(string.Format("WITH_V8=0"));
+        Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
+        Definitions.Add(string.Format("WITH_JSWEBSOCKET=0"));
         return false;
     }
 }

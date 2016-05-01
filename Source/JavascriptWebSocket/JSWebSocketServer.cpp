@@ -2,7 +2,7 @@
 
 #include "JavascriptWebSocketModule.h"
 
-#if !PLATFORM_MAC
+#if WITH_JSWEBSOCKET
 
 #include "JSWebSocketServer.h"
 #include "JSWebSocket.h"

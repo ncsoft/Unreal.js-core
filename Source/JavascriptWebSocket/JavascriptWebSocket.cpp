@@ -1,7 +1,7 @@
 // Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
 #include "JavascriptWebSocketModule.h"
 
-#if !PLATFORM_MAC
+#if WITH_JSWEBSOCKET
 #include "JavascriptWebSocket.h"
 #include "JavascriptWebSocketServer.h"
 #include "JavascriptContext.h"
