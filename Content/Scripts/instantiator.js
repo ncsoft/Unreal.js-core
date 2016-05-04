@@ -351,6 +351,12 @@ function proxy(base) {
             }
         }
         
+        remove_children() {
+            this.children.forEach(function(child) {
+                this.remove_child(child)
+            })
+        }
+        
         replace_childAt(index, child, scope) {
             if (index < 0 || index >= this.Slots.length)
                 return false;
