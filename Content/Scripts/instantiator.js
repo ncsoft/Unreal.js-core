@@ -208,7 +208,10 @@ function proxy(base) {
     class Proxy extends base {
         constructor(design, scope) {
             super(Outer)
-
+            
+            //@HACK for V8 5.0
+            this.__proto__ = Proxy.prototype
+            
             this.design = design
             this.attrs = design.attrs || {}
             this.scope = scope
@@ -449,7 +452,7 @@ function proxy(base) {
             })
         }
     }
-
+    
     proxied[base] = Proxy
     return Proxy
 }
