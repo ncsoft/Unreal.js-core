@@ -14,8 +14,7 @@
     {
       "Name": "V8",
       "Type": "Runtime",
-      "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms": [ "Win64", "Win32" ]
+      "LoadingPhase": "PreDefault"
     },
     {
       "Name": "JavascriptUMG",
@@ -31,7 +30,7 @@
       "Name": "JavascriptWebSocket",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms": [ "Win64", "HTML5" ]
+      "WhitelistPlatforms" : ["Win32", "Win64"]
     },
     {
       "Name": "JavascriptEditor",

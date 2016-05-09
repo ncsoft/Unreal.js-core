@@ -27,7 +27,8 @@ public:
 		{
 			FJavascriptHitProxy Proxy;
 			Proxy.HitProxy = HitProxy;
-			Widget->OnClick.Execute(FJavascriptViewportClick(&View, this, Key, Event, HitX, HitY), Proxy, Widget.Get());
+			FViewportClick Click(&View, this, Key, Event, HitX, HitY);
+			Widget->OnClick.Execute(FJavascriptViewportClick(&Click), Proxy, Widget.Get());
 		}
 	}
 
@@ -521,3 +522,5 @@ bool UJavascriptEditorViewport::SetEngineShowFlags(const FString& In)
 		return false;
 	}
 }
+
+#undef LOCTEXT_NAMESPACE

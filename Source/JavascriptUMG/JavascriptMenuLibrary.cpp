@@ -19,34 +19,37 @@ bool UJavascriptMenuLibrary::ProcessCommandBindings_PointerEvent(FJavascriptUICo
 	return CommandList.Handle->ProcessCommandBindings(InMouseEvent);
 }
 
-FJavascriptMenuBuilder UJavascriptMenuLibrary::CreateToolbarBuilder(FJavascriptUICommandList CommandList, EOrientation Orientation)
+void UJavascriptMenuLibrary::CreateToolbarBuilder(FJavascriptUICommandList CommandList, EOrientation Orientation, FJavascriptFunction Function)
 {
 	FJavascriptMenuBuilder Out;
-	Out.MultiBox = Out.ToolBar = MakeShareable(new FToolBarBuilder(CommandList.Handle, FMultiBoxCustomization::None, nullptr, Orientation));
-	return Out;
+	FToolBarBuilder Builder(CommandList.Handle, FMultiBoxCustomization::None, nullptr, Orientation);
+	Out.MultiBox = Out.ToolBar = &Builder;
+	Function.Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
 }
 
-FJavascriptMenuBuilder UJavascriptMenuLibrary::CreateMenuBuilder(FJavascriptUICommandList CommandList, bool bInShouldCloseWindowAfterMenuSelection)
+void UJavascriptMenuLibrary::CreateMenuBuilder(FJavascriptUICommandList CommandList, bool bInShouldCloseWindowAfterMenuSelection, FJavascriptFunction Function)
 {
 	FJavascriptMenuBuilder Out;
-	Out.MultiBox = Out.Menu = MakeShareable(new FMenuBuilder(bInShouldCloseWindowAfterMenuSelection, CommandList.Handle));
-	return Out;
+	FMenuBuilder Builder(bInShouldCloseWindowAfterMenuSelection, CommandList.Handle);
+	Out.MultiBox = Out.Menu = &Builder;
+	Function.Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
 }
 
-FJavascriptMenuBuilder UJavascriptMenuLibrary::CreateMenuBarBuilder(FJavascriptUICommandList CommandList)
+void UJavascriptMenuLibrary::CreateMenuBarBuilder(FJavascriptUICommandList CommandList, FJavascriptFunction Function)
 {
 	FJavascriptMenuBuilder Out;
-	Out.MultiBox = Out.MenuBar = MakeShareable(new FMenuBarBuilder(CommandList.Handle));
-	return Out;
+	FMenuBarBuilder Builder(CommandList.Handle);
+	Out.MultiBox = Out.MenuBar = &Builder;
+	Function.Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
 }
 
 void UJavascriptMenuLibrary::BeginSection(FJavascriptMenuBuilder& Builder, FName InExtensionHook)
 {
-	if (Builder.ToolBar.IsValid())
+	if (Builder.ToolBar)
 	{
 		Builder.ToolBar->BeginSection(InExtensionHook);
 	}
-	else if (Builder.Menu.IsValid())
+	else if (Builder.Menu)
 	{
 		Builder.Menu->BeginSection(InExtensionHook);
 	}
@@ -54,11 +57,11 @@ void UJavascriptMenuLibrary::BeginSection(FJavascriptMenuBuilder& Builder, FName
 
 void UJavascriptMenuLibrary::EndSection(FJavascriptMenuBuilder& Builder)
 {
-	if (Builder.ToolBar.IsValid())
+	if (Builder.ToolBar)
 	{
 		Builder.ToolBar->EndSection();
 	}
-	else if (Builder.Menu.IsValid())
+	else if (Builder.Menu)
 	{
 		Builder.Menu->EndSection();
 	}
@@ -66,11 +69,11 @@ void UJavascriptMenuLibrary::EndSection(FJavascriptMenuBuilder& Builder)
 
 void UJavascriptMenuLibrary::AddSeparator(FJavascriptMenuBuilder& Builder)
 {
-	if (Builder.ToolBar.IsValid())
+	if (Builder.ToolBar)
 	{
 		Builder.ToolBar->AddSeparator();
 	}
-	else if (Builder.Menu.IsValid())
+	else if (Builder.Menu)
 	{
 		Builder.Menu->AddMenuSeparator();
 	}
@@ -78,11 +81,11 @@ void UJavascriptMenuLibrary::AddSeparator(FJavascriptMenuBuilder& Builder)
 
 void UJavascriptMenuLibrary::AddToolBarButton(FJavascriptMenuBuilder& Builder, FJavascriptUICommandInfo CommandInfo)
 {
-	if (Builder.ToolBar.IsValid())
+	if (Builder.ToolBar)
 	{
 		Builder.ToolBar->AddToolBarButton(CommandInfo.Handle);
 	}
-	else if (Builder.Menu.IsValid())
+	else if (Builder.Menu)
 	{
 		Builder.Menu->AddMenuEntry(CommandInfo.Handle);
 	}
@@ -90,7 +93,7 @@ void UJavascriptMenuLibrary::AddToolBarButton(FJavascriptMenuBuilder& Builder, F
 
 void UJavascriptMenuLibrary::AddWidget(FJavascriptMenuBuilder& Builder, UWidget* Widget, const FText& Label, bool bNoIndent, FName InTutorialHighlightName, bool bSearchable)
 {
-	if (Builder.ToolBar.IsValid())
+	if (Builder.ToolBar)
 	{
 		Builder.ToolBar->AddWidget(
 			SNew(SJavascriptBox).Widget(Widget)[Widget->TakeWidget()],
@@ -98,7 +101,7 @@ void UJavascriptMenuLibrary::AddWidget(FJavascriptMenuBuilder& Builder, UWidget*
 			bSearchable
 			);
 	}
-	else if (Builder.Menu.IsValid())
+	else if (Builder.Menu)
 	{
 		Builder.Menu->AddWidget(
 			SNew(SJavascriptBox).Widget(Widget)[Widget->TakeWidget()],
@@ -112,7 +115,7 @@ void UJavascriptMenuLibrary::AddWidget(FJavascriptMenuBuilder& Builder, UWidget*
 
 void UJavascriptMenuLibrary::PushCommandList(FJavascriptMenuBuilder& Builder, FJavascriptUICommandList List)
 {
-	if (Builder.MultiBox.IsValid())
+	if (Builder.MultiBox)
 	{
 		Builder.MultiBox->PushCommandList(List.Handle.ToSharedRef());
 	}
@@ -120,7 +123,7 @@ void UJavascriptMenuLibrary::PushCommandList(FJavascriptMenuBuilder& Builder, FJ
 
 void UJavascriptMenuLibrary::PopCommandList(FJavascriptMenuBuilder& Builder)
 {
-	if (Builder.MultiBox.IsValid())
+	if (Builder.MultiBox)
 	{
 		Builder.MultiBox->PopCommandList();
 	}
@@ -160,4 +163,10 @@ FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascript
 		info.DefaultChord);
 
 	return Out;
+}
+
+void UJavascriptMenuLibrary::Test(int a, FJavascriptFunction f)
+{
+	FJavascriptMenuBuilder builder;
+	f.Execute(FJavascriptMenuBuilder::StaticStruct(), &builder);
 }

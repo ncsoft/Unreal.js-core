@@ -75,3 +75,5 @@ TSharedRef<SWidget> UJavascriptEditorTabManager::RebuildWidget()
 	}	
 }
 #endif
+
+#undef LOCTEXT_NAMESPACE

@@ -19,6 +19,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Scripting | Javascript")
 	FOnWebSocketDelegate OnError;
 
+#if WITH_JSWEBSOCKET
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static UJavascriptWebSocket* Connect(const FString& Endpoint);
 
@@ -56,4 +57,5 @@ private:
 	void OnReceivedCallback(void* InData, int32 Count);
 	void OnConnectedCallback();
 	void OnErrorCallback();
+#endif	
 };

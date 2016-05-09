@@ -11,16 +11,28 @@ public class V8 : ModuleRules
 
     public V8(TargetInfo Target)
     {
-        PrivateIncludePaths.AddRange(new string[] 
-        { 
-            Path.Combine(ThirdPartyPath, "v8", "include"),
-            Path.Combine(ThirdPartyPath, "v8"),
-            Path.Combine("V8", "Private") 
-        });
-        
-        PublicIncludePaths.AddRange(new string[] 
-        { 
-            Path.Combine("V8", "Public") 
+        if (Target.Platform == UnrealTargetPlatform.Mac)
+        {
+            PrivateIncludePaths.AddRange(new string[]
+            {
+                Path.Combine("/usr/local/opt/v8/include"),
+                Path.Combine("/usr/local/opt/v8"),
+                Path.Combine("V8", "Private")
+            });
+        }
+        else
+        {
+            PrivateIncludePaths.AddRange(new string[]
+            {
+                Path.Combine(ThirdPartyPath, "v8", "include"),
+                Path.Combine(ThirdPartyPath, "v8"),
+                Path.Combine("V8", "Private")
+            });
+        }
+
+        PublicIncludePaths.AddRange(new string[]
+        {
+            Path.Combine("V8", "Public")
         });
 
         PublicDependencyModuleNames.AddRange(new string[] 
@@ -74,8 +86,7 @@ public class V8 : ModuleRules
                 LibrariesPath = Path.Combine(LibrariesPath, "x64");
             }
             else
-            {
-                
+            {   
                 LibrariesPath = Path.Combine(LibrariesPath, "x86");
             }
 
@@ -96,7 +107,9 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libplatform.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_nosnapshot.lib"));
 
-            Definitions.Add(string.Format("WITH_V8=1"));                       
+            Definitions.Add(string.Format("WITH_V8=1"));
+            Definitions.Add(string.Format("WITH_V8_FAST_CALL=1"));
+            Definitions.Add(string.Format("WITH_JSWEBSOCKET=1"));
 
             return true;
         }
@@ -114,11 +127,32 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add("v8_nosnapshot");
 
             Definitions.Add(string.Format("WITH_V8=1"));
+            Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
+            Definitions.Add(string.Format("WITH_JSWEBSOCKET=0"));
 
             return true;
         }
+        else if (Target.Platform == UnrealTargetPlatform.Mac)
+        {
+            string LibPath = "/usr/local/opt/v8/lib/";
+            string DyLibPath = "/usr/local/lib/";
+            PublicLibraryPaths.Add("/usr/local/opt/v8/lib");
 
+            PublicAdditionalLibraries.Add(DyLibPath+"libv8.dylib");
+            PublicAdditionalLibraries.Add(LibPath+"libv8_base.a");
+            PublicAdditionalLibraries.Add(LibPath+"libv8_libbase.a");
+            PublicAdditionalLibraries.Add(LibPath+"libv8_libplatform.a");
+            PublicAdditionalLibraries.Add(LibPath+"libv8_nosnapshot.a");
+
+            Definitions.Add(string.Format("WITH_V8=1"));
+            Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
+            Definitions.Add(string.Format("WITH_JSWEBSOCKET=0"));
+
+            return true;
+        }
         Definitions.Add(string.Format("WITH_V8=0"));
+        Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
+        Definitions.Add(string.Format("WITH_JSWEBSOCKET=0"));
         return false;
     }
 }

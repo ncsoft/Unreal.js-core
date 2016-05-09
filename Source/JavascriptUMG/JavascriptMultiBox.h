@@ -13,7 +13,7 @@ class JAVASCRIPTUMG_API UJavascriptMultiBox : public UWidget
 	GENERATED_BODY()
 
 public:	
-	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(FJavascriptMenuBuilder, FOnHook, FName, Id, UJavascriptMultiBox*, Self, FJavascriptMenuBuilder, CurrentBuilder);
+	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnHook, FName, Id, UJavascriptMultiBox*, Self, FJavascriptMenuBuilder, CurrentBuilder);
 
 	UPROPERTY()
 	FOnHook OnHook;
@@ -25,6 +25,9 @@ public:
 	void AddSubMenu(FJavascriptMenuBuilder& Builder, FName Id, const FText& Label, const FText& ToolTip, const bool bInOpenSubMenuOnClick);
 
 	void Setup(TSharedRef<SBox> Box);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void Bind(FJavascriptMenuBuilder Builder);
 	
 	virtual TSharedRef<SWidget> RebuildWidget();
 };

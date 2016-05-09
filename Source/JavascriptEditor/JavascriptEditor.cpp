@@ -189,3 +189,5 @@ void FJavascriptEditorModule::Unregister()
 	CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);	
 }
 #endif
+
+#undef LOCTEXT_NAMESPACE

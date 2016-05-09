@@ -1,5 +1,7 @@
 // Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
 #include "JavascriptWebSocketModule.h"
+
+#if WITH_JSWEBSOCKET
 #include "JavascriptWebSocket.h"
 #include "JavascriptWebSocketServer.h"
 #include "JavascriptContext.h"
@@ -124,3 +126,4 @@ void UJavascriptWebSocket::Dispose()
 {
 	WebSocket.Reset();
 }
+#endif

@@ -2,6 +2,8 @@
 
 #include "JavascriptWebSocketModule.h"
 
+#if WITH_JSWEBSOCKET
+
 #include "JSWebSocketServer.h"
 #include "JSWebSocket.h"
 
@@ -188,3 +190,5 @@ int FJavascriptWebSocket::unreal_networking_server
 	return 0; 
 }
 #endif 
+
+#endif

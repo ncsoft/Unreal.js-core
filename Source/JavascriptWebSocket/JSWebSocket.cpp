@@ -1,6 +1,8 @@
 // Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
 #include "JavascriptWebSocketModule.h"
 
+#if WITH_JSWEBSOCKET
+
 #include "JSWebSocket.h"
 
 #if PLATFORM_HTML5
@@ -471,3 +473,4 @@ int FJavascriptWebSocket::unreal_networking_client(
 }
 #endif 
 
+#endif

@@ -34,6 +34,12 @@ FObjectInitializer const& FObjectInitializer::SetDefaultSubobjectClass<hack_priv
 }
 // END OF HACKING
 
+struct FPrivateJavascriptFunction
+{
+	Isolate* isolate;
+	UniquePersistent<Function> Function;
+};
+
 template <typename CppType>
 struct TStructReader
 {	
@@ -460,7 +466,7 @@ public:
 		}
 		else if (auto p = Cast<UBoolProperty>(Property))
 		{
-			return Boolean::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+            return v8::Boolean::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
 		}
 		else if (auto p = Cast<UNameProperty>(Property))
 		{
@@ -651,6 +657,16 @@ public:
 					{				
 						I.Throw(FString::Printf(TEXT("Wrong struct type (given:%s), (expected:%s)"), *GivenStruct->GetName(), *p->Struct->GetName()));
 					}
+				}
+				else if (Value->IsFunction() && p->Struct->IsChildOf(FJavascriptFunction::StaticStruct()))
+				{
+					auto struct_buffer = p->ContainerPtrToValuePtr<uint8>(Buffer);
+					FJavascriptFunction func;
+					auto jsfunc = Value.As<Function>();
+					func.Handle = MakeShareable(new FPrivateJavascriptFunction);
+					func.Handle->isolate = isolate_;
+					func.Handle->Function.Reset(isolate_, jsfunc);
+					p->Struct->CopyScriptStruct(struct_buffer, &func);
 				}
 				// If raw javascript object has been passed,
 				else if (Value->IsObject())
@@ -2258,4 +2274,22 @@ namespace v8
 	{
 		FJavascriptIsolate::WriteProperty(isolate, Property, Buffer, Value);
 	}
+}
+
+void FJavascriptFunction::Execute()
+{
+	if (!Handle.IsValid() || Handle->Function.IsEmpty()) return;
+
+	auto function = Local<Function>::New(Handle->isolate, Handle->Function);
+	function->Call(function, 0, nullptr);
+}
+
+void FJavascriptFunction::Execute(UScriptStruct* Struct, void* Buffer)
+{
+	if (!Handle.IsValid() || Handle->Function.IsEmpty()) return;
+
+	auto arg = FJavascriptIsolateImplementation::GetSelf(Handle->isolate)->ExportStructInstance(Struct, (uint8*)Buffer, FNoPropertyOwner());
+	auto function = Local<Function>::New(Handle->isolate, Handle->Function);
+	v8::Handle<Value> args[] = { arg };
+	function->Call(function, 1, args);
 }

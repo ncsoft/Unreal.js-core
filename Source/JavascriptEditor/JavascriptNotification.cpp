@@ -89,3 +89,5 @@ void UJavascriptNotification::Reset()
 	Item.Reset();
 }
 #endif
+
+#undef LOCTEXT_NAMESPACE

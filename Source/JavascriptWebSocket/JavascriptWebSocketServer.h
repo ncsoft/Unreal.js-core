@@ -16,6 +16,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Scripting | Javascript")
 	FOnWebSocketServerDelegate OnConnected;
 
+#if WITH_JSWEBSOCKET
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static UJavascriptWebSocketServer* Create(int32 Port);
 
@@ -37,4 +38,5 @@ private:
 	TSharedPtr<FJavascriptWebSocketServer> WebSocketServer;
 
 	void OnConnectedCallback(FJavascriptWebSocket*);
+#endif	
 };
