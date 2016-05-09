@@ -348,3 +348,13 @@ UEnum* UJavascriptLibrary::CreateEnum(UObject* Outer, FName Name, TArray<FName> 
 
 	return Enum;
 }
+
+void UJavascriptLibrary::MarkRenderStateDirty(UActorComponent* Component)
+{
+	Component->MarkRenderStateDirty();
+}
+
+void UJavascriptLibrary::ReregisterAllComponents(AActor* Actor)
+{
+	Actor->ReregisterAllComponents();
+}

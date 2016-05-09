@@ -187,4 +187,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static UEnum* CreateEnum(UObject* Outer, FName Name, TArray<FName> DisplayNames);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void MarkRenderStateDirty(UActorComponent* Component);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void ReregisterAllComponents(AActor* Actor);
 };

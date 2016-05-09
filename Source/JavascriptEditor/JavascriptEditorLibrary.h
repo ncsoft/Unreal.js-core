@@ -251,6 +251,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static void DrawWireDiamond(const FJavascriptPDI& PDI, const FTransform& Transform, float Size, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void DrawPolygon(const FJavascriptPDI& PDI, const TArray<FVector>& Verts, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void SetHitProxy(const FJavascriptPDI& PDI, const FName& Name);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
@@ -258,5 +261,30 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FName GetName(const FJavascriptHitProxy& Proxy);
+
+	/**
+	* Returns this actor's current label.  Actor labels are only available in development builds.
+	* @return	The label text
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FString GetActorLabel(AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void SetActorLabel(AActor* Actor, const FString& NewActorLabel, bool bMarkDirty);
+	
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void ClearActorLabel(AActor* Actor);
+	
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool IsActorLabelEditable(AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void SetFolderPath(AActor* Actor, const FName& NewFolderPath);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void SetFolderPath_Recursively(AActor* Actor, const FName& NewFolderPath);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FName GetFolderPath(AActor* Actor);
 #endif
 };
