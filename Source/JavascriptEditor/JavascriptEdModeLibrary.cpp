@@ -55,6 +55,16 @@ bool UJavascriptEdModeLibrary::IsTracking(FJavascriptEditorModeTools Tools)
 	return Tools->IsTracking();
 }
 
+FJavascriptHitProxy UJavascriptEdModeLibrary::GetHitProxy(FJavascriptEdViewport Viewport)
+{
+	int32 HitX = Viewport.Viewport->GetMouseX();
+	int32 HitY = Viewport.Viewport->GetMouseY();
+	HHitProxy* HitProxy = Viewport.Viewport->GetHitProxy(HitX, HitY);
+	FJavascriptHitProxy Proxy;
+	Proxy.HitProxy = HitProxy;
+	return Proxy;
+}
+
 FJavascriptEditorModeTools UJavascriptEdModeLibrary::GetModeManager(FJavascriptEditorMode Mode)
 {
 	return Mode->GetModeManager();
