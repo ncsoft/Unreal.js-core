@@ -193,4 +193,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void ReregisterAllComponents(AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool SegmentIntersection2D(const FVector& SegmentStartA, const FVector& SegmentEndA, const FVector& SegmentStartB, const FVector& SegmentEndB, FVector& IntersectionPoint);
 };

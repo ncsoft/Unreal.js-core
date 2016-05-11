@@ -358,3 +358,8 @@ void UJavascriptLibrary::ReregisterAllComponents(AActor* Actor)
 {
 	Actor->ReregisterAllComponents();
 }
+
+bool UJavascriptLibrary::SegmentIntersection2D(const FVector& SegmentStartA, const FVector& SegmentEndA, const FVector& SegmentStartB, const FVector& SegmentEndB, FVector& IntersectionPoint)
+{
+	return FMath::SegmentIntersection2D(SegmentStartA, SegmentEndA, SegmentStartB, SegmentEndB, IntersectionPoint);
+}
