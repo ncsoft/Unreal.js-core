@@ -313,9 +313,19 @@ ULevel* UJavascriptLibrary::GetLevel(AActor* Actor)
 	return Actor ? Actor->GetLevel() : nullptr;
 }
 
-FString UJavascriptLibrary::GetArchetypePathName(AActor* Actor)
+TArray<ULevel*> UJavascriptLibrary::GetLevels(UWorld* World)
 {
-	return Actor->GetArchetype()->GetPathName();
+	return World->GetLevels();
+}
+
+FString UJavascriptLibrary::GetArchetypePathName(UObject* Object)
+{
+	return Object->GetArchetype()->GetPathName();
+}
+
+FString UJavascriptLibrary::GetClassPathName(UClass* Class)
+{
+	return Class->GetPathName();
 }
 
 void UJavascriptLibrary::SetObjectFlags(UObject* Obj, int32 Flags)

@@ -25,7 +25,10 @@ OP_REFLECT_WORLD(OnWorldCleanup)\
 OP_REFLECT_WORLD(OnPreWorldFinishDestroy)\
 OP_REFLECT_WORLD(LevelAddedToWorld)\
 OP_REFLECT_WORLD(LevelRemovedFromWorld)\
-OP_REFLECT_WORLD(PostApplyLevelOffset)
+OP_REFLECT_WORLD(PostApplyLevelOffset)\
+OP_REFLECT_WORLD(OnPreWorldInitialization)\
+OP_REFLECT_WORLD(OnPostWorldInitialization)\
+OP_REFLECT_WORLD(OnPostDuplicate)
 
 #if WITH_EDITOR
 #define DO_REFLECT_EDITOR_ONLY() \
