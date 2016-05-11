@@ -630,6 +630,16 @@ void UJavascriptGeneratedFunction::Thunk(FFrame& Stack, RESULT_DECL)
 	}
 }
 
+namespace {
+	UClass* CurrentClass = nullptr;
+	void CallClassConstructor(UClass* Class, const FObjectInitializer& ObjectInitializer) 
+	{
+		CurrentClass = Class;
+		Class->ClassConstructor(ObjectInitializer);
+		CurrentClass = nullptr;
+	};
+}
+
 class FJavascriptContextImplementation : public FJavascriptContext
 {
 	friend class UJavascriptContext;
@@ -776,10 +786,10 @@ public:
 			// Create a blueprint
 			auto Blueprint = NewObject<UBlueprint>(Outer);
 			Blueprint->GeneratedClass = Class;
-			Class->ClassGeneratedBy = Blueprint;			
+			Class->ClassGeneratedBy = Blueprint;						
 
 			auto ClassConstructor = [](const FObjectInitializer& ObjectInitializer){
-				auto Class = static_cast<UBlueprintGeneratedClass*>(ObjectInitializer.GetClass());
+				auto Class = static_cast<UBlueprintGeneratedClass*>(CurrentClass ? CurrentClass : ObjectInitializer.GetClass());
 				
 				FJavascriptContextImplementation* Context = nullptr;
 
@@ -834,7 +844,7 @@ public:
 						}
 					}
 
-					Class->GetSuperClass()->ClassConstructor(ObjectInitializer);
+					CallClassConstructor(Class->GetSuperClass(), ObjectInitializer);
 
 					{
 						auto func = proxy->ToObject()->Get(I.Keyword("ctor"));
@@ -849,7 +859,7 @@ public:
 				}
 				else
 				{
-					Class->GetSuperClass()->ClassConstructor(ObjectInitializer);
+					CallClassConstructor(Class->GetSuperClass(), ObjectInitializer);
 				}
 			};
 
