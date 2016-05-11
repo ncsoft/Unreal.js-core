@@ -279,5 +279,8 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FName GetFolderPath(AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void BroadcastHotReload();
 #endif
 };

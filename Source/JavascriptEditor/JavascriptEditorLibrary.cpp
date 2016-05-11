@@ -4,6 +4,7 @@
 #include "JavascriptContext.h"
 #include "DynamicMeshBuilder.h"
 #include "BSPOps.h"
+#include "HotReloadInterface.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -509,5 +510,12 @@ void UJavascriptEditorLibrary::SetFolderPath_Recursively(AActor* Actor, const FN
 FName UJavascriptEditorLibrary::GetFolderPath(AActor* Actor)
 {
 	return Actor->GetFolderPath();
+}
+
+void UJavascriptEditorLibrary::BroadcastHotReload()
+{
+	// Register to have Populate called when doing a Hot Reload.
+	IHotReloadInterface& HotReloadSupport = FModuleManager::LoadModuleChecked<IHotReloadInterface>("HotReload");
+	HotReloadSupport.OnHotReload().Broadcast(false);
 }
 #endif
