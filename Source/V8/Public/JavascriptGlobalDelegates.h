@@ -64,12 +64,21 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void OnPostWorldCreation(UWorld* World);
 
-	///@todo : InitializationValues -> BT Type
-// 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-// 	void OnPreWorldInitialization(UWorld* World, const UWorld::InitializationValues IVS);
-// 
-// 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-// 	void OnPostWorldInitialization(UWorld* World, const UWorld::InitializationValues IVS);
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnPreWorldInitialization_Friendly(UWorld* World);
+
+	void OnPreWorldInitialization(UWorld* World, const UWorld::InitializationValues IVS)
+	{
+		OnPreWorldInitialization_Friendly(World);
+	}
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnPostWorldInitialization_Friendly(UWorld* World);
+
+	void OnPostWorldInitialization(UWorld* World, const UWorld::InitializationValues IVS)
+	{
+		OnPostWorldInitialization_Friendly(World);
+	}
 
 #if WITH_EDITOR
 	// Callback for world rename event (pre)
@@ -77,8 +86,13 @@ public:
 // 	void OnPreWorldRename(UWorld* World, const TCHAR* InName, UObject* NewOuter, ERenameFlags Flags, bool& bShouldFailRename);
 #endif // WITH_EDITOR
 
-// 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-// 	void OnPostDuplicate(UWorld* World, bool bDuplicateForPIE, FReplacementMap& ReplacementMap, TArray<UObject*>& ObjectsToFixReferences);
+ 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnPostDuplicate_Friendly(UWorld* World, bool bDuplicateForPIE);
+
+	void OnPostDuplicate(UWorld* World, bool bDuplicateForPIE, FWorldDelegates::FReplacementMap& ReplacementMap, TArray<UObject*>& ObjectsToFixReferences)
+	{
+		OnPostDuplicate_Friendly(World, bDuplicateForPIE);
+	}
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources);

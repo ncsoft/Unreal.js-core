@@ -130,6 +130,9 @@ public:
 	static ULevel* GetLevel(AActor* Actor);	
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static TArray<ULevel*> GetLevels(UWorld* World);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FString GetFunctionName(FJavascriptProfileNode Node);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -177,7 +180,10 @@ public:
 	static FString GetDeoptInfo_Stack(FJavascriptProfileNode Node, int32 index);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FString GetArchetypePathName(AActor* Actor);
+	static FString GetArchetypePathName(UObject* Object);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FString GetClassPathName(UClass* Class);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void SetObjectFlags(UObject* Obj, int32 Flags);
