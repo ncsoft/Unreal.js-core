@@ -1,4 +1,7 @@
 #include "V8PCH.h"
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include "JavascriptDelegate.h"
 #include "Translator.h"
 #include "Delegates.h"
@@ -401,3 +404,5 @@ void UJavascriptDelegate::ProcessEvent(UFunction* Function, void* Parms)
 		JavascriptDelegate.Pin()->Fire(Parms, this);
 	}
 }
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

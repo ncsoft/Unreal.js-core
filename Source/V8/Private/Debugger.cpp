@@ -1,4 +1,7 @@
 #include "V8PCH.h"
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
 #include "SocketSubSystem.h"
@@ -432,3 +435,5 @@ IJavascriptDebugger* IJavascriptDebugger::Create(int32 InPort, Local<Context> In
 	return nullptr;
 } 
 #endif
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

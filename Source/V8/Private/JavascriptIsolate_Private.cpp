@@ -1,4 +1,7 @@
 #include "V8PCH.h"
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include "Config.h"
 #include "MallocArrayBufferAllocator.h"
 #include "Translator.h"
@@ -2293,3 +2296,5 @@ void FJavascriptFunction::Execute(UScriptStruct* Struct, void* Buffer)
 	v8::Handle<Value> args[] = { arg };
 	function->Call(function, 1, args);
 }
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

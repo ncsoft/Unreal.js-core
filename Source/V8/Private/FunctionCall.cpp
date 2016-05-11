@@ -1,4 +1,7 @@
 #include "V8PCH.h"
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include "Translator.h"
 #include "Exception.h"
 #include "Helpers.h"
@@ -110,3 +113,5 @@ namespace v8
 		}		
 	}
 }
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
