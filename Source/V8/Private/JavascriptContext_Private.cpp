@@ -341,7 +341,7 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 		if (bIsArray)
 		{
 			auto q = NewObject<UArrayProperty>(Outer, Name);
-			q->Inner = Inner(q, Type);
+			q->Inner = SetupProperty(Inner(q, Type));
 			return q;
 		}
 		else
