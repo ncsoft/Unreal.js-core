@@ -1,4 +1,7 @@
 #include "JavascriptUMG.h"
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include "JavascriptMultiBox.h"
 #include "SJavascriptBox.h"
 
@@ -62,3 +65,5 @@ void UJavascriptMultiBox::AddSubMenu(FJavascriptMenuBuilder& Builder, FName Id, 
 		);
 	}
 }
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

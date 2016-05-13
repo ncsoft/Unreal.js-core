@@ -7,9 +7,13 @@
 #pragma warning( disable : 4946 )
 #pragma warning( disable : 4191 )
 
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include "v8.h"
 #include <v8-debug.h>
 #include <v8-profiler.h>
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
 
 #pragma warning( pop )
 

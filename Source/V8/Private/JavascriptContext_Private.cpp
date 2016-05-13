@@ -1,4 +1,7 @@
 #include "V8PCH.h"
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
 #include "JavascriptComponent.h"
@@ -1884,3 +1887,5 @@ inline void FJavascriptContextImplementation::AddReferencedObjects(UObject * InT
 		Collector.AddReferencedObject(It.Key()->Struct, InThis);
 	}
 }
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
