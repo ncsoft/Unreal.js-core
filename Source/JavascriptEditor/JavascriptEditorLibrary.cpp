@@ -518,4 +518,36 @@ void UJavascriptEditorLibrary::BroadcastHotReload()
 	IHotReloadInterface& HotReloadSupport = FModuleManager::LoadModuleChecked<IHotReloadInterface>("HotReload");
 	HotReloadSupport.OnHotReload().Broadcast(false);
 }
+
+bool UJavascriptEditorLibrary::IsActive(UTransactor* Transactor)
+{
+	return Transactor->IsActive();
+}
+
+int32 UJavascriptEditorLibrary::GetQueueLength(UTransactor* Transactor)
+{
+	return Transactor->GetQueueLength();
+}
+
+FJavascriptTransaction UJavascriptEditorLibrary::GetTransaction(UTransactor* Transactor, int32 QueueIndex)
+{
+	FJavascriptTransaction Out;
+	Out.Transaction = Transactor->GetTransaction(QueueIndex);
+	return Out;
+}
+
+FText UJavascriptEditorLibrary::GetTitle(const FJavascriptTransaction& Transaction)
+{
+	return Transaction->GetContext().Title;
+}
+
+FString UJavascriptEditorLibrary::GetContext(const FJavascriptTransaction& Transaction)
+{
+	return Transaction->GetContext().Context;
+}
+
+UObject* UJavascriptEditorLibrary::GetPrimaryObject(const FJavascriptTransaction& Transaction)
+{
+	return Transaction->GetContext().PrimaryObject;
+}
 #endif

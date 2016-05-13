@@ -18,6 +18,22 @@ enum class EJavascriptWidgetMode : uint8
 };
 
 USTRUCT()
+struct FJavascriptTransaction
+{
+	GENERATED_BODY()
+
+public:
+#if WITH_EDITOR
+	const FTransaction* Transaction;
+
+	const FTransaction* operator -> () const
+	{
+		return Transaction;
+	}
+#endif
+};
+
+USTRUCT()
 struct FJavascriptWorkspaceItem
 {
 	GENERATED_BODY()
@@ -282,5 +298,23 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void BroadcastHotReload();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool IsActive(UTransactor* Transactor);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static int32 GetQueueLength(UTransactor* Transactor);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FJavascriptTransaction GetTransaction(UTransactor* Transactor, int32 QueueIndex);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FText GetTitle(const FJavascriptTransaction& Transaction);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FString GetContext(const FJavascriptTransaction& Transaction);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static UObject* GetPrimaryObject(const FJavascriptTransaction& Transaction);
 #endif
 };
