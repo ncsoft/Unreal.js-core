@@ -1,4 +1,7 @@
 #include "V8PCH.h"
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include <libplatform/libplatform.h>
 #include "JavascriptContext.h"
 #include "IV8.h"
@@ -192,4 +195,4 @@ public:
 
 IMPLEMENT_MODULE(V8Module, V8)
 
-
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

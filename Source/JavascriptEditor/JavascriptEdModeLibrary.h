@@ -1,5 +1,6 @@
 #pragma once
 
+#include "JavascriptEditorLibrary.h"
 #include "JavascriptEdModeLibrary.generated.h"
 
 // Extended axis enum for more specialized usage
@@ -50,7 +51,7 @@ struct FJavascriptEdViewport
 {
 	GENERATED_BODY()
 
-		FJavascriptEdViewport() {}
+	FJavascriptEdViewport() {}
 	FJavascriptEdViewport(FEditorViewportClient* InViewportClient, FViewport* InViewport)
 		: ViewportClient(InViewportClient), Viewport(InViewport)
 	{}
@@ -92,6 +93,10 @@ class JAVASCRIPTEDITOR_API UJavascriptEdModeLibrary : public UBlueprintFunctionL
 		static bool EndTracking(FJavascriptEditorModeTools Tools, FJavascriptEdViewport Viewport);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
 		static bool IsTracking(FJavascriptEditorModeTools Tools);
+
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
+		static FJavascriptHitProxy GetHitProxy(FJavascriptEdViewport Viewport);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
 		static FJavascriptEditorModeTools GetModeManager(FJavascriptEditorMode Mode);

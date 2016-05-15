@@ -354,25 +354,6 @@ function proxy(base) {
             }
         }
         
-        replace_childAt(index, child, scope) {
-            if (index < 0 || index >= this.Slots.length)
-                return false;
-            var c = instantiate(child, scope)         
-            let slot = this.Slots[index];
-            slot.Content = c;
-            if (c) {
-                c.Slot = slot;
-            }
-            return true;
-        }
-        
-        replace_child(oldChild, newChild) {
-            let index = this.GetChildIndex(oldChild)
-            if(index != 1)
-                this.replace_childAt(index, newChild)
-            return false    
-        }
-        
         destroy_all_children() {
             this.children.forEach(child => {
                 child.instance.destroy()

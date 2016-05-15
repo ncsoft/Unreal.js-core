@@ -9,7 +9,11 @@ FJavascriptSlateStyle UJavascriptUMGLibrary::CreateSlateStyle(FName InStyleSetNa
 }
 
 void UJavascriptUMGLibrary::Register(FJavascriptSlateStyle StyleSet)
-{
+{	
+	if (FSlateStyleRegistry::FindSlateStyle(StyleSet.Handle->GetStyleSetName()))
+	{
+		FSlateStyleRegistry::UnRegisterSlateStyle(*StyleSet.Handle.Get());
+	}	
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet.Handle.Get());
 }
 

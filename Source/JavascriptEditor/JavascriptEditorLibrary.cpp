@@ -2,7 +2,9 @@
 #include "JavascriptEditorLibrary.h"
 #include "Editor/LandscapeEditor/Private/LandscapeEdModeTools.h"
 #include "JavascriptContext.h"
+#include "DynamicMeshBuilder.h"
 #include "BSPOps.h"
+#include "HotReloadInterface.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -386,6 +388,25 @@ void UJavascriptEditorLibrary::DrawWireDiamond(const FJavascriptPDI& PDI, const 
 {
 	::DrawWireDiamond(PDI.PDI, Transform.ToMatrixWithScale(), Size, InColor, DepthPriority);
 }
+void UJavascriptEditorLibrary::DrawPolygon(const FJavascriptPDI& PDI, const TArray<FVector>& Verts, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority)
+{
+	FDynamicMeshBuilder MeshBuilder;
+
+	FColor Color = InColor.ToFColor(false);
+
+	for (const auto& V : Verts)
+	{
+		MeshBuilder.AddVertex(V, FVector2D(0, 0), FVector(1, 0, 0), FVector(0, 1, 0), FVector(0, 0, 1), Color);
+	}
+
+	for (int32 Index = 0; Index < Verts.Num() - 2; ++Index)
+	{
+		MeshBuilder.AddTriangle(0, Index + 1, Index + 2);		
+	}
+	
+	static auto TransparentPlaneMaterialXY = (UMaterial*)StaticLoadObject(UMaterial::StaticClass(), NULL, TEXT("/Engine/EditorMaterials/WidgetVertexColorMaterial.WidgetVertexColorMaterial"), NULL, LOAD_None, NULL);
+	MeshBuilder.Draw(PDI.PDI, FMatrix::Identity, TransparentPlaneMaterialXY->GetRenderProxy(false), DepthPriority, 0.f);
+}
 
 struct HJavascriptHitProxy : public HHitProxy
 {
@@ -454,5 +475,79 @@ FName UJavascriptEditorLibrary::GetName(const FJavascriptHitProxy& Proxy)
 	}
 
 	return FName();
+}
+
+FString UJavascriptEditorLibrary::GetActorLabel(AActor* Actor)
+{
+	return Actor->GetActorLabel();
+}
+
+void UJavascriptEditorLibrary::SetActorLabel(AActor* Actor, const FString& NewActorLabel, bool bMarkDirty)
+{
+	Actor->SetActorLabel(NewActorLabel, bMarkDirty);
+}
+
+void UJavascriptEditorLibrary::ClearActorLabel(AActor* Actor)
+{
+	Actor->ClearActorLabel();
+}
+
+bool UJavascriptEditorLibrary::IsActorLabelEditable(AActor* Actor)
+{
+	return Actor->IsActorLabelEditable();
+}
+
+void UJavascriptEditorLibrary::SetFolderPath(AActor* Actor, const FName& NewFolderPath)
+{
+	Actor->SetFolderPath(NewFolderPath);
+}
+
+void UJavascriptEditorLibrary::SetFolderPath_Recursively(AActor* Actor, const FName& NewFolderPath)
+{
+	Actor->SetFolderPath_Recursively(NewFolderPath);
+}
+
+FName UJavascriptEditorLibrary::GetFolderPath(AActor* Actor)
+{
+	return Actor->GetFolderPath();
+}
+
+void UJavascriptEditorLibrary::BroadcastHotReload()
+{
+	// Register to have Populate called when doing a Hot Reload.
+	IHotReloadInterface& HotReloadSupport = FModuleManager::LoadModuleChecked<IHotReloadInterface>("HotReload");
+	HotReloadSupport.OnHotReload().Broadcast(false);
+}
+
+bool UJavascriptEditorLibrary::IsActive(UTransactor* Transactor)
+{
+	return Transactor->IsActive();
+}
+
+int32 UJavascriptEditorLibrary::GetQueueLength(UTransactor* Transactor)
+{
+	return Transactor->GetQueueLength();
+}
+
+FJavascriptTransaction UJavascriptEditorLibrary::GetTransaction(UTransactor* Transactor, int32 QueueIndex)
+{
+	FJavascriptTransaction Out;
+	Out.Transaction = Transactor->GetTransaction(QueueIndex);
+	return Out;
+}
+
+FText UJavascriptEditorLibrary::GetTitle(const FJavascriptTransaction& Transaction)
+{
+	return Transaction->GetContext().Title;
+}
+
+FString UJavascriptEditorLibrary::GetContext(const FJavascriptTransaction& Transaction)
+{
+	return Transaction->GetContext().Context;
+}
+
+UObject* UJavascriptEditorLibrary::GetPrimaryObject(const FJavascriptTransaction& Transaction)
+{
+	return Transaction->GetContext().PrimaryObject;
 }
 #endif

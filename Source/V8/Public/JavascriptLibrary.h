@@ -130,6 +130,9 @@ public:
 	static ULevel* GetLevel(AActor* Actor);	
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static TArray<ULevel*> GetLevels(UWorld* World);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FString GetFunctionName(FJavascriptProfileNode Node);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -177,7 +180,10 @@ public:
 	static FString GetDeoptInfo_Stack(FJavascriptProfileNode Node, int32 index);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FString GetArchetypePathName(AActor* Actor);
+	static FString GetArchetypePathName(UObject* Object);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FString GetClassPathName(UClass* Class);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void SetObjectFlags(UObject* Obj, int32 Flags);
@@ -187,4 +193,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static UEnum* CreateEnum(UObject* Outer, FName Name, TArray<FName> DisplayNames);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void MarkRenderStateDirty(UActorComponent* Component);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void ReregisterAllComponents(AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool SegmentIntersection2D(const FVector& SegmentStartA, const FVector& SegmentEndA, const FVector& SegmentStartB, const FVector& SegmentEndB, FVector& IntersectionPoint);
 };

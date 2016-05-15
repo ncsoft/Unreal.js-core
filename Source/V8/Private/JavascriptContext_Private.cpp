@@ -1,4 +1,7 @@
 #include "V8PCH.h"
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
 #include "JavascriptComponent.h"
@@ -341,7 +344,7 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 		if (bIsArray)
 		{
 			auto q = NewObject<UArrayProperty>(Outer, Name);
-			q->Inner = Inner(q, Type);
+			q->Inner = SetupProperty(Inner(q, Type));
 			return q;
 		}
 		else
@@ -630,6 +633,16 @@ void UJavascriptGeneratedFunction::Thunk(FFrame& Stack, RESULT_DECL)
 	}
 }
 
+namespace {
+	UClass* CurrentClass = nullptr;
+	void CallClassConstructor(UClass* Class, const FObjectInitializer& ObjectInitializer) 
+	{
+		CurrentClass = Class;
+		Class->ClassConstructor(ObjectInitializer);
+		CurrentClass = nullptr;
+	};
+}
+
 class FJavascriptContextImplementation : public FJavascriptContext
 {
 	friend class UJavascriptContext;
@@ -776,10 +789,10 @@ public:
 			// Create a blueprint
 			auto Blueprint = NewObject<UBlueprint>(Outer);
 			Blueprint->GeneratedClass = Class;
-			Class->ClassGeneratedBy = Blueprint;			
+			Class->ClassGeneratedBy = Blueprint;						
 
 			auto ClassConstructor = [](const FObjectInitializer& ObjectInitializer){
-				auto Class = static_cast<UBlueprintGeneratedClass*>(ObjectInitializer.GetClass());
+				auto Class = static_cast<UBlueprintGeneratedClass*>(CurrentClass ? CurrentClass : ObjectInitializer.GetClass());
 				
 				FJavascriptContextImplementation* Context = nullptr;
 
@@ -834,7 +847,7 @@ public:
 						}
 					}
 
-					Class->GetSuperClass()->ClassConstructor(ObjectInitializer);
+					CallClassConstructor(Class->GetSuperClass(), ObjectInitializer);
 
 					{
 						auto func = proxy->ToObject()->Get(I.Keyword("ctor"));
@@ -849,7 +862,7 @@ public:
 				}
 				else
 				{
-					Class->GetSuperClass()->ClassConstructor(ObjectInitializer);
+					CallClassConstructor(Class->GetSuperClass(), ObjectInitializer);
 				}
 			};
 
@@ -1151,7 +1164,7 @@ public:
 
 				for (decltype(len) Index = 0; Index < len; ++Index)
 				{
-					auto PropertyDecl = arr->Get(Index);
+					auto PropertyDecl = arr->Get(len - Index - 1);
 					if (PropertyDecl->IsObject())
 					{
 						auto Property = CreatePropertyFromDecl(I, Struct, PropertyDecl);
@@ -1874,3 +1887,5 @@ inline void FJavascriptContextImplementation::AddReferencedObjects(UObject * InT
 		Collector.AddReferencedObject(It.Key()->Struct, InThis);
 	}
 }
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
