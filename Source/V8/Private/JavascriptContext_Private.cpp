@@ -792,7 +792,8 @@ public:
 			Class->ClassGeneratedBy = Blueprint;						
 
 			auto ClassConstructor = [](const FObjectInitializer& ObjectInitializer){
-				auto Class = static_cast<UBlueprintGeneratedClass*>(CurrentClass ? CurrentClass : ObjectInitializer.GetClass());
+				auto TopmostClass = ObjectInitializer.GetClass();
+				auto Class = static_cast<UBlueprintGeneratedClass*>(TopmostClass->IsChildOf(CurrentClass) ? CurrentClass : TopmostClass);
 				
 				FJavascriptContextImplementation* Context = nullptr;
 
