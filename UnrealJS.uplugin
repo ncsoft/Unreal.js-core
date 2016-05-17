@@ -33,7 +33,7 @@
       "Name": "JavascriptWebSocket",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms" : ["Win64", "Mac"]
+      "WhitelistPlatforms" : ["Win64"]
     },
     {
       "Name": "JavascriptEditor",
