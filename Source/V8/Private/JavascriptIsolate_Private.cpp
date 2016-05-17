@@ -1778,6 +1778,7 @@ public:
 					{
 						UObject* Outer = GetTransientPackage();
 						FName Name = NAME_None;
+						EObjectFlags ObjectFlags = RF_NoFlags;
 
 						if (info.Length() > 0)
 						{
@@ -1789,10 +1790,14 @@ public:
 							{
 								Name = FName(*StringFromV8(info[1]));
 							}
+							if (info.Length() > 2)
+							{
+								ObjectFlags = (EObjectFlags)(info[2]->Int32Value());
+							}
 						}
 
-						PreCreate();
-						Associated = NewObject<UObject>(Outer, ClassToExport, Name);
+						PreCreate(); 
+						Associated = NewObject<UObject>(Outer, ClassToExport, Name, ObjectFlags);
 					}
 
 					if (bIsJavascriptClass)
