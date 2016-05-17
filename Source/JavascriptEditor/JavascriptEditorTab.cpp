@@ -1,5 +1,7 @@
 #include "JavascriptEditor.h"
 
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include "JavascriptEditorTab.h"
 #include "WorkspaceMenuStructureModule.h"
 
@@ -222,3 +224,5 @@ void UJavascriptEditorTab::Unregister()
 	Unregister(FGlobalTabmanager::Get());
 }
 #endif
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

@@ -1,4 +1,7 @@
 #include "JavascriptLogPrivatePCH.h"
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include "SJavascriptLog.h"
 #include "SScrollBorder.h"
 #include "BaseTextLayoutMarshaller.h"
@@ -848,3 +851,5 @@ void SJavascriptLog::RequestForceScroll()
 }
 
 #undef LOCTEXT_NAMESPACE
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

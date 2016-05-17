@@ -1,4 +1,7 @@
 #include "JavascriptEditor.h"
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include "SJavascriptBox.h"
 #include "JavascriptEdMode.h"
 #include "Toolkits/ToolkitManager.h"
@@ -382,3 +385,5 @@ void UJavascriptEdMode::Unregister()
 }
 
 #endif
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
