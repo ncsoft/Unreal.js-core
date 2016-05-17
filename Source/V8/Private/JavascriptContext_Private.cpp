@@ -637,8 +637,7 @@ namespace {
 	UClass* CurrentClass = nullptr;
 	void CallClassConstructor(UClass* Class, const FObjectInitializer& ObjectInitializer) 
 	{
-		if (Class->IsChildOf(UJavascriptGeneratedClass_Native::StaticClass()) ||
-			Class->IsChildOf(UJavascriptGeneratedClass::StaticClass()))
+		if (Cast<UJavascriptGeneratedClass_Native>(Class) || Cast<UJavascriptGeneratedClass>(Class))
 		{
 			CurrentClass = Class;
 		}
