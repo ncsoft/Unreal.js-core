@@ -637,7 +637,10 @@ namespace {
 	UClass* CurrentClass = nullptr;
 	void CallClassConstructor(UClass* Class, const FObjectInitializer& ObjectInitializer) 
 	{
-		CurrentClass = Class;
+		if (Cast<UJavascriptGeneratedClass_Native>(Class) || Cast<UJavascriptGeneratedClass>(Class))
+		{
+			CurrentClass = Class;
+		}
 		Class->ClassConstructor(ObjectInitializer);
 		CurrentClass = nullptr;
 	};
@@ -791,8 +794,9 @@ public:
 			Blueprint->GeneratedClass = Class;
 			Class->ClassGeneratedBy = Blueprint;						
 
-			auto ClassConstructor = [](const FObjectInitializer& ObjectInitializer){
+			auto ClassConstructor = [](const FObjectInitializer& ObjectInitializer){				
 				auto Class = static_cast<UBlueprintGeneratedClass*>(CurrentClass ? CurrentClass : ObjectInitializer.GetClass());
+				CurrentClass = nullptr;
 				
 				FJavascriptContextImplementation* Context = nullptr;
 
