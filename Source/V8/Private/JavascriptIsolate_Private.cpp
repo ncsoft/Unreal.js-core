@@ -1,6 +1,7 @@
 #include "V8PCH.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+PRAGMA_DISABLE_OPTIMIZATION
 
 #include "Config.h"
 #include "MallocArrayBufferAllocator.h"
@@ -89,6 +90,11 @@ public:
 
 	struct FObjectPropertyAccessors
 	{
+		static void* This(Local<Value> self)
+		{
+			return UObjectFromV8(self);
+		}
+
 		static Local<Value> Get(Isolate* isolate, Local<Object> self, UProperty* Property)
 		{
 			auto Object = UObjectFromV8(self);
@@ -195,6 +201,11 @@ public:
 
 	struct FStructPropertyAccessors
 	{
+		static void* This(Local<Value> self)
+		{
+			return FStructMemoryInstance::FromV8(self)->GetMemory();
+		}
+
 		static Local<Value> Get(Isolate* isolate, Local<Object> self, UProperty* Property)
 		{
 			auto Instance = FStructMemoryInstance::FromV8(self);
@@ -1615,8 +1626,6 @@ public:
 			auto self = info.This();
 			auto out = Object::New(isolate);
 
-			auto Instance = FStructMemoryInstance::FromV8(self);
-
 			auto Object_toJSON = [&](Local<Value> value) -> Local<Value>
 			{
 				auto Object = UObjectFromV8(value);
@@ -1675,6 +1684,52 @@ public:
 		};
 
 		Template->PrototypeTemplate()->Set(I.Keyword("toJSON"), I.FunctionTemplate(fn, ClassToExport));		
+	}
+
+	template <typename PropertyAccessor>
+	void AddMemberFunction_Struct_RawAccessor(Local<FunctionTemplate> Template, UStruct* ClassToExport)
+	{
+		FIsolateHelper I(isolate_);
+
+		auto fn = [](const FunctionCallbackInfo<Value>& info) {
+			auto Class = reinterpret_cast<UClass*>((Local<External>::Cast(info.Data()))->Value());
+
+			auto isolate = info.GetIsolate();
+			FIsolateHelper I(isolate);
+
+			if (info.Length() != 2 || !info[1]->IsFunction()) return;
+
+			HandleScope handle_scope(isolate);
+
+			const FName PropertyNameToAccess(*StringFromV8(info[0]));
+			auto function = info[1].As<Function>();
+
+			auto self = info.This();
+			auto Instance = PropertyAccessor::This(self);
+
+			for (TFieldIterator<UProperty> PropertyIt(Class, EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
+			{
+				auto Property = *PropertyIt;
+
+				if (auto p = Cast<UArrayProperty>(Property))
+				{
+					FScriptArrayHelper_InContainer helper(p, Instance);
+
+					if (FV8Config::CanExportProperty(Class, Property) && Property->GetFName() == PropertyNameToAccess)
+					{
+						Handle<Value> argv[1];
+
+						argv[0] = ArrayBuffer::New(info.GetIsolate(), helper.GetRawPtr(), helper.Num() * p->Inner->GetSize());
+
+						auto out = function->Call(info.This(), 1, argv);
+						info.GetReturnValue().Set(out);
+						break;
+					}
+				}				
+			}
+		};
+
+		Template->PrototypeTemplate()->Set(I.Keyword("$memaccess"), I.FunctionTemplate(fn, ClassToExport));
 	}
 
 	Local<FunctionTemplate> InternalExportClass(UClass* ClassToExport)
@@ -1849,6 +1904,7 @@ public:
 		AddMemberFunction_Class_GetDefaultSubobjectByName(Template, ClassToExport);
 		
 		AddMemberFunction_Struct_toJSON<FObjectPropertyAccessors>(Template, ClassToExport);
+		AddMemberFunction_Struct_RawAccessor<FObjectPropertyAccessors>(Template, ClassToExport);
 
 		Template->SetClassName(I.Keyword(ClassToExport->GetName()));
 
@@ -1927,6 +1983,7 @@ public:
 		AddMemberFunction_Struct_C(Template, StructToExport);
 		AddMemberFunction_Struct_clone(Template, StructToExport);
 		AddMemberFunction_Struct_toJSON<FStructPropertyAccessors>(Template, StructToExport);
+		AddMemberFunction_Struct_RawAccessor<FStructPropertyAccessors>(Template, StructToExport);
 
 		Template->SetClassName(I.Keyword(StructToExport->GetName()));
 
