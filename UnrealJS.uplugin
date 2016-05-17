@@ -15,19 +15,19 @@
       "Name": "V8",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms" : ["Win64", "Mac"]
+      "WhitelistPlatforms" : ["Win64", "Win32", "Mac"]
     },
     {
       "Name": "JavascriptUMG",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms" : ["Win64", "Mac"]
+      "WhitelistPlatforms" : ["Win64", "Win32", "Mac"]
     },
     {
       "Name": "JavascriptHttp",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms" : ["Win64", "Mac"]
+      "WhitelistPlatforms" : ["Win64", "Win32", "Mac"]
     },
     {
       "Name": "JavascriptWebSocket",
@@ -38,12 +38,12 @@
     {
       "Name": "JavascriptEditor",
       "Type": "Editor",
-      "WhitelistPlatforms" : ["Win64", "Mac"]
+      "WhitelistPlatforms" : ["Win64", "Win32", "Mac"]
     },
     {
       "Name": "JavascriptConsole",
       "Type": "Editor",
-      "WhitelistPlatforms" : ["Win64", "Mac"]
+      "WhitelistPlatforms" : ["Win64", "Win32", "Mac"]
     }
   ],
   "CanContainContent": true
