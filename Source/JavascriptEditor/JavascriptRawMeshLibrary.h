@@ -122,7 +122,7 @@ public:
 	static void LoadRawMesh(UStaticMesh* StaticMesh, int32 SourceModelIndex, FJavascriptRawMesh& OutMesh);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FMeshSectionInfo UJavascriptRawMeshLibrary::GetSectionInfo(UStaticMesh* StaticMesh, int32 LODIndex, int32 SectionIndex);
+	static FMeshSectionInfo GetSectionInfo(UStaticMesh* StaticMesh, int32 LODIndex, int32 SectionIndex);
 	
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void SetSectionInfo(UStaticMesh* StaticMesh, int32 LODIndex, int32 SectionIndex, const FMeshSectionInfo& Info);
