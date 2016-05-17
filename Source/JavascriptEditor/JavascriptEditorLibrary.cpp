@@ -519,6 +519,11 @@ void UJavascriptEditorLibrary::BroadcastHotReload()
 	HotReloadSupport.OnHotReload().Broadcast(false);
 }
 
+void UJavascriptEditorLibrary::BroadcastAssetCreated(UObject* NewAsset)
+{
+	FAssetRegistryModule::AssetCreated(NewAsset);
+}
+
 bool UJavascriptEditorLibrary::IsActive(UTransactor* Transactor)
 {
 	return Transactor->IsActive();

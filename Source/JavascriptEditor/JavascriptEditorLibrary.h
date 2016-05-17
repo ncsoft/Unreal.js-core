@@ -300,6 +300,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static void BroadcastHotReload();
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void BroadcastAssetCreated(UObject* NewAsset);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool IsActive(UTransactor* Transactor);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
