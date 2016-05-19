@@ -45,3 +45,54 @@ bool UJavascriptWidget::HasValidCachedWidget(UWidget* Widget)
 {
 	return Widget && Widget->GetCachedWidget().IsValid();
 }
+
+UPanelSlot* UJavascriptWidget::AddChild(UWidget* Content)
+{
+
+	if (Content == nullptr)
+	{
+		return nullptr;
+	}
+
+	Content->RemoveFromParent();
+
+	if (!ContentSlot)
+	{
+		ContentSlot = NewObject<UPanelSlot>(this, GetSlotClass());
+		ContentSlot->SetFlags(RF_Transactional);
+	}
+
+	ContentSlot->Content = Content;
+	
+	if (Content)
+	{
+		Content->Slot = ContentSlot;
+	}
+
+	OnSlotAdded(Slot);
+
+	SetRootWidget(Content);
+
+	return ContentSlot;
+}
+
+
+bool UJavascriptWidget::RemoveChild()
+{
+	if (!ContentSlot) return false;
+
+	if (ContentSlot->Content)
+	{
+		ContentSlot->Content->Slot = nullptr;
+	}
+
+	OnSlotRemoved(Slot);
+
+	const bool bReleaseChildren = true;
+	ContentSlot->ReleaseSlateResources(bReleaseChildren);
+
+	ContentSlot->Parent = nullptr;
+	ContentSlot->Content = nullptr;
+
+	return true;
+}

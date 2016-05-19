@@ -28,4 +28,32 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool HasValidCachedWidget(UWidget* Widget);	
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	UPanelSlot* AddChild(UWidget* Content);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	bool RemoveChild();
+
+protected:
+
+	UPROPERTY()
+	UPanelSlot* ContentSlot;
+
+protected:
+
+	virtual UClass* GetSlotClass() const
+	{
+		return UPanelSlot::StaticClass();
+	}
+
+	virtual void OnSlotAdded(UPanelSlot* Slot)
+	{
+
+	}
+
+	virtual void OnSlotRemoved(UPanelSlot* Slot)
+	{
+
+	}
 };

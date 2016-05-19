@@ -345,17 +345,28 @@ function proxy(base) {
                     delete this.ids[child.id]
                 }
                 this.children.splice(this.children.indexOf(child), 1)
+
             } else {
                 console.error('couldnot find child', child_instance)
             }
             if (!no_directop) {
+                child_instance.remove_children()
                 child_instance.destroy()
+                child_instance.ClearChildren()
                 child_instance.RemoveFromParent()
             }
         }
         
+        remove_children() {
+            this.children = this.children.filter(function (child) {
+                child.instance.destroy()
+                child.instance.RemoveFromParent()
+                return false
+            })
+        }
+        
         destroy_all_children() {
-            this.children.forEach(child => {
+            this.children.forEach(function (child) {
                 child.instance.destroy()
             })
         }
