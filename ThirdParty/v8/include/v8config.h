@@ -163,7 +163,6 @@
 //
 //  V8_HAS_CXX11_ALIGNAS        - alignas specifier supported
 //  V8_HAS_CXX11_ALIGNOF        - alignof(type) operator supported
-//  V8_HAS_CXX11_STATIC_ASSERT  - static_assert() supported
 //
 // Compiler-specific feature detection
 //
@@ -230,7 +229,6 @@
 # define V8_HAS_BUILTIN_UADD_OVERFLOW (__has_builtin(__builtin_uadd_overflow))
 
 # define V8_HAS_CXX11_ALIGNAS (__has_feature(cxx_alignas))
-# define V8_HAS_CXX11_STATIC_ASSERT (__has_feature(cxx_static_assert))
 
 #elif defined(__GNUC__)
 
@@ -268,16 +266,9 @@
 # define V8_HAS_BUILTIN_FRAME_ADDRESS (V8_GNUC_PREREQ(2, 96, 0))
 # define V8_HAS_BUILTIN_POPCOUNT (V8_GNUC_PREREQ(3, 4, 0))
 
-// g++ requires -std=c++0x or -std=gnu++0x to support C++11 functionality
-// without warnings (functionality used by the macros below).  These modes
-// are detectable by checking whether __GXX_EXPERIMENTAL_CXX0X__ is defined or,
-// more standardly, by checking whether __cplusplus has a C++11 or greater
-// value. Current versions of g++ do not correctly set __cplusplus, so we check
-// both for forward compatibility.
-# if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L
+# if __cplusplus >= 201103L
 #  define V8_HAS_CXX11_ALIGNAS (V8_GNUC_PREREQ(4, 8, 0))
 #  define V8_HAS_CXX11_ALIGNOF (V8_GNUC_PREREQ(4, 8, 0))
-#  define V8_HAS_CXX11_STATIC_ASSERT (V8_GNUC_PREREQ(4, 3, 0))
 # endif
 #endif
 
