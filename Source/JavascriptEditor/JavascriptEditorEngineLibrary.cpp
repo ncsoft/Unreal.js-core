@@ -1,6 +1,7 @@
 #include "JavascriptEditor.h"
 #include "JavascriptEditorEngineLibrary.h"
 #include "JavascriptContext.h"
+#include "ObjectTools.h"
 
 #if WITH_EDITOR
 UWorld* UJavascriptEditorEngineLibrary::GetEditorWorld(UEngine* Engine)
@@ -129,5 +130,10 @@ void UJavascriptEditorEngineLibrary::GetSurfaces(ABrush* Brush, TArray<int32>& S
 			Surfaces.Add(Index);
 		}
 	}
+}
+
+int32 UJavascriptEditorEngineLibrary::DeleteObjectsUnchecked(const TArray< UObject* >& ObjectsToDelete)
+{
+	return ObjectTools::DeleteObjectsUnchecked(ObjectsToDelete);
 }
 #endif

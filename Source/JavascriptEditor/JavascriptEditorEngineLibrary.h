@@ -66,5 +66,8 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorEngineLibrary : public UBlueprintFun
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void GetSurfaces(ABrush* Brush, TArray<int32>& Surfaces);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static int32 DeleteObjectsUnchecked(const TArray< UObject* >& ObjectsToDelete);
 #endif
 };
