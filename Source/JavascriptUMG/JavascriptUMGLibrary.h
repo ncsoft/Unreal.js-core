@@ -9,6 +9,14 @@ struct FJavascriptSlateStyle
 
 	TSharedPtr<FSlateStyleSet> Handle;
 };
+
+USTRUCT()
+struct FJavascriptSlateWidget
+{
+	GENERATED_BODY()
+
+	TSharedPtr<SWidget> Widget;
+};
 /**
  * 
  */
@@ -52,4 +60,7 @@ class JAVASCRIPTUMG_API UJavascriptUMGLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddFontInfo(FJavascriptSlateStyle StyleSet, FName PropertyName, const FSlateFontInfo& FontInfo);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptSlateWidget TakeWidget(UWidget* Widget);
 };

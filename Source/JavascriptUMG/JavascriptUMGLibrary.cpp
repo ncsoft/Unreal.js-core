@@ -66,3 +66,13 @@ void UJavascriptUMGLibrary::AddFontInfo(FJavascriptSlateStyle StyleSet, FName Pr
 {
 	StyleSet.Handle->Set(PropertyName, FontInfo);
 }
+
+FJavascriptSlateWidget UJavascriptUMGLibrary::TakeWidget(UWidget* Widget)
+{
+	FJavascriptSlateWidget Out;
+	if (Widget)
+	{
+		Out.Widget = Widget->TakeWidget();
+	}
+	return Out;
+}
