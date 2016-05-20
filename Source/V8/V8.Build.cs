@@ -11,24 +11,12 @@ public class V8 : ModuleRules
 
     public V8(TargetInfo Target)
     {
-        if (Target.Platform == UnrealTargetPlatform.Mac)
+        PrivateIncludePaths.AddRange(new string[]
         {
-            PrivateIncludePaths.AddRange(new string[]
-            {
-                Path.Combine("/usr/local/opt/v8/include"),
-                Path.Combine("/usr/local/opt/v8"),
-                Path.Combine("V8", "Private")
-            });
-        }
-        else
-        {
-            PrivateIncludePaths.AddRange(new string[]
-            {
-                Path.Combine(ThirdPartyPath, "v8", "include"),
-                Path.Combine(ThirdPartyPath, "v8"),
-                Path.Combine("V8", "Private")
-            });
-        }
+            Path.Combine(ThirdPartyPath, "v8", "include"),
+            Path.Combine(ThirdPartyPath, "v8"),
+            Path.Combine("V8", "Private")
+        });
 
         PublicIncludePaths.AddRange(new string[]
         {
@@ -134,15 +122,14 @@ public class V8 : ModuleRules
         }
         else if (Target.Platform == UnrealTargetPlatform.Mac)
         {
-            string LibPath = "/usr/local/opt/v8/lib/";
-            string DyLibPath = "/usr/local/lib/";
-            PublicLibraryPaths.Add("/usr/local/opt/v8/lib");
+            string LibrariesPath = Path.Combine(ThirdPartyPath, "v8", "lib", "Mac", "x64");
+            PublicLibraryPaths.Add(LibrariesPath);
 
-            PublicAdditionalLibraries.Add(DyLibPath+"libv8.dylib");
-            PublicAdditionalLibraries.Add(LibPath+"libv8_base.a");
-            PublicAdditionalLibraries.Add(LibPath+"libv8_libbase.a");
-            PublicAdditionalLibraries.Add(LibPath+"libv8_libplatform.a");
-            PublicAdditionalLibraries.Add(LibPath+"libv8_nosnapshot.a");
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8.dylib"));
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8_base.a"));
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8_libbase.a"));
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8_libplatform.a"));
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8_nosnapshot.a"));
 
             Definitions.Add(string.Format("WITH_V8=1"));
             Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
