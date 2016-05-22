@@ -32,7 +32,7 @@ using namespace v8;
 UJavascriptSettings::UJavascriptSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	V8Flags = TEXT("--harmony --harmony-shipping --es-staging --expose-debug-as=v8debug --expose-gc --harmony_destructuring --harmony_simd --harmony_default_parameters");
+	V8Flags = TEXT("--harmony --harmony-shipping --es-staging --expose-debug-as=v8debug --expose-gc --harmony_simd");
 }
 
 void UJavascriptSettings::Apply() const
@@ -141,7 +141,7 @@ public:
 		{
 			UJavascriptContext* Context = *It;
 
-			if (Context->ContextId == TargetContext || !TargetContext.IsValid() && Context->IsDebugContext())
+			if (Context->ContextId == TargetContext || (!TargetContext.IsValid() && Context->IsDebugContext()))
 			{
 				FString Result = Context->RunScript(FString::Printf(SourceCode, *FString(Input).ReplaceCharWithEscapedChar()), false);
 				Result.ParseIntoArray(OutArray, TEXT(","));
@@ -155,7 +155,7 @@ public:
 		{
 			UJavascriptContext* Context = *It;
 
-			if (Context->ContextId == TargetContext || !TargetContext.IsValid() && Context->IsDebugContext())
+			if (Context->ContextId == TargetContext || (!TargetContext.IsValid() && Context->IsDebugContext()))
 			{
 				static FName NAME_JavascriptCmd("JavascriptCmd");
 				GLog->Log(NAME_JavascriptCmd, ELogVerbosity::Log, Command);
