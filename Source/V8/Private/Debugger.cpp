@@ -2,6 +2,7 @@
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
+#if !PLATFORM_LINUX
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
 #include "SocketSubSystem.h"
@@ -20,10 +21,11 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #define DEBUG_V8_DEBUGGER 0
 
 #include "Translator.h"
+#endif
 
 using namespace v8;
 
-#if WITH_EDITOR
+#if WITH_EDITOR && !PLATFORM_LINUX
 #include "TickableEditorObject.h"
 
 namespace 
