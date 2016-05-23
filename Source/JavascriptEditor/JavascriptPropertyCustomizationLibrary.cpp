@@ -19,7 +19,30 @@ FJavascriptSlateWidget UJavascriptPropertyCustomizationLibrary::CreatePropertyVa
 {
 	return{ Handle->CreatePropertyValueWidget(!bHideDefaultPropertyButtons) };
 }
-
+FString UJavascriptPropertyCustomizationLibrary::GetMetaData(FJavascriptPropertyHandle Handle, const FName& Key)
+{
+	return Handle->GetMetaData(Key);
+}
+EPropertyAccessResult UJavascriptPropertyCustomizationLibrary::GetValueAsFormattedString(FJavascriptPropertyHandle Handle, FString& OutValue)
+{
+	return EPropertyAccessResult(Handle->GetValueAsFormattedString(OutValue));
+}
+EPropertyAccessResult UJavascriptPropertyCustomizationLibrary::SetValueFromFormattedString(FJavascriptPropertyHandle Handle, const FString& InValue)
+{
+	return EPropertyAccessResult(Handle->SetValueFromFormattedString(InValue));
+}
+UProperty* UJavascriptPropertyCustomizationLibrary::GetProperty(FJavascriptPropertyHandle Handle)
+{
+	return Handle->GetProperty();
+}
+void UJavascriptPropertyCustomizationLibrary::SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, FJavascriptFunction Function)
+{
+	FSimpleDelegate Delegate;
+	Delegate.BindLambda([=] () {
+		((FJavascriptFunction*)&Function)->Execute();
+	});
+	Handle->SetOnPropertyValueChanged(Delegate);
+}
 
 
 FJavascriptDetailWidgetDecl UJavascriptPropertyCustomizationLibrary::WholeRowContent(FJavascriptDetailWidgetRow Row)

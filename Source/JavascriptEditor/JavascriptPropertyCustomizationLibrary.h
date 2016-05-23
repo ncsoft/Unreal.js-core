@@ -101,6 +101,17 @@ struct FJavascriptPropertyTypeCustomizationUtils
 #endif
 };
 
+UENUM()
+enum class EPropertyAccessResult : uint8
+{
+	/** Multiple values were found so the value could not be read */
+	MultipleValues,
+	/** Failed to set or get the value */
+	Fail,
+	/** Successfully set the got the value */
+	Success,
+};
+
 /**
  * 
  */
@@ -116,6 +127,16 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 		static FJavascriptSlateWidget CreatePropertyNameWidget(FJavascriptPropertyHandle Handle, const FText& NameOverride, const FText& ToolTipOverride, bool bDisplayResetToDefault, bool bHideText, bool bHideThumbnail);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 		static FJavascriptSlateWidget CreatePropertyValueWidget(FJavascriptPropertyHandle Handle, bool bHideDefaultPropertyButtons);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+		static FString GetMetaData(FJavascriptPropertyHandle Handle, const FName& Key);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+		static EPropertyAccessResult GetValueAsFormattedString(FJavascriptPropertyHandle Handle, FString& OutValue);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+		static EPropertyAccessResult SetValueFromFormattedString(FJavascriptPropertyHandle Handle, const FString& InValue);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+		static UProperty* GetProperty(FJavascriptPropertyHandle Handle);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+		static void SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, FJavascriptFunction Function);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 		static FJavascriptDetailWidgetDecl WholeRowContent(FJavascriptDetailWidgetRow Row);
