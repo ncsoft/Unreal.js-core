@@ -120,7 +120,6 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add("v8_libbase");
             PublicAdditionalLibraries.Add("v8_libplatform");
             PublicAdditionalLibraries.Add("v8_nosnapshot");
-            RuntimeDependencies.Add(new RuntimeDependency("$(GameDir)/Plugins/UnrealJS/ThirdParty/v8/lib/Linux/x64/libv8.so"));
 
             Definitions.Add(string.Format("WITH_V8=1"));
             Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
