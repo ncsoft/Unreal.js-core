@@ -565,4 +565,9 @@ void UJavascriptEditorLibrary::EditorAddModalWindow(FJavascriptSlateWidget Widge
 		GEditor->EditorAddModalWindow(Window.ToSharedRef());
 	}
 }
+
+FJavascriptSlateWidget UJavascriptEditorLibrary::GetRootWindow()
+{
+	return {StaticCastSharedPtr<SWidget>(FGlobalTabmanager::Get()->GetRootWindow())};
+}
 #endif

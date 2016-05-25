@@ -76,3 +76,24 @@ FJavascriptSlateWidget UJavascriptUMGLibrary::TakeWidget(UWidget* Widget)
 	}
 	return Out;
 }
+
+void UJavascriptUMGLibrary::AddWindowAsNativeChild(FJavascriptSlateWidget NewWindow, FJavascriptSlateWidget RootWindow)
+{
+	auto New = StaticCastSharedPtr<SWindow>(NewWindow.Widget);
+	auto Root = StaticCastSharedPtr<SWindow>(RootWindow.Widget);
+
+	if (New.IsValid() && Root.IsValid())
+	{
+		FSlateApplication::Get().AddWindowAsNativeChild(New.ToSharedRef(), Root.ToSharedRef());
+	}
+}
+
+void UJavascriptUMGLibrary::AddWindow(FJavascriptSlateWidget NewWindow)
+{
+	auto New = StaticCastSharedPtr<SWindow>(NewWindow.Widget);
+
+	if (New.IsValid())
+	{
+		FSlateApplication::Get().AddWindow(New.ToSharedRef());
+	}
+}

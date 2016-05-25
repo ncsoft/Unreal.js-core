@@ -323,5 +323,8 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void EditorAddModalWindow(FJavascriptSlateWidget Widget);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FJavascriptSlateWidget GetRootWindow();
 #endif
 };

@@ -63,4 +63,10 @@ class JAVASCRIPTUMG_API UJavascriptUMGLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptSlateWidget TakeWidget(UWidget* Widget);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void AddWindowAsNativeChild(FJavascriptSlateWidget NewWindow, FJavascriptSlateWidget RootWindow);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void AddWindow(FJavascriptSlateWidget NewWindow);
 };
