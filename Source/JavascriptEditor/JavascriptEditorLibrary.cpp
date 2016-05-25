@@ -5,6 +5,7 @@
 #include "DynamicMeshBuilder.h"
 #include "BSPOps.h"
 #include "HotReloadInterface.h"
+#include "JavascriptWindow.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -554,5 +555,14 @@ FString UJavascriptEditorLibrary::GetContext(const FJavascriptTransaction& Trans
 UObject* UJavascriptEditorLibrary::GetPrimaryObject(const FJavascriptTransaction& Transaction)
 {
 	return Transaction->GetContext().PrimaryObject;
+}
+
+void UJavascriptEditorLibrary::EditorAddModalWindow(FJavascriptSlateWidget Widget)
+{
+	auto Window = StaticCastSharedPtr<SWindow>(Widget.Widget);
+	if (Window.IsValid())
+	{
+		GEditor->EditorAddModalWindow(Window.ToSharedRef());
+	}
 }
 #endif

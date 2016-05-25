@@ -2,6 +2,7 @@
 
 #include "JavascriptEditorGlobalDelegates.h"
 #include "JavascriptMenuLibrary.h"
+#include "JavascriptUMGLibrary.h"
 #include "JavascriptInputEventStateLibrary.h"
 #include "JavascriptEditorLibrary.generated.h"
 
@@ -319,5 +320,8 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static UObject* GetPrimaryObject(const FJavascriptTransaction& Transaction);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void EditorAddModalWindow(FJavascriptSlateWidget Widget);
 #endif
 };
