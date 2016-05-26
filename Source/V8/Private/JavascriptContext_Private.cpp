@@ -1,7 +1,6 @@
 #include "V8PCH.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
-PRAGMA_DISABLE_OPTIMIZATION
 
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
