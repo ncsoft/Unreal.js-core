@@ -99,9 +99,6 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 	GENERATED_BODY()
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void Test(int a, FJavascriptFunction f);
-
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void CreateToolbarBuilder(FJavascriptUICommandList CommandList, EOrientation Orientation, FJavascriptFunction Function);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")

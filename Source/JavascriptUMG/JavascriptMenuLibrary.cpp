@@ -164,9 +164,3 @@ FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascript
 
 	return Out;
 }
-
-void UJavascriptMenuLibrary::Test(int a, FJavascriptFunction f)
-{
-	FJavascriptMenuBuilder builder;
-	f.Execute(FJavascriptMenuBuilder::StaticStruct(), &builder);
-}
