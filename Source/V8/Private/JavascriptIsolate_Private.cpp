@@ -502,11 +502,16 @@ public:
 
 			if (Class)
 			{
-				return V8_String(isolate_, Class->GetPathName());
+				ExportClass(Class);
+
+				auto context = isolate_->GetCurrentContext();
+				auto name = I.Keyword(FV8Config::Safeify(Class->GetName()));
+
+				return context->Global()->Get(name);
 			}
 			else
 			{
-				return V8_KeywordString(isolate_, "null");
+				return Null(isolate_);
 			}
 		}
 		else if (auto p = Cast<UStructProperty>(Property))
