@@ -502,12 +502,7 @@ public:
 
 			if (Class)
 			{
-				ExportClass(Class);
-
-				auto context = isolate_->GetCurrentContext();
-				auto name = I.Keyword(FV8Config::Safeify(Class->GetName()));
-
-				return context->Global()->Get(name);
+				return ExportClass(Class)->GetFunction();
 			}
 			else
 			{
@@ -1666,6 +1661,19 @@ public:
 					auto value = PropertyAccessor::Get(isolate, self, Property);
 					if (auto p = Cast<UClassProperty>(Property))
 					{
+						auto Class = UClassFromV8(isolate, value);
+
+						if (Class)
+						{
+							value = I.String(Class->GetPathName());
+						}
+						else
+						{
+							value = I.Keyword("null");
+						}
+
+						FString msg = StringFromV8(value);
+
 						out->Set(name, value);
 					}
 					else if (auto p = Cast<UObjectPropertyBase>(Property))
