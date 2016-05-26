@@ -1,6 +1,7 @@
 #include "V8PCH.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+PRAGMA_DISABLE_OPTIMIZATION
 
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
@@ -202,7 +203,7 @@ static void SetStructFlags(UScriptStruct* Struct, const TArray<FString>& Flags)
 	}
 }
 
-static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FString>& Decorators, FString Type, bool bIsArray)
+static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FString>& Decorators, FString Type, bool bIsArray, bool bIsSubclass)
 {	
 	auto SetupProperty = [&](UProperty* NewProperty) {
 		static struct FKeyword {
@@ -288,6 +289,9 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 				TypeObject = StaticFindObject(UObject::StaticClass(), ANY_PACKAGE, ObjectName);
 				if (TypeObject) return TypeObject;
 
+				TypeObject = StaticLoadObject(UObject::StaticClass(), nullptr, ObjectName);
+				if (TypeObject) return TypeObject;
+
 				return nullptr;
 			};
 
@@ -317,9 +321,35 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 
 				if (auto p = Cast<UClass>(TypeObject))
 				{
-					auto q = NewObject<UObjectProperty>(Outer, Name);
-					q->SetPropertyClass(p);
-					return q;
+					if (bIsSubclass)
+					{
+						auto q = NewObject<UClassProperty>(Outer, Name);
+						q->SetPropertyClass(UClass::StaticClass());
+						q->SetMetaClass(p);
+						return q;
+					}
+					else
+					{
+						auto q = NewObject<UObjectProperty>(Outer, Name);
+						q->SetPropertyClass(p);
+						return q;
+					}
+				}
+				else  if (auto p = Cast<UBlueprint>(TypeObject))
+				{
+					if (bIsSubclass)
+					{
+						auto q = NewObject<UClassProperty>(Outer, Name);
+						q->SetPropertyClass(UClass::StaticClass());
+						q->SetMetaClass(p->GeneratedClass);
+						return q;
+					}
+					else
+					{
+						auto q = NewObject<UObjectProperty>(Outer, Name);
+						q->SetPropertyClass(p->GeneratedClass);
+						return q;
+					}
 				}
 				else if (auto p = Cast<UScriptStruct>(TypeObject))
 				{
@@ -363,13 +393,15 @@ static UProperty* CreatePropertyFromDecl(FIsolateHelper& I, UObject* Outer, Hand
 	auto Type = Decl->Get(I.Keyword("Type"));
 	auto Decorators = Decl->Get(I.Keyword("Decorators"));
 	auto IsArray = Decl->Get(I.Keyword("IsArray"));
+	auto IsSubClass = Decl->Get(I.Keyword("IsSubclass"));
 
 	return CreateProperty(
 		Outer,
 		*StringFromV8(Name),
 		StringArrayFromV8(Decorators),
 		StringFromV8(Type),
-		!IsArray.IsEmpty() && IsArray->BooleanValue()
+		!IsArray.IsEmpty() && IsArray->BooleanValue(),
+		!IsSubClass.IsEmpty() && IsSubClass->BooleanValue()
 		);	
 }
 

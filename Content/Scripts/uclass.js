@@ -98,8 +98,13 @@
                     let arr = (m[3] || '').split('+').map((x) => x.trim())
                     let type = arr.pop()
                     let is_array = false
+                    let is_subclass = false                    
                     if (/\[\]$/.test(type)) {
                         is_array = true
+                        type = type.substr(0, type.length - 2)
+                    }
+                    if (/\<\>$/.test(type)) {
+                        is_subclass = true
                         type = type.substr(0, type.length - 2)
                     }
                     if (_.isFunction(target[type])) {
@@ -115,6 +120,7 @@
                             Name: m[1],
                             Type: type,
                             Decorators: arr,
+                            IsSubclass: is_subclass,
                             IsArray: is_array
                         }
                     } else {

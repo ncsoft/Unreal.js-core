@@ -502,16 +502,11 @@ public:
 
 			if (Class)
 			{
-				ExportClass(Class);
-
-				auto context = isolate_->GetCurrentContext();
-				auto name = I.Keyword(FV8Config::Safeify(Class->GetName()));
-
-				return context->Global()->Get(name);
+				return V8_String(isolate_, Class->GetPathName());
 			}
 			else
 			{
-				return Undefined(isolate_);
+				return V8_KeywordString(isolate_, "null");
 			}
 		}
 		else if (auto p = Cast<UStructProperty>(Property))
@@ -648,7 +643,23 @@ public:
 		}
 		else if (auto p = Cast<UClassProperty>(Property))
 		{
-			p->SetPropertyValue_InContainer(Buffer, UClassFromV8(isolate_, Value));
+			if (Value->IsString())
+			{
+				auto UString = StringFromV8(Value);
+				if (UString == TEXT("null"))
+				{
+					p->SetPropertyValue_InContainer(Buffer, nullptr);
+				}
+				else
+				{
+					auto Class = StaticLoadObject(UClass::StaticClass(), nullptr, *UString);
+					p->SetPropertyValue_InContainer(Buffer, Class);
+				}
+			}
+			else
+			{
+				p->SetPropertyValue_InContainer(Buffer, UClassFromV8(isolate_, Value));
+			}
 		}
 		else if (auto p = Cast<UStructProperty>(Property))
 		{
@@ -1648,7 +1659,11 @@ public:
 
 					auto name = I.Keyword(PropertyName.ToString());
 					auto value = PropertyAccessor::Get(isolate, self, Property);
-					if (auto p = Cast<UObjectPropertyBase>(Property))
+					if (auto p = Cast<UClassProperty>(Property))
+					{
+						out->Set(name, value);
+					}
+					else if (auto p = Cast<UObjectPropertyBase>(Property))
 					{
 						out->Set(name, Object_toJSON(value));						
 					}
