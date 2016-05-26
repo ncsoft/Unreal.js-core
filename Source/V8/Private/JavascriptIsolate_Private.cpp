@@ -1672,8 +1672,6 @@ public:
 							value = I.Keyword("null");
 						}
 
-						FString msg = StringFromV8(value);
-
 						out->Set(name, value);
 					}
 					else if (auto p = Cast<UObjectPropertyBase>(Property))
