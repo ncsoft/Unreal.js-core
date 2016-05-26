@@ -10,6 +10,7 @@
   "CreatedBy": "NCSOFT Corporation",
   "CreatedByURL": "http://github.com/ncsoft",
   "EnabledByDefault": true,
+  "MarketplaceURL" : "com.epicgames.launcher://ue/marketplace/offers/be751eedc4a14cc09e39945bc5a531c4",
   "Modules": [
     {
       "Name": "V8",
