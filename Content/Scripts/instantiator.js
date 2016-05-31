@@ -352,9 +352,6 @@ function proxy(base) {
             if (!no_directop) {
                 child_instance.remove_children()
                 child_instance.destroy()
-                if(child_instance instanceof Border) {
-                    child_instance.SetBrush(WidgetBlueprintLibrary.NoResourceBrush())
-                }
                 child_instance.RemoveFromParent()
             }
         }
