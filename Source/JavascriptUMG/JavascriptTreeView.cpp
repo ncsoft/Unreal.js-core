@@ -8,6 +8,8 @@ UJavascriptTreeView::UJavascriptTreeView(const FObjectInitializer& ObjectInitial
 	bIsVariable = true;
 
 	SelectionMode = ESelectionMode::Single;
+
+	HeaderRowStyle = FCoreStyle::Get().GetWidgetStyle<FHeaderRowStyle>("TableView.Header");
 }
 
 TSharedPtr<SHeaderRow> UJavascriptTreeView::GetHeaderRowWidget()
@@ -15,7 +17,8 @@ TSharedPtr<SHeaderRow> UJavascriptTreeView::GetHeaderRowWidget()
 	TSharedPtr<SHeaderRow> HeaderRowWidget;
 	if (Columns.Num())
 	{
-		HeaderRowWidget = SNew(SHeaderRow);
+		HeaderRowWidget = SNew(SHeaderRow)
+			.Style(&HeaderRowStyle);
 
 		ColumnWidgets.Empty();
 

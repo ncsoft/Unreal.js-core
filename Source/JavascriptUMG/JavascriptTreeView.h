@@ -61,6 +61,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Content)
 	TArray<UObject*> Items;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Javascript")
+	FHeaderRowStyle HeaderRowStyle;
+
 	/** The selection method for the list */
 	UPROPERTY(EditAnywhere, Category = Content)
 	TEnumAsByte<ESelectionMode::Type> SelectionMode;
