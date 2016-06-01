@@ -10,6 +10,7 @@ UJavascriptTreeView::UJavascriptTreeView(const FObjectInitializer& ObjectInitial
 	SelectionMode = ESelectionMode::Single;
 
 	HeaderRowStyle = FCoreStyle::Get().GetWidgetStyle<FHeaderRowStyle>("TableView.Header");
+	TableRowStyle = FCoreStyle::Get().GetWidgetStyle<FTableRowStyle>("TableView.Row");
 }
 
 TSharedPtr<SHeaderRow> UJavascriptTreeView::GetHeaderRowWidget()
@@ -117,6 +118,7 @@ public:
 	SLATE_BEGIN_ARGS(SJavascriptTableRow) { }
 		SLATE_ARGUMENT(UObject*, Object)
 		SLATE_ARGUMENT(UJavascriptTreeView*, TreeView)
+		SLATE_STYLE_ARGUMENT(FTableRowStyle, Style)
 	SLATE_END_ARGS()
 
 public:
@@ -139,7 +141,7 @@ public:
 		Object = InArgs._Object;
 		TreeView = InArgs._TreeView;
 
-		SMultiColumnTableRow<UObject*>::Construct(FSuperRowType::FArguments(), InOwnerTableView);
+		SMultiColumnTableRow<UObject*>::Construct(FSuperRowType::FArguments().Style(InArgs._Style), InOwnerTableView);
 	}
 
 public:
@@ -200,7 +202,7 @@ TSharedRef<ITableRow> UJavascriptTreeView::HandleOnGenerateRow(UObject* Item, co
 	{
 		if (Columns.Num())
 		{
-			return SNew(SJavascriptTableRow, OwnerTable).Object(Item).TreeView(this);
+			return SNew(SJavascriptTableRow, OwnerTable).Object(Item).TreeView(this).Style(&TableRowStyle);
 		}
 		else
 		{
