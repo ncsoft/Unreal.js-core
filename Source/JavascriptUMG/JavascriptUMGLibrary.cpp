@@ -97,3 +97,9 @@ void UJavascriptUMGLibrary::AddWindow(FJavascriptSlateWidget NewWindow)
 		FSlateApplication::Get().AddWindow(New.ToSharedRef());
 	}
 }
+
+FVector2D UJavascriptUMGLibrary::GenerateDynamicImageResource(const FName InDynamicBrushName)
+{
+	FIntPoint Size = FSlateApplication::Get().GetRenderer()->GenerateDynamicImageResource(InDynamicBrushName);
+	return FVector2D(Size.X, Size.Y);
+}

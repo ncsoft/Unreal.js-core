@@ -69,4 +69,7 @@ class JAVASCRIPTUMG_API UJavascriptUMGLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void AddWindow(FJavascriptSlateWidget NewWindow);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FVector2D GenerateDynamicImageResource(const FName InDynamicBrushName);
 };
