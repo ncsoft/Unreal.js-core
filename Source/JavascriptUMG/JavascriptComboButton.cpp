@@ -2,6 +2,8 @@
 #include "JavascriptComboButton.h"
 #include "SComboButton.h"
 
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 UJavascriptComboButton::UJavascriptComboButton(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {	
@@ -66,3 +68,5 @@ void UJavascriptComboButton::SetIsOpen(bool InIsOpen, bool bFocusMenu)
 		return MyComboButton->SetIsOpen(InIsOpen, bFocusMenu);
 	}
 }
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
