@@ -48,4 +48,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
 	bool WriteToPipe(const FString& Message, FString& OutWritten);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
+	static void LaunchURL(const FString& URL, const FString& Parms, FString& Error);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
+	static bool CanLaunchURL(const FString& URL);
 };

@@ -88,3 +88,13 @@ FString UJavascriptProcess::GetEnvironmentVar(const FString& VarName)
 	FPlatformMisc::GetEnvironmentVariable(*VarName, Result, ARRAY_COUNT(Result));
 	return Result;
 }
+
+void UJavascriptProcess::LaunchURL(const FString& URL, const FString& Parms, FString& Error)
+{
+	FPlatformProcess::LaunchURL(*URL, *Parms, &Error);
+}
+
+bool UJavascriptProcess::CanLaunchURL(const FString& URL)
+{
+	return FPlatformProcess::CanLaunchURL(*URL);
+}
