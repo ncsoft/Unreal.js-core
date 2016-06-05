@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Runtime/Launch/Resources/Version.h"
+#include "../../Launch/Resources/Version.h"
 #include "JavascriptGeneratedClass_Native.generated.h"
 
 struct FJavascriptContext;

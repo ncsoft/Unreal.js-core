@@ -11,7 +11,7 @@ class FJavascriptCustomPropertyTypeImpl : public IPropertyTypeCustomization
 {
 public:
 	FJavascriptCustomPropertyTypeImpl(UJavascriptPropertyCustomization* InBody)
-		: Body(InBody), Id(NextId++)
+		: Id(NextId++), Body(InBody)
 	{}
 
 	virtual ~FJavascriptCustomPropertyTypeImpl()
