@@ -373,3 +373,23 @@ bool UJavascriptLibrary::SegmentIntersection2D(const FVector& SegmentStartA, con
 {
 	return FMath::SegmentIntersection2D(SegmentStartA, SegmentEndA, SegmentStartB, SegmentEndB, IntersectionPoint);
 }
+
+bool UJavascriptLibrary::FileExists(const FString& Filename)
+{
+	return IFileManager::Get().FileExists(*Filename);
+}
+
+bool UJavascriptLibrary::DirectoryExists(const FString& InDirectory)
+{
+	return IFileManager::Get().DirectoryExists(*InDirectory);
+}
+
+bool UJavascriptLibrary::MakeDirectory(const FString& Path, bool Tree)
+{
+	return IFileManager::Get().MakeDirectory(*Path, Tree);
+}
+
+bool UJavascriptLibrary::DeleteDirectory(const FString& Path, bool RequireExists, bool Tree)
+{
+	return IFileManager::Get().DeleteDirectory(*Path, RequireExists, Tree);
+}

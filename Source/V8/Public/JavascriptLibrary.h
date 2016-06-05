@@ -202,4 +202,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool SegmentIntersection2D(const FVector& SegmentStartA, const FVector& SegmentEndA, const FVector& SegmentStartB, const FVector& SegmentEndB, FVector& IntersectionPoint);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool FileExists(const FString& Filename);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool DirectoryExists(const FString& InDirectory);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool MakeDirectory(const FString& Path, bool Tree);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool DeleteDirectory(const FString& Path, bool RequireExists, bool Tree);
 };
