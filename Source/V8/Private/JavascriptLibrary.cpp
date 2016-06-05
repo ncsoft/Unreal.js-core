@@ -393,3 +393,23 @@ bool UJavascriptLibrary::DeleteDirectory(const FString& Path, bool RequireExists
 {
 	return IFileManager::Get().DeleteDirectory(*Path, RequireExists, Tree);
 }
+
+void UJavascriptLibrary::GetObjectsWithOuter(const class UObject* Outer, TArray<UObject *>& Results, bool bIncludeNestedObjects, int32 ExclusionFlags, int32 ExclusionInternalFlags)
+{
+	::GetObjectsWithOuter(Outer, Results, bIncludeNestedObjects, (EObjectFlags)ExclusionFlags, (EInternalObjectFlags)ExclusionInternalFlags);
+}
+
+class UObject* UJavascriptLibrary::FindObjectWithOuter(class UObject* Outer, class UClass* ClassToLookFor, FName NameToLookFor)
+{
+	return static_cast<UObject*>(::FindObjectWithOuter(Outer, ClassToLookFor, NameToLookFor));
+}
+
+void UJavascriptLibrary::GetObjectsOfClass(UClass* ClassToLookFor, TArray<UObject *>& Results, bool bIncludeDerivedClasses, int32 ExcludeFlags, int32 ExclusionInternalFlags)
+{
+	::GetObjectsOfClass(ClassToLookFor, Results, bIncludeDerivedClasses, (EObjectFlags)ExcludeFlags, (EInternalObjectFlags)ExclusionInternalFlags);
+}
+
+void UJavascriptLibrary::GetDerivedClasses(UClass* ClassToLookFor, TArray<UClass *>& Results, bool bRecursive)
+{
+	::GetDerivedClasses(ClassToLookFor, Results, bRecursive);
+}
