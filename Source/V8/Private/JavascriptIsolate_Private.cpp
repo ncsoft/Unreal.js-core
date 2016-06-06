@@ -208,13 +208,22 @@ public:
 		static Local<Value> Get(Isolate* isolate, Local<Object> self, UProperty* Property)
 		{
 			auto Instance = FStructMemoryInstance::FromV8(self);
-			return ReadProperty(isolate, Property, Instance->GetMemory(), FStructMemoryPropertyOwner(Instance));
+			return Instance ? ReadProperty(isolate, Property, Instance->GetMemory(), FStructMemoryPropertyOwner(Instance)) : Undefined(isolate);
 		}
 
 		static void Set(Isolate* isolate, Local<Object> self, UProperty* Property, Local<Value> value)
 		{
+			FIsolateHelper I(isolate);
+
 			auto Instance = FStructMemoryInstance::FromV8(self);
-			WriteProperty(isolate, Property, Instance->GetMemory(), value);
+			if (Instance)
+			{
+				WriteProperty(isolate, Property, Instance->GetMemory(), value);
+			}
+			else
+			{
+				I.Throw(TEXT("Null struct"));
+			}
 		}
 	};
 
