@@ -1217,7 +1217,7 @@ public:
 			);
 		};
 
-		auto function_name = I.Keyword(FV8Config::Safeify(FunctionToExport->GetName()));
+		auto function_name = I.Keyword(FunctionToExport->GetName());
 		auto function = I.FunctionTemplate(FunctionBody, FunctionToExport);
 
 		// In case of static function, you can also call this function by 'Class.Method()'.
@@ -1268,7 +1268,7 @@ public:
 			);
 		};
 
-		auto function_name = I.Keyword(FV8Config::Safeify(FunctionToExport->GetName()));
+		auto function_name = I.Keyword(FunctionToExport->GetName());
 		auto function = I.FunctionTemplate(FunctionBody, FunctionToExport);
 		
 		// Register the function to prototype template
@@ -1309,7 +1309,7 @@ public:
 			);
 		};
 
-		auto function_name = I.Keyword(FV8Config::Safeify(FunctionToExport->GetName()));
+		auto function_name = I.Keyword(FunctionToExport->GetName());
 		auto function = I.FunctionTemplate(FunctionBody, FunctionToExport);
 
 		// Register the function to prototype template
@@ -1344,7 +1344,7 @@ public:
 		};
 
 		Template->PrototypeTemplate()->SetAccessor(
-			I.Keyword(FV8Config::Safeify(PropertyToExport->GetName())),
+			I.Keyword(PropertyToExport->GetName()),
 			Getter, 
 			Setter, 
 			I.External(PropertyToExport),
