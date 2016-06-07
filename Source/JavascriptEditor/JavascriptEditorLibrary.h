@@ -326,5 +326,8 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptSlateWidget GetRootWindow();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void CreatePropertyEditorToolkit(TArray<UObject*> ObjectsForPropertiesMenu);
 #endif
 };

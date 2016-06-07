@@ -6,6 +6,7 @@
 #include "BSPOps.h"
 #include "HotReloadInterface.h"
 #include "JavascriptWindow.h"
+#include "Editor/PropertyEditor/Public/PropertyEditorModule.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -569,5 +570,11 @@ void UJavascriptEditorLibrary::EditorAddModalWindow(FJavascriptSlateWidget Widge
 FJavascriptSlateWidget UJavascriptEditorLibrary::GetRootWindow()
 {
 	return {StaticCastSharedPtr<SWidget>(FGlobalTabmanager::Get()->GetRootWindow())};
+}
+
+void UJavascriptEditorLibrary::CreatePropertyEditorToolkit(TArray<UObject*> ObjectsForPropertiesMenu)
+{
+	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	PropertyEditorModule.CreatePropertyEditorToolkit(EToolkitMode::Standalone, TSharedPtr<IToolkitHost>(), ObjectsForPropertiesMenu);
 }
 #endif
