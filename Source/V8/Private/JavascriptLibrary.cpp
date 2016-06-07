@@ -373,3 +373,43 @@ bool UJavascriptLibrary::SegmentIntersection2D(const FVector& SegmentStartA, con
 {
 	return FMath::SegmentIntersection2D(SegmentStartA, SegmentEndA, SegmentStartB, SegmentEndB, IntersectionPoint);
 }
+
+bool UJavascriptLibrary::FileExists(const FString& Filename)
+{
+	return IFileManager::Get().FileExists(*Filename);
+}
+
+bool UJavascriptLibrary::DirectoryExists(const FString& InDirectory)
+{
+	return IFileManager::Get().DirectoryExists(*InDirectory);
+}
+
+bool UJavascriptLibrary::MakeDirectory(const FString& Path, bool Tree)
+{
+	return IFileManager::Get().MakeDirectory(*Path, Tree);
+}
+
+bool UJavascriptLibrary::DeleteDirectory(const FString& Path, bool RequireExists, bool Tree)
+{
+	return IFileManager::Get().DeleteDirectory(*Path, RequireExists, Tree);
+}
+
+void UJavascriptLibrary::GetObjectsWithOuter(const class UObject* Outer, TArray<UObject *>& Results, bool bIncludeNestedObjects, int32 ExclusionFlags, int32 ExclusionInternalFlags)
+{
+	::GetObjectsWithOuter(Outer, Results, bIncludeNestedObjects, (EObjectFlags)ExclusionFlags, (EInternalObjectFlags)ExclusionInternalFlags);
+}
+
+class UObject* UJavascriptLibrary::FindObjectWithOuter(class UObject* Outer, class UClass* ClassToLookFor, FName NameToLookFor)
+{
+	return static_cast<UObject*>(::FindObjectWithOuter(Outer, ClassToLookFor, NameToLookFor));
+}
+
+void UJavascriptLibrary::GetObjectsOfClass(UClass* ClassToLookFor, TArray<UObject *>& Results, bool bIncludeDerivedClasses, int32 ExcludeFlags, int32 ExclusionInternalFlags)
+{
+	::GetObjectsOfClass(ClassToLookFor, Results, bIncludeDerivedClasses, (EObjectFlags)ExcludeFlags, (EInternalObjectFlags)ExclusionInternalFlags);
+}
+
+void UJavascriptLibrary::GetDerivedClasses(UClass* ClassToLookFor, TArray<UClass *>& Results, bool bRecursive)
+{
+	::GetDerivedClasses(ClassToLookFor, Results, bRecursive);
+}

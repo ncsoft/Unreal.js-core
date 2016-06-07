@@ -63,6 +63,9 @@ public:
 		platform_ = platform::CreateDefaultPlatform();
 		V8::InitializePlatform(platform_);
 		V8::Initialize();
+
+		FName NAME_JavascriptCmd("JavascriptCmd");
+		GLog->Log(NAME_JavascriptCmd, ELogVerbosity::Log, *FString::Printf(TEXT("Unreal.js started. V8 %d.%d.%d"), V8_MAJOR_VERSION, V8_MINOR_VERSION, V8_BUILD_NUMBER));
 	}
 
 	virtual void ShutdownModule() override
