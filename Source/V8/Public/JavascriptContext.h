@@ -57,6 +57,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	void SetAsDebugContext();
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	void ResetAsDebugContext();
+
 	UFUNCTION(BlueprintPure, Category = "Scripting|Javascript")
 	bool IsDebugContext() const;
 

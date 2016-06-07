@@ -119,6 +119,11 @@ void UJavascriptContext::SetAsDebugContext()
 	JavascriptContext->SetAsDebugContext();
 }
 
+void UJavascriptContext::ResetAsDebugContext()
+{
+	JavascriptContext->ResetAsDebugContext();
+}
+
 bool UJavascriptContext::IsDebugContext() const
 {
 	return JavascriptContext->IsDebugContext();

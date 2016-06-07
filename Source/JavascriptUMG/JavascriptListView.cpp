@@ -24,6 +24,17 @@ TSharedRef<SWidget> UJavascriptListView::RebuildWidget()
 			OnDoubleClick(Object);
 		})
 		.HeaderRow(GetHeaderRowWidget())
+		.OnContextMenuOpening_Lambda([this]() {
+			if (OnContextMenuOpening.IsBound())
+			{
+				auto Widget = OnContextMenuOpening.Execute(this);
+				if (Widget)
+				{
+					return Widget->TakeWidget();
+				}
+			}
+			return SNullWidget::NullWidget;
+		})
 		//.OnContextMenuOpening(this, &SSocketManager::OnContextMenuOpening)
 		//.OnItemScrolledIntoView(this, &SSocketManager::OnItemScrolledIntoView)
 		//	.HeaderRow

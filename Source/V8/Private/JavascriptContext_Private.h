@@ -20,6 +20,7 @@ struct FJavascriptContext : TSharedFromThis<FJavascriptContext>
 	virtual FString Public_RunScript(const FString& Script, bool bOutput = true) = 0;
 	virtual void Public_RunFile(const FString& Filename) = 0;
 	virtual void SetAsDebugContext() = 0;
+	virtual void ResetAsDebugContext() = 0;
 	virtual bool IsDebugContext() const = 0;
 	virtual bool WriteAliases(const FString& Filename) = 0;
 	virtual bool WriteDTS(const FString& Filename, bool bIncludingTooltip) = 0;

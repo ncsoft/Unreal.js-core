@@ -208,13 +208,22 @@ public:
 		static Local<Value> Get(Isolate* isolate, Local<Object> self, UProperty* Property)
 		{
 			auto Instance = FStructMemoryInstance::FromV8(self);
-			return ReadProperty(isolate, Property, Instance->GetMemory(), FStructMemoryPropertyOwner(Instance));
+			return Instance ? ReadProperty(isolate, Property, Instance->GetMemory(), FStructMemoryPropertyOwner(Instance)) : Undefined(isolate);
 		}
 
 		static void Set(Isolate* isolate, Local<Object> self, UProperty* Property, Local<Value> value)
 		{
+			FIsolateHelper I(isolate);
+
 			auto Instance = FStructMemoryInstance::FromV8(self);
-			WriteProperty(isolate, Property, Instance->GetMemory(), value);
+			if (Instance)
+			{
+				WriteProperty(isolate, Property, Instance->GetMemory(), value);
+			}
+			else
+			{
+				I.Throw(TEXT("Null struct"));
+			}
 		}
 	};
 
@@ -1208,7 +1217,7 @@ public:
 			);
 		};
 
-		auto function_name = I.Keyword(FV8Config::Safeify(FunctionToExport->GetName()));
+		auto function_name = I.Keyword(FunctionToExport->GetName());
 		auto function = I.FunctionTemplate(FunctionBody, FunctionToExport);
 
 		// In case of static function, you can also call this function by 'Class.Method()'.
@@ -1259,7 +1268,7 @@ public:
 			);
 		};
 
-		auto function_name = I.Keyword(FV8Config::Safeify(FunctionToExport->GetName()));
+		auto function_name = I.Keyword(FunctionToExport->GetName());
 		auto function = I.FunctionTemplate(FunctionBody, FunctionToExport);
 		
 		// Register the function to prototype template
@@ -1300,7 +1309,7 @@ public:
 			);
 		};
 
-		auto function_name = I.Keyword(FV8Config::Safeify(FunctionToExport->GetName()));
+		auto function_name = I.Keyword(FunctionToExport->GetName());
 		auto function = I.FunctionTemplate(FunctionBody, FunctionToExport);
 
 		// Register the function to prototype template
@@ -1335,7 +1344,7 @@ public:
 		};
 
 		Template->PrototypeTemplate()->SetAccessor(
-			I.Keyword(FV8Config::Safeify(PropertyToExport->GetName())),
+			I.Keyword(PropertyToExport->GetName()),
 			Getter, 
 			Setter, 
 			I.External(PropertyToExport),
