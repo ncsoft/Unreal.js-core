@@ -54,4 +54,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
 	static bool CanLaunchURL(const FString& URL);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
+	static FString GetString(const FString& Key, bool bFlag);
 };

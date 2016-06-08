@@ -98,3 +98,23 @@ bool UJavascriptProcess::CanLaunchURL(const FString& URL)
 {
 	return FPlatformProcess::CanLaunchURL(*URL);
 }
+
+FString UJavascriptProcess::GetString(const FString& Key, bool bFlag)
+{
+	if (Key == TEXT("BaseDir")) return FPlatformProcess::BaseDir();
+	if (Key == TEXT("UserDir")) return FPlatformProcess::UserDir();
+	if (Key == TEXT("UserSettingsDir")) return FPlatformProcess::UserSettingsDir();
+	if (Key == TEXT("UserTempDir")) return FPlatformProcess::UserTempDir();
+	if (Key == TEXT("ApplicationSettingsDir")) return FPlatformProcess::ApplicationSettingsDir();
+	if (Key == TEXT("ComputerName")) return FPlatformProcess::ComputerName();
+	if (Key == TEXT("UserName")) return FPlatformProcess::UserName(bFlag);
+	if (Key == TEXT("ShaderDir")) return FPlatformProcess::ShaderDir();
+	if (Key == TEXT("CurrentWorkingDirectory")) return FPlatformProcess::GetCurrentWorkingDirectory();
+	if (Key == TEXT("ShaderWorkingDir")) return FPlatformProcess::ShaderWorkingDir();
+	if (Key == TEXT("ExecutableName")) return FPlatformProcess::ExecutableName(bFlag);
+	if (Key == TEXT("ModulePrefix")) return FPlatformProcess::GetModulePrefix();
+	if (Key == TEXT("ModuleExtension")) return FPlatformProcess::GetModuleExtension();
+	if (Key == TEXT("BinariesSubdirectory")) return FPlatformProcess::GetBinariesSubdirectory();
+	if (Key == TEXT("ModulesDirectory")) return FPlatformProcess::GetModulesDirectory();
+	return FString();
+}

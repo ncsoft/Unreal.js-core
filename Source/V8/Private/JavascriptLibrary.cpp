@@ -413,3 +413,8 @@ void UJavascriptLibrary::GetDerivedClasses(UClass* ClassToLookFor, TArray<UClass
 {
 	::GetDerivedClasses(ClassToLookFor, Results, bRecursive);
 }
+
+FString UJavascriptLibrary::GetPlatformName()
+{
+	return FPlatformProperties::PlatformName();
+}
