@@ -172,12 +172,6 @@ public:
 				+ SHorizontalBox::Slot()
 				.AutoWidth()
 				[
-					SNew(SExpanderArrow, SharedThis(this))
-				]
-
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				[
 					ColumnWidget
 				];
 		}
