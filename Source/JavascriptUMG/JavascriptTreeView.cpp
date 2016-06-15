@@ -170,7 +170,8 @@ public:
 			return
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot()
-				.AutoWidth()
+				.VAlign(VAlign_Fill)
+				.HAlign(HAlign_Fill)
 				[
 					ColumnWidget
 				];
