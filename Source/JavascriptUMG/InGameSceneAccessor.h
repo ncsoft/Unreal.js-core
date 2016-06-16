@@ -63,6 +63,13 @@ public:
 			GameScene->GetWorld()->SendAllEndOfFrameUpdates();
 		}
 	}
+	
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	bool isBegunPlay()
+	{
+		return GameScene->GetWorld()->bBegunPlay;
+	}
+
 private:
 	TSharedPtr<FJavascriptInGameScene> GameScene;
  	FDelegateHandle DelegateHandle;
