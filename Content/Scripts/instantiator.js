@@ -224,8 +224,6 @@ function proxy(base) {
             this.bindings = set_attrs(this, this.attrs, scope)
             this.custom_bindings = []
             
-            this.has_unlink = !!design.$unlink 
-
             {
                 var children = _.compact(design.children) || []
 
@@ -323,9 +321,7 @@ function proxy(base) {
             if (this.cached_extended_styles) {
                 c.set_styles(this.cached_extended_styles);
             }
-            
-            this.has_unlink = this.has_unlink || c.has_unlink
-
+        
             this.children.push({ 
                 instance: c, 
                 slot: slot, 
@@ -357,10 +353,8 @@ function proxy(base) {
         }
         
         remove_children() {
-            this.children = this.children.filter(function (child) {
-                child.instance.destroy()
-                child.instance.RemoveFromParent()
-                return false
+            this.children.forEach(child => {
+                this.remove_child(child.instance)
             })
         }
         
@@ -371,8 +365,6 @@ function proxy(base) {
         }
         
         destroy() {
-            if (!this.has_unlink) return
-            
             this.design.$unlink && this.design.$unlink(this)
             this.destroy_all_children()
         } 
