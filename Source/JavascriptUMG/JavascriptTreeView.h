@@ -67,6 +67,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Javascript")
 	FTableRowStyle TableRowStyle;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Javascript")
+	FScrollBarStyle ScrollBarStyle;
+
 	/** The selection method for the list */
 	UPROPERTY(EditAnywhere, Category = Content)
 	TEnumAsByte<ESelectionMode::Type> SelectionMode;
