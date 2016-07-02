@@ -1050,6 +1050,51 @@ public:
 			info.GetReturnValue().Set(info.Holder());
 		});
 
+		add_fn("takeSnapshot", [](const FunctionCallbackInfo<Value>& info)
+		{			
+			FIsolateHelper I(info.GetIsolate());
+			class FileOutputStream : public OutputStream
+			{
+			public:
+				FileOutputStream(FArchive* ar) : ar_(ar) {}
+
+				virtual int GetChunkSize() {
+					return 65536;  // big chunks == faster
+				}
+
+				virtual void EndOfStream() {}
+
+				virtual WriteResult WriteAsciiChunk(char* data, int size) {
+					ar_->Serialize(data, size);					
+					return ar_->IsError() ? kAbort : kContinue;
+				}
+
+			private:
+				FArchive* ar_;
+			};
+
+			if (info.Length() == 1)
+			{
+				const HeapSnapshot* const snap = info.GetIsolate()->GetHeapProfiler()->TakeHeapSnapshot();
+				FArchive* Ar = IFileManager::Get().CreateFileWriter(*StringFromV8(info[0]), 0);
+				if (Ar)
+				{
+					FileOutputStream stream(Ar);
+					snap->Serialize(&stream, HeapSnapshot::kJSON);
+					delete Ar;
+				}
+
+				// Work around a deficiency in the API.  The HeapSnapshot object is const
+				// but we cannot call HeapProfiler::DeleteAllHeapSnapshots() because that
+				// invalidates _all_ snapshots, including those created by other tools.
+				const_cast<HeapSnapshot*>(snap)->Delete();
+			}
+			else
+			{
+				I.Throw(TEXT("One argument needed"));
+			}
+		});
+
 		global_templ->Set(
 			I.Keyword("memory"),
 			// Create an instance
