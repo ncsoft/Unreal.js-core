@@ -9,43 +9,61 @@ UJavascriptListView::UJavascriptListView(const FObjectInitializer& ObjectInitial
 
 TSharedRef<SWidget> UJavascriptListView::RebuildWidget()
 {
-	MyListView = SNew(SListView< UObject* >)
-		.SelectionMode(SelectionMode)
-		.ListItemsSource(&Items)
-		.ItemHeight(ItemHeight)
-		.OnGenerateRow(BIND_UOBJECT_DELEGATE(SListView< UObject* >::FOnGenerateRow, HandleOnGenerateRow))
-		.OnSelectionChanged_Lambda([this](UObject* Object, ESelectInfo::Type SelectInfo){
+	TSharedRef<SScrollBar> ExternalScrollbar = SNew(SScrollBar).Style(&ScrollBarStyle);
+	TSharedRef<SWidget> MyView = StaticCastSharedRef<SWidget>
+	(
+		SNew(SHorizontalBox)
+		+SHorizontalBox::Slot()
+		.FillWidth(1)
+		[
+			SAssignNew(MyListView, SListView< UObject* >)
+			.SelectionMode(SelectionMode)
+			.ListItemsSource(&Items)
+			.ItemHeight(ItemHeight)
+			.OnGenerateRow(BIND_UOBJECT_DELEGATE(SListView< UObject* >::FOnGenerateRow, HandleOnGenerateRow))
+			.OnSelectionChanged_Lambda([this](UObject* Object, ESelectInfo::Type SelectInfo) {
 			OnSelectionChanged(Object, SelectInfo);
-		})
-		.OnMouseButtonClick_Lambda([this](UObject* Object){
-			OnClick(Object);
-		})
-		.OnMouseButtonDoubleClick_Lambda([this](UObject* Object){
-			OnDoubleClick(Object);
-		})
-		.HeaderRow(GetHeaderRowWidget())
-		.OnContextMenuOpening_Lambda([this]() {
-			if (OnContextMenuOpening.IsBound())
-			{
-				auto Widget = OnContextMenuOpening.Execute(this);
-				if (Widget)
+			})
+			.OnMouseButtonClick_Lambda([this](UObject* Object) {
+				OnClick(Object);
+			})
+			.OnMouseButtonDoubleClick_Lambda([this](UObject* Object) {
+				OnDoubleClick(Object);
+			})
+			.HeaderRow(GetHeaderRowWidget())
+			.ExternalScrollbar(ExternalScrollbar)
+			.OnContextMenuOpening_Lambda([this]() {
+				if (OnContextMenuOpening.IsBound())
 				{
-					return Widget->TakeWidget();
+					auto Widget = OnContextMenuOpening.Execute(this);
+					if (Widget)
+					{
+						return Widget->TakeWidget();
+					}
 				}
-			}
-			return SNullWidget::NullWidget;
-		})
-		//.OnContextMenuOpening(this, &SSocketManager::OnContextMenuOpening)
-		//.OnItemScrolledIntoView(this, &SSocketManager::OnItemScrolledIntoView)
-		//	.HeaderRow
-		//	(
-		//		SNew(SHeaderRow)
-		//		.Visibility(EVisibility::Collapsed)
-		//		+ SHeaderRow::Column(TEXT("Socket"))
-		//	);
-		;
+				return SNullWidget::NullWidget;
+			})
+			//.OnContextMenuOpening(this, &SSocketManager::OnContextMenuOpening)
+			//.OnItemScrolledIntoView(this, &SSocketManager::OnItemScrolledIntoView)
+			//	.HeaderRow
+			//	(
+			//		SNew(SHeaderRow)
+			//		.Visibility(EVisibility::Collapsed)
+			//		+ SHeaderRow::Column(TEXT("Socket"))
+			//	);
+		]
+		+SHorizontalBox::Slot()
+		.AutoWidth()
+		[
+			SNew(SBox)
+			.WidthOverride(FOptionalSize(16))
+			[
+				ExternalScrollbar
+			]
+		]
+	);
 
-	return BuildDesignTimeWidget(MyListView.ToSharedRef());
+	return BuildDesignTimeWidget(MyView);
 }
 
 void UJavascriptListView::RequestListRefresh()

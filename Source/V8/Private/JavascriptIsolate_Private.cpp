@@ -208,7 +208,14 @@ public:
 		static Local<Value> Get(Isolate* isolate, Local<Object> self, UProperty* Property)
 		{
 			auto Instance = FStructMemoryInstance::FromV8(self);
-			return Instance ? ReadProperty(isolate, Property, Instance->GetMemory(), FStructMemoryPropertyOwner(Instance)) : Undefined(isolate);
+			if (Instance)
+			{
+				return ReadProperty(isolate, Property, Instance->GetMemory(), FStructMemoryPropertyOwner(Instance));
+			}
+			else
+			{
+				return Undefined(isolate);
+			}
 		}
 
 		static void Set(Isolate* isolate, Local<Object> self, UProperty* Property, Local<Value> value)

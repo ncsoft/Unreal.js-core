@@ -35,6 +35,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	bool RemoveChild();
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	void OnListenForInputAction(FName ActionName, TEnumAsByte< EInputEvent > EventType, bool bConsume);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnInputActionByName(FName ActionName);
+
 protected:
 
 	UPROPERTY()

@@ -96,3 +96,19 @@ bool UJavascriptWidget::RemoveChild()
 
 	return true;
 }
+
+void UJavascriptWidget::OnListenForInputAction(FName ActionName, TEnumAsByte< EInputEvent > EventType, bool bConsume)
+{
+	if (!InputComponent)
+	{
+		InitializeInputComponent();
+	}
+
+	if (InputComponent)
+	{
+		FInputActionBinding NewBinding(ActionName, EventType.GetValue());
+		NewBinding.bConsumeInput = bConsume;
+		NewBinding.ActionDelegate.GetDelegateForManualSet().BindUObject(this, &ThisClass::OnInputActionByName, ActionName);
+		InputComponent->AddActionBinding(NewBinding);
+	}
+}
