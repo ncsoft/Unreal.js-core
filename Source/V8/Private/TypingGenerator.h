@@ -239,9 +239,15 @@ struct TypingGenerator : TypingGeneratorBase
 
 		auto MaxEnumValue = source->GetMaxEnumValue();
 
+		TSet<FString> Visited;
+
 		for (decltype(MaxEnumValue) Index = 0; Index < MaxEnumValue; ++Index)
 		{
 			auto name = source->GetEnumName(Index);
+
+			if (Visited.Find(name)) continue;
+			Visited.Add(name);
+
 			w.push(name);
 			w.push(":");
 			w.push("'");
