@@ -418,3 +418,30 @@ FString UJavascriptLibrary::GetPlatformName()
 {
 	return FPlatformProperties::PlatformName();
 }
+
+FJavascriptLogCategory UJavascriptLibrary::CreateLogCategory(const FString& CategoryName, ELogVerbosity_JS InDefaultVerbosity)
+{
+#if NO_LOGGING
+	return FJavscriptLogCategory();
+#else
+	return { MakeShareable<FLogCategoryBase>(new FLogCategoryBase(*CategoryName, (ELogVerbosity::Type)InDefaultVerbosity, ELogVerbosity::All )) };
+#endif
+}
+
+void UJavascriptLibrary::Log(const FJavascriptLogCategory& Category, ELogVerbosity_JS _Verbosity, const FString& Message, const FString& FileName, int32 LineNumber)
+{
+#if NO_LOGGING
+#else
+	auto Verbosity = (ELogVerbosity::Type)_Verbosity;
+
+	if (!Category.Handle->IsSuppressed(Verbosity))
+	{
+		FMsg::Logf_Internal(TCHAR_TO_ANSI(*FileName), LineNumber, Category.Handle->GetCategoryName(), Verbosity, *Message);
+		if (Verbosity == ELogVerbosity::Fatal) 
+		{
+			_DebugBreakAndPromptForRemote();
+			FDebug::AssertFailed("", TCHAR_TO_ANSI(*FileName), LineNumber, *Message);
+		}
+	}
+#endif
+}
