@@ -445,3 +445,22 @@ void UJavascriptLibrary::Log(const FJavascriptLogCategory& Category, ELogVerbosi
 	}
 #endif
 }
+
+bool UJavascriptLibrary::IsSuppressed(const FJavascriptLogCategory& Category, ELogVerbosity_JS _Verbosity)
+{
+#if NO_LOGGING
+	return true;
+#else
+	auto Verbosity = (ELogVerbosity::Type)_Verbosity;
+	return Category.Handle->IsSuppressed(Verbosity);
+#endif
+}
+
+FName UJavascriptLibrary::GetCategoryName(const FJavascriptLogCategory& Category)
+{
+#if NO_LOGGING
+	return FName();
+#else
+	return Category.Handle->GetCategoryName();
+#endif
+}

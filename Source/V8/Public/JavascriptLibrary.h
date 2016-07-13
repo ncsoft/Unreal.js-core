@@ -78,6 +78,12 @@ public:
 	static void Log(const FJavascriptLogCategory& Category, ELogVerbosity_JS Verbosity, const FString& Message, const FString& FileName, int32 LineNumber);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	bool IsSuppressed(const FJavascriptLogCategory& Category, ELogVerbosity_JS Verbosity);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	FName GetCategoryName(const FJavascriptLogCategory& Category);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static void SetMobile(USceneComponent* SceneComponent);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
