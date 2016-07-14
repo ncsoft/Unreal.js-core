@@ -98,7 +98,7 @@ function makeWindowTimer(target) {
         current_time += elapsedTime
         target.$time = current_time
         
-        timerLoop((elapsedTime) | 0)
+        timerLoop(elapsedTime | 0)
     }
 
     target.process = {
