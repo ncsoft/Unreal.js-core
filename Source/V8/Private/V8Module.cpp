@@ -112,6 +112,8 @@ public:
 			IdleTasks.Dequeue(Task);
 
 			Task->Run(Budget);
+			delete Task;
+			
 			float Now = FPlatformTime::Seconds();
 			float Elapsed = Now - Start;
 			Start = Now;
