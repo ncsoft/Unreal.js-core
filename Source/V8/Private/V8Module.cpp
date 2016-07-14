@@ -40,12 +40,102 @@ void UJavascriptSettings::Apply() const
 	V8::SetFlagsFromString(TCHAR_TO_ANSI(*V8Flags), strlen(TCHAR_TO_ANSI(*V8Flags)));
 }
 
-class V8Module : public IV8
+class FUnrealJSPlatform : public v8::Platform
 {
+private:
+	v8::Platform* platform_;
+	TQueue<v8::IdleTask*> IdleTasks;
+	FTickerDelegate TickDelegate;
+	FDelegateHandle TickHandle;
+	bool bActive{ true };
 
 public:
+	FUnrealJSPlatform() 
+		: platform_(platform::CreateDefaultPlatform()) 
+	{
+		TickDelegate = FTickerDelegate::CreateRaw(this, &FUnrealJSPlatform::HandleTicker);
+		TickHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);
+	}
+
+	~FUnrealJSPlatform()
+	{
+		FTicker::GetCoreTicker().RemoveTicker(TickHandle);
+		delete platform_;
+	}
+
+	void Shutdown()
+	{
+		bActive = false;
+		RunIdleTasks(FLT_MAX);
+	}
+	
+	virtual size_t NumberOfAvailableBackgroundThreads() { return platform_->NumberOfAvailableBackgroundThreads(); }
+
+	virtual void CallOnBackgroundThread(Task* task,
+		ExpectedRuntime expected_runtime)
+	{
+		platform_->CallOnBackgroundThread(task, expected_runtime);
+	}
+
+	virtual void CallOnForegroundThread(Isolate* isolate, Task* task)
+	{
+		platform_->CallOnForegroundThread(isolate, task);
+	}
+
+	virtual void CallDelayedOnForegroundThread(Isolate* isolate, Task* task,
+		double delay_in_seconds)
+	{
+		platform_->CallDelayedOnForegroundThread(isolate, task, delay_in_seconds);
+	}
+
+	virtual void CallIdleOnForegroundThread(Isolate* isolate, IdleTask* task) 
+	{
+		IdleTasks.Enqueue(task);
+	}
+
+	virtual bool IdleTasksEnabled(Isolate* isolate) 
+	{
+		return bActive;
+	}
+
+	virtual double MonotonicallyIncreasingTime()
+	{
+		return platform_->MonotonicallyIncreasingTime();
+	}
+
+	void RunIdleTasks(float Budget)
+	{
+		float Start = FPlatformTime::Seconds();
+		while (!IdleTasks.IsEmpty() && Budget >= 0)
+		{
+			v8::IdleTask* Task = nullptr;
+			IdleTasks.Dequeue(Task);
+
+			Task->Run(Budget);
+			delete Task;
+			
+			float Now = FPlatformTime::Seconds();
+			float Elapsed = Now - Start;
+			Start = Now;
+			Budget -= Elapsed;
+		}
+	}
+
+	bool HandleTicker(float DeltaTime)
+	{
+		float Time = FApp::GetCurrentTime();
+		float RealTime = FPlatformTime::Seconds();
+		float Consumed = RealTime - Time;
+		RunIdleTasks(FMath::Max<float>(0, 1.0f / 60 - Consumed));
+		return true;
+	}
+};
+
+class V8Module : public IV8
+{
+public:
 	TArray<FString> Paths;
-	v8::Platform* platform_;
+	FUnrealJSPlatform platform_;
 
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override
@@ -60,8 +150,7 @@ public:
 		Settings.Apply();
 
 		V8::InitializeICU();
-		platform_ = platform::CreateDefaultPlatform();
-		V8::InitializePlatform(platform_);
+		V8::InitializePlatform(&platform_);
 		V8::Initialize();
 
 		FName NAME_JavascriptCmd("JavascriptCmd");
@@ -70,9 +159,10 @@ public:
 
 	virtual void ShutdownModule() override
 	{		
+		platform_.Shutdown();
+
 		V8::Dispose();
 		V8::ShutdownPlatform();
-		delete platform_;
 	}
 
 	static FString GetPluginScriptsDirectory()
