@@ -174,7 +174,7 @@ FString UJavascriptLibrary::ReadStringFromFile(UObject* Object, FString Filename
 
 bool UJavascriptLibrary::WriteStringToFile(UObject* Object, FString Filename, const FString& Data)
 {
-	return FFileHelper::SaveStringToFile(*Data, *Filename);
+	return FFileHelper::SaveStringToFile(*Data, *Filename, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
 }
 
 FString UJavascriptLibrary::GetDir(UObject* Object, FString WhichDir)
