@@ -32,7 +32,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void Destroy()
 	{
-		GameScene->Destroy();
+		if (GameScene.IsValid()) 
+			GameScene->Destroy();
 		GameScene.Reset();
 		if(DelegateHandle.IsValid())
 			GEngine->GameViewport->OnTick().Remove(DelegateHandle);
