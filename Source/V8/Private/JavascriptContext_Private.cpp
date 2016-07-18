@@ -681,11 +681,11 @@ class FJavascriptContextImplementation : public FJavascriptContext
 {
 	friend class UJavascriptContext;
 
-	const FObjectInitializer* ObjectInitializer{ nullptr };
+	TArray<const FObjectInitializer*> ObjectInitializerStack;
 
 	virtual const FObjectInitializer* GetObjectInitializer() override 
 	{
-		return ObjectInitializer;
+		return ObjectInitializerStack.Num() ? ObjectInitializerStack.Last(0) : nullptr;
 	}
 
 	int32 Magic{ MagicNumber };	
@@ -867,7 +867,7 @@ public:
 						return;
 					}
 					
-					Context->ObjectInitializer = &ObjectInitializer;
+					Context->ObjectInitializerStack.Add(&ObjectInitializer);
 
 					auto This = Context->ExportObject(Object);
 
@@ -893,7 +893,7 @@ public:
 						}
 					}
 
-					Context->ObjectInitializer = nullptr;
+					Context->ObjectInitializerStack.RemoveAt(Context->ObjectInitializerStack.Num() - 1, 1);
 				}
 				else
 				{
