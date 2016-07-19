@@ -40,6 +40,7 @@ FObjectInitializer const& FObjectInitializer::SetDefaultSubobjectClass<hack_priv
 struct FPrivateJavascriptFunction
 {
 	Isolate* isolate;
+	UniquePersistent<Context> context;
 	UniquePersistent<Function> Function;
 };
 
@@ -705,6 +706,7 @@ public:
 					auto jsfunc = Value.As<Function>();
 					func.Handle = MakeShareable(new FPrivateJavascriptFunction);
 					func.Handle->isolate = isolate_;
+					func.Handle->context.Reset(isolate_, isolate_->GetCurrentContext());
 					func.Handle->Function.Reset(isolate_, jsfunc);
 					p->Struct->CopyScriptStruct(struct_buffer, &func);
 				}
@@ -2431,18 +2433,50 @@ void FJavascriptFunction::Execute()
 {
 	if (!Handle.IsValid() || Handle->Function.IsEmpty()) return;
 
-	auto function = Local<Function>::New(Handle->isolate, Handle->Function);
-	function->Call(function, 0, nullptr);
+	{
+		FPrivateJavascriptFunction* Handle = this->Handle.Get();
+
+		auto isolate_ = Handle->isolate;
+
+		Isolate::Scope isolate_scope(isolate_);
+		HandleScope handle_scope(isolate_);
+
+		auto function = Local<Function>::New(Handle->isolate, Handle->Function);
+		if (!function.IsEmpty())
+		{
+			auto context = Local<Context>::New(isolate_, Handle->context);
+
+			Context::Scope context_scope(context);
+
+			function->Call(function, 0, nullptr);
+		}
+	}
 }
 
 void FJavascriptFunction::Execute(UScriptStruct* Struct, void* Buffer)
 {
 	if (!Handle.IsValid() || Handle->Function.IsEmpty()) return;
 
-	auto arg = FJavascriptIsolateImplementation::GetSelf(Handle->isolate)->ExportStructInstance(Struct, (uint8*)Buffer, FNoPropertyOwner());
-	auto function = Local<Function>::New(Handle->isolate, Handle->Function);
-	v8::Handle<Value> args[] = { arg };
-	function->Call(function, 1, args);
+	{
+		FPrivateJavascriptFunction* Handle = this->Handle.Get();
+
+		auto isolate_ = Handle->isolate;
+
+		Isolate::Scope isolate_scope(isolate_);
+		HandleScope handle_scope(isolate_);
+
+		auto function = Local<Function>::New(Handle->isolate, Handle->Function);
+		if (!function.IsEmpty())
+		{
+			auto context = Local<Context>::New(isolate_, Handle->context);
+
+			Context::Scope context_scope(context);
+
+			auto arg = FJavascriptIsolateImplementation::GetSelf(Handle->isolate)->ExportStructInstance(Struct, (uint8*)Buffer, FNoPropertyOwner());
+			v8::Handle<Value> args[] = { arg };
+			function->Call(function, 1, args);
+		}
+	}
 }
 
 PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
