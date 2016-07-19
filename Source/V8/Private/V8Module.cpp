@@ -37,7 +37,7 @@ UJavascriptSettings::UJavascriptSettings(const FObjectInitializer& ObjectInitial
 
 void UJavascriptSettings::Apply() const
 {
-	V8::SetFlagsFromString(TCHAR_TO_ANSI(*V8Flags), strlen(TCHAR_TO_ANSI(*V8Flags)));
+	IV8::Get().SetFlagsFromString(V8Flags);
 }
 
 class FUnrealJSPlatform : public v8::Platform
@@ -283,6 +283,11 @@ public:
 				OutContexts.Add(Context->ContextId);
 			}
 		}
+	}
+
+	virtual void SetFlagsFromString(const FString& V8Flags) override
+	{
+		V8::SetFlagsFromString(TCHAR_TO_ANSI(*V8Flags), strlen(TCHAR_TO_ANSI(*V8Flags)));
 	}
 };
 

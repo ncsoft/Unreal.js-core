@@ -2,6 +2,7 @@
 #include "JavascriptLibrary.h"
 #include "Engine/DynamicBlueprintBinding.h"
 #include "JavascriptContext.h"
+#include "IV8.h"
 
 void UJavascriptLibrary::SetMobile(USceneComponent* SceneComponent)
 {
@@ -493,4 +494,9 @@ void UJavascriptLibrary::RequestAsyncLoad(const FJavascriptStreamableManager& Ma
 		Copy->Execute();
 		delete Copy;
 	}, Priority);
+}
+
+void UJavascriptLibrary::V8_SetFlagsFromString(const FString& V8Flags)
+{
+	IV8::Get().SetFlagsFromString(V8Flags);
 }

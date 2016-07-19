@@ -94,6 +94,9 @@ public:
 	static void RequestAsyncLoad(const FJavascriptStreamableManager& Manager, const TArray<FStringAssetReference>& TargetsToStream, FJavascriptFunction DelegateToCall, int32 Priority);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static void V8_SetFlagsFromString(const FString& V8Flags);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static void Unload(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
