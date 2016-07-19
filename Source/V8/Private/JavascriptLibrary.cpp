@@ -484,3 +484,13 @@ bool UJavascriptLibrary::IsAsyncLoadComplete(const FJavascriptStreamableManager&
 {
 	return Manager->IsAsyncLoadComplete(Target);
 }
+
+void UJavascriptLibrary::RequestAsyncLoad(const FJavascriptStreamableManager& Manager, const TArray<FStringAssetReference>& TargetsToStream, FJavascriptFunction DelegateToCall, int32 Priority)
+{
+	auto Copy = new FJavascriptFunction;
+	*Copy = DelegateToCall;
+	Manager->RequestAsyncLoad(TargetsToStream, [=]() {
+		Copy->Execute();
+		delete Copy;
+	}, Priority);
+}
