@@ -65,12 +65,37 @@ struct FJavascriptLogCategory
 #endif
 };
 
+USTRUCT()
+struct FJavascriptStreamableManager
+{
+	GENERATED_USTRUCT_BODY()
+
+	FStreamableManager* operator -> () const
+	{
+		return Handle.Get();
+	}
+
+	TSharedPtr<FStreamableManager> Handle;
+};
+
 UCLASS()
 class V8_API UJavascriptLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
 public:	
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static FJavascriptStreamableManager CreateStreamableManager();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static void SimpleAsyncLoad(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target, int32 Priority);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static void Unload(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static bool IsAsyncLoadComplete(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target);
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static FJavascriptLogCategory CreateLogCategory(const FString& CategoryName, ELogVerbosity_JS InDefaultVerbosity);
 

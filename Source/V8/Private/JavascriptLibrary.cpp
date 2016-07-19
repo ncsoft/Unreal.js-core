@@ -464,3 +464,23 @@ FName UJavascriptLibrary::GetCategoryName(const FJavascriptLogCategory& Category
 	return Category.Handle->GetCategoryName();
 #endif
 }
+
+FJavascriptStreamableManager UJavascriptLibrary::CreateStreamableManager()
+{
+	return{ MakeShareable<FStreamableManager>(new FStreamableManager) };
+}
+
+void UJavascriptLibrary::SimpleAsyncLoad(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target, int32 Priority)
+{
+	Manager->SimpleAsyncLoad(Target, Priority);
+}
+
+void UJavascriptLibrary::Unload(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target)
+{
+	Manager->Unload(Target);
+}
+
+bool UJavascriptLibrary::IsAsyncLoadComplete(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target)
+{
+	return Manager->IsAsyncLoadComplete(Target);
+}
