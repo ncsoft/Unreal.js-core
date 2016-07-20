@@ -515,6 +515,11 @@ class V8_EXPORT AllocationProfile {
  */
 class V8_EXPORT HeapProfiler {
  public:
+  enum SamplingFlags {
+    kSamplingNoFlags = 0,
+    kSamplingForceGC = 1 << 0,
+  };
+
   /**
    * Callback function invoked for obtaining RetainedObjectInfo for
    * the given JavaScript wrapper object. It is prohibited to enter V8
@@ -640,7 +645,8 @@ class V8_EXPORT HeapProfiler {
    * Returns false if a sampling heap profiler is already running.
    */
   bool StartSamplingHeapProfiler(uint64_t sample_interval = 512 * 1024,
-                                 int stack_depth = 16);
+                                 int stack_depth = 16,
+                                 SamplingFlags flags = kSamplingNoFlags);
 
   /**
    * Stops the sampling heap profile and discards the current profile.
@@ -688,7 +694,6 @@ class V8_EXPORT HeapProfiler {
   HeapProfiler& operator=(const HeapProfiler&);
 };
 
-
 /**
  * Interface for providing information about embedder's objects
  * held by global handles. This information is reported in two ways:
@@ -703,7 +708,7 @@ class V8_EXPORT HeapProfiler {
  *     were not previously reported via AddObjectGroup.
  *
  * Thus, if an embedder wants to provide information about native
- * objects for heap snapshots, he can do it in a GC prologue
+ * objects for heap snapshots, it can do it in a GC prologue
  * handler, and / or by assigning wrapper class ids in the following way:
  *
  *  1. Bind a callback to class id by calling SetWrapperClassInfoProvider.

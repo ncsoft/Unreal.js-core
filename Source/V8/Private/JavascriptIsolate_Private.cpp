@@ -314,9 +314,11 @@ public:
 			GetSelf(isolate)->OnGCEvent(true, type, flags);
 		});
 
+#if V8_MINOR_VERSION < 3
 		isolate_->AddMemoryAllocationCallback([](ObjectSpace space, AllocationAction action,int size) {
 			OnMemoryAllocationEvent(space, action, size);
 		}, kObjectSpaceAll, kAllocationActionAll);
+#endif
 	}
 #endif
 
@@ -2283,6 +2285,7 @@ public:
 		typedef typename WeakData::ValueInitType WeakDataValueInitType;
 		typedef TPairInitializer<WeakDataKeyInitType, WeakDataValueInitType> InitializerType;
 
+#if V8_MINOR_VERSION < 3
 		Handle.template SetWeak<WeakData>(new WeakData(InitializerType(GetContext(), GarbageCollectedObject)), [](const WeakCallbackData<U, WeakData>& data) {
 			auto Parameter = data.GetParameter();
 
@@ -2292,6 +2295,17 @@ public:
 
 			delete Parameter;
 		});
+#else
+		Handle.template SetWeak<WeakData>(new WeakData(InitializerType(GetContext(), GarbageCollectedObject)), [](const WeakCallbackInfo<WeakData>& data) {
+			auto Parameter = data.GetParameter();
+
+			auto Context = Parameter->Key;
+			auto Self = static_cast<FJavascriptIsolateImplementation*>(Context->Environment.Get());
+			Self->OnGarbageCollectedByV8(Context, Parameter->Value);
+
+			delete Parameter;
+		}, WeakCallbackType::kParameter);
+#endif
 	}
 
 	template <typename StructType>

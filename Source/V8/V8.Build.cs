@@ -9,12 +9,35 @@ public class V8 : ModuleRules
         get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "..", "..", "ThirdParty")); }
     }
 
+    public int[] GetV8Version()
+    {
+        string[] VersionHeader = Utils.ReadAllText(Path.Combine(ThirdPartyPath, "v8", "include", "v8-version.h")).Replace("\r\n", "\n").Replace("\t", " ").Split('\n');
+        string VersionMajor = "0";
+        string VersionMinor = "0";
+        string VersionPatch = "0";
+        foreach (string Line in VersionHeader)
+        {
+            if (Line.StartsWith("#define V8_MAJOR_VERSION"))
+            {
+                VersionMajor = Line.Split(' ')[2];
+            }
+            else if (Line.StartsWith("#define V8_MINOR_VERSION "))
+            {
+                VersionMinor = Line.Split(' ')[2];
+            }
+            else if (Line.StartsWith("#define V8_PATCH_VERSION "))
+            {
+                VersionPatch = Line.Split(' ')[2];
+            }
+        }
+        return new int[] { Int32.Parse(VersionMajor), Int32.Parse(VersionMinor), Int32.Parse(VersionPatch) };
+    }
+
     public V8(TargetInfo Target)
     {
         PrivateIncludePaths.AddRange(new string[]
         {
             Path.Combine(ThirdPartyPath, "v8", "include"),
-            Path.Combine(ThirdPartyPath, "v8"),
             Path.Combine("V8", "Private")
         });
 
@@ -56,6 +79,9 @@ public class V8 : ModuleRules
 
     private bool LoadV8(TargetInfo Target)
     {
+        int[] v8_version = GetV8Version();
+        bool ShouldLink_libsampler = v8_version[1] >= 3;
+
         if ((Target.Platform == UnrealTargetPlatform.Win64) || (Target.Platform == UnrealTargetPlatform.Win32))
         {
             string LibrariesPath = Path.Combine(ThirdPartyPath, "v8", "lib");
@@ -86,6 +112,12 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libplatform.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_nosnapshot.lib"));
 
+            if (ShouldLink_libsampler)
+            {
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libsampler.lib"));
+            }
+            
+
             Definitions.Add(string.Format("WITH_V8=1"));
             Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
             Definitions.Add(string.Format("WITH_JSWEBSOCKET=1"));
@@ -105,6 +137,11 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add("v8_libplatform");
             PublicAdditionalLibraries.Add("v8_nosnapshot");
 
+            if (ShouldLink_libsampler)
+            {
+                PublicAdditionalLibraries.Add("v8_libsampler");
+            }
+
             Definitions.Add(string.Format("WITH_V8=1"));
             Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
             Definitions.Add(string.Format("WITH_JSWEBSOCKET=0"));
@@ -120,6 +157,11 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add("v8_libbase");
             PublicAdditionalLibraries.Add("v8_libplatform");
             PublicAdditionalLibraries.Add("v8_nosnapshot");
+
+            if (ShouldLink_libsampler)
+            {
+                PublicAdditionalLibraries.Add("v8_libsampler");
+            }
 
             Definitions.Add(string.Format("WITH_V8=1"));
             Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
@@ -137,6 +179,11 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8_libbase.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8_libplatform.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8_nosnapshot.a"));
+
+            if (ShouldLink_libsampler)
+            {
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libsampler.a"));
+            }
 
             Definitions.Add(string.Format("WITH_V8=1"));
             Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
