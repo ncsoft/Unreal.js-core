@@ -66,6 +66,8 @@ public:
 	UWorld* GetWorld() const { return PreviewWorld; }
 	FSceneInterface* GetScene() const { return PreviewWorld->Scene; }
 
+	void Destroy();
+
 	FRotator GetLightDirection();
 	void SetLightDirection(const FRotator& InLightDir);
 	void SetLightBrightness(float LightBrightness);
@@ -88,4 +90,6 @@ protected:
 
 	/** This controls whether or not all mip levels of textures used by UMeshComponents added to this preview window should be loaded and remain loaded. */
 	bool bForceAllUsedMipsResident;
+	
+	bool bDestroyed;
 };
