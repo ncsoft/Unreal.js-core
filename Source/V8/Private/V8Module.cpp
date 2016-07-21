@@ -111,7 +111,7 @@ public:
 			v8::IdleTask* Task = nullptr;
 			IdleTasks.Dequeue(Task);
 
-			Task->Run(Budget);
+			Task->Run(MonotonicallyIncreasingTime() + Budget);
 			delete Task;
 			
 			float Now = FPlatformTime::Seconds();
