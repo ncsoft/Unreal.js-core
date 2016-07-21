@@ -8,6 +8,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "JavascriptStats.h"
 #include "JavascriptSettings.h"
 
+DEFINE_STAT(STAT_V8IdleTask);
 DEFINE_STAT(STAT_JavascriptDelegate);
 DEFINE_STAT(STAT_JavascriptProxy);
 DEFINE_STAT(STAT_Scavenge);
@@ -28,6 +29,8 @@ DEFINE_STAT(STAT_MapSpace);
 DEFINE_STAT(STAT_LoSpace);
 
 using namespace v8;
+
+static TAutoConsoleVariable<float> CVarIdleBudget(TEXT("V8IdleTaskBudget"),0.16f,TEXT("V8 Idle task budget (in seconds)."));
 
 UJavascriptSettings::UJavascriptSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -106,12 +109,17 @@ public:
 	void RunIdleTasks(float Budget)
 	{
 		float Start = FPlatformTime::Seconds();
-		while (!IdleTasks.IsEmpty() && Budget >= 0)
+		while (!IdleTasks.IsEmpty() && Budget > 0)
 		{
 			v8::IdleTask* Task = nullptr;
 			IdleTasks.Dequeue(Task);
 
-			Task->Run(Budget);
+			{
+				SCOPE_CYCLE_COUNTER(STAT_V8IdleTask);
+
+				Task->Run(Budget);
+			}
+			
 			delete Task;
 			
 			float Now = FPlatformTime::Seconds();
@@ -126,7 +134,7 @@ public:
 		float Time = FApp::GetCurrentTime();
 		float RealTime = FPlatformTime::Seconds();
 		float Consumed = RealTime - Time;
-		RunIdleTasks(FMath::Max<float>(0, 1.0f / 60 - Consumed));
+		RunIdleTasks(FMath::Max<float>(0, CVarIdleBudget.GetValueOnGameThread() - Consumed));
 		return true;
 	}
 };
