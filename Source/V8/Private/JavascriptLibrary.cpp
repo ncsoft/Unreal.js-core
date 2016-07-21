@@ -2,6 +2,7 @@
 #include "JavascriptLibrary.h"
 #include "Engine/DynamicBlueprintBinding.h"
 #include "JavascriptContext.h"
+#include "IV8.h"
 
 void UJavascriptLibrary::SetMobile(USceneComponent* SceneComponent)
 {
@@ -174,7 +175,7 @@ FString UJavascriptLibrary::ReadStringFromFile(UObject* Object, FString Filename
 
 bool UJavascriptLibrary::WriteStringToFile(UObject* Object, FString Filename, const FString& Data)
 {
-	return FFileHelper::SaveStringToFile(*Data, *Filename);
+	return FFileHelper::SaveStringToFile(*Data, *Filename, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
 }
 
 FString UJavascriptLibrary::GetDir(UObject* Object, FString WhichDir)
@@ -417,4 +418,85 @@ void UJavascriptLibrary::GetDerivedClasses(UClass* ClassToLookFor, TArray<UClass
 FString UJavascriptLibrary::GetPlatformName()
 {
 	return FPlatformProperties::PlatformName();
+}
+
+FJavascriptLogCategory UJavascriptLibrary::CreateLogCategory(const FString& CategoryName, ELogVerbosity_JS InDefaultVerbosity)
+{
+#if NO_LOGGING
+	return FJavscriptLogCategory();
+#else
+	return { MakeShareable<FLogCategoryBase>(new FLogCategoryBase(*CategoryName, (ELogVerbosity::Type)InDefaultVerbosity, ELogVerbosity::All )) };
+#endif
+}
+
+void UJavascriptLibrary::Log(const FJavascriptLogCategory& Category, ELogVerbosity_JS _Verbosity, const FString& Message, const FString& FileName, int32 LineNumber)
+{
+#if NO_LOGGING
+#else
+	auto Verbosity = (ELogVerbosity::Type)_Verbosity;
+
+	if (!Category.Handle->IsSuppressed(Verbosity))
+	{
+		FMsg::Logf_Internal(TCHAR_TO_ANSI(*FileName), LineNumber, Category.Handle->GetCategoryName(), Verbosity, *Message);
+		if (Verbosity == ELogVerbosity::Fatal) 
+		{
+			_DebugBreakAndPromptForRemote();
+			FDebug::AssertFailed("", TCHAR_TO_ANSI(*FileName), LineNumber, *Message);
+		}
+	}
+#endif
+}
+
+bool UJavascriptLibrary::IsSuppressed(const FJavascriptLogCategory& Category, ELogVerbosity_JS _Verbosity)
+{
+#if NO_LOGGING
+	return true;
+#else
+	auto Verbosity = (ELogVerbosity::Type)_Verbosity;
+	return Category.Handle->IsSuppressed(Verbosity);
+#endif
+}
+
+FName UJavascriptLibrary::GetCategoryName(const FJavascriptLogCategory& Category)
+{
+#if NO_LOGGING
+	return FName();
+#else
+	return Category.Handle->GetCategoryName();
+#endif
+}
+
+FJavascriptStreamableManager UJavascriptLibrary::CreateStreamableManager()
+{
+	return{ MakeShareable<FStreamableManager>(new FStreamableManager) };
+}
+
+void UJavascriptLibrary::SimpleAsyncLoad(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target, int32 Priority)
+{
+	Manager->SimpleAsyncLoad(Target, Priority);
+}
+
+void UJavascriptLibrary::Unload(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target)
+{
+	Manager->Unload(Target);
+}
+
+bool UJavascriptLibrary::IsAsyncLoadComplete(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target)
+{
+	return Manager->IsAsyncLoadComplete(Target);
+}
+
+void UJavascriptLibrary::RequestAsyncLoad(const FJavascriptStreamableManager& Manager, const TArray<FStringAssetReference>& TargetsToStream, FJavascriptFunction DelegateToCall, int32 Priority)
+{
+	auto Copy = new FJavascriptFunction;
+	*Copy = DelegateToCall;
+	Manager->RequestAsyncLoad(TargetsToStream, [=]() {
+		Copy->Execute();
+		delete Copy;
+	}, Priority);
+}
+
+void UJavascriptLibrary::V8_SetFlagsFromString(const FString& V8Flags)
+{
+	IV8::Get().SetFlagsFromString(V8Flags);
 }

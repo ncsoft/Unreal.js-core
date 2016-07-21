@@ -39,6 +39,13 @@ FJavascriptInGameScene::FJavascriptInGameScene(FJavascriptInGameScene::Construct
 
 FJavascriptInGameScene::~FJavascriptInGameScene()
 {
+	Destroy();
+}
+
+void FJavascriptInGameScene::Destroy()
+{
+	if (bDestroyed) return;
+
 	// Stop any audio components playing in this scene
 	if (GEngine)
 	{
@@ -72,6 +79,7 @@ FJavascriptInGameScene::~FJavascriptInGameScene()
 
 	PreviewWorld->CleanupWorld();
 	GEngine->DestroyWorldContext(GetWorld());
+	bDestroyed = true;
 }
 
 void FJavascriptInGameScene::AddComponent(UActorComponent* Component, const FTransform& LocalToWorld)

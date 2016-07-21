@@ -14,7 +14,17 @@ function beautify(k) {
     }).join('');
 }
 
+let cache = new Map()
 function conv(obj) {
+    let data = cache.get(obj)
+    if (data) {
+        return data
+    }
+    data = _conv(obj)
+    cache.set(obj,data)
+    return data
+}
+function _conv(obj) {
     var out = obj instanceof Array ? [] : {};
     for (var k in obj) {
         var v = obj[k];

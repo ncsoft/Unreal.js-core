@@ -15,12 +15,105 @@ struct V8_API FDirectoryItem
 	bool bIsDirectory;
 };
 
+UENUM()
+enum class ELogVerbosity_JS : uint8
+{
+	/** Not used */
+	NoLogging,
+
+	/** Always prints s fatal error to console (and log file) and crashes (even if logging is disabled) */
+	Fatal,
+
+	/**
+	* Prints an error to console (and log file).
+	* Commandlets and the editor collect and report errors. Error messages result in commandlet failure.
+	*/
+	Error,
+
+	/**
+	* Prints a warning to console (and log file).
+	* Commandlets and the editor collect and report warnings. Warnings can be treated as an error.
+	*/
+	Warning,
+
+	/** Prints a message to console (and log file) */
+	Display,
+
+	/** Prints a message to a log file (does not print to console) */
+	Log,
+
+	/**
+	* Prints a verbose message to a log file (if Verbose logging is enabled for the given category,
+	* usually used for detailed logging)
+	*/
+	Verbose,
+
+	/**
+	* Prints a verbose message to a log file (if VeryVerbose logging is enabled,
+	* usually used for detailed logging that would otherwise spam output)
+	*/
+	VeryVerbose
+};
+
+USTRUCT()
+struct FJavascriptLogCategory
+{
+	GENERATED_USTRUCT_BODY()
+
+#if !NO_LOGGING
+	TSharedPtr<FLogCategoryBase> Handle;
+#endif
+};
+
+USTRUCT()
+struct FJavascriptStreamableManager
+{
+	GENERATED_USTRUCT_BODY()
+
+	FStreamableManager* operator -> () const
+	{
+		return Handle.Get();
+	}
+
+	TSharedPtr<FStreamableManager> Handle;
+};
+
 UCLASS()
 class V8_API UJavascriptLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
 public:	
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static FJavascriptStreamableManager CreateStreamableManager();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static void SimpleAsyncLoad(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target, int32 Priority);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static void RequestAsyncLoad(const FJavascriptStreamableManager& Manager, const TArray<FStringAssetReference>& TargetsToStream, FJavascriptFunction DelegateToCall, int32 Priority);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static void V8_SetFlagsFromString(const FString& V8Flags);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static void Unload(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static bool IsAsyncLoadComplete(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static FJavascriptLogCategory CreateLogCategory(const FString& CategoryName, ELogVerbosity_JS InDefaultVerbosity);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static void Log(const FJavascriptLogCategory& Category, ELogVerbosity_JS Verbosity, const FString& Message, const FString& FileName, int32 LineNumber);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	bool IsSuppressed(const FJavascriptLogCategory& Category, ELogVerbosity_JS Verbosity);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	FName GetCategoryName(const FJavascriptLogCategory& Category);
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static void SetMobile(USceneComponent* SceneComponent);
 
