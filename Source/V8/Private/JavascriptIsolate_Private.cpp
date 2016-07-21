@@ -1136,6 +1136,8 @@ public:
 		// Intentionally declares iterator outside for-loop scope
 		TFieldIterator<UProperty> It(Function);
 
+		int32 NumArgs = 0;
+
 		// Iterate over input parameters
 		for (; It && (It->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == CPF_Parm; ++It)
 		{
@@ -1157,20 +1159,46 @@ public:
 			}
 		}
 
+		NumArgs = ArgIndex;
+
 		// Call regular native function.
 		FScopeCycleCounterUObject ContextScope(Object);
 		FScopeCycleCounterUObject FunctionScope(Function);
 			
 		Object->ProcessEvent(Function, Buffer);
 
+		auto FetchProperty = [&](UProperty* Param, int32 ArgIndex) -> Local<Value> {
+			if (auto p = Cast<UStructProperty>(Param))
+			{
+				// Get argument from caller
+				auto arg = GetArg(ArgIndex);
+
+				// Do we have valid argument?
+				if (!arg.IsEmpty() && !arg->IsUndefined())
+				{
+					auto Instance = FStructMemoryInstance::FromV8(arg);
+					if (Instance)
+					{
+						p->Struct->CopyScriptStruct(Instance->GetMemory(), p->ContainerPtrToValuePtr<uint8>(Buffer));
+
+						return arg;
+					}
+				}
+			}
+
+			return ReadProperty(isolate, Param, Buffer, FNoPropertyOwner());
+		};
+
 		// In case of 'out ref'
 		if (bHasAnyOutParams)
 		{
+			ArgIndex = 0;
+
 			// Allocate an object to pass return values within
 			auto OutParameters = Object::New(isolate);
 
 			// Iterate over parameters again
-			for (TFieldIterator<UProperty> It(Function); It; ++It)
+			for (TFieldIterator<UProperty> It(Function); It; ++It, ArgIndex++)
 			{
 				UProperty* Param = *It;
 				
@@ -1180,7 +1208,7 @@ public:
 				if (PropertyFlags & CPF_ReturnParm)
 				{
 					// value can be null if isolate is in trouble
-					auto value = ReadProperty(isolate, Param, Buffer, FNoPropertyOwner());
+					auto value = FetchProperty(Param, NumArgs);
 					if (!value.IsEmpty())
 					{
 						OutParameters->Set(
@@ -1194,8 +1222,7 @@ public:
 				// rejects 'const T&' and pass 'T&' as its name
 				else if ((PropertyFlags & (CPF_ConstParm | CPF_OutParm)) == CPF_OutParm)
 				{
-					// value can be null if isolate is in trouble
-					auto value = ReadProperty(isolate, Param, Buffer, FNoPropertyOwner());
+					auto value = FetchProperty(Param, ArgIndex);
 					if (!value.IsEmpty())
 					{
 						OutParameters->Set(
@@ -1219,7 +1246,7 @@ public:
 				UProperty* Param = *It;
 				if (Param->GetPropertyFlags() & CPF_ReturnParm)
 				{
-					return handle_scope.Escape(ReadProperty(isolate, Param, Buffer, FNoPropertyOwner()));
+					return handle_scope.Escape(FetchProperty(Param, NumArgs));
 				}
 			}
 		}		
