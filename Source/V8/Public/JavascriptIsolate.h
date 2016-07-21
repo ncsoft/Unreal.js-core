@@ -48,6 +48,36 @@ public:
 	TSharedPtr<FPrivateJavascriptFunction> Handle;
 };
 
+USTRUCT(BlueprintType)
+struct V8_API FJavascriptHeapStatistics
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
+	int32 TotalHeapSize;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
+	int32 TotalHeapSizeExecutable;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
+	int32 TotalPhysicalSize;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
+	int32 TotalAvailableSize;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
+	int32 UsedHeapSize;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
+	int32 HeapSizeLimit;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
+	int32 MallocedMemory;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
+	bool bDoesZapGarbage;
+};
+
 UCLASS()
 class V8_API UJavascriptIsolate : public UObject
 {
@@ -60,6 +90,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	UJavascriptContext* CreateContext();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	void GetHeapStatistics(FJavascriptHeapStatistics& Statistics);
 
 	// Begin UObject interface.
 	static void AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector);
