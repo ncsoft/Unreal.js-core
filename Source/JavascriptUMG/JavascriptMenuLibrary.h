@@ -91,11 +91,14 @@ public:
 };
 
 USTRUCT()
-struct FJavascriptExtender
+struct JAVASCRIPTUMG_API FJavascriptExtender
 {
 	GENERATED_BODY()
 
 public:
+	FJavascriptExtender();
+	FJavascriptExtender(TSharedPtr<FExtender> Extender);
+
 	FExtender* operator -> () const
 	{
 		return Handle.Get();
@@ -143,9 +146,6 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void CreateMenuBarBuilder(FJavascriptUICommandList CommandList, FJavascriptFunction Function);
-
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FJavascriptExtender CreateExtender();
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptExtensionBase AddToolBarExtension(FJavascriptExtender Extender, FName ExtensionHook, EJavascriptExtensionHook::Type HookPosition, FJavascriptUICommandList CommandList, FJavascriptFunction Function);
