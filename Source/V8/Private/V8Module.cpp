@@ -130,11 +130,8 @@ public:
 	}
 
 	bool HandleTicker(float DeltaTime)
-	{
-		float Time = FApp::GetCurrentTime();
-		float RealTime = FPlatformTime::Seconds();
-		float Consumed = RealTime - Time;
-		RunIdleTasks(FMath::Max<float>(0, CVarIdleBudget.GetValueOnGameThread() - Consumed));
+	{	
+		RunIdleTasks(FMath::Max<float>(0, CVarIdleBudget.GetValueOnGameThread() - DeltaTime));
 		return true;
 	}
 };
