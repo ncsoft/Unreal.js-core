@@ -164,3 +164,73 @@ FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascript
 
 	return Out;
 }
+
+FJavascriptExtender UJavascriptMenuLibrary::CreateExtender()
+{
+	return{ MakeShareable<FExtender>(new FExtender) };
+}
+
+FJavascriptExtensionBase UJavascriptMenuLibrary::AddToolBarExtension(FJavascriptExtender Extender, FName ExtensionHook, EJavascriptExtensionHook::Type HookPosition, FJavascriptUICommandList CommandList, FJavascriptFunction Function)
+{
+	auto Copy = new FJavascriptFunction;
+	*Copy = Function;
+	return { Extender->AddToolBarExtension(ExtensionHook, (EExtensionHook::Position)HookPosition, CommandList.Handle, FToolBarExtensionDelegate::CreateLambda([=](class FToolBarBuilder& Builder) {
+		FJavascriptMenuBuilder Out;
+		Out.MultiBox = Out.ToolBar = &Builder;
+		Copy->Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
+		delete Copy;
+	}))};
+}
+FJavascriptExtensionBase UJavascriptMenuLibrary::AddMenuExtension(FJavascriptExtender Extender, FName ExtensionHook, EJavascriptExtensionHook::Type HookPosition, FJavascriptUICommandList CommandList, FJavascriptFunction Function)
+{
+	auto Copy = new FJavascriptFunction;
+	*Copy = Function;
+	return{ Extender->AddMenuExtension(ExtensionHook, (EExtensionHook::Position)HookPosition, CommandList.Handle, FMenuExtensionDelegate::CreateLambda([=](class FMenuBuilder& Builder) {
+		FJavascriptMenuBuilder Out;
+		Out.MultiBox = Out.Menu = &Builder;
+		Copy->Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
+		delete Copy;
+	})) };
+}
+FJavascriptExtensionBase UJavascriptMenuLibrary::AddMenubarExtension(FJavascriptExtender Extender, FName ExtensionHook, EJavascriptExtensionHook::Type HookPosition, FJavascriptUICommandList CommandList, FJavascriptFunction Function)
+{
+	auto Copy = new FJavascriptFunction;
+	*Copy = Function;
+	return{ Extender->AddMenuBarExtension(ExtensionHook, (EExtensionHook::Position)HookPosition, CommandList.Handle, FMenuBarExtensionDelegate::CreateLambda([=](class FMenuBarBuilder& Builder) {
+		FJavascriptMenuBuilder Out;
+		Out.MultiBox = Out.MenuBar = &Builder;
+		Copy->Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
+		delete Copy;
+	})) };
+}
+
+void UJavascriptMenuLibrary::RemoveExtension(FJavascriptExtender Extender, FJavascriptExtensionBase Extension)
+{
+	Extender->RemoveExtension(Extension.Handle.ToSharedRef());
+}
+
+void UJavascriptMenuLibrary::Apply(FJavascriptExtender Extender, FName ExtensionHook, EJavascriptExtensionHook::Type HookPosition, FJavascriptMenuBuilder& MenuBuilder)
+{
+	if (MenuBuilder.ToolBar) 
+	{
+		Extender->Apply(ExtensionHook, (EExtensionHook::Position)HookPosition, *MenuBuilder.ToolBar);
+	}
+	else if (MenuBuilder.Menu)
+	{
+		Extender->Apply(ExtensionHook, (EExtensionHook::Position)HookPosition, *MenuBuilder.Menu);
+	}
+	else if (MenuBuilder.MenuBar)
+	{
+		Extender->Apply(ExtensionHook, (EExtensionHook::Position)HookPosition, *MenuBuilder.MenuBar);
+	}	
+}
+
+FJavascriptExtender UJavascriptMenuLibrary::Combine(const TArray<FJavascriptExtender>& Extenders)
+{
+	TArray<TSharedPtr<FExtender>> _Extenders;
+	for (auto Extender : Extenders)
+	{
+		_Extenders.Add(Extender.Handle);
+	}
+	return{ FExtender::Combine(_Extenders) };
+}
