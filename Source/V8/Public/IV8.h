@@ -28,4 +28,5 @@ public:
 	virtual void Exec(TSharedPtr<FString> TargetContext, const TCHAR* Command) = 0;
 
 	virtual void SetFlagsFromString(const FString& Flags) = 0;
+	virtual void SetIdleTaskBudget(float BudgetInSeconds) = 0;
 };

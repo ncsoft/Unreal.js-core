@@ -30,7 +30,7 @@ DEFINE_STAT(STAT_LoSpace);
 
 using namespace v8;
 
-static TAutoConsoleVariable<float> CVarIdleBudget(TEXT("V8IdleTaskBudget"),0.16f,TEXT("V8 Idle task budget (in seconds)."));
+static float GV8IdleTaskBudget = 1 / 60.0f;
 
 UJavascriptSettings::UJavascriptSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -131,7 +131,7 @@ public:
 
 	bool HandleTicker(float DeltaTime)
 	{	
-		RunIdleTasks(FMath::Max<float>(0, CVarIdleBudget.GetValueOnGameThread() - DeltaTime));
+		RunIdleTasks(FMath::Max<float>(0, GV8IdleTaskBudget - DeltaTime));
 		return true;
 	}
 };
@@ -293,6 +293,11 @@ public:
 	virtual void SetFlagsFromString(const FString& V8Flags) override
 	{
 		V8::SetFlagsFromString(TCHAR_TO_ANSI(*V8Flags), strlen(TCHAR_TO_ANSI(*V8Flags)));
+	}
+
+	virtual void SetIdleTaskBudget(float BudgetInSeconds) override
+	{
+		GV8IdleTaskBudget = BudgetInSeconds;
 	}
 };
 
