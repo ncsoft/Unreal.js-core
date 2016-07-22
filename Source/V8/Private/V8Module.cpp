@@ -117,7 +117,7 @@ public:
 			{
 				SCOPE_CYCLE_COUNTER(STAT_V8IdleTask);
 
-				Task->Run(Budget);
+				Task->Run(MonotonicallyIncreasingTime() + Budget);
 			}
 			
 			delete Task;
