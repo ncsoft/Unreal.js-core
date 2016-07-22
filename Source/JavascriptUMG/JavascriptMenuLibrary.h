@@ -187,6 +187,9 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 	static void PopCommandList(FJavascriptMenuBuilder& Builder);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddPullDownMenu(FJavascriptMenuBuilder& MenuBuilder, const FText& InMenuLabel, const FText& InToolTip, FJavascriptFunction InPullDownMenu, FName InExtensionHook, FName InTutorialHighlightName);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptBindingContext NewBindingContext(const FName InContextName, const FText& InContextDesc, const FName InContextParent, const FName InStyleSetName);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")

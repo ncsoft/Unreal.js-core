@@ -167,35 +167,32 @@ FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascript
 
 FJavascriptExtensionBase UJavascriptMenuLibrary::AddToolBarExtension(FJavascriptExtender Extender, FName ExtensionHook, EJavascriptExtensionHook::Type HookPosition, FJavascriptUICommandList CommandList, FJavascriptFunction Function)
 {
-	auto Copy = new FJavascriptFunction;
-	*Copy = Function;
+	TSharedPtr<FJavascriptFunction> Copy(new FJavascriptFunction);
+	*(Copy.Get()) = Function;
 	return { Extender->AddToolBarExtension(ExtensionHook, (EExtensionHook::Position)HookPosition, CommandList.Handle, FToolBarExtensionDelegate::CreateLambda([=](class FToolBarBuilder& Builder) {
 		FJavascriptMenuBuilder Out;
 		Out.MultiBox = Out.ToolBar = &Builder;
 		Copy->Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
-		delete Copy;
 	}))};
 }
 FJavascriptExtensionBase UJavascriptMenuLibrary::AddMenuExtension(FJavascriptExtender Extender, FName ExtensionHook, EJavascriptExtensionHook::Type HookPosition, FJavascriptUICommandList CommandList, FJavascriptFunction Function)
 {
-	auto Copy = new FJavascriptFunction;
-	*Copy = Function;
+	TSharedPtr<FJavascriptFunction> Copy(new FJavascriptFunction);
+	*(Copy.Get()) = Function;
 	return{ Extender->AddMenuExtension(ExtensionHook, (EExtensionHook::Position)HookPosition, CommandList.Handle, FMenuExtensionDelegate::CreateLambda([=](class FMenuBuilder& Builder) {
 		FJavascriptMenuBuilder Out;
 		Out.MultiBox = Out.Menu = &Builder;
 		Copy->Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
-		delete Copy;
 	})) };
 }
 FJavascriptExtensionBase UJavascriptMenuLibrary::AddMenubarExtension(FJavascriptExtender Extender, FName ExtensionHook, EJavascriptExtensionHook::Type HookPosition, FJavascriptUICommandList CommandList, FJavascriptFunction Function)
 {
-	auto Copy = new FJavascriptFunction;
-	*Copy = Function;
+	TSharedPtr<FJavascriptFunction> Copy(new FJavascriptFunction);
+	*(Copy.Get()) = Function;
 	return{ Extender->AddMenuBarExtension(ExtensionHook, (EExtensionHook::Position)HookPosition, CommandList.Handle, FMenuBarExtensionDelegate::CreateLambda([=](class FMenuBarBuilder& Builder) {
 		FJavascriptMenuBuilder Out;
 		Out.MultiBox = Out.MenuBar = &Builder;
 		Copy->Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
-		delete Copy;
 	})) };
 }
 
@@ -237,3 +234,18 @@ FJavascriptExtender::FJavascriptExtender()
 FJavascriptExtender::FJavascriptExtender(TSharedPtr<FExtender> Extender)
 	: Handle(Extender)
 {}
+
+void UJavascriptMenuLibrary::AddPullDownMenu(FJavascriptMenuBuilder& MenuBuilder, const FText& InMenuLabel, const FText& InToolTip, FJavascriptFunction InPullDownMenu, FName InExtensionHook, FName InTutorialHighlightName)
+{
+	if (MenuBuilder.MenuBar)
+	{
+		TSharedPtr<FJavascriptFunction> Copy(new FJavascriptFunction);
+		*(Copy.Get()) = InPullDownMenu;
+		auto Delegate = FNewMenuDelegate::CreateLambda([=](class FMenuBuilder& Builder) {
+			FJavascriptMenuBuilder Out;
+			Out.MultiBox = Out.Menu = &Builder;
+			Copy->Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);			
+		});
+		MenuBuilder.MenuBar->AddPullDownMenu(InMenuLabel, InToolTip, Delegate, InExtensionHook, InTutorialHighlightName);
+	}
+}

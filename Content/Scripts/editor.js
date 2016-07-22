@@ -45,6 +45,9 @@
 		module.exports = () => {
 			try {
 				let cleanup = main()
+
+				global.$$exit = cleanup
+		
 				return () => cleanup()
 			} catch (e) {
 				console.error(String(e))
@@ -52,6 +55,10 @@
 			}			
 		}
 	} else {
+		global.$$exit = function() {}
+		global.$exit = function () {
+			global.$$exit()
+		}
 		Context.WriteDTS(Context.Paths[0] + 'typings/ue.d.ts')
 		Context.WriteAliases(Context.Paths[0] + 'aliases.js')
 	
