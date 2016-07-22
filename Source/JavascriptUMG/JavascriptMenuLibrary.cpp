@@ -165,11 +165,6 @@ FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascript
 	return Out;
 }
 
-FJavascriptExtender UJavascriptMenuLibrary::CreateExtender()
-{
-	return{ MakeShareable<FExtender>(new FExtender) };
-}
-
 FJavascriptExtensionBase UJavascriptMenuLibrary::AddToolBarExtension(FJavascriptExtender Extender, FName ExtensionHook, EJavascriptExtensionHook::Type HookPosition, FJavascriptUICommandList CommandList, FJavascriptFunction Function)
 {
 	auto Copy = new FJavascriptFunction;
@@ -234,3 +229,11 @@ FJavascriptExtender UJavascriptMenuLibrary::Combine(const TArray<FJavascriptExte
 	}
 	return{ FExtender::Combine(_Extenders) };
 }
+
+FJavascriptExtender::FJavascriptExtender()
+	: Handle(new FExtender)
+{}
+
+FJavascriptExtender::FJavascriptExtender(TSharedPtr<FExtender> Extender)
+	: Handle(Extender)
+{}

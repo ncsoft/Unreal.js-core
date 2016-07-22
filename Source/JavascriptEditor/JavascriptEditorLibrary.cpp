@@ -7,6 +7,8 @@
 #include "HotReloadInterface.h"
 #include "JavascriptWindow.h"
 #include "Editor/PropertyEditor/Public/PropertyEditorModule.h"
+#include "Toolkits/AssetEditorToolkit.h"
+#include "LevelEditor.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -576,5 +578,44 @@ void UJavascriptEditorLibrary::CreatePropertyEditorToolkit(TArray<UObject*> Obje
 {
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	PropertyEditorModule.CreatePropertyEditorToolkit(EToolkitMode::Standalone, TSharedPtr<IToolkitHost>(), ObjectsForPropertiesMenu);
+}
+
+static FName NAME_LevelEditor("LevelEditor");
+static FName NAME_MaterialEditor("MaterialEditor");
+
+FJavascriptExtensibilityManager UJavascriptEditorLibrary::GetMenuExtensibilityManager(FName What)
+{
+	if (What == NAME_LevelEditor)
+	{
+		FLevelEditorModule& LevelEditor = FModuleManager::GetModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
+		return {LevelEditor.GetMenuExtensibilityManager()};
+	}
+	return FJavascriptExtensibilityManager();
+}
+
+FJavascriptExtensibilityManager UJavascriptEditorLibrary::GetToolBarExtensibilityManager(FName What)
+{
+	if (What == NAME_LevelEditor)
+	{
+		FLevelEditorModule& LevelEditor = FModuleManager::GetModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
+		return{ LevelEditor.GetToolBarExtensibilityManager() };
+	}
+	return FJavascriptExtensibilityManager();
+}
+
+void UJavascriptEditorLibrary::AddExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender)
+{
+	if (Manager.Handle.IsValid() && Extender.Handle.IsValid())
+	{
+		Manager->AddExtender(Extender.Handle);
+	}
+}
+
+void UJavascriptEditorLibrary::RemoveExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender)
+{
+	if (Manager.Handle.IsValid() && Extender.Handle.IsValid())
+	{
+		Manager->RemoveExtender(Extender.Handle);
+	}
 }
 #endif
