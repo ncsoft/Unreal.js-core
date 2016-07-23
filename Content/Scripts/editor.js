@@ -11,7 +11,7 @@
 		function read_dir(dir) {
 			let out = Root.ReadDirectory(dir)
 			if (out.$) {				
-				let items = _.filter(out.OutItems,(item) => !item.bIsDirectory && /extension[^\.]*\.js$/.test(item.Name))
+				let items = _.filter(out.OutItems,(item) => !item.bIsDirectory && /^((?!node_modules).)*$/.test(item.Name) && /extension[^\.]*\.js$/.test(item.Name))
 				extensions = extensions.concat(items.map((item) => item.Name.substr(root_path.length+1)))
 				out.OutItems.forEach((item) => {
 					if (item.bIsDirectory) {
@@ -31,8 +31,6 @@
 				console.error(String(e))
 				return function () {}
 			}
-			
-			return function () {}	
 		}
 		
 		function main() {
