@@ -34,7 +34,7 @@ function MakeTab(opts,tab_fn,del_fn) {
     tab.TabId = opts.TabId || 'TestJSTab'
     tab.Role = opts.Role || 'NomadTab'
     tab.DisplayName = opts.DisplayName || '안녕하세요!'
-    tab.Group = global.group
+    tab.Group = opts.Group || global.group
     tab.OnSpawnTab.Add(tab_fn)
     if (del_fn) {
         tab.OnCloseTab.Add(del_fn)    
