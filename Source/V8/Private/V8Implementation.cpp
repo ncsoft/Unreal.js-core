@@ -307,7 +307,7 @@ bool UJavascriptContext::InternalCall(UObject* Object, FName Name)
 
 		if (try_catch.HasCaught())
 		{
-			FV8Exception::Report(try_catch);
+			FJavascriptContext::FromV8(context)->UncaughtException(FV8Exception::Report(try_catch));
 			return false;
 		}
 		else
