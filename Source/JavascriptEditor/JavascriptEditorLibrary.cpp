@@ -587,7 +587,7 @@ FJavascriptExtensibilityManager UJavascriptEditorLibrary::GetMenuExtensibilityMa
 {
 	if (What == NAME_LevelEditor)
 	{
-		FLevelEditorModule& LevelEditor = FModuleManager::GetModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
+		FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
 		return {LevelEditor.GetMenuExtensibilityManager()};
 	}
 	return FJavascriptExtensibilityManager();
@@ -597,7 +597,7 @@ FJavascriptExtensibilityManager UJavascriptEditorLibrary::GetToolBarExtensibilit
 {
 	if (What == NAME_LevelEditor)
 	{
-		FLevelEditorModule& LevelEditor = FModuleManager::GetModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
+		FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
 		return{ LevelEditor.GetToolBarExtensibilityManager() };
 	}
 	return FJavascriptExtensibilityManager();
