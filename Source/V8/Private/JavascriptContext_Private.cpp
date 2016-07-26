@@ -1643,7 +1643,7 @@ public:
 		auto script = Script::Compile(source, &origin);
 		if (script.IsEmpty())
 		{
-			FV8Exception::Report(try_catch);
+			FJavascriptContext::FromV8(context())->UncaughtException(FV8Exception::Report(try_catch));
 			return Local<Value>();
 		}
 		else
@@ -1651,7 +1651,7 @@ public:
 			auto result = script->Run();
 			if (try_catch.HasCaught())
 			{
-				FV8Exception::Report(try_catch);
+				FJavascriptContext::FromV8(context())->UncaughtException(FV8Exception::Report(try_catch));
 				return Local<Value>();
 			}
 			else
@@ -1881,6 +1881,27 @@ public:
 
 	// To tell Unreal engine's GC not to destroy these objects!
 	virtual void AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector) override;
+
+	virtual void UncaughtException(const FString& Exception) override
+	{
+		auto _isolate = isolate();
+		Isolate::Scope isolate_scope(_isolate);
+		HandleScope handle_scope(_isolate);
+		Context::Scope context_scope(context());
+		
+		auto global = Local<Value>::Cast(context()->Global())->ToObject();
+		auto func = global->Get(V8_KeywordString(_isolate, "$uncaughtException"));
+		if (!func.IsEmpty() && func->IsFunction())
+		{
+			auto function = func.As<Function>();
+
+			Handle<Value> argv[1];
+
+			argv[0] = V8_String(_isolate, Exception);
+			
+			function->Call(global, 1, argv);
+		}
+	}
 };
 
 FJavascriptContext* FJavascriptContext::FromV8(v8::Local<v8::Context> Context)

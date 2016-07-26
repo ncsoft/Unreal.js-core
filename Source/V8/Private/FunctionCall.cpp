@@ -1,4 +1,5 @@
 #include "V8PCH.h"
+#include "JavascriptContext_Private.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
@@ -48,7 +49,7 @@ namespace v8
 
 		if (try_catch.HasCaught())
 		{
-			FV8Exception::Report(try_catch);
+			FJavascriptContext::FromV8(context)->UncaughtException(FV8Exception::Report(try_catch));
 		}
 
 		bool bHasAnyOutParams = false;
