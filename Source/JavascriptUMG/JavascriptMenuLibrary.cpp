@@ -224,7 +224,7 @@ FJavascriptExtender UJavascriptMenuLibrary::Combine(const TArray<FJavascriptExte
 	{
 		_Extenders.Add(Extender.Handle);
 	}
-	return{ FExtender::Combine(_Extenders) };
+	return FExtender::Combine(_Extenders);
 }
 
 FJavascriptExtender::FJavascriptExtender()
