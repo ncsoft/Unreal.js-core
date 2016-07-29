@@ -360,5 +360,11 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void RemoveExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool SavePackage(UPackage* Package, FString FileName);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool DeletePackage(UPackage* Package);
 #endif
 };

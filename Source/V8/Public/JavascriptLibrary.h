@@ -1,6 +1,7 @@
 #pragma once
 
 #include "JavascriptProfile.h"
+#include "JavascriptIsolate.h"
 #include "JavascriptLibrary.generated.h"
 
 USTRUCT(BlueprintType)
@@ -166,6 +167,12 @@ public:
 	static UPackage* CreatePackage(UObject* Outer, FString PackageName);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static UPackage* FindPackage(UObject* InOuter, FString PackageName);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static UPackage* LoadPackage(UPackage* InOuter, FString PackageName);
+	
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static void AddDynamicBinding(UClass* Outer, UDynamicBlueprintBinding* BindingObject);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
@@ -325,4 +332,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FString GetPlatformName();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static UObject* TryLoadByPath(FString Path);
 };
