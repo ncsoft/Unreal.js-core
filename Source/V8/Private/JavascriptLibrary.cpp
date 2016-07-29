@@ -95,6 +95,17 @@ UPackage* UJavascriptLibrary::CreatePackage(UObject* Outer, FString PackageName)
 	return ::CreatePackage(Outer, *PackageName);
 }
 
+UPackage* UJavascriptLibrary::FindPackage(UObject* InOuter, FString PackageName)
+{
+	return ::FindPackage(InOuter, *PackageName);
+}
+
+UPackage* UJavascriptLibrary::LoadPackage(UPackage* InOuter, FString PackageName)
+{
+	return ::LoadPackage(InOuter, *PackageName, LOAD_None);
+}
+
+
 void UJavascriptLibrary::AddDynamicBinding(UClass* Outer, UDynamicBlueprintBinding* BindingObject)
 {
 	if (Cast<UBlueprintGeneratedClass>(Outer) && BindingObject)
@@ -504,4 +515,9 @@ void UJavascriptLibrary::V8_SetFlagsFromString(const FString& V8Flags)
 void UJavascriptLibrary::V8_SetIdleTaskBudget(float BudgetInSeconds)
 {
 	IV8::Get().SetIdleTaskBudget(BudgetInSeconds);
+}
+
+UObject* UJavascriptLibrary::TryLoadByPath(FString Path)
+{
+	return FStringAssetReference(*Path).TryLoad();
 }

@@ -618,4 +618,31 @@ void UJavascriptEditorLibrary::RemoveExtender(FJavascriptExtensibilityManager Ma
 		Manager->RemoveExtender(Extender.Handle);
 	}
 }
+
+bool UJavascriptEditorLibrary::SavePackage(UPackage* Package, FString FileName)
+{
+	UWorld* World = UWorld::FindWorldInPackage(Package);
+	bool bSavedCorrectly;
+
+	if (World) 
+	{
+		bSavedCorrectly = UPackage::SavePackage(Package, World, RF_NoFlags, *FileName, GError, NULL, false, true);
+	}
+	else
+	{
+		bSavedCorrectly =  UPackage::SavePackage(Package, NULL, RF_Standalone, *FileName, GError, NULL, false, true);
+	}
+	return bSavedCorrectly;
+}
+
+bool UJavascriptEditorLibrary::DeletePackage(UPackage* Package)
+{
+	FString PackageName = Package->GetName();
+	FString BasePackageFileName = FPackageName::LongPackageNameToFilename(PackageName);
+	if (FPlatformFileManager::Get().GetPlatformFile().FileExists(*BasePackageFileName))
+	{
+		return IFileManager::Get().Delete(*BasePackageFileName);
+	}
+	return false;
+}
 #endif
