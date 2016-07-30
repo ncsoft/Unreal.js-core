@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VersionHeader=ThirdPArty/v8/include/v8-version.h
+VersionHeader=ThirdParty/v8/include/v8-version.h
 Major=$(cat $VersionHeader | grep MAJOR | awk -e '{ print $3 }')
 Minor=$(cat $VersionHeader | grep MINOR | awk -e '{ print $3 }')
 Build=$(cat $VersionHeader | grep BUILD_NUMBER | awk -e '{ print $3 }')
