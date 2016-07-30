@@ -7,6 +7,8 @@ struct FJavascriptAutomatedTestImpl : FAutomationTestBase, TSharedFromThis<FJava
 {
 	FJavascriptAutomatedTest Recipe;
 
+	bool bContinue{ false };
+
 	FJavascriptAutomatedTestImpl(const FJavascriptAutomatedTest& InRecipe)
 		: Recipe(InRecipe), FAutomationTestBase(InRecipe.Name, InRecipe.bComplexTask)
 	{}
@@ -47,11 +49,17 @@ struct FJavascriptAutomatedTestImpl : FAutomationTestBase, TSharedFromThis<FJava
 		}
 
 		// run the matching test
-		uint64 InitialFrameCounter = GFrameCounter;
 		{
 			Params.Tester.Handle = this->AsShared();
 
-			Recipe.Function.Execute(FJavascriptAutomatedTestParameters::StaticStruct(), &Params);
+			for (;;)
+			{
+				bContinue = false;
+
+				Recipe.Function.Execute(FJavascriptAutomatedTestParameters::StaticStruct(), &Params);
+
+				if (!bContinue) break;
+			}
 		}		
 
 		return true;
@@ -109,6 +117,14 @@ void UJavascriptTestLibrary::ClearExecutionInfo(const FJavascriptAutomatedTestIn
 	if (Test.Handle.IsValid())
 	{
 		Test.Handle->ClearExecutionInfo();
+	}
+}
+
+void UJavascriptTestLibrary::SetContinue(const FJavascriptAutomatedTestInstance& Test, bool bContinue)
+{
+	if (Test.Handle.IsValid())
+	{
+		Test.Handle->bContinue = bContinue;
 	}
 }
 
