@@ -89,6 +89,9 @@ class V8_API UJavascriptTestLibrary : public UBlueprintFunctionLibrary
 	static void ClearExecutionInfo(const FJavascriptAutomatedTestInstance& Test);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void SetContinue(const FJavascriptAutomatedTestInstance& Test, bool bInContinue);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void AddError(const FJavascriptAutomatedTestInstance& Test,const FString& InError);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
