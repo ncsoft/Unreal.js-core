@@ -64,30 +64,7 @@ struct FJavascriptAutomatedTestImpl : FAutomationTestBase, TSharedFromThis<FJava
 
 		return true;
 	}
-
-	void RunWorld(const FURL& URL, FJavascriptFunction Function)
-	{
-		UWorld *World = UWorld::CreateWorld(EWorldType::Game, false);
-		FWorldContext &WorldContext = GEngine->CreateNewWorldContext(EWorldType::Game);
-		WorldContext.SetCurrentWorld(World);
-
-		World->InitializeActorsForPlay(URL);
-		World->BeginPlay();
-
-		// run the matching test
-		uint64 InitialFrameCounter = GFrameCounter;
-		{
-			FJavascriptRunWorldParameters Params;
-			Params.World = World;
-
-			Function.Execute(FJavascriptRunWorldParameters::StaticStruct(), &Params);
-		}
-		GFrameCounter = InitialFrameCounter;
-
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
-	}
-
+	
 	virtual FString GetBeautifiedTestName() const
 	{
 		return Recipe.Name;
@@ -102,14 +79,6 @@ FJavascriptAutomatedTestInstance UJavascriptTestLibrary::Create(const FJavascrip
 void UJavascriptTestLibrary::Destroy(FJavascriptAutomatedTestInstance& Test)
 {
 	Test.Handle.Reset();
-}
-
-void UJavascriptTestLibrary::RunWorld(const FJavascriptAutomatedTestInstance& Test, const FURL& URL, FJavascriptFunction Function)
-{
-	if (Test.Handle.IsValid())
-	{
-		Test.Handle->RunWorld(URL, Function);
-	}
 }
 
 void UJavascriptTestLibrary::ClearExecutionInfo(const FJavascriptAutomatedTestInstance& Test)
@@ -158,5 +127,42 @@ void UJavascriptTestLibrary::AddAnalyticsItem(const FJavascriptAutomatedTestInst
 	{
 		Test.Handle->AddAnalyticsItem(InAnalyticsItem);
 	}
+}
+
+UWorld* UJavascriptTestLibrary::NewWorld()
+{
+	UWorld *World = UWorld::CreateWorld(EWorldType::Game, false);
+	FWorldContext &WorldContext = GEngine->CreateNewWorldContext(EWorldType::Game);
+	WorldContext.SetCurrentWorld(World);
+
+	return World;
+}
+
+void UJavascriptTestLibrary::InitializeActorsForPlay(UWorld* World, const FURL& URL)
+{
+	World->InitializeActorsForPlay(URL);
+}
+
+void UJavascriptTestLibrary::BeginPlay(UWorld* World)
+{
+	World->BeginPlay();
+}
+
+static TArray<uint64> GFrameCounterStack;
+void UJavascriptTestLibrary::PushFrameCounter()
+{
+	GFrameCounterStack.Add(GFrameCounter);
+}
+
+void UJavascriptTestLibrary::PopFrameCounter()
+{
+	GFrameCounter = GFrameCounterStack[GFrameCounterStack.Num() - 1];
+	GFrameCounterStack.RemoveAt(GFrameCounterStack.Num() - 1, 1);
+}
+
+void UJavascriptTestLibrary::DestroyWorld(UWorld* World)
+{
+	GEngine->DestroyWorldContext(World);
+	World->DestroyWorld(false);
 }
 #endif
