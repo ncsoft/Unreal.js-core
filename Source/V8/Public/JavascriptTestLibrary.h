@@ -27,16 +27,6 @@ public:
 };
 
 USTRUCT()
-struct FJavascriptRunWorldParameters
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY()
-	UWorld* World;
-};
-
-USTRUCT()
 struct FJavascriptAutomatedTest
 {
 	GENERATED_BODY()
@@ -79,9 +69,6 @@ class V8_API UJavascriptTestLibrary : public UBlueprintFunctionLibrary
 	static FJavascriptAutomatedTestInstance Create(const FJavascriptAutomatedTest& Test);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void RunWorld(const FJavascriptAutomatedTestInstance& Test, const FURL& URL, FJavascriptFunction Function);
-
-	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void Destroy(FJavascriptAutomatedTestInstance& Test);
 
 	/** Clear any execution info/results from a prior running of this test */
@@ -102,5 +89,23 @@ class V8_API UJavascriptTestLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void AddAnalyticsItem(const FJavascriptAutomatedTestInstance& Test,const FString& InAnalyticsItem);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static UWorld* NewWorld();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void InitializeActorsForPlay(UWorld* World, const FURL& URL);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void BeginPlay(UWorld* World);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void PushFrameCounter();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void PopFrameCounter();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void DestroyWorld(UWorld* World);
 #endif
 };
