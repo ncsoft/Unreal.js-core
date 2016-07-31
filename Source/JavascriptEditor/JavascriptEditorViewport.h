@@ -30,6 +30,9 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FRotator, FOnGetWidgetRotation, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(EJavascriptWidgetMode, FOnGetWidgetMode, UJavascriptEditorViewport*, Instance);
 
+	UPROPERTY(EditAnywhere, Category = Widget)
+	FString LevelName;
+
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnViewportClick OnClick;
 

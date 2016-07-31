@@ -4,10 +4,139 @@
 #include "PreviewScene.h"
 #include "Runtime/Engine/Public/Slate/SceneViewport.h"
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 #define LOCTEXT_NAMESPACE "JavascriptEditor"
 
 
 #if WITH_EDITOR
+class FMyPreviewScene : public FPreviewScene, public TSharedFromThis<FMyPreviewScene>
+{
+public:
+	FMyPreviewScene(FString LevelName, ConstructionValues CVS = ConstructionValues())
+	{
+		auto Init = [&](UWorld* World) {			
+			// replace world
+			PreviewWorld = World;
+
+			FWorldContext& WorldContext = GEngine->CreateNewWorldContext(EWorldType::None);
+			WorldContext.SetCurrentWorld(PreviewWorld);
+
+			/*PreviewWorld->InitializeNewWorld(UWorld::InitializationValues()
+				.AllowAudioPlayback(CVS.bAllowAudioPlayback)
+				.CreatePhysicsScene(CVS.bCreatePhysicsScene)
+				.RequiresHitProxies(false)
+				.CreateNavigation(false)
+				.CreateAISystem(false)
+				.ShouldSimulatePhysics(CVS.bShouldSimulatePhysics)
+				.SetTransactional(CVS.bTransactional));*/
+
+			PreviewWorld->WorldType = WorldContext.WorldType;
+			PreviewWorld->SetGameInstance(WorldContext.OwningGameInstance);
+			PreviewWorld->InitWorld();
+			PreviewWorld->InitializeActorsForPlay(FURL());
+			PreviewWorld->BeginPlay();
+
+			GetScene()->UpdateDynamicSkyLight(FLinearColor::White * CVS.SkyBrightness, FLinearColor::Black);
+
+			DirectionalLight = NewObject<UDirectionalLightComponent>(GetTransientPackage());
+			DirectionalLight->Intensity = CVS.LightBrightness;
+			DirectionalLight->LightColor = FColor::White;
+			AddComponent(DirectionalLight, FTransform(CVS.LightRotation));
+
+			LineBatcher = NewObject<ULineBatchComponent>(GetTransientPackage());
+			AddComponent(LineBatcher, FTransform::Identity);			
+		};
+
+		auto Deinit = [&] {
+			RemoveComponent(DirectionalLight);			
+			RemoveComponent(LineBatcher);			
+
+			PreviewWorld->CleanupWorld();
+			GEngine->DestroyWorldContext(PreviewWorld); 
+		};
+
+		UPackage *WorldPackage = FindPackage(nullptr, *LevelName);
+		if (WorldPackage == nullptr)
+		{
+			WorldPackage = LoadPackage(nullptr, *LevelName, LOAD_None);
+		}
+		UWorld* NewWorld = UWorld::FindWorldInPackage(WorldPackage);
+
+		if (NewWorld)
+		{
+			UWorld* OwningWorld = nullptr;
+
+			static int32 Count = 0;
+
+			const FString PrefixedLevelName(FString(TEXT("/Game/PIE-")) + LevelName + FString::Printf(TEXT("%d"),Count++));
+			const FName PrefixedLevelFName = FName(*PrefixedLevelName);
+
+			PIELevelPackage = CastChecked<UPackage>(CreatePackage(NULL, *PrefixedLevelName));
+			PIELevelPackage->SetPackageFlags(PKG_PlayInEditor);
+			PIELevelPackage->SetGuid(WorldPackage->GetGuid());
+
+			TArray<FString> PackageNamesBeingDuplicatedForPIE;
+			PackageNamesBeingDuplicatedForPIE.Add(PrefixedLevelName);
+
+			FStringAssetReference::SetPackageNamesBeingDuplicatedForPIE(PackageNamesBeingDuplicatedForPIE);
+			ULevel::StreamedLevelsOwningWorld.Add(PIELevelPackage->GetFName(), OwningWorld);
+
+			UWorld* PIELevelWorld = CastChecked<UWorld>(StaticDuplicateObject(NewWorld, PIELevelPackage, NewWorld->GetFName(), RF_AllFlags, nullptr, SDO_DuplicateForPie));
+
+			// Clean up string asset reference fixups
+			FStringAssetReference::ClearPackageNamesBeingDuplicatedForPIE();
+
+			// Clean up the world type list and owning world list now that PostLoad has occurred
+			UWorld::WorldTypePreLoadMap.Remove(PrefixedLevelFName);
+			ULevel::StreamedLevelsOwningWorld.Remove(PIELevelPackage->GetFName());
+
+			PIELevelWorld->ClearFlags(RF_Standalone);
+			Deinit();
+			Init(PIELevelWorld);
+		}
+	}
+
+	UPackage* PIELevelPackage{ nullptr };
+
+	~FMyPreviewScene()
+	{
+		auto World = PreviewWorld;
+
+		// find objects like Textures in the playworld levels that won't get garbage collected as they are marked RF_Standalone
+		for (FObjectIterator It; It; ++It)
+		{
+			UObject* Object = *It;
+
+			if (Object->GetOutermost() == PIELevelPackage)
+			{
+				if (Object->HasAnyFlags(RF_Standalone))
+				{
+					// Clear RF_Standalone flag from objects in the levels used for PIE so they get cleaned up.
+					Object->ClearFlags(RF_Standalone);
+				}
+			}
+		}
+
+		for (auto LevelIt(World->GetLevelIterator()); LevelIt; ++LevelIt)
+		{
+			if (const ULevel* Level = *LevelIt)
+			{
+				CastChecked<UWorld>(Level->GetOuter())->MarkObjectsPendingKill();
+			}
+		}
+		
+		FWorldContext* WorldContext = GEngine->GetWorldContextFromWorld(PreviewWorld);		
+		auto GameInstance = WorldContext->OwningGameInstance;
+
+		// mark all objects contained within the PIE game instances to be deleted
+		auto MarkObjectPendingKill = [](UObject* Object)
+		{
+			Object->MarkPendingKill();
+		};
+		ForEachObjectWithOuter(GameInstance, MarkObjectPendingKill, true, RF_NoFlags, EInternalObjectFlags::PendingKill);
+	}
+};
 class FJavascriptEditorViewportClient : public FEditorViewportClient
 {
 public:
@@ -146,12 +275,15 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 {
 	SLATE_BEGIN_ARGS(SAutoRefreshEditorViewport)
 	{}
+		SLATE_ARGUMENT(FString, LevelName)
 		SLATE_ARGUMENT(TWeakObjectPtr<UJavascriptEditorViewport>, Widget)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs)
 	{
 		Widget = InArgs._Widget;
+
+		PreviewScene = MakeShareable(new FMyPreviewScene(InArgs._LevelName));
 
 		SEditorViewport::Construct(
 			SEditorViewport::FArguments()
@@ -162,7 +294,7 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 
 	virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override
 	{
-		EditorViewportClient = MakeShareable(new FJavascriptEditorViewportClient(PreviewScene,SharedThis(this),Widget));
+		EditorViewportClient = MakeShareable(new FJavascriptEditorViewportClient(*PreviewScene.Get(),SharedThis(this),Widget));
 
 		return EditorViewportClient.ToSharedRef();
 	}
@@ -230,27 +362,27 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 
 	void SetLightDirection(const FRotator& InLightDir)
 	{
-		PreviewScene.SetLightDirection(InLightDir);
+		PreviewScene->SetLightDirection(InLightDir);
 	}
 
 	void SetLightBrightness(float LightBrightness)
 	{
-		PreviewScene.SetLightBrightness(LightBrightness);
+		PreviewScene->SetLightBrightness(LightBrightness);
 	}
 
 	void SetLightColor(const FColor& LightColor)
 	{
-		PreviewScene.SetLightColor(LightColor);
+		PreviewScene->SetLightColor(LightColor);
 	}
 
 	void SetSkyBrightness(float SkyBrightness)
 	{
-		PreviewScene.SetSkyBrightness(SkyBrightness);
+		PreviewScene->SetSkyBrightness(SkyBrightness);
 	}
 
 	void SetSimulatePhysics(bool bShouldSimulatePhysics)
 	{
-		auto World = PreviewScene.GetWorld();
+		auto World = PreviewScene->GetWorld();
 		if (::IsValid(World) == true)
 			World->bShouldSimulatePhysics = bShouldSimulatePhysics;
 	}
@@ -282,7 +414,7 @@ public:
 	TSharedPtr<FJavascriptEditorViewportClient> EditorViewportClient;
 	
 	/** preview scene */
-	FPreviewScene PreviewScene;
+	TSharedPtr<FMyPreviewScene> PreviewScene;
 
 private:
 	TWeakObjectPtr<UJavascriptEditorViewport> Widget;
@@ -303,7 +435,9 @@ TSharedRef<SWidget> UJavascriptEditorViewport::RebuildWidget()
 	}
 	else
 	{
-		ViewportWidget = SNew(SAutoRefreshEditorViewport).Widget(this);
+		ViewportWidget = SNew(SAutoRefreshEditorViewport)
+			.Widget(this)
+			.LevelName(LevelName);
 
 		for (UPanelSlot* Slot : Slots)
 		{
@@ -324,7 +458,7 @@ UWorld* UJavascriptEditorViewport::GetViewportWorld() const
 #if WITH_EDITOR
 	if (ViewportWidget.IsValid())
 	{
-		return ViewportWidget->PreviewScene.GetWorld();
+		return ViewportWidget->PreviewScene->GetWorld();
 	}
 #endif
 	return nullptr;
@@ -522,5 +656,7 @@ bool UJavascriptEditorViewport::SetEngineShowFlags(const FString& In)
 		return false;
 	}
 }
+
+PRAGMA_ENABLE_OPTIMIZATION
 
 #undef LOCTEXT_NAMESPACE
