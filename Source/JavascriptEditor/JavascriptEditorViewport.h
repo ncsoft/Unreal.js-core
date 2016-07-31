@@ -117,6 +117,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	bool SetEngineShowFlags(const FString& In);
 
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void Purge();
+
 	// UPanelWidget
 	virtual UClass* GetSlotClass() const override;
 	virtual void OnSlotAdded(UPanelSlot* Slot) override;

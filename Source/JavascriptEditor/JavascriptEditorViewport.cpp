@@ -13,49 +13,30 @@ PRAGMA_DISABLE_OPTIMIZATION
 class FMyPreviewScene : public FPreviewScene, public TSharedFromThis<FMyPreviewScene>
 {
 public:
-	FMyPreviewScene(FString LevelName, ConstructionValues CVS = ConstructionValues())
+	void Init(ConstructionValues CVS = ConstructionValues())
 	{
-		auto Init = [&](UWorld* World) {			
-			// replace world
-			PreviewWorld = World;
+		GetScene()->UpdateDynamicSkyLight(FLinearColor::White * CVS.SkyBrightness, FLinearColor::Black);
 
-			FWorldContext& WorldContext = GEngine->CreateNewWorldContext(EWorldType::None);
-			WorldContext.SetCurrentWorld(PreviewWorld);
+		DirectionalLight = NewObject<UDirectionalLightComponent>(GetTransientPackage());
+		DirectionalLight->Intensity = CVS.LightBrightness;
+		DirectionalLight->LightColor = FColor::White;
+		AddComponent(DirectionalLight, FTransform(CVS.LightRotation));
 
-			/*PreviewWorld->InitializeNewWorld(UWorld::InitializationValues()
-				.AllowAudioPlayback(CVS.bAllowAudioPlayback)
-				.CreatePhysicsScene(CVS.bCreatePhysicsScene)
-				.RequiresHitProxies(false)
-				.CreateNavigation(false)
-				.CreateAISystem(false)
-				.ShouldSimulatePhysics(CVS.bShouldSimulatePhysics)
-				.SetTransactional(CVS.bTransactional));*/
+		LineBatcher = NewObject<ULineBatchComponent>(GetTransientPackage());
+		AddComponent(LineBatcher, FTransform::Identity);
+	}
 
-			PreviewWorld->WorldType = WorldContext.WorldType;
-			PreviewWorld->SetGameInstance(WorldContext.OwningGameInstance);
-			PreviewWorld->InitWorld();
-			PreviewWorld->InitializeActorsForPlay(FURL());
-			PreviewWorld->BeginPlay();
+	void Deinit()
+	{
+		RemoveComponent(DirectionalLight);
+		RemoveComponent(LineBatcher);
 
-			GetScene()->UpdateDynamicSkyLight(FLinearColor::White * CVS.SkyBrightness, FLinearColor::Black);
+		PreviewWorld->CleanupWorld();
+		GEngine->DestroyWorldContext(PreviewWorld);
+	}
 
-			DirectionalLight = NewObject<UDirectionalLightComponent>(GetTransientPackage());
-			DirectionalLight->Intensity = CVS.LightBrightness;
-			DirectionalLight->LightColor = FColor::White;
-			AddComponent(DirectionalLight, FTransform(CVS.LightRotation));
-
-			LineBatcher = NewObject<ULineBatchComponent>(GetTransientPackage());
-			AddComponent(LineBatcher, FTransform::Identity);			
-		};
-
-		auto Deinit = [&] {
-			RemoveComponent(DirectionalLight);			
-			RemoveComponent(LineBatcher);			
-
-			PreviewWorld->CleanupWorld();
-			GEngine->DestroyWorldContext(PreviewWorld); 
-		};
-
+	FMyPreviewScene(FString LevelName, ConstructionValues CVS = ConstructionValues())
+	{		
 		UPackage *WorldPackage = FindPackage(nullptr, *LevelName);
 		if (WorldPackage == nullptr)
 		{
@@ -93,15 +74,31 @@ public:
 
 			PIELevelWorld->ClearFlags(RF_Standalone);
 			Deinit();
-			Init(PIELevelWorld);
+
+			PreviewWorld = PIELevelWorld;
+
+			FWorldContext& WorldContext = GEngine->CreateNewWorldContext(EWorldType::None);
+			WorldContext.SetCurrentWorld(PreviewWorld);
+
+			PreviewWorld->WorldType = WorldContext.WorldType;
+			PreviewWorld->SetGameInstance(WorldContext.OwningGameInstance);
+			PreviewWorld->InitWorld();
+			PreviewWorld->InitializeActorsForPlay(FURL());
+			PreviewWorld->BeginPlay();
+
+			Init(CVS);
 		}
 	}
 
 	UPackage* PIELevelPackage{ nullptr };
 
-	~FMyPreviewScene()
+	void Purge()
 	{
 		auto World = PreviewWorld;
+		FWorldContext* WorldContext = GEngine->GetWorldContextFromWorld(PreviewWorld);
+		auto GameInstance = WorldContext->OwningGameInstance;
+
+		Deinit();
 
 		// find objects like Textures in the playworld levels that won't get garbage collected as they are marked RF_Standalone
 		for (FObjectIterator It; It; ++It)
@@ -125,16 +122,46 @@ public:
 				CastChecked<UWorld>(Level->GetOuter())->MarkObjectsPendingKill();
 			}
 		}
-		
-		FWorldContext* WorldContext = GEngine->GetWorldContextFromWorld(PreviewWorld);		
-		auto GameInstance = WorldContext->OwningGameInstance;
 
-		// mark all objects contained within the PIE game instances to be deleted
-		auto MarkObjectPendingKill = [](UObject* Object)
+		if (GameInstance)
 		{
-			Object->MarkPendingKill();
-		};
-		ForEachObjectWithOuter(GameInstance, MarkObjectPendingKill, true, RF_NoFlags, EInternalObjectFlags::PendingKill);
+			// mark all objects contained within the PIE game instances to be deleted
+			auto MarkObjectPendingKill = [](UObject* Object)
+			{
+				Object->MarkPendingKill();
+			};
+			ForEachObjectWithOuter(GameInstance, MarkObjectPendingKill, true, RF_NoFlags, EInternalObjectFlags::PendingKill);
+		}
+
+		CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
+
+		InitEmpty();
+	}
+
+	void InitEmpty(ConstructionValues CVS = ConstructionValues())
+	{
+		PreviewWorld = NewObject<UWorld>();
+		PreviewWorld->WorldType = EWorldType::Preview;
+
+		if (CVS.bTransactional)
+		{
+			PreviewWorld->SetFlags(RF_Transactional);
+		}
+
+		FWorldContext& WorldContext = GEngine->CreateNewWorldContext(EWorldType::Preview);
+		WorldContext.SetCurrentWorld(PreviewWorld);
+
+		PreviewWorld->InitializeNewWorld(UWorld::InitializationValues()
+			.AllowAudioPlayback(CVS.bAllowAudioPlayback)
+			.CreatePhysicsScene(CVS.bCreatePhysicsScene)
+			.RequiresHitProxies(false)
+			.CreateNavigation(false)
+			.CreateAISystem(false)
+			.ShouldSimulatePhysics(CVS.bShouldSimulatePhysics)
+			.SetTransactional(CVS.bTransactional));
+		PreviewWorld->InitializeActorsForPlay(FURL());
+
+		Init();
 	}
 };
 class FJavascriptEditorViewportClient : public FEditorViewportClient
@@ -452,6 +479,16 @@ TSharedRef<SWidget> UJavascriptEditorViewport::RebuildWidget()
 	}
 }
 #endif
+
+void UJavascriptEditorViewport::Purge()
+{
+#if WITH_EDITOR
+	if (ViewportWidget.IsValid())
+	{
+		ViewportWidget->PreviewScene->Purge();
+	}
+#endif
+}
 
 UWorld* UJavascriptEditorViewport::GetViewportWorld() const
 {
