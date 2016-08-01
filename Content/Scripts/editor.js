@@ -36,7 +36,8 @@
 		}
 		
 		function main() {
-			let byes = extensions.map((what) => spawn(what))		
+		    let byes = _.filter(extensions.map((what) => spawn(what)),x => _.isFunction(x))
+
 			return function () {
 				byes.forEach((bye)=>bye())
 			}
