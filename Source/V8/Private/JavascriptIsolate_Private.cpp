@@ -671,8 +671,20 @@ public:
 				}
 				else
 				{
-					auto Class = StaticLoadObject(UClass::StaticClass(), nullptr, *UString);
-					p->SetPropertyValue_InContainer(Buffer, Class);
+					auto Object = StaticLoadObject(UObject::StaticClass(), nullptr, *UString);					
+					if (auto Class = Cast<UClass>(Object))
+					{
+						p->SetPropertyValue_InContainer(Buffer, Class);
+					}
+					else if (auto BP = Cast<UBlueprint>(Object))
+					{
+						auto BPGC = BP->GeneratedClass;
+						p->SetPropertyValue_InContainer(Buffer, BPGC);
+					}
+					else
+					{
+						p->SetPropertyValue_InContainer(Buffer, Object);
+					}
 				}
 			}
 			else
@@ -1757,7 +1769,16 @@ public:
 
 						if (Class)
 						{
-							value = I.String(Class->GetPathName());
+							auto BPGC = Cast<UBlueprintGeneratedClass>(Class);
+							if (BPGC)
+							{
+								auto BP = Cast<UBlueprint>(BPGC->ClassGeneratedBy);
+								value = I.String(BP->GetPathName());
+							}
+							else
+							{
+								value = I.String(Class->GetPathName());
+							}
 						}
 						else
 						{
