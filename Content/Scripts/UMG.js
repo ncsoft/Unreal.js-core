@@ -436,240 +436,244 @@
         return doc
     }
 
-    var maker = require('editor-maker')
+    if (global.JavascriptEditorLibrary) {
+        var maker = require('editor-maker')
 
-    UMG.TabManager = function (opts, children) {
-        if (!_.isArray(children)) {
-            children = Array.prototype.slice.call(arguments, 1);
-        }
-        return UMG.base(JavascriptEditorTabManager, opts, {
-            $link: function (manager, scope) {
-                var ids = []
-                var next_id = 0
+        UMG.TabManager = function (opts, children) {
+            if (!_.isArray(children)) {
+                children = Array.prototype.slice.call(arguments, 1);
+            }
+            return UMG.base(JavascriptEditorTabManager, opts, {
+                $link: function (manager, scope) {
+                    var ids = []
+                    var next_id = 0
 
-                var instances = []
-                
-                // @HACK : ?�건 style???�로 ?�긴 control???�???�용?��? ?�는 문제 ?�문??발생?�는 것인??..
-                // ?�실 ??control??extended style??갖고 ?�??직접 ?�용??주면 ??�?같습?�다.
-                var pending_fn = null
+                    var instances = []
 
-                var Tabs = children.map(function (child) {
-                    var id = child.attrs.Id || 'inner' + next_id;
-                    next_id++
-                    var tab = maker.tab({ TabId: id }, function (context) {
-                        var instance = instantiator(child, scope)
-                        if (pending_fn) {
-                            pending_fn(instance)
-                        }
-                        instances.push(instance)
-                        return instance
+                    // @HACK : ?�건 style???�로 ?�긴 control???�???�용?��? ?�는 문제 ?�문??발생?�는 것인??..
+                    // ?�실 ??control??extended style??갖고 ?�??직접 ?�용??주면 ??�?같습?�다.
+                    var pending_fn = null
+
+                    var Tabs = children.map(function (child) {
+                        var id = child.attrs.Id || 'inner' + next_id;
+                        next_id++
+                        var tab = maker.tab({ TabId: id }, function (context) {
+                            var instance = instantiator(child, scope)
+                            if (pending_fn) {
+                                pending_fn(instance)
+                            }
+                            instances.push(instance)
+                            return instance
+                        })
+                        ids.push(id);
+                        return tab
                     })
-                    ids.push(id);
-                    return tab
+
+                    function filter_out() {
+                        instances = _.filter(instances, function (tab) {
+                            return JavascriptWidget.HasValidCachedWidget(tab);
+                        });
+                    }
+
+                    var old_children = manager.enumerate_children.bind(manager)
+                    manager.enumerate_children = function (fn) {
+                        old_children(fn);
+                        filter_out()
+                        console.log('enum! children!', instances.length)
+                        pending_fn = fn
+                        instances.forEach(function (instance) {
+                            fn(instance)
+                        });
+                    }
+
+                    var old_update = manager.update.bind(manager)
+                    var old_sync = manager.sync.bind(manager)
+
+                    manager.update = function () {
+                        filter_out()
+                        old_update()
+                        instances.forEach(function (instance) {
+                            instance.update();
+                        });
+                    }
+                    manager.sync = function () {
+                        filter_out()
+                        instances.forEach(function (instance) {
+                            instance.sync();
+                        });
+                    }
+
+                    var layout = {
+                        Name: "jseditor_layoutv18",
+                        PrimaryAreaIndex: 0,
+                        Areas: [
+                            {
+                                Type: 'Area',
+                                SizeCoefficient: 1,
+                                WindowPlacement: 'Placement_NoWindow',
+                                Orientation: 'Orient_Horizontal',
+                                nodes: ids.map(function (id) {
+                                    return {
+                                        Type: 'Stack',
+                                        SizeCoefficient: 1 / ids.length,
+                                        HideTabWell: true,
+                                        Tabs: [
+                                            { TabId: id, TabState: 'OpenedTab' }
+                                        ]
+                                    }
+                                })
+                            }
+                        ]
+                    }
+
+                    manager.Tabs = Tabs
+                    manager.Layout = JSON.stringify(layout)
+                }
+            })
+        }
+
+        var NextContextId = 0
+        global.CommandCache = global.CommandCache || {}
+        UMG.CommandBuilder = function (Id, opts, children) {
+            if (!_.isArray(children)) {
+                children = Array.prototype.slice.call(arguments, 2)
+            }
+            var ContextId = "UMGCommandBuilder_" + Id
+
+            return function (elem) {
+                if (global.CommandCache[ContextId]) {
+                    global.CommandCache[ContextId].Discard()
+                }
+                var obj = {}
+                var scope = null
+                children.forEach(function (child, key) {
+                    var id = child.id || key
+                    obj[id] = _.extend({ scope: function () { return scope } }, child)
+                })
+                var commands = global.CommandCache[ContextId] = maker.commands({
+                    name: ContextId,
+                    commands: obj
                 })
 
-                function filter_out() {
-                    instances = _.filter(instances, function (tab) {
-                        return JavascriptWidget.HasValidCachedWidget(tab);
-                    });
-                }
+                commands.Commit()
 
-                var old_children = manager.enumerate_children.bind(manager)
-                manager.enumerate_children = function (fn) {
-                    old_children(fn);
-                    filter_out()
-                    console.log('enum! children!', instances.length)
-                    pending_fn = fn
-                    instances.forEach(function (instance) {
-                        fn(instance)
-                    });
-                }
+                elem.Bind(commands)
 
-                var old_update = manager.update.bind(manager)
-                var old_sync = manager.sync.bind(manager)
+                children.forEach(function (child, key) {
+                    var id = child.id || key
+                    elem.AddMenuEntry(commands, id)
+                })
 
-                manager.update = function () {
-                    filter_out()
-                    old_update()
-                    instances.forEach(function (instance) {
-                        instance.update();
-                    });
+                return function (_scope) {
+                    scope = _scope;
                 }
-                manager.sync = function () {
-                    filter_out()
-                    instances.forEach(function (instance) {
-                        instance.sync();
-                    });
-                }
+            }
+        }
 
-                var layout = {
-                    Name: "jseditor_layoutv18",
-                    PrimaryAreaIndex: 0,
-                    Areas: [
-                        {
-                            Type: 'Area',
-                            SizeCoefficient: 1,
-                            WindowPlacement: 'Placement_NoWindow',
-                            Orientation: 'Orient_Horizontal',
-                            nodes: ids.map(function (id) {
-                                return {
-                                    Type: 'Stack',
-                                    SizeCoefficient: 1 / ids.length,
-                                    HideTabWell: true,
-                                    Tabs: [
-                                        { TabId: id, TabState: 'OpenedTab' }
-                                    ]
-                                }
-                            })
+        UMG.MenuBar = function (opts, children) {
+            children = Array.prototype.slice.call(arguments, 1)
+            var menu = {}
+            children.forEach(function (child) {
+                menu[child.Id] = child
+            })
+            var postfix = []
+            var bound_scope = null
+            var opts = {
+                OnHook: function (type) {
+                    if (type == 'Menubar') {
+                        for (var id in menu) {
+                            var child = menu[id];
+                            var displayName = child.DisplayName || '<MENU>';
+                            var tooltip = child.Tooltip || '';
+                            JavascriptEditorMenu.AddPullDownMenu(id, displayName, tooltip)
                         }
-                    ]
-                }
-
-                manager.Tabs = Tabs
-                manager.Layout = JSON.stringify(layout)
-            }
-        })
-    }
-
-    var NextContextId = 0
-    global.CommandCache = global.CommandCache || {}
-    UMG.CommandBuilder = function (Id, opts, children) {
-        if (!_.isArray(children)) {
-            children = Array.prototype.slice.call(arguments, 2)
-        }
-        var ContextId = "UMGCommandBuilder_" + Id
-
-        return function (elem) {
-            if (global.CommandCache[ContextId]) {
-                global.CommandCache[ContextId].Discard()
-            }
-            var obj = {}
-            var scope = null
-            children.forEach(function (child, key) {
-                var id = child.id || key
-                obj[id] = _.extend({ scope: function () { return scope } }, child)
-            })
-            var commands = global.CommandCache[ContextId] = maker.commands({
-                name: ContextId,
-                commands: obj
-            })
-
-            commands.Commit()
-
-            elem.Bind(commands)
-
-            children.forEach(function (child, key) {
-                var id = child.id || key
-                elem.AddMenuEntry(commands, id)
-            })
-
-            return function (_scope) {
-                scope = _scope;
-            }
-        }
-    }
-
-    UMG.MenuBar = function (opts, children) {
-        children = Array.prototype.slice.call(arguments, 1)
-        var menu = {}
-        children.forEach(function (child) {
-            menu[child.Id] = child
-        })
-        var postfix = []
-        var bound_scope = null
-        var opts = {
-            OnHook: function (type) {
-                if (type == 'Menubar') {
-                    for (var id in menu) {
-                        var child = menu[id];
-                        var displayName = child.DisplayName || '<MENU>';
-                        var tooltip = child.Tooltip || '';
-                        JavascriptEditorMenu.AddPullDownMenu(id, displayName, tooltip)
                     }
-                }
-                else {
-                    var child = menu[type]
-                    if (_.isFunction(child.$link)) {
-                        var fn = child.$link(JavascriptUIExtender)
-                        if (_.isFunction(fn)) {
-                            postfix.push(fn)
-                            if (bound_scope) {
-                                fn(bound_scope)
+                    else {
+                        var child = menu[type]
+                        if (_.isFunction(child.$link)) {
+                            var fn = child.$link(JavascriptUIExtender)
+                            if (_.isFunction(fn)) {
+                                postfix.push(fn)
+                                if (bound_scope) {
+                                    fn(bound_scope)
+                                }
                             }
                         }
                     }
+                    UMG.$$temp = null
                 }
-                UMG.$$temp = null
             }
+            return UMG.base(JavascriptEditorMenu, opts, {
+                $link: function (elem, scope, attrs) {
+                    bound_scope = scope
+                    postfix.forEach(function (fn) {
+                        fn(scope)
+                    })
+                }
+            })
+        };
+
+        UMG.Menu = function (opts, commands) {
+            commands = Array.prototype.slice.call(arguments, 1)
+            var args = [opts.Id, {}]
+            args = args.concat(commands)
+            opts.$link = opts.$link || UMG.CommandBuilder.apply(UMG, args)
+            return opts
         }
-        return UMG.base(JavascriptEditorMenu, opts, {
-            $link: function (elem, scope, attrs) {
-                bound_scope = scope
-                postfix.forEach(function (fn) {
-                    fn(scope)
-                })
-            }
-        })
-    };
 
-    UMG.Menu = function (opts, commands) {
-        commands = Array.prototype.slice.call(arguments, 1)
-        var args = [opts.Id, {}]
-        args = args.concat(commands)
-        opts.$link = opts.$link || UMG.CommandBuilder.apply(UMG, args)
-        return opts
-    }
-
-    UMG.MenuEntry = function (opts) {
-        opts = conv(opts)
-        var bindings = instantiator.make_fnbinding(opts.Fn || {});
-        var _bindings = instantiator.make_binding(opts.Binding || {});
-        var holder = null
-        var obj = {
-            OnExecute: {
-                Add: function (fn) {
-                    holder.execute = fn
+        UMG.MenuEntry = function (opts) {
+            opts = conv(opts)
+            var bindings = instantiator.make_fnbinding(opts.Fn || {});
+            var _bindings = instantiator.make_binding(opts.Binding || {});
+            var holder = null
+            var obj = {
+                OnExecute: {
+                    Add: function (fn) {
+                        holder.execute = fn
+                    },
+                    Clear: function () { }
                 },
-                Clear: function () { }
-            },
-            OnQuery: {
-                Add: function (fn) {
-                    holder.query = fn
-                },
-                Clear: function () { }
+                OnQuery: {
+                    Add: function (fn) {
+                        holder.query = fn
+                    },
+                    Clear: function () { }
+                }
             }
+            return _.extend({
+                Query: function (what) {
+                    var test = {}
+                    var answer = undefined
+                    _bindings(test, this.scope());
+
+                    if (what == 'checked') {
+                        answer = test.Checked
+                    } else if (what == 'visible') {
+                        answer = test.Visible
+                    } else if (what == 'enabled') {
+                        answer = test.Enabled
+                    }
+
+                    return answer == undefined ? true : answer;
+                },
+                Execute: function () {
+                    if (holder == null) {
+                        holder = {}
+                        bindings(obj, this.scope());
+                    }
+                    holder.execute && holder.execute()
+                }
+            }, opts)
         }
-        return _.extend({
-            Query: function (what) {
-                var test = {}
-                var answer = undefined
-                _bindings(test, this.scope());
+        UMG.MenuButton = function (opts) {
+            return UMG.MenuEntry(_.extend({ type: 'Button' }, opts))
+        }
+        UMG.MenuToggleButton = function (opts) {
+            return UMG.MenuEntry(_.extend({ type: 'ToggleButton' }, opts))
+        }
 
-                if (what == 'checked') {
-                    answer = test.Checked
-                } else if (what == 'visible') {
-                    answer = test.Visible
-                } else if (what == 'enabled') {
-                    answer = test.Enabled
-                }
-
-                return answer == undefined ? true : answer;
-            },
-            Execute: function () {
-                if (holder == null) {
-                    holder = {}
-                    bindings(obj, this.scope());
-                }
-                holder.execute && holder.execute()
-            }
-        }, opts)
     }
-    UMG.MenuButton = function (opts) {
-        return UMG.MenuEntry(_.extend({ type: 'Button' }, opts))
-    }
-    UMG.MenuToggleButton = function (opts) {
-        return UMG.MenuEntry(_.extend({ type: 'ToggleButton' }, opts))
-    }
+    
 
     module.exports = _.extend(UMG.generic, UMG);
 } (this))

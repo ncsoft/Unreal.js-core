@@ -8,6 +8,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "JavascriptStats.h"
 #include "JavascriptSettings.h"
 
+DEFINE_STAT(STAT_V8IdleTask);
 DEFINE_STAT(STAT_JavascriptDelegate);
 DEFINE_STAT(STAT_JavascriptProxy);
 DEFINE_STAT(STAT_Scavenge);
@@ -28,6 +29,8 @@ DEFINE_STAT(STAT_MapSpace);
 DEFINE_STAT(STAT_LoSpace);
 
 using namespace v8;
+
+static float GV8IdleTaskBudget = 1 / 60.0f;
 
 UJavascriptSettings::UJavascriptSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -106,12 +109,17 @@ public:
 	void RunIdleTasks(float Budget)
 	{
 		float Start = FPlatformTime::Seconds();
-		while (!IdleTasks.IsEmpty() && Budget >= 0)
+		while (!IdleTasks.IsEmpty() && Budget > 0)
 		{
 			v8::IdleTask* Task = nullptr;
 			IdleTasks.Dequeue(Task);
 
-			Task->Run(Budget);
+			{
+				SCOPE_CYCLE_COUNTER(STAT_V8IdleTask);
+
+				Task->Run(MonotonicallyIncreasingTime() + Budget);
+			}
+			
 			delete Task;
 			
 			float Now = FPlatformTime::Seconds();
@@ -122,11 +130,8 @@ public:
 	}
 
 	bool HandleTicker(float DeltaTime)
-	{
-		float Time = FApp::GetCurrentTime();
-		float RealTime = FPlatformTime::Seconds();
-		float Consumed = RealTime - Time;
-		RunIdleTasks(FMath::Max<float>(0, 1.0f / 60 - Consumed));
+	{	
+		RunIdleTasks(FMath::Max<float>(0, GV8IdleTaskBudget - DeltaTime));
 		return true;
 	}
 };
@@ -288,6 +293,11 @@ public:
 	virtual void SetFlagsFromString(const FString& V8Flags) override
 	{
 		V8::SetFlagsFromString(TCHAR_TO_ANSI(*V8Flags), strlen(TCHAR_TO_ANSI(*V8Flags)));
+	}
+
+	virtual void SetIdleTaskBudget(float BudgetInSeconds) override
+	{
+		GV8IdleTaskBudget = BudgetInSeconds;
 	}
 };
 

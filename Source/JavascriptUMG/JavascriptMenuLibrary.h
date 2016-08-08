@@ -90,6 +90,46 @@ public:
 	TSharedPtr<FUICommandInfo> Handle;
 };
 
+USTRUCT()
+struct JAVASCRIPTUMG_API FJavascriptExtender
+{
+	GENERATED_BODY()
+
+public:
+	FJavascriptExtender();
+	FJavascriptExtender(TSharedPtr<FExtender> Extender);
+
+	FExtender* operator -> () const
+	{
+		return Handle.Get();
+	}
+
+	TSharedPtr<FExtender> Handle;
+};
+
+USTRUCT()
+struct FJavascriptExtensionBase
+{
+	GENERATED_BODY()
+
+public:
+	TSharedPtr<const FExtensionBase> Handle;
+};
+
+UENUM()
+namespace EJavascriptExtensionHook
+{
+	enum Type
+	{
+		/** Inserts the extension before the element or section. */
+		Before,
+		/** Inserts the extension after the element or section. */
+		After,
+		/** Sections only. Inserts the extension at the beginning of the section. */
+		First,
+	};
+}
+
 /**
  * 
  */
@@ -106,6 +146,24 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void CreateMenuBarBuilder(FJavascriptUICommandList CommandList, FJavascriptFunction Function);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptExtensionBase AddToolBarExtension(FJavascriptExtender Extender, FName ExtensionHook, EJavascriptExtensionHook::Type HookPosition, FJavascriptUICommandList CommandList, FJavascriptFunction Function);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptExtensionBase AddMenuExtension(FJavascriptExtender Extender, FName ExtensionHook, EJavascriptExtensionHook::Type HookPosition, FJavascriptUICommandList CommandList, FJavascriptFunction Function);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptExtensionBase AddMenubarExtension(FJavascriptExtender Extender, FName ExtensionHook, EJavascriptExtensionHook::Type HookPosition, FJavascriptUICommandList CommandList, FJavascriptFunction Function);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void RemoveExtension(FJavascriptExtender Extender, FJavascriptExtensionBase Extension);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void Apply(FJavascriptExtender Extender, FName ExtensionHook, EJavascriptExtensionHook::Type HookPosition, FJavascriptMenuBuilder& MenuBuilder);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptExtender Combine(const TArray<FJavascriptExtender>& Extenders);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void BeginSection(FJavascriptMenuBuilder& Builder, FName InExtensionHook);
@@ -127,6 +185,9 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 	
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void PopCommandList(FJavascriptMenuBuilder& Builder);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddPullDownMenu(FJavascriptMenuBuilder& MenuBuilder, const FText& InMenuLabel, const FText& InToolTip, FJavascriptFunction InPullDownMenu, FName InExtensionHook, FName InTutorialHighlightName);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptBindingContext NewBindingContext(const FName InContextName, const FText& InContextDesc, const FName InContextParent, const FName InStyleSetName);

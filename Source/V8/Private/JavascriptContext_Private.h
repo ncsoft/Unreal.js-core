@@ -1,5 +1,7 @@
 #pragma once
 
+struct FStructMemoryInstance;
+
 struct FJavascriptContext : TSharedFromThis<FJavascriptContext>
 {
 	FJavascriptContext(TSharedPtr<FJavascriptIsolate> InEnvironment) : Environment(InEnvironment) {}
@@ -26,6 +28,8 @@ struct FJavascriptContext : TSharedFromThis<FJavascriptContext>
 	virtual bool WriteDTS(const FString& Filename, bool bIncludingTooltip) = 0;
 	virtual bool HasProxyFunction(UObject* Holder, UFunction* Function) = 0;
 	virtual bool CallProxyFunction(UObject* Holder, UObject* This, UFunction* FunctionToCall, void* Parms) = 0;	
+
+	virtual void UncaughtException(const FString& Exception) = 0;
 
 	virtual v8::Isolate* isolate() = 0;
 	virtual v8::Local<v8::Context> context() = 0;

@@ -4,7 +4,7 @@
 
 struct FV8Exception
 {
-	static void Report(v8::TryCatch& try_catch)
+	static FString Report(v8::TryCatch& try_catch)
 	{
 		using namespace v8;
 
@@ -13,6 +13,7 @@ struct FV8Exception
 		if (message.IsEmpty())
 		{
 			UE_LOG(Javascript, Error, TEXT("%s"), *exception);
+			return *exception;
 		}
 		else
 		{
@@ -33,8 +34,16 @@ struct FV8Exception
 					{
 						UE_LOG(Javascript, Error, TEXT("%s"), *line);
 					}
+
+					return stack_trace;
+				} 
+				else
+				{
+					return *exception;
 				}
 			}
 		}
+
+		return FString();
 	}
 };

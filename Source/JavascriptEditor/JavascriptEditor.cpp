@@ -179,6 +179,7 @@ void FJavascriptEditorModule::Unregister()
 	for (auto e : Extensions) { e->Unregister(); }
 	Extensions.Empty();
 
+	JavascriptContext->RunScript(TEXT("this['$exit'] && this['$exit']()"));
 	JavascriptContext->RunScript(TEXT("gc()"));
 
 	JavascriptContext->JavascriptContext.Reset();

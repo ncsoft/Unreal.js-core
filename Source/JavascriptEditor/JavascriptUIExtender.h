@@ -1,20 +1,7 @@
 #pragma once
 
+#include "JavascriptMenuLibrary.h"
 #include "JavascriptUIExtender.generated.h"
-
-UENUM()
-namespace EJavascriptExtensionHook
-{
-	enum Type
-	{
-		/** Inserts the extension before the element or section. */
-		Before,
-		/** Inserts the extension after the element or section. */
-		After,
-		/** Sections only. Inserts the extension at the beginning of the section. */
-		First,
-	};
-}
 
 USTRUCT()
 struct FJavascriptMenuExtension

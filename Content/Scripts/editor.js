@@ -36,7 +36,8 @@
 		}
 		
 		function main() {
-			let byes = extensions.map((what) => spawn(what))		
+		    let byes = _.filter(extensions.map((what) => spawn(what)),x => _.isFunction(x))
+
 			return function () {
 				byes.forEach((bye)=>bye())
 			}
@@ -45,6 +46,9 @@
 		module.exports = () => {
 			try {
 				let cleanup = main()
+
+				global.$$exit = cleanup
+		
 				return () => cleanup()
 			} catch (e) {
 				console.error(String(e))
@@ -52,6 +56,10 @@
 			}			
 		}
 	} else {
+		global.$$exit = function() {}
+		global.$exit = function () {
+			global.$$exit()
+		}
 		Context.WriteDTS(Context.Paths[0] + 'typings/ue.d.ts')
 		Context.WriteAliases(Context.Paths[0] + 'aliases.js')
 	
