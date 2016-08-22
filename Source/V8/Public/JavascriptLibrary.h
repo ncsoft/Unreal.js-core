@@ -2,6 +2,7 @@
 
 #include "JavascriptProfile.h"
 #include "JavascriptIsolate.h"
+#include "AI/Navigation/RecastNavMesh.h"
 #include "JavascriptLibrary.generated.h"
 
 USTRUCT(BlueprintType)
@@ -335,4 +336,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static UObject* TryLoadByPath(FString Path);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void GenerateNavigation(UWorld* world, ARecastNavMesh* NavData);
 };

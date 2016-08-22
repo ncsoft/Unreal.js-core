@@ -366,5 +366,8 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool DeletePackage(UPackage* Package);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void CreateBrushForVolumeActor(AVolume* NewActor, UBrushBuilder* BrushBuilder);
 #endif
 };

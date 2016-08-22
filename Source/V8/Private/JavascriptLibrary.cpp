@@ -521,3 +521,9 @@ UObject* UJavascriptLibrary::TryLoadByPath(FString Path)
 {
 	return FStringAssetReference(*Path).TryLoad();
 }
+
+void UJavascriptLibrary::GenerateNavigation(UWorld* world, ARecastNavMesh* NavData )
+{
+	UNavigationSystem::InitializeForWorld(world, FNavigationSystemRunMode::PIEMode);
+	NavData->RebuildAll();
+}
