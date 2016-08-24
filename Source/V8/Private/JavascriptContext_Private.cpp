@@ -1379,12 +1379,33 @@ public:
 			};
 
 			auto current_script_path = FPaths::GetPath(StringFromV8(StackTrace::CurrentStackTrace(isolate, 1, StackTrace::kScriptName)->GetFrame(0)->GetScriptName()));
+			FString Left, Right;
+			auto current_module_path = current_script_path.Split("node_modules", &Left, &Right) ? Left / TEXT("node_modules") : "";
 #if PLATFORM_WINDOWS
 			current_script_path = current_script_path.Replace(TEXT("\\"), TEXT("/"));
+			current_module_path = current_module_path.Replace(TEXT("\\"), TEXT("/"));
+			Right = Right.Replace(TEXT("\\"), TEXT("/"));
 #endif
+			TArray<FString> Parsed;
+			if (!current_module_path.IsEmpty())
+				current_module_path = current_module_path / (Right.ParseIntoArray(Parsed, TEXT("/"), false) > 1 ? Parsed[1] : "");
+
 			if (!(required_module[0] == '.' && inner2(current_script_path)))
 			{
 				if (!inner2(current_script_path / TEXT("node_modules")))
+				{
+					for (const auto& path : Self->Paths)
+					{
+						if (inner2(path)) break;
+
+						if (inner2(path / TEXT("node_modules"))) break;
+					}
+				}
+			}
+
+			if (!current_module_path.IsEmpty() && current_module_path != current_script_path && !(required_module[0] == '.' && inner(current_module_path)))
+			{
+				if (!inner2(current_module_path / TEXT("node_modules")))
 				{
 					for (const auto& path : Self->Paths)
 					{
