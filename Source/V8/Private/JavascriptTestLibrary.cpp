@@ -1,4 +1,7 @@
 #include "V8PCH.h"
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include "JavascriptTestLibrary.h"
 #include "Misc/AutomationTest.h"
 
@@ -204,3 +207,5 @@ void UJavascriptTestLibrary::DestroyWorld(UWorld* World)
 	World->DestroyWorld(false);
 #endif
 }
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
