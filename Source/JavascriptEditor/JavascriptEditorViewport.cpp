@@ -48,6 +48,60 @@ public:
 		}
 	}
 
+	virtual bool InputKey(FViewport* Viewport, int32 ControllerId, FKey Key, EInputEvent Event, float AmountDepressed = 1.f, bool bGamepad = false)
+	{
+		FEditorViewportClient::InputKey(Viewport, ControllerId, Key, Event, AmountDepressed, bGamepad);
+		if (Widget.IsValid() && Widget->OnInputKey.IsBound())
+		{
+			return Widget->OnInputKey.Execute(ControllerId, Key, Event, Widget.Get());
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	virtual bool InputAxis(FViewport* Viewport, int32 ControllerId, FKey Key, float Delta, float DeltaTime, int32 NumSamples = 1, bool bGamepad = false) override
+	{
+		FEditorViewportClient::InputAxis(Viewport, ControllerId, Key, Delta, DeltaTime, NumSamples, bGamepad);
+		if (Widget.IsValid() && Widget->OnInputAxis.IsBound())
+		{
+			return Widget->OnInputAxis.Execute(ControllerId, Key, Delta, DeltaTime, Widget.Get());
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	virtual void MouseEnter(FViewport* Viewport, int32 x, int32 y) override
+	{
+
+		FEditorViewportClient::MouseEnter(Viewport, x, y);
+		if (Widget.IsValid() && Widget->OnMouseEnter.IsBound())
+		{
+			Widget->OnMouseEnter.Execute(x, y, Widget.Get());
+		}
+	}
+
+	virtual void MouseMove(FViewport* Viewport, int32 x, int32 y) override
+	{
+		FEditorViewportClient::MouseMove(Viewport, x, y);
+		if (Widget.IsValid() && Widget->OnMouseMove.IsBound())
+		{
+			Widget->OnMouseMove.Execute(x, y, Widget.Get());
+		}
+	}
+
+	virtual void MouseLeave(FViewport* Viewport) override
+	{
+		FEditorViewportClient::MouseLeave(Viewport);
+		if (Widget.IsValid() && Widget->OnMouseLeave.IsBound())
+		{
+			Widget->OnMouseLeave.Execute(Widget.Get());
+		}
+	}
+
 	virtual bool InputWidgetDelta(FViewport* InViewport, EAxisList::Type CurrentAxis, FVector& Drag, FRotator& Rot, FVector& Scale) override
 	{
 		if (Widget.IsValid() && Widget->OnInputWidgetDelta.IsBound())
@@ -67,6 +121,19 @@ public:
 		if (Widget.IsValid() && Widget->OnDraw.IsBound())
 		{
 			Widget->OnDraw.Execute(FJavascriptPDI(PDI),Widget.Get());
+		}
+	}
+
+	virtual void Draw(FViewport* Viewport, FCanvas* Canvas) override
+	{
+		FEditorViewportClient::Draw(Viewport, Canvas);
+
+		if (Widget->SelectionBeginPoint.X >= 0)
+		{
+			FCanvasBoxItem Box(Widget->SelectionBeginPoint, Widget->SelectionEndPoint - Widget->SelectionBeginPoint);
+			Box.SetColor(FColor::White);
+			Box.LineThickness = 1.0;
+			Box.Draw(Canvas);
 		}
 	}
 
@@ -220,6 +287,16 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 	int32 GetCameraSpeedSetting()
 	{
 		return EditorViewportClient->GetCameraSpeedSetting();
+	}
+
+	void SetViewportType(ELevelViewportType InViewportType)
+	{
+		EditorViewportClient->SetViewportType(InViewportType);
+	}
+
+	void SetViewMode(EViewModeIndex InViewModeIndex)
+	{
+		EditorViewportClient->SetViewMode(InViewModeIndex);
 	}
 
 	void OverridePostProcessSettings(const FPostProcessSettings& PostProcessSettings, float Weight)
@@ -497,6 +574,38 @@ void UJavascriptEditorViewport::SetWidgetMode(EJavascriptWidgetMode WidgetMode)
 	{
 		ViewportWidget->SetWidgetMode(WidgetMode);
 	}
+}
+
+void UJavascriptEditorViewport::SetViewportType(ELevelViewportType InViewportType)
+{
+	if (ViewportWidget.IsValid())
+	{
+		ViewportWidget->SetViewportType(InViewportType);
+	}
+}
+
+void UJavascriptEditorViewport::SetViewMode(EViewModeIndex InViewModeIndex)
+{
+	if (ViewportWidget.IsValid())
+	{
+		ViewportWidget->SetViewMode(InViewModeIndex);
+	}
+}
+
+void UJavascriptEditorViewport::DeprojectScreenToWorld(const FVector2D &ScreenPosition, FVector &OutRayOrigin, FVector& OutRayDirection)
+{
+    if (ViewportWidget.IsValid())
+    {
+        FSceneView::DeprojectScreenToWorld(ScreenPosition, ViewRect, ViewMatrices.GetInvViewProjMatrix(), OutRayOrigin, OutRayDirection);
+    }
+}
+
+void UJavascriptEditorViewport::ProjectWorldToScreen(const FVector &WorldPosition, FVector2D &OutScreenPosition)
+{
+    if (ViewportWidget.IsValid())
+    {
+        FSceneView::ProjectWorldToScreen(WorldPosition, ViewRect, ViewMatrices.GetViewProjMatrix(), OutScreenPosition);
+    }
 }
 
 FString UJavascriptEditorViewport::GetEngineShowFlags()
