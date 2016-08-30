@@ -64,7 +64,6 @@ class V8_API UJavascriptTestLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
-#if WITH_EDITOR
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptAutomatedTestInstance Create(const FJavascriptAutomatedTest& Test);
 
@@ -107,5 +106,4 @@ class V8_API UJavascriptTestLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void DestroyWorld(UWorld* World);
-#endif
 };
