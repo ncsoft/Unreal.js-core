@@ -369,5 +369,11 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void CreateBrushForVolumeActor(AVolume* NewActor, UBrushBuilder* BrushBuilder);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static UWorld* FindWorldInPackage(UPackage* Package);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FString ExportNavigation(UWorld* InWorld, FString Path);
 #endif
 };

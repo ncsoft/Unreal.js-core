@@ -681,4 +681,67 @@ void UJavascriptEditorLibrary::CreateBrushForVolumeActor(AVolume* NewActor, UBru
 		NewActor->PostEditChange();
 	}
 }
+
+UWorld* UJavascriptEditorLibrary::FindWorldInPackage(UPackage* Package)
+{
+	return UWorld::FindWorldInPackage(Package);
+}
+
+FString UJavascriptEditorLibrary::ExportNavigation(UWorld* InWorld, FString Name)
+{
+	InWorld->WorldType = EWorldType::Editor;
+	InWorld->AddToRoot();
+	if (!InWorld->bIsWorldInitialized)
+	{
+		UWorld::InitializationValues IVS;
+		IVS.EnableTraceCollision(true);
+		IVS.CreateNavigation(false);
+
+		InWorld->InitWorld(IVS);
+		InWorld->PersistentLevel->UpdateModelComponents();
+		InWorld->UpdateWorldComponents(true, false);
+		InWorld->UpdateLevelStreaming();
+		//InWorld->LoadSecondaryLevels(true, NULL);
+	}
+
+	UNavigationSystem::InitializeForWorld(InWorld, FNavigationSystemRunMode::EditorMode);
+	FWorldContext &WorldContext = GEditor->GetEditorWorldContext(true);
+	WorldContext.SetCurrentWorld(InWorld);
+	GWorld = InWorld;
+
+//	UGameplayStatics::LoadStreamLevel(InWorld, FName(TEXT("BackgroundMountains")), true, true, FLatentActionInfo());
+// 	UWorld::InitializationValues().ShouldSimulatePhysics(false).EnableTraceCollision(true).CreateNavigation(InWorldType == EWorldType::Editor).CreateAISystem(InWorldType == EWorldType::Editor);
+// 	UNavigationSystem::InitializeForWorld(InWorld, FNavigationSystemRunMode::GameMode);
+	if (InWorld->GetNavigationSystem())
+	{
+		InWorld->GetNavigationSystem()->Build();
+		if (const ANavigationData* NavData = InWorld->GetNavigationSystem()->GetMainNavData())
+		{
+			if (const FNavDataGenerator* Generator = NavData->GetGenerator())
+			{
+				//const FString Name = NavData->GetName();
+				auto fname = FString::Printf(TEXT("%s/%s"), *FPaths::GameSavedDir(), *Name);
+				Generator->ExportNavigationData(fname);
+				InWorld->RemoveFromRoot();
+				return fname;
+			}
+			else
+			{
+				UE_LOG(LogNavigation, Error, TEXT("Failed to export navigation data due to missing generator"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogNavigation, Error, TEXT("Failed to export navigation data due to navigation data"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogNavigation, Error, TEXT("Failed to export navigation data due to missing navigation system"));
+	}
+
+	InWorld->RemoveFromRoot();
+
+	return FString("");
+}
 #endif
