@@ -329,5 +329,32 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void CreatePropertyEditorToolkit(TArray<UObject*> ObjectsForPropertiesMenu);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FJavascriptExtensibilityManager GetMenuExtensibilityManager(FName What);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FJavascriptExtensibilityManager GetToolBarExtensibilityManager(FName What);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void AddExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender);
+	
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void RemoveExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool SavePackage(UPackage* Package, FString FileName);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool DeletePackage(UPackage* Package);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void CreateBrushForVolumeActor(AVolume* NewActor, UBrushBuilder* BrushBuilder);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static UWorld* FindWorldInPackage(UPackage* Package);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FString ExportNavigation(UWorld* InWorld, FString Path);
 #endif
 };
