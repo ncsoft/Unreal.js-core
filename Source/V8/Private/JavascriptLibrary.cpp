@@ -527,3 +527,24 @@ void UJavascriptLibrary::GenerateNavigation(UWorld* world, ARecastNavMesh* NavDa
 	UNavigationSystem::InitializeForWorld(world, FNavigationSystemRunMode::PIEMode);
 	NavData->RebuildAll();
 }
+
+const FString& UJavascriptLibrary::GetMetaData(UField* Field, const FString Key)
+{
+	return Field->GetMetaData(*Key);
+}
+
+TArray<UField*> UJavascriptLibrary::GetFields(const UObject* Object, bool bIncludeSuper)
+{
+	auto Class = Object->GetClass();
+	TArray<UField*> Fields;
+	for (TFieldIterator<UField> FieldIt(Class, bIncludeSuper ? EFieldIteratorFlags::IncludeSuper : EFieldIteratorFlags::ExcludeSuper); FieldIt; ++FieldIt)
+	{
+		Fields.Add(*FieldIt);
+	}
+	return Fields;
+}
+
+int32 UJavascriptLibrary::GetFunctionParmsSize(UFunction* Function)
+{
+	return Function->ParmsSize;
+}

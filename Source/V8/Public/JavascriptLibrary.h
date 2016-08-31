@@ -339,4 +339,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void GenerateNavigation(UWorld* world, ARecastNavMesh* NavData);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static const FString& GetMetaData(UField* Field, const FString Key);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static TArray<UField*> GetFields(const UObject* Object, bool bIncludeSuper);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static int32 GetFunctionParmsSize(UFunction* Function);
 };
