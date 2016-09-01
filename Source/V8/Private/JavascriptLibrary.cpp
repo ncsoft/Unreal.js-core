@@ -530,7 +530,15 @@ void UJavascriptLibrary::GenerateNavigation(UWorld* world, ARecastNavMesh* NavDa
 
 const FString& UJavascriptLibrary::GetMetaData(UField* Field, const FString Key)
 {
-	return Field->GetMetaData(*Key);
+	UPackage* Package = Field->GetOutermost();
+	check(Package);
+
+	UMetaData* MetaData = Package->GetMetaData();
+	check(MetaData);
+
+	const FString& MetaDataString = MetaData->GetValue(Field, *Key);
+
+	return MetaDataString;
 }
 
 TArray<UField*> UJavascriptLibrary::GetFields(const UObject* Object, bool bIncludeSuper)
