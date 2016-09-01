@@ -53,12 +53,12 @@ protected:
 		return UPanelSlot::StaticClass();
 	}
 
-	virtual void OnSlotAdded(UPanelSlot* Slot)
+	virtual void OnSlotAdded(UPanelSlot* InSlot)
 	{
 
 	}
 
-	virtual void OnSlotRemoved(UPanelSlot* Slot)
+	virtual void OnSlotRemoved(UPanelSlot* InSlot)
 	{
 
 	}

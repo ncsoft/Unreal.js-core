@@ -36,7 +36,12 @@ public:
 	void PostGarbageCollect();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-	void PreLoadMap();
+	void PreLoadMap(const FString& MapName);
+	
+	void PreLoadMap_Old()
+	{
+		PreLoadMap(TEXT(""));
+	}
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void PostLoadMap();

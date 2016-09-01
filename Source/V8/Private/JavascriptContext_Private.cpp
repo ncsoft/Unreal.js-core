@@ -677,15 +677,15 @@ void UJavascriptGeneratedFunction::Thunk(FFrame& Stack, RESULT_DECL)
 }
 
 namespace {
-	UClass* CurrentClass = nullptr;
+	UClass* CurrentClassUnderConstruction = nullptr;
 	void CallClassConstructor(UClass* Class, const FObjectInitializer& ObjectInitializer) 
 	{
 		if (Cast<UJavascriptGeneratedClass_Native>(Class) || Cast<UJavascriptGeneratedClass>(Class))
 		{
-			CurrentClass = Class;
+			CurrentClassUnderConstruction = Class;
 		}
 		Class->ClassConstructor(ObjectInitializer);
-		CurrentClass = nullptr;
+		CurrentClassUnderConstruction = nullptr;
 	};
 }
 
@@ -838,8 +838,8 @@ public:
 			Class->ClassGeneratedBy = Blueprint;						
 
 			auto ClassConstructor = [](const FObjectInitializer& ObjectInitializer){				
-				auto Class = static_cast<UBlueprintGeneratedClass*>(CurrentClass ? CurrentClass : ObjectInitializer.GetClass());
-				CurrentClass = nullptr;
+				auto Class = static_cast<UBlueprintGeneratedClass*>(CurrentClassUnderConstruction ? CurrentClassUnderConstruction : ObjectInitializer.GetClass());
+				CurrentClassUnderConstruction = nullptr;
 				
 				FJavascriptContextImplementation* Context = nullptr;
 
