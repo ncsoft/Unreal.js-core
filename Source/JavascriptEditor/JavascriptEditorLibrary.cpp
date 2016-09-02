@@ -720,10 +720,10 @@ FString UJavascriptEditorLibrary::ExportNavigation(UWorld* InWorld, FString Name
 			if (const FNavDataGenerator* Generator = NavData->GetGenerator())
 			{
 				//const FString Name = NavData->GetName();
-				auto fname = FString::Printf(TEXT("%s/%s"), *FPaths::GameSavedDir(), *Name);
-				Generator->ExportNavigationData(fname);
+				//auto fname = FString::Printf(TEXT("%s/%s"), *FPaths::GameSavedDir(), *Name);
+				Generator->ExportNavigationData(Name);
 				InWorld->RemoveFromRoot();
-				return fname;
+				return Name;
 			}
 			else
 			{
