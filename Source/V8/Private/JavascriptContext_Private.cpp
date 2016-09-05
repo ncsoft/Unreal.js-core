@@ -1378,41 +1378,63 @@ public:
 				return false;
 			};
 
+			auto load_module_paths = [&](FString base_path)
+			{
+				TArray<FString> Dirs;
+				TArray<FString> Parsed;
+				base_path.ParseIntoArray(Parsed, TEXT("/"));
+				auto PartCount = Parsed.Num();
+				while (PartCount > 0) {
+					if (Parsed[PartCount-1].Equals(TEXT("node_modules")))
+					{
+						PartCount--;
+						continue;
+					}
+					else
+					{
+						TArray<FString> Parts;
+						for (int i = 0; i < PartCount; i++) Parts.Add(Parsed[i]);
+						FString Dir = FString::Join(Parts, TEXT("/"));
+						Dirs.Add(Dir);
+					}
+					PartCount--;
+				}
+
+				return Dirs;
+			};
+
+			auto load_node_modules = [&](FString base_path)
+			{
+				TArray<FString> paths = load_module_paths(base_path);
+				auto founded = false;
+				for (const auto& path : paths)
+				{
+					if (inner2(path / TEXT("node_modules")))
+					{
+						founded = true;
+						break;
+					}
+				}
+				return founded;
+			};
+
 			auto current_script_path = FPaths::GetPath(StringFromV8(StackTrace::CurrentStackTrace(isolate, 1, StackTrace::kScriptName)->GetFrame(0)->GetScriptName()));
-			FString Left, Right;
-			auto current_module_path = current_script_path.Split("node_modules", &Left, &Right) ? Left / TEXT("node_modules") : "";
 #if PLATFORM_WINDOWS
 			current_script_path = current_script_path.Replace(TEXT("\\"), TEXT("/"));
-			current_module_path = current_module_path.Replace(TEXT("\\"), TEXT("/"));
-			Right = Right.Replace(TEXT("\\"), TEXT("/"));
 #endif
-			TArray<FString> Parsed;
-			if (!current_module_path.IsEmpty())
-				current_module_path = current_module_path / (Right.ParseIntoArray(Parsed, TEXT("/"), false) > 1 ? Parsed[1] : "");
 
 			if (!(required_module[0] == '.' && inner2(current_script_path)))
 			{
-				if (!inner2(current_script_path / TEXT("node_modules")))
+				for (const auto& path : load_module_paths(current_script_path))
 				{
-					for (const auto& path : Self->Paths)
-					{
-						if (inner2(path)) break;
-
-						if (inner2(path / TEXT("node_modules"))) break;
-					}
+					if (inner2(path)) break;
+					if (inner2(path / TEXT("node_modules"))) break;
 				}
-			}
 
-			if (!current_module_path.IsEmpty() && current_module_path != current_script_path && !(required_module[0] == '.' && inner(current_module_path)))
-			{
-				if (!inner2(current_module_path / TEXT("node_modules")))
+				for (const auto& path : Self->Paths)
 				{
-					for (const auto& path : Self->Paths)
-					{
-						if (inner2(path)) break;
-
-						if (inner2(path / TEXT("node_modules"))) break;
-					}
+					if (inner2(path)) break;
+					if (inner2(path / TEXT("node_modules"))) break;
 				}
 			}
 
