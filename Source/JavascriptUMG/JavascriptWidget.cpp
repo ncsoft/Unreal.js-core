@@ -2,6 +2,7 @@
 #include "JavascriptWidget.h"
 #include "JavascriptContext.h"
 #include "Blueprint/WidgetTree.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 UJavascriptWidget::UJavascriptWidget(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -101,7 +102,17 @@ void UJavascriptWidget::OnListenForInputAction(FName ActionName, TEnumAsByte< EI
 {
 	if (!InputComponent)
 	{
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 12
+		if (APlayerController* Controller = GetOwningPlayer())
+		{
+			InputComponent = NewObject< UInputComponent >(this, NAME_None, RF_Transient);
+			InputComponent->bBlockInput = bStopAction;
+			InputComponent->Priority = Priority;
+			Controller->PushInputComponent(InputComponent);
+		}		
+#else
 		InitializeInputComponent();
+#endif
 	}
 
 	if (InputComponent)

@@ -19,7 +19,6 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Scripting | Javascript")
 	FOnWebSocketDelegate OnError;
 
-#if WITH_JSWEBSOCKET
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static UJavascriptWebSocket* Connect(const FString& Endpoint);
 
@@ -49,6 +48,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void Dispose();
 
+#if WITH_JSWEBSOCKET
 private:
 	TSharedPtr<FJavascriptWebSocket> WebSocket;
 	int32 Size{ 0 };

@@ -1,4 +1,7 @@
 #include "V8PCH.h"
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include "JavascriptTestLibrary.h"
 #include "Misc/AutomationTest.h"
 
@@ -10,7 +13,7 @@ struct FJavascriptAutomatedTestImpl : FAutomationTestBase, TSharedFromThis<FJava
 	bool bContinue{ false };
 
 	FJavascriptAutomatedTestImpl(const FJavascriptAutomatedTest& InRecipe)
-		: Recipe(InRecipe), FAutomationTestBase(InRecipe.Name, InRecipe.bComplexTask)
+		: FAutomationTestBase(InRecipe.Name, InRecipe.bComplexTask), Recipe(InRecipe)
 	{}
 
 	virtual uint32 GetTestFlags() const override
@@ -204,3 +207,5 @@ void UJavascriptTestLibrary::DestroyWorld(UWorld* World)
 	World->DestroyWorld(false);
 #endif
 }
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

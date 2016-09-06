@@ -8,6 +8,8 @@
 #include "WorkspaceMenuStructureModule.h"
 #endif
 
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 UJavascriptAssetEditorToolkit::UJavascriptAssetEditorToolkit(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 #if WITH_EDITOR
@@ -164,3 +166,5 @@ void UJavascriptAssetEditorToolkit::Open(const TArray<UObject*>& InObjects, TSha
 	SpawnedEditors.Add(Editor);
 }
 #endif
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

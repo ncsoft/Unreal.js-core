@@ -434,7 +434,7 @@ FString UJavascriptLibrary::GetPlatformName()
 FJavascriptLogCategory UJavascriptLibrary::CreateLogCategory(const FString& CategoryName, ELogVerbosity_JS InDefaultVerbosity)
 {
 #if NO_LOGGING
-	return FJavscriptLogCategory();
+	return FJavascriptLogCategory();
 #else
 	return { MakeShareable<FLogCategoryBase>(new FLogCategoryBase(*CategoryName, (ELogVerbosity::Type)InDefaultVerbosity, ELogVerbosity::All )) };
 #endif
