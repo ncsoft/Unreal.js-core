@@ -10,7 +10,6 @@
 #include "Editor/PropertyEditor/Public/PropertyEditorModule.h"
 #include "Toolkits/AssetEditorToolkit.h"
 #include "LevelEditor.h"
-
 #include "../../Launch/Resources/Version.h"
 
 #if WITH_EDITOR
