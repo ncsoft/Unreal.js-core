@@ -556,8 +556,3 @@ int32 UJavascriptLibrary::GetFunctionParmsSize(UFunction* Function)
 {
 	return Function->ParmsSize;
 }
-
-UObject* UJavascriptLibrary::GetClassDefaultObject(UClass* ClassObject)
-{
-	return ClassObject ? ClassObject->ClassDefaultObject : nullptr;
-}
