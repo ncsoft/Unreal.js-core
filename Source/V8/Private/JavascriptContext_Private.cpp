@@ -26,6 +26,8 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptStats.h"
 
+#include "../../Launch/Resources/Version.h"
+
 using namespace v8;
 
 static const int kContextEmbedderDataIndex = 1;
@@ -1158,6 +1160,14 @@ public:
 
 			// Make sure CDO is ready for use
 			Class->GetDefaultObject();
+
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 12
+			// Assemble reference token stream for garbage collection/ RTGC.
+			if (!Class->HasAnyClassFlags(CLASS_TokenStreamAssembled))
+			{
+				Class->AssembleReferenceTokenStream();
+			}
+#endif
 		};
 
 		auto global = context()->Global();
