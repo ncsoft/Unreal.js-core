@@ -6,9 +6,11 @@
 #include "JSWebSocketServer.h"
 #include "JavascriptWebSocketServer.h"
 #include "JavascriptWebSocket.h"
+#endif
 
 UJavascriptWebSocketServer* UJavascriptWebSocketServer::Create(int32 Port)
 {	
+#if WITH_JSWEBSOCKET
 	auto instance = NewObject<UJavascriptWebSocketServer>();
 	auto server = instance->WebSocketServer = MakeShareable<FJavascriptWebSocketServer>(new FJavascriptWebSocketServer);
 	FJavascriptWebSocketClientConnectedCallBack callback;
@@ -18,15 +20,23 @@ UJavascriptWebSocketServer* UJavascriptWebSocketServer::Create(int32 Port)
 		return nullptr;
 	}
 	return instance;
+#else
+	return nullptr;
+#endif
 }
 
 FString UJavascriptWebSocketServer::Info()
 {
+#if WITH_JSWEBSOCKET
 	if (!WebSocketServer.IsValid()) return TEXT("Invalid");
 
 	return WebSocketServer->Info();
+#else
+	return TEXT("Invalid");
+#endif
 }
 
+#if WITH_JSWEBSOCKET
 void UJavascriptWebSocketServer::OnConnectedCallback(FJavascriptWebSocket* WebSocket)
 {
 	auto instance = UJavascriptWebSocket::CreateFrom(WebSocket, this);
@@ -38,9 +48,11 @@ void UJavascriptWebSocketServer::OnConnectionLost(UJavascriptWebSocket* Connecti
 {
 	Connections.Remove(Connection);
 }
+#endif
 
 void UJavascriptWebSocketServer::Tick()
 {
+#if WITH_JSWEBSOCKET
 	if (!WebSocketServer.IsValid()) return;
 
 	WebSocketServer->Tick();
@@ -49,11 +61,12 @@ void UJavascriptWebSocketServer::Tick()
 	{
 		Connection->Tick();
 	}	
+#endif
 }
 
 void UJavascriptWebSocketServer::Dispose()
 {
+#if WITH_JSWEBSOCKET
 	WebSocketServer.Reset();
-}
-
 #endif
+}

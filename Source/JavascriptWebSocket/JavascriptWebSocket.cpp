@@ -1,14 +1,18 @@
 // Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
 #include "JavascriptWebSocketModule.h"
 
-#if WITH_JSWEBSOCKET
 #include "JavascriptWebSocket.h"
 #include "JavascriptWebSocketServer.h"
+#if WITH_JSWEBSOCKET
 #include "JavascriptContext.h"
 #include "JSWebSocket.h"
+#endif
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 UJavascriptWebSocket* UJavascriptWebSocket::Connect(const FString& EndpointString)
 {
+#if WITH_JSWEBSOCKET
 	FIPv4Endpoint Endpoint;
 
 	if (!FIPv4Endpoint::Parse(EndpointString, Endpoint))
@@ -18,10 +22,14 @@ UJavascriptWebSocket* UJavascriptWebSocket::Connect(const FString& EndpointStrin
 	
 	auto addr = Endpoint.ToInternetAddr();
 	return CreateFrom(new FJavascriptWebSocket(*addr), GetTransientPackage());
+#else
+	return nullptr;
+#endif
 }
 
 UJavascriptWebSocket* UJavascriptWebSocket::CreateFrom(FJavascriptWebSocket* WebSocket, UObject* Outer)
 {
+#if WITH_JSWEBSOCKET
 	auto instance = NewObject<UJavascriptWebSocket>(Outer);
 	instance->WebSocket = MakeShareable<FJavascriptWebSocket>(WebSocket);
 
@@ -43,8 +51,12 @@ UJavascriptWebSocket* UJavascriptWebSocket::CreateFrom(FJavascriptWebSocket* Web
 		instance->WebSocket->SetConnectedCallBack(callback);
 	}
 	return instance;
+#else
+	return nullptr;
+#endif
 }
 
+#if WITH_JSWEBSOCKET
 void UJavascriptWebSocket::OnReceivedCallback(void* InData, int32 Count)
 {
 	Buffer = InData;
@@ -53,20 +65,28 @@ void UJavascriptWebSocket::OnReceivedCallback(void* InData, int32 Count)
 	Buffer = InData;
 	Size = 0;
 }
+#endif
 
 int32 UJavascriptWebSocket::GetReceivedBytes()
 {
+#if WITH_JSWEBSOCKET
 	return Size;
+#else
+	return 0;
+#endif
 }
 
 void UJavascriptWebSocket::CopyBuffer()
 {
+#if WITH_JSWEBSOCKET
 	if (FArrayBufferAccessor::GetSize() >= Size)
 	{
 		FMemory::Memcpy(FArrayBufferAccessor::GetData(), Buffer, Size);
 	}
+#endif
 }
 
+#if WITH_JSWEBSOCKET
 void UJavascriptWebSocket::OnConnectedCallback()
 {
 	OnConnected.Broadcast();
@@ -81,9 +101,11 @@ void UJavascriptWebSocket::OnErrorCallback()
 		server->OnConnectionLost(this);
 	}
 }
+#endif
 
 void UJavascriptWebSocket::SendMemory(int32 NumBytes)
 {
+#if WITH_JSWEBSOCKET
 	if (!WebSocket.IsValid()) return;
 
 	auto Buffer = FArrayBufferAccessor::GetData();
@@ -92,38 +114,54 @@ void UJavascriptWebSocket::SendMemory(int32 NumBytes)
 	if (NumBytes > Size) return;
 
 	WebSocket->Send((uint8*)Buffer, NumBytes);
+#endif
 }
 
 FString UJavascriptWebSocket::RemoteEndPoint()
 {
+#if WITH_JSWEBSOCKET
 	if (!WebSocket.IsValid()) return TEXT("Invalid");
 
 	return WebSocket->RemoteEndPoint();
+#else
+	return TEXT("Invalid");
+#endif
 }
 
 FString UJavascriptWebSocket::LocalEndPoint()
 {
+#if WITH_JSWEBSOCKET
 	if (!WebSocket.IsValid()) return TEXT("Invalid");
 
 	return WebSocket->LocalEndPoint();
+#else
+	return TEXT("Invalid");
+#endif
 }
 
 void UJavascriptWebSocket::Flush()
 {
+#if WITH_JSWEBSOCKET
 	if (!WebSocket.IsValid()) return;
 
 	WebSocket->Flush();
+#endif
 }
 
 void UJavascriptWebSocket::Tick()
 {
+#if WITH_JSWEBSOCKET
 	if (!WebSocket.IsValid()) return;
 
 	WebSocket->Tick();
+#endif
 }
 
 void UJavascriptWebSocket::Dispose()
 {
+#if WITH_JSWEBSOCKET
 	WebSocket.Reset();
-}
 #endif
+}
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

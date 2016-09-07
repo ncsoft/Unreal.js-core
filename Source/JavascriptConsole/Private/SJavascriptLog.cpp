@@ -11,6 +11,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "IV8.h"
 #include "STextComboBox.h"
 #include "ScopedTransaction.h"
+#include "../../Launch/Resources/Version.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptConsole"
 
@@ -761,7 +762,11 @@ bool SJavascriptLog::CreateLogMessages( const TCHAR* V, ELogVerbosity::Type Verb
 
 			if (Verbosity != ELogVerbosity::Log)
 			{
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 13
 				Format += FString(VerbosityToString(Verbosity)) + TEXT(": ");
+#else
+				Format += FString(FOutputDeviceHelper::VerbosityToString(Verbosity)) + TEXT(": ");
+#endif
 			}			
 			
 			if (Message)

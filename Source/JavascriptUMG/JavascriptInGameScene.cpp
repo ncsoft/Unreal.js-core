@@ -4,6 +4,7 @@
 #include "JavascriptInGameScene.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/LineBatchComponent.h"
+#include "../../Launch/Resources/Version.h"
 
 FJavascriptInGameScene::FJavascriptInGameScene(FJavascriptInGameScene::ConstructionValues CVS)
 	: PreviewWorld(NULL)
@@ -29,7 +30,9 @@ FJavascriptInGameScene::FJavascriptInGameScene(FJavascriptInGameScene::Construct
 		.SetTransactional(CVS.bTransactional));
 	PreviewWorld->InitializeActorsForPlay(FURL());
 
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 13
 	GetScene()->UpdateDynamicSkyLight(FLinearColor::White * CVS.SkyBrightness, FLinearColor::Black);
+#endif
 
 	DirectionalLight = NewObject<UDirectionalLightComponent>(GetTransientPackage());
 	DirectionalLight->Intensity = CVS.LightBrightness;
@@ -161,7 +164,9 @@ void FJavascriptInGameScene::SetLightColor(const FColor& LightColor)
 
 void FJavascriptInGameScene::SetSkyBrightness(float SkyBrightness)
 {
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 13
 	GetScene()->UpdateDynamicSkyLight(FLinearColor::White * SkyBrightness, FLinearColor::Black);
+#endif
 }
 
 void FJavascriptInGameScene::LoadSettings(const TCHAR* Section)

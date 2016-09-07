@@ -4,13 +4,13 @@
   "Version": 1,
   "VersionName": "0.2",
   "FriendlyVersion": "0.2",
-  "EngineVersion": "4.11",
+  "EngineVersion": "4.13.0",
   "Description": "Javascript powered UnrealEngine",
   "Category": "Programming",
   "CreatedBy": "NCSOFT Corporation",
   "CreatedByURL": "http://github.com/ncsoft",
   "EnabledByDefault": true,
-  "MarketplaceURL" : "com.epicgames.launcher://ue/marketplace/offers/be751eedc4a14cc09e39945bc5a531c4",
+  "MarketplaceURL" : "com.epicgames.launcher://ue/marketplace/content/be751eedc4a14cc09e39945bc5a531c4",
   "Modules": [
     {
       "Name": "V8",
