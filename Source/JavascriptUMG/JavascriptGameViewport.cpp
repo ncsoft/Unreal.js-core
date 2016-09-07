@@ -382,16 +382,16 @@ void UJavascriptGameViewport::SynchronizeProperties()
 	}
 }
 
-void UJavascriptGameViewport::OnSlotAdded(UPanelSlot* Slot)
+void UJavascriptGameViewport::OnSlotAdded(UPanelSlot* InSlot)
 {
 	// Add the child to the live canvas if it already exists
 	if (ViewportWidget.IsValid())
 	{
-		ViewportWidget->SetContent(Slot->Content ? Slot->Content->TakeWidget() : SNullWidget::NullWidget);
+		ViewportWidget->SetContent(InSlot->Content ? InSlot->Content->TakeWidget() : SNullWidget::NullWidget);
 	}
 }
 
-void UJavascriptGameViewport::OnSlotRemoved(UPanelSlot* Slot)
+void UJavascriptGameViewport::OnSlotRemoved(UPanelSlot* InSlot)
 {
 	// Remove the widget from the live slot if it exists.
 	if (ViewportWidget.IsValid())

@@ -1,5 +1,6 @@
 #include "V8PCH.h"
 #include "JavascriptGlobalDelegates.h"
+#include "../../Launch/Resources/Version.h"
 
 void UJavascriptGlobalDelegates::BeginDestroy()
 {
@@ -14,7 +15,6 @@ OP_REFLECT(OnObjectPropertyChanged)\
 OP_REFLECT(RedirectorFollowed)\
 OP_REFLECT(PreGarbageCollect)\
 OP_REFLECT(PostGarbageCollect)\
-OP_REFLECT(PreLoadMap)\
 OP_REFLECT(PostLoadMap)\
 OP_REFLECT(PostDemoPlay)\
 OP_REFLECT(PackageCreatedForLoad)
@@ -45,10 +45,17 @@ void UJavascriptGlobalDelegates::Bind(FString Key)
 	
 #define OP_REFLECT(x) else if (Key == #x) { Handle = FCoreUObjectDelegates::x.AddUObject(this, &UJavascriptGlobalDelegates::x); }
 #define OP_REFLECT_WORLD(x) else if (Key == #x) { Handle = FWorldDelegates::x.AddUObject(this, &UJavascriptGlobalDelegates::x); }
+#define OP_REFLECT_OLD(x) else if (Key == #x) { Handle = FCoreUObjectDelegates::x.AddUObject(this, &UJavascriptGlobalDelegates::x##_Old); }
 	if (false) {}
 	DO_REFLECT()
 	DO_REFLECT_WORLD()
 	DO_REFLECT_EDITOR_ONLY()
+
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 13
+	OP_REFLECT_OLD(PreLoadMap)
+#else
+	OP_REFLECT(PreLoadMap)
+#endif	
 
 	if (Handle.IsValid())
 	{
@@ -56,6 +63,7 @@ void UJavascriptGlobalDelegates::Bind(FString Key)
 	}
 #undef OP_REFLECT
 #undef OP_REFLECT_WORLD
+#undef OP_REFLECT_OLD
 }
 
 void UJavascriptGlobalDelegates::UnbindAll()
@@ -76,6 +84,7 @@ void UJavascriptGlobalDelegates::Unbind(FString Key)
 	DO_REFLECT()
 	DO_REFLECT_WORLD()
 	DO_REFLECT_EDITOR_ONLY()
+	OP_REFLECT(PreLoadMap)
 
 	Handles.Remove(Key);
 #undef OP_REFLECT

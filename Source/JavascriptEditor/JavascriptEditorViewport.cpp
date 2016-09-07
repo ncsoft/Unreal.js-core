@@ -6,6 +6,7 @@
 
 #define LOCTEXT_NAMESPACE "JavascriptEditor"
 
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #if WITH_EDITOR
 class FJavascriptEditorViewportClient : public FEditorViewportClient
@@ -522,5 +523,7 @@ bool UJavascriptEditorViewport::SetEngineShowFlags(const FString& In)
 		return false;
 	}
 }
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
 
 #undef LOCTEXT_NAMESPACE

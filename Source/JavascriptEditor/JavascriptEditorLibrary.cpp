@@ -1,5 +1,6 @@
 #include "JavascriptEditor.h"
 #include "JavascriptEditorLibrary.h"
+#include "LandscapeComponent.h"
 #include "Editor/LandscapeEditor/Private/LandscapeEdModeTools.h"
 #include "JavascriptContext.h"
 #include "DynamicMeshBuilder.h"
@@ -9,11 +10,16 @@
 #include "Editor/PropertyEditor/Public/PropertyEditorModule.h"
 #include "Toolkits/AssetEditorToolkit.h"
 #include "LevelEditor.h"
+#include "../../Launch/Resources/Version.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
 {
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 13
 	return Landscape ? Landscape->GetLandscapeInfo(bSpawnNewActor) : nullptr;
+#else
+	return Landscape ? Landscape->GetLandscapeInfo() : nullptr;
+#endif
 }
 
 void UJavascriptEditorLibrary::SetHeightmapDataFromMemory(ULandscapeInfo* LandscapeInfo, int32 MinX, int32 MinY, int32 MaxX, int32 MaxY)
