@@ -556,3 +556,11 @@ int32 UJavascriptLibrary::GetFunctionParmsSize(UFunction* Function)
 {
 	return Function->ParmsSize;
 }
+
+void UJavascriptLibrary::RequestEndPlayMapInPIE()
+{
+	if (GUnrealEd->PlayWorld)
+	{
+		GEditor->RequestEndPlayMap();
+	}
+}
