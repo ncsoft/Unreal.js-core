@@ -750,4 +750,12 @@ FString UJavascriptEditorLibrary::ExportNavigation(UWorld* InWorld, FString Name
 
 	return FString("");
 }
+
+void UJavascriptEditorLibrary::RequestEndPlayMapInPIE()
+{
+	if (GUnrealEd->PlayWorld)
+	{
+		GEditor->RequestEndPlayMap();
+	}
+}
 #endif
