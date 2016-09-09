@@ -1,7 +1,8 @@
 #pragma once
 
 #include "JavascriptInGameScene.h"
-#include "Components/SceneCaptureComponent.h"
+#include "Components/SceneCaptureComponent2D.h"
+#include "Components/SceneCaptureComponentCube.h"
 #include "InGameSceneAccessor.generated.h"
 
 UCLASS()
@@ -64,9 +65,10 @@ public:
 			// Tick
 			GameScene->GetWorld()->Tick(LEVELTICK_All, DeltaTime);
 			GameScene->GetWorld()->SendAllEndOfFrameUpdates();
-			for (const auto& Scene : SceneComponents) {
-				GameScene->GetScene()->UpdateSceneCaptureContents(Scene);
-			}
+
+			auto Scene = GameScene->GetScene();
+			USceneCaptureComponent2D::UpdateDeferredCaptures(Scene);
+			USceneCaptureComponentCube::UpdateDeferredCaptures(Scene);
 		}
 	}
 	
@@ -75,9 +77,6 @@ public:
 	{
 		return GameScene->GetWorld()->bBegunPlay;
 	}
-
-	UPROPERTY()
-	TArray<USceneCaptureComponent2D*> SceneComponents;
 
 private:
 	TSharedPtr<FJavascriptInGameScene> GameScene;
