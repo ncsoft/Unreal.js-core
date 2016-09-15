@@ -134,7 +134,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void SetWidgetMode(EJavascriptWidgetMode WidgetMode);
-
+    
+    UFUNCTION(BlueprintCallable, Category = "Viewport")
+    EJavascriptWidgetMode GetWidgetMode();
+    
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	FString GetEngineShowFlags();
 

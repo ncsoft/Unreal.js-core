@@ -343,7 +343,13 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 	void SetWidgetMode(EJavascriptWidgetMode WidgetMode)
 	{
 		EditorViewportClient->SetWidgetMode(WidgetMode == EJavascriptWidgetMode::WM_None ? FWidget::WM_None : (FWidget::EWidgetMode)WidgetMode);
-	}
+    }
+    
+    EJavascriptWidgetMode GetWidgetMode()
+    {
+        FWidget::EWidgetMode WidgetMode = EditorViewportClient->GetWidgetMode();
+        return FWidget::WM_None ? EJavascriptWidgetMode::WM_None : (EJavascriptWidgetMode)WidgetMode;
+    }
 
 	FString GetEngineShowFlags()
 	{
@@ -582,6 +588,17 @@ void UJavascriptEditorViewport::SetWidgetMode(EJavascriptWidgetMode WidgetMode)
 	{
 		ViewportWidget->SetWidgetMode(WidgetMode);
 	}
+}
+
+EJavascriptWidgetMode UJavascriptEditorViewport::GetWidgetMode()
+{
+    if (ViewportWidget.IsValid())
+    {
+        return ViewportWidget->GetWidgetMode();
+    }
+    else {
+        return EJavascriptWidgetMode::WM_None;
+    }
 }
 
 void UJavascriptEditorViewport::SetViewportType(ELevelViewportType InViewportType)
