@@ -66,8 +66,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnViewportDraw OnDraw;
 
-    UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-    FOnViewportDrawCanvas OnDrawCanvas;
+    	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+    	FOnViewportDrawCanvas OnDrawCanvas;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetWidgetLocation OnGetWidgetLocation;
