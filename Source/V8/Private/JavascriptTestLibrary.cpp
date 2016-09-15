@@ -13,7 +13,7 @@ struct FJavascriptAutomatedTestImpl : FAutomationTestBase, TSharedFromThis<FJava
 	bool bContinue{ false };
 
 	FJavascriptAutomatedTestImpl(const FJavascriptAutomatedTest& InRecipe)
-		: Recipe(InRecipe), FAutomationTestBase(InRecipe.Name, InRecipe.bComplexTask)
+		: FAutomationTestBase(InRecipe.Name, InRecipe.bComplexTask), Recipe(InRecipe)
 	{}
 
 	virtual uint32 GetTestFlags() const override
