@@ -124,19 +124,26 @@ public:
 			Widget->OnDraw.Execute(FJavascriptPDI(PDI),Widget.Get());
 		}
 	}
-
-	virtual void Draw(FViewport* Viewport, FCanvas* Canvas) override
-	{
-		FEditorViewportClient::Draw(Viewport, Canvas);
-
-		if (Widget->SelectionBeginPoint.X >= 0)
-		{
-			FCanvasBoxItem Box(Widget->SelectionBeginPoint, Widget->SelectionEndPoint - Widget->SelectionBeginPoint);
-			Box.SetColor(FColor::White);
-			Box.LineThickness = 1.0;
-			Box.Draw(Canvas);
-		}
-	}
+    
+    virtual void DrawCanvas(FViewport& InViewport, FSceneView& View, FCanvas& Canvas) override
+    {
+        FEditorViewportClient::DrawCanvas(InViewport, View, Canvas);
+        
+        if (Widget.IsValid() && Widget->OnDrawHUD.IsBound())
+        {
+            // Create a temporary canvas if there isn't already one.
+            static FName CanvasObjectName(TEXT("ViewportCanvasObject"));
+            UCanvas* CanvasObject = GetCanvasByName(CanvasObjectName);
+            CanvasObject->Canvas = &Canvas;
+            
+            CanvasObject->Init(View.UnscaledViewRect.Width(), View.UnscaledViewRect.Height(), const_cast<FSceneView*>(&View));
+            CanvasObject->ApplySafeZoneTransform();
+            
+            Widget->OnDrawCanvas.Execute(CanvasObject, Widget.Get());
+            
+            CanvasObject->PopSafeZoneTransform();
+        }
+    }
 
 	virtual FWidget::EWidgetMode GetWidgetMode() const override
 	{

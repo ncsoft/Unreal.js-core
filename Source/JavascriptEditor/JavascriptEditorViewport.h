@@ -31,6 +31,7 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(bool, FOnMouseMove, int32, x, int32, y, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnMouseLeave, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnViewportDraw, const FJavascriptPDI&, PDI, UJavascriptEditorViewport*, Instance);
+    DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnViewportDrawCanvas, UCanvas*, Canvas, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FVector, FOnGetWidgetLocation, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FRotator, FOnGetWidgetRotation, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(EJavascriptWidgetMode, FOnGetWidgetMode, UJavascriptEditorViewport*, Instance);
@@ -65,6 +66,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnViewportDraw OnDraw;
 
+    UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+    FOnViewportDrawCanvas OnDrawCanvas;
+
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetWidgetLocation OnGetWidgetLocation;
 
@@ -73,12 +77,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetWidgetMode OnGetWidgetMode;
-
-	UPROPERTY(BlueprintReadWrite)
-	FVector2D SelectionBeginPoint;
-
-	UPROPERTY(BlueprintReadWrite)
-	FVector2D SelectionEndPoint;
 
 	FIntRect ViewRect;
 	FViewMatrices ViewMatrices;
