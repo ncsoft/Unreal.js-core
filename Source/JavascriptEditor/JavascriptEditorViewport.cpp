@@ -129,7 +129,7 @@ public:
     {
         FEditorViewportClient::DrawCanvas(InViewport, View, Canvas);
         
-        if (Widget.IsValid() && Widget->OnDrawHUD.IsBound())
+        if (Widget.IsValid() && Widget->OnDrawCanvas.IsBound())
         {
             // Create a temporary canvas if there isn't already one.
             static FName CanvasObjectName(TEXT("ViewportCanvasObject"));
