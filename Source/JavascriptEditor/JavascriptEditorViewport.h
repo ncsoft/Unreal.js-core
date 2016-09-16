@@ -25,7 +25,13 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_FourParams(FOnViewportTrackingStarted, const FJavascriptInputEventState&, InputState, bool, bIsDraggingWidget, bool, bNudge, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnViewportTrackingStopped, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_RetVal_FourParams(bool, FOnInputWidgetDelta, FVector&, Drag, FRotator&, Rot, FVector&, Scale, UJavascriptEditorViewport*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_FourParams(bool, FOnInputKey, int32, ControllerId, FKey, Key, EInputEvent, Event, UJavascriptEditorViewport*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_FiveParams(bool, FOnInputAxis, int32, ControllerId, FKey, Key, float, Delta, float, DeltaTime, UJavascriptEditorViewport*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(bool, FOnMouseEnter, int32, x, int32, y, UJavascriptEditorViewport*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(bool, FOnMouseMove, int32, x, int32, y, UJavascriptEditorViewport*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnMouseLeave, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnViewportDraw, const FJavascriptPDI&, PDI, UJavascriptEditorViewport*, Instance);
+    DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnViewportDrawCanvas, UCanvas*, Canvas, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FVector, FOnGetWidgetLocation, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FRotator, FOnGetWidgetRotation, UJavascriptEditorViewport*, Instance);
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(EJavascriptWidgetMode, FOnGetWidgetMode, UJavascriptEditorViewport*, Instance);
@@ -43,7 +49,25 @@ public:
 	FOnInputWidgetDelta OnInputWidgetDelta;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnInputKey OnInputKey;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnInputAxis OnInputAxis;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnMouseEnter OnMouseEnter;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnMouseMove OnMouseMove;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnMouseLeave OnMouseLeave;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnViewportDraw OnDraw;
+
+    UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+    FOnViewportDrawCanvas OnDrawCanvas;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetWidgetLocation OnGetWidgetLocation;
@@ -53,7 +77,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetWidgetMode OnGetWidgetMode;
-
+    
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	UWorld* GetViewportWorld() const;
 
@@ -107,12 +131,27 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void SetWidgetMode(EJavascriptWidgetMode WidgetMode);
-
+    
+    UFUNCTION(BlueprintCallable, Category = "Viewport")
+    EJavascriptWidgetMode GetWidgetMode();
+    
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	FString GetEngineShowFlags();
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	bool SetEngineShowFlags(const FString& In);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void SetViewportType(ELevelViewportType InViewportType);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void SetViewMode(EViewModeIndex InViewModeIndex);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void DeprojectScreenToWorld(const FVector2D &ScreenPosition, FVector &OutRayOrigin, FVector& OutRayDirection);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void ProjectWorldToScreen(const FVector &WorldPosition, FVector2D &OutScreenPosition);
 
 	// UPanelWidget
 	virtual UClass* GetSlotClass() const override;
