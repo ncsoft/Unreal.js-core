@@ -8,6 +8,25 @@
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
+
+class FCanvasOwner : public FGCObject
+{
+    
+public:
+    FCanvasOwner(): FGCObject()
+    {
+        Canvas = nullptr;
+    }
+    
+    virtual void AddReferencedObjects(FReferenceCollector& Collector) override
+    {
+        Collector.AddReferencedObject(Canvas);
+    }
+    
+public:
+    UCanvas* Canvas;
+};
+
 #if WITH_EDITOR
 class FJavascriptEditorViewportClient : public FEditorViewportClient
 {
@@ -131,17 +150,17 @@ public:
         
         if (Widget.IsValid() && Widget->OnDrawCanvas.IsBound())
         {
-            if(Widget->Canvas == nullptr){
-                Widget->Canvas = NewObject<UCanvas>(Widget.Get());
+            if(CanvasOwner.Canvas == nullptr){
+                CanvasOwner.Canvas = NewObject<UCanvas>(Widget.Get());
             }
             
-            Widget->Canvas->Canvas = &Canvas;
-            Widget->Canvas->Init(View.UnscaledViewRect.Width(), View.UnscaledViewRect.Height(), const_cast<FSceneView*>(&View));
-            Widget->Canvas->ApplySafeZoneTransform();
+            CanvasOwner.Canvas->Canvas = &Canvas;
+            CanvasOwner.Canvas->Init(View.UnscaledViewRect.Width(), View.UnscaledViewRect.Height(), const_cast<FSceneView*>(&View));
+            CanvasOwner.Canvas->ApplySafeZoneTransform();
             
-            Widget->OnDrawCanvas.Execute(Widget->Canvas, Widget.Get());
+            Widget->OnDrawCanvas.Execute(CanvasOwner.Canvas, Widget.Get());
             
-            Widget->Canvas->PopSafeZoneTransform();
+            CanvasOwner.Canvas->PopSafeZoneTransform();
         }
     }
 
@@ -215,6 +234,9 @@ public:
 	FPostProcessSettings PostProcessSettings;
 	float PostProcessSettingsWeight;
 	FLinearColor BackgroundColor;
+
+private:
+    FCanvasOwner CanvasOwner;
 };
 
 class SAutoRefreshEditorViewport : public SEditorViewport

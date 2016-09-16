@@ -77,9 +77,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetWidgetMode OnGetWidgetMode;
-
-    UPROPERTY()
-    UCanvas* Canvas;
     
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	UWorld* GetViewportWorld() const;
