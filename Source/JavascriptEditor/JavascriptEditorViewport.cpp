@@ -131,17 +131,17 @@ public:
         
         if (Widget.IsValid() && Widget->OnDrawCanvas.IsBound())
         {
-            // Create a temporary canvas if there isn't already one.
-            static FName CanvasObjectName(TEXT("ViewportCanvasObject"));
-            UCanvas* CanvasObject = GetCanvasByName(CanvasObjectName);
-            CanvasObject->Canvas = &Canvas;
+            if(Widget->Canvas == nullptr){
+                Widget->Canvas = NewObject<UCanvas>(Widget.Get());
+            }
             
-            CanvasObject->Init(View.UnscaledViewRect.Width(), View.UnscaledViewRect.Height(), const_cast<FSceneView*>(&View));
-            CanvasObject->ApplySafeZoneTransform();
+            Widget->Canvas->Canvas = &Canvas;
+            Widget->Canvas->Init(View.UnscaledViewRect.Width(), View.UnscaledViewRect.Height(), const_cast<FSceneView*>(&View));
+            Widget->Canvas->ApplySafeZoneTransform();
             
-            Widget->OnDrawCanvas.Execute(CanvasObject, Widget.Get());
+            Widget->OnDrawCanvas.Execute(Widget->Canvas, Widget.Get());
             
-            CanvasObject->PopSafeZoneTransform();
+            Widget->Canvas->PopSafeZoneTransform();
         }
     }
 
@@ -621,7 +621,10 @@ void UJavascriptEditorViewport::DeprojectScreenToWorld(const FVector2D &ScreenPo
 {
     if (ViewportWidget.IsValid())
     {
-        FSceneView::DeprojectScreenToWorld(ScreenPosition, ViewRect, ViewMatrices.GetInvViewProjMatrix(), OutRayOrigin, OutRayDirection);
+        FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues( ViewportWidget->EditorViewportClient->Viewport, ViewportWidget->EditorViewportClient->GetScene(), ViewportWidget->EditorViewportClient->EngineShowFlags ));
+        FSceneView* View = ViewportWidget->EditorViewportClient->CalcSceneView(&ViewFamily);
+        
+        FSceneView::DeprojectScreenToWorld(ScreenPosition, View->ViewRect, View->ViewMatrices.GetInvViewProjMatrix(), OutRayOrigin, OutRayDirection);
     }
 }
 
@@ -629,7 +632,10 @@ void UJavascriptEditorViewport::ProjectWorldToScreen(const FVector &WorldPositio
 {
     if (ViewportWidget.IsValid())
     {
-        FSceneView::ProjectWorldToScreen(WorldPosition, ViewRect, ViewMatrices.GetViewProjMatrix(), OutScreenPosition);
+        FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues( ViewportWidget->EditorViewportClient->Viewport, ViewportWidget->EditorViewportClient->GetScene(), ViewportWidget->EditorViewportClient->EngineShowFlags ));
+        FSceneView* View = ViewportWidget->EditorViewportClient->CalcSceneView(&ViewFamily);
+        
+        FSceneView::ProjectWorldToScreen(WorldPosition, View->ViewRect, View->ViewMatrices.GetViewProjMatrix(), OutScreenPosition);
     }
 }
 
