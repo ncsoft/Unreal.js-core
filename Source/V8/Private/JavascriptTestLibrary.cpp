@@ -1,14 +1,19 @@
 #include "V8PCH.h"
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #include "JavascriptTestLibrary.h"
 #include "Misc/AutomationTest.h"
 
-#if WITH_EDITOR
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 struct FJavascriptAutomatedTestImpl : FAutomationTestBase, TSharedFromThis<FJavascriptAutomatedTestImpl>
 {
 	FJavascriptAutomatedTest Recipe;
 
+	bool bContinue{ false };
+
 	FJavascriptAutomatedTestImpl(const FJavascriptAutomatedTest& InRecipe)
-		: Recipe(InRecipe), FAutomationTestBase(InRecipe.Name, InRecipe.bComplexTask)
+		: FAutomationTestBase(InRecipe.Name, InRecipe.bComplexTask), Recipe(InRecipe)
 	{}
 
 	virtual uint32 GetTestFlags() const override
@@ -47,100 +52,160 @@ struct FJavascriptAutomatedTestImpl : FAutomationTestBase, TSharedFromThis<FJava
 		}
 
 		// run the matching test
-		uint64 InitialFrameCounter = GFrameCounter;
 		{
 			Params.Tester.Handle = this->AsShared();
 
-			Recipe.Function.Execute(FJavascriptAutomatedTestParameters::StaticStruct(), &Params);
+			for (;;)
+			{
+				bContinue = false;
+
+				Recipe.Function.Execute(FJavascriptAutomatedTestParameters::StaticStruct(), &Params);
+
+				if (!bContinue) break;
+			}
 		}		
 
 		return true;
 	}
-
-	void RunWorld(const FURL& URL, FJavascriptFunction Function)
-	{
-		UWorld *World = UWorld::CreateWorld(EWorldType::Game, false);
-		FWorldContext &WorldContext = GEngine->CreateNewWorldContext(EWorldType::Game);
-		WorldContext.SetCurrentWorld(World);
-
-		World->InitializeActorsForPlay(URL);
-		World->BeginPlay();
-
-		// run the matching test
-		uint64 InitialFrameCounter = GFrameCounter;
-		{
-			FJavascriptRunWorldParameters Params;
-			Params.World = World;
-
-			Function.Execute(FJavascriptRunWorldParameters::StaticStruct(), &Params);
-		}
-		GFrameCounter = InitialFrameCounter;
-
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
-	}
-
+	
 	virtual FString GetBeautifiedTestName() const
 	{
 		return Recipe.Name;
 	}
 };
+#else
+struct FJavascriptAutomatedTestImpl : TSharedFromThis<FJavascriptAutomatedTestImpl>
+{};
+#endif
 
 FJavascriptAutomatedTestInstance UJavascriptTestLibrary::Create(const FJavascriptAutomatedTest& Test)
 {
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 	return{ MakeShareable(new FJavascriptAutomatedTestImpl(Test)) };
+#else
+	return{ MakeShareable(new FJavascriptAutomatedTestImpl) };
+#endif
 }
 
 void UJavascriptTestLibrary::Destroy(FJavascriptAutomatedTestInstance& Test)
 {
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 	Test.Handle.Reset();
-}
-
-void UJavascriptTestLibrary::RunWorld(const FJavascriptAutomatedTestInstance& Test, const FURL& URL, FJavascriptFunction Function)
-{
-	if (Test.Handle.IsValid())
-	{
-		Test.Handle->RunWorld(URL, Function);
-	}
+#endif
 }
 
 void UJavascriptTestLibrary::ClearExecutionInfo(const FJavascriptAutomatedTestInstance& Test)
 {
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 	if (Test.Handle.IsValid())
 	{
 		Test.Handle->ClearExecutionInfo();
 	}
+#endif
+}
+
+void UJavascriptTestLibrary::SetContinue(const FJavascriptAutomatedTestInstance& Test, bool bContinue)
+{
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	if (Test.Handle.IsValid())
+	{
+		Test.Handle->bContinue = bContinue;
+	}
+#endif
 }
 
 void UJavascriptTestLibrary::AddError(const FJavascriptAutomatedTestInstance& Test, const FString& InError)
 {
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 	if (Test.Handle.IsValid())
 	{
 		Test.Handle->AddError(InError);
 	}
+#endif
 }
 
 void UJavascriptTestLibrary::AddWarning(const FJavascriptAutomatedTestInstance& Test, const FString& InWarning)
 {
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 	if (Test.Handle.IsValid())
 	{
 		Test.Handle->AddWarning(InWarning);
 	}
+#endif
 }
 
 void UJavascriptTestLibrary::AddLogItem(const FJavascriptAutomatedTestInstance& Test, const FString& InLogItem)
 {
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 	if (Test.Handle.IsValid())
 	{
 		Test.Handle->AddLogItem(InLogItem);
 	}
+#endif
 }
 
 void UJavascriptTestLibrary::AddAnalyticsItem(const FJavascriptAutomatedTestInstance& Test, const FString& InAnalyticsItem)
 {
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 	if (Test.Handle.IsValid())
 	{
 		Test.Handle->AddAnalyticsItem(InAnalyticsItem);
 	}
-}
 #endif
+}
+
+UWorld* UJavascriptTestLibrary::NewWorld()
+{
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	UWorld *World = UWorld::CreateWorld(EWorldType::Game, false);
+	FWorldContext &WorldContext = GEngine->CreateNewWorldContext(EWorldType::Game);
+	WorldContext.SetCurrentWorld(World);
+
+	return World;
+#else
+	return nullptr;
+#endif
+}
+
+void UJavascriptTestLibrary::InitializeActorsForPlay(UWorld* World, const FURL& URL)
+{
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	World->InitializeActorsForPlay(URL);
+#endif
+}
+
+void UJavascriptTestLibrary::BeginPlay(UWorld* World)
+{
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	World->BeginPlay();
+#endif
+}
+
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+static TArray<uint64> GFrameCounterStack;
+#endif
+
+void UJavascriptTestLibrary::PushFrameCounter()
+{
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	GFrameCounterStack.Add(GFrameCounter);
+#endif
+}
+
+void UJavascriptTestLibrary::PopFrameCounter()
+{
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	GFrameCounter = GFrameCounterStack[GFrameCounterStack.Num() - 1];
+	GFrameCounterStack.RemoveAt(GFrameCounterStack.Num() - 1, 1);
+#endif
+}
+
+void UJavascriptTestLibrary::DestroyWorld(UWorld* World)
+{
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	GEngine->DestroyWorldContext(World);
+	World->DestroyWorld(false);
+#endif
+}
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

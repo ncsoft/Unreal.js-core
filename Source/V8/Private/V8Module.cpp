@@ -146,9 +146,11 @@ public:
 	virtual void StartupModule() override
 	{
 		Paths.Add(GetGameScriptsDirectory());
+		//@HACK : Dirty hacks
 		Paths.Add(GetPluginScriptsDirectory());
 		Paths.Add(GetPluginScriptsDirectory2());
 		Paths.Add(GetPluginScriptsDirectory3());
+		Paths.Add(GetPluginScriptsDirectory4());
 		Paths.Add(GetPakPluginScriptsDirectory());
 
 		const UJavascriptSettings& Settings = *GetDefault<UJavascriptSettings>();
@@ -170,6 +172,7 @@ public:
 		V8::ShutdownPlatform();
 	}
 
+	//@HACK
 	static FString GetPluginScriptsDirectory()
 	{
 		return FPaths::EnginePluginsDir() / "Backend/UnrealJS/Content/Scripts/";
@@ -181,6 +184,11 @@ public:
 	}
 
 	static FString GetPluginScriptsDirectory3()
+	{
+		return FPaths::EnginePluginsDir() / "Marketplace/UnrealJS/Content/Scripts/";
+	}
+
+	static FString GetPluginScriptsDirectory4()
 	{
 		return FPaths::GamePluginsDir() / "UnrealJS/Content/Scripts/";
 	}

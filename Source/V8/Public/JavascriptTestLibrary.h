@@ -27,16 +27,6 @@ public:
 };
 
 USTRUCT()
-struct FJavascriptRunWorldParameters
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY()
-	UWorld* World;
-};
-
-USTRUCT()
 struct FJavascriptAutomatedTest
 {
 	GENERATED_BODY()
@@ -74,12 +64,8 @@ class V8_API UJavascriptTestLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
-#if WITH_EDITOR
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptAutomatedTestInstance Create(const FJavascriptAutomatedTest& Test);
-
-	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void RunWorld(const FJavascriptAutomatedTestInstance& Test, const FURL& URL, FJavascriptFunction Function);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void Destroy(FJavascriptAutomatedTestInstance& Test);
@@ -87,6 +73,9 @@ class V8_API UJavascriptTestLibrary : public UBlueprintFunctionLibrary
 	/** Clear any execution info/results from a prior running of this test */
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void ClearExecutionInfo(const FJavascriptAutomatedTestInstance& Test);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void SetContinue(const FJavascriptAutomatedTestInstance& Test, bool bInContinue);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void AddError(const FJavascriptAutomatedTestInstance& Test,const FString& InError);
@@ -99,5 +88,22 @@ class V8_API UJavascriptTestLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void AddAnalyticsItem(const FJavascriptAutomatedTestInstance& Test,const FString& InAnalyticsItem);
-#endif
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static UWorld* NewWorld();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void InitializeActorsForPlay(UWorld* World, const FURL& URL);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void BeginPlay(UWorld* World);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void PushFrameCounter();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void PopFrameCounter();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void DestroyWorld(UWorld* World);
 };
