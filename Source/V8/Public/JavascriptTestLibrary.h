@@ -1,5 +1,6 @@
 #pragma once
 
+#include "JavascriptIsolate.h"
 #include "JavascriptTestLibrary.generated.h"
 
 struct FJavascriptAutomatedTestImpl;
