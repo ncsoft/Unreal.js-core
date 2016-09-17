@@ -110,6 +110,7 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_base_3.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libbase.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libplatform.lib"));
+            
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_nosnapshot.lib"));
 
             if (ShouldLink_libsampler)

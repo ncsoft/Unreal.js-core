@@ -23,6 +23,14 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "Translator.h"
 #endif
 
+#if V8_MINOR_VERSION >= 5
+#	define V8_Debug_ProcessDebugMessages(isolate) Debug::ProcessDebugMessages(isolate)
+#	define V8_Debug_SetMessageHandler(isolate,fn) Debug::SetMessageHandler(isolate,fn)
+#else
+#	define V8_Debug_ProcessDebugMessages(isolate) Debug::ProcessDebugMessages()
+#	define V8_Debug_SetMessageHandler(isolate,fn) Debug::SetMessageHandler(fn)
+#endif
+
 using namespace v8;
 
 #if WITH_EDITOR && !PLATFORM_LINUX
@@ -109,7 +117,7 @@ public:
 		HandleScope handle_scope(isolate_);
 		Context::Scope debug_scope(context());
 
-		Debug::ProcessDebugMessages();
+		V8_Debug_ProcessDebugMessages(isolate_);
 	}
 
 	virtual bool IsTickable() const override
@@ -157,7 +165,7 @@ public:
 
 	void Install()
 	{
-		Debug::SetMessageHandler([](const Debug::Message& message){
+		V8_Debug_SetMessageHandler(isolate_,[](const Debug::Message& message){
 			FClientData* data = static_cast<FClientData*>(message.GetClientData());
 			auto json = message.GetJSON();
 
@@ -207,7 +215,7 @@ public:
 	void Uninstall()
 	{		
 		Context::Scope context_scope(context());
-		Debug::SetMessageHandler(nullptr);
+		V8_Debug_SetMessageHandler(isolate_,nullptr);
 	}
 
 	~FDebugger()
@@ -235,7 +243,7 @@ public:
 
 		while (!StopAck.GetValue())
 		{
-			Debug::ProcessDebugMessages();
+			V8_Debug_ProcessDebugMessages(isolate_);
 		}
 
 		thread.join();
