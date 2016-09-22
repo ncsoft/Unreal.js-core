@@ -348,4 +348,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static int32 GetFunctionParmsSize(UFunction* Function);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void RemoveLevelInstance(UWorld* World);
 };
