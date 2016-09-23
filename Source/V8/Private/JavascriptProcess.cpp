@@ -31,6 +31,55 @@ UJavascriptProcess* UJavascriptProcess::Create(const FString& URL, const FString
 	}
 }
 
+UJavascriptProcess* UJavascriptProcess::Open(const FString& ProcName)
+{
+#if PLATFORM_WINDOWS
+	FPlatformProcess::FProcEnumerator ProcEnumerator;
+
+	while (ProcEnumerator.MoveNext())
+	{
+		auto Current = ProcEnumerator.GetCurrent();
+		if (Current.GetName() == ProcName)
+		{
+			return Open_PID(Current.GetPID());
+		}
+	}
+#endif
+	return nullptr;
+}
+
+UJavascriptProcess* UJavascriptProcess::Open_PID(int32 ProcessId)
+{
+#if PLATFORM_WINDOWS
+	auto Handle = FPlatformProcess::OpenProcess(ProcessId);
+	if (Handle.IsValid())
+	{
+		auto Instance = NewObject<UJavascriptProcess>();
+		Instance->ProcessHandle = Handle;
+		Instance->ProcessID = ProcessId;
+		/*Instance->ReadPipe = ReadPipe;
+		Instance->WritePipe = WritePipe;*/
+		return Instance;
+	}
+#endif
+	return nullptr;
+}
+
+FString UJavascriptProcess::GetApplicationName(int32 ProcessId)
+{
+	return FPlatformProcess::GetApplicationName(ProcessId);
+}
+
+bool UJavascriptProcess::IsApplicationRunning_PID(int32 ProcessId)
+{
+	return FPlatformProcess::IsApplicationRunning(ProcessId);
+}
+
+bool UJavascriptProcess::IsApplicationRunning(const FString& ProcName)
+{
+	return FPlatformProcess::IsApplicationRunning(*ProcName);
+}
+
 bool UJavascriptProcess::IsRunning()
 {
 	return FPlatformProcess::IsProcRunning(ProcessHandle);
