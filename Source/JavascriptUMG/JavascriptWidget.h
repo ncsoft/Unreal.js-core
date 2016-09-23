@@ -6,6 +6,8 @@
 class UJavascriptWidget;
 class UJavascriptContext;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInputActionEvent, FName, ActionName);
+
 /**
  * 
  */
@@ -38,8 +40,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void OnListenForInputAction(FName ActionName, TEnumAsByte< EInputEvent > EventType, bool bConsume);
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	UFUNCTION(BlueprintNativeEvent, Category = "Scripting | Javascript")
 	void OnInputActionByName(FName ActionName);
+
+	UPROPERTY(BlueprintAssignable, Category = "Scripting | Javascript")
+	FOnInputActionEvent OnInputActionEvent;
 
 protected:
 
