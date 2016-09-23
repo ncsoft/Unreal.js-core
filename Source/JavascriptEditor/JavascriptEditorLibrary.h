@@ -378,5 +378,8 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void RequestEndPlayMapInPIE();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void RemoveLevelInstance(UWorld* World);
 #endif
 };

@@ -556,16 +556,3 @@ int32 UJavascriptLibrary::GetFunctionParmsSize(UFunction* Function)
 {
 	return Function->ParmsSize;
 }
-
-void UJavascriptLibrary::RemoveLevelInstance(UWorld* World)
-{
-	// Clean up existing world and remove it from root set so it can be garbage collected.
-	World->bIsLevelStreamingFrozen = false;
-	World->bShouldForceUnloadStreamingLevels = true;
-	World->bShouldForceVisibleStreamingLevels = false;
-	for (ULevelStreaming* StreamingLevel : World->StreamingLevels)
-	{
-		StreamingLevel->bIsRequestingUnloadAndRemoval = true;
-	}
-	World->RefreshStreamingLevels();
-}
