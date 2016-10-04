@@ -37,8 +37,11 @@ public:
 		if (GameScene.IsValid()) 
 			GameScene->Destroy();
 		GameScene.Reset();
-		if(DelegateHandle.IsValid())
+		if (DelegateHandle.IsValid())
+		{
 			GEngine->GameViewport->OnTick().Remove(DelegateHandle);
+			DelegateHandle.Reset();
+		}
 	}
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -52,6 +55,7 @@ public:
 	{
 		if (!GIntraFrameDebuggingGameThread)
 		{
+			if(!GameScene.IsValid()) return;
 			// Begin Play
 			if (!GameScene->GetWorld()->bBegunPlay)
 			{
