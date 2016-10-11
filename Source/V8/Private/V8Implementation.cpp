@@ -53,6 +53,25 @@ UJavascriptContext* UJavascriptIsolate::CreateContext()
 	return NewObject<UJavascriptContext>(this);
 }
 
+void UJavascriptIsolate::GetHeapStatistics(FJavascriptHeapStatistics& Statistics)
+{
+	v8::HeapStatistics stats;
+
+	if (JavascriptIsolate.IsValid())
+	{
+		JavascriptIsolate->isolate_->GetHeapStatistics(&stats);
+
+		Statistics.TotalHeapSize = stats.total_heap_size();
+		Statistics.TotalHeapSizeExecutable = stats.total_heap_size_executable();
+		Statistics.TotalPhysicalSize = stats.total_physical_size();
+		Statistics.TotalAvailableSize = stats.total_available_size();
+		Statistics.UsedHeapSize = stats.used_heap_size();
+		Statistics.HeapSizeLimit = stats.heap_size_limit();
+		Statistics.MallocedMemory = stats.malloced_memory();
+		Statistics.bDoesZapGarbage = !!stats.does_zap_garbage();
+	}
+}
+
 UJavascriptContext::UJavascriptContext(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
@@ -288,7 +307,7 @@ bool UJavascriptContext::InternalCall(UObject* Object, FName Name)
 
 		if (try_catch.HasCaught())
 		{
-			FV8Exception::Report(try_catch);
+			FJavascriptContext::FromV8(context)->UncaughtException(FV8Exception::Report(try_catch));
 			return false;
 		}
 		else

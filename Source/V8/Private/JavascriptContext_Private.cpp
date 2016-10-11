@@ -26,6 +26,8 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptStats.h"
 
+#include "../../Launch/Resources/Version.h"
+
 using namespace v8;
 
 static const int kContextEmbedderDataIndex = 1;
@@ -218,11 +220,23 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 			{ TEXT("Transient"), CPF_Transient },
 			{ TEXT("DuplicateTransient"), CPF_DuplicateTransient },
 			{ TEXT("EditFixedSize"), CPF_EditFixedSize },
-			{ TEXT("EditAnywhere"), CPF_Edit },			
+			{ TEXT("EditAnywhere"), CPF_Edit },
 			{ TEXT("EditDefaultsOnly"), CPF_Edit | CPF_DisableEditOnInstance },
+			{ TEXT("EditInstanceOnly"), CPF_Edit | CPF_DisableEditOnTemplate },
+			{ TEXT("BlueprintReadOnly"), CPF_BlueprintVisible | CPF_BlueprintReadOnly },
+			{ TEXT("BlueprintReadWrite"), CPF_BlueprintVisible },
 			{ TEXT("Instanced"), CPF_PersistentInstance | CPF_ExportObject | CPF_InstancedReference },
+			{ TEXT("GlobalConfig"), CPF_GlobalConfig | CPF_Config },
+			{ TEXT("Config"), CPF_Config },
+			{ TEXT("TextExportTransient"), CPF_TextExportTransient },
+			{ TEXT("NonPIEDuplicateTransient"), CPF_NonPIEDuplicateTransient },
+			{ TEXT("Export"), CPF_ExportObject },
+			{ TEXT("EditFixedSize"), CPF_EditFixedSize },
+			{ TEXT("NotReplicated"), CPF_RepSkip },
+			{ TEXT("NonTransactional"), CPF_NonTransactional },
+			{ TEXT("BlueprintAssignable"), CPF_BlueprintAssignable },
 			{ TEXT("SimpleDisplay"), CPF_SimpleDisplay },
-			{ TEXT("AdvancedDisplay"), CPF_AdvancedDisplay },			
+			{ TEXT("AdvancedDisplay"), CPF_AdvancedDisplay },
 			{ TEXT("SaveGame"), CPF_SaveGame },
 			{ TEXT("AssetRegistrySearchable"), CPF_AssetRegistrySearchable },
 			{ TEXT("Interp"), CPF_Edit | CPF_Interp | CPF_BlueprintVisible },
@@ -665,15 +679,15 @@ void UJavascriptGeneratedFunction::Thunk(FFrame& Stack, RESULT_DECL)
 }
 
 namespace {
-	UClass* CurrentClass = nullptr;
+	UClass* CurrentClassUnderConstruction = nullptr;
 	void CallClassConstructor(UClass* Class, const FObjectInitializer& ObjectInitializer) 
 	{
 		if (Cast<UJavascriptGeneratedClass_Native>(Class) || Cast<UJavascriptGeneratedClass>(Class))
 		{
-			CurrentClass = Class;
+			CurrentClassUnderConstruction = Class;
 		}
 		Class->ClassConstructor(ObjectInitializer);
-		CurrentClass = nullptr;
+		CurrentClassUnderConstruction = nullptr;
 	};
 }
 
@@ -681,11 +695,11 @@ class FJavascriptContextImplementation : public FJavascriptContext
 {
 	friend class UJavascriptContext;
 
-	const FObjectInitializer* ObjectInitializer{ nullptr };
+	TArray<const FObjectInitializer*> ObjectInitializerStack;
 
 	virtual const FObjectInitializer* GetObjectInitializer() override 
 	{
-		return ObjectInitializer;
+		return ObjectInitializerStack.Num() ? ObjectInitializerStack.Last(0) : nullptr;
 	}
 
 	int32 Magic{ MagicNumber };	
@@ -826,8 +840,8 @@ public:
 			Class->ClassGeneratedBy = Blueprint;						
 
 			auto ClassConstructor = [](const FObjectInitializer& ObjectInitializer){				
-				auto Class = static_cast<UBlueprintGeneratedClass*>(CurrentClass ? CurrentClass : ObjectInitializer.GetClass());
-				CurrentClass = nullptr;
+				auto Class = static_cast<UBlueprintGeneratedClass*>(CurrentClassUnderConstruction ? CurrentClassUnderConstruction : ObjectInitializer.GetClass());
+				CurrentClassUnderConstruction = nullptr;
 				
 				FJavascriptContextImplementation* Context = nullptr;
 
@@ -867,7 +881,7 @@ public:
 						return;
 					}
 					
-					Context->ObjectInitializer = &ObjectInitializer;
+					Context->ObjectInitializerStack.Add(&ObjectInitializer);
 
 					auto This = Context->ExportObject(Object);
 
@@ -893,7 +907,7 @@ public:
 						}
 					}
 
-					Context->ObjectInitializer = nullptr;
+					Context->ObjectInitializerStack.RemoveAt(Context->ObjectInitializerStack.Num() - 1, 1);
 				}
 				else
 				{
@@ -1146,6 +1160,14 @@ public:
 
 			// Make sure CDO is ready for use
 			Class->GetDefaultObject();
+
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 12
+			// Assemble reference token stream for garbage collection/ RTGC.
+			if (!Class->HasAnyClassFlags(CLASS_TokenStreamAssembled))
+			{
+				Class->AssembleReferenceTokenStream();
+			}
+#endif
 		};
 
 		auto global = context()->Global();
@@ -1643,7 +1665,7 @@ public:
 		auto script = Script::Compile(source, &origin);
 		if (script.IsEmpty())
 		{
-			FV8Exception::Report(try_catch);
+			FJavascriptContext::FromV8(context())->UncaughtException(FV8Exception::Report(try_catch));
 			return Local<Value>();
 		}
 		else
@@ -1651,7 +1673,7 @@ public:
 			auto result = script->Run();
 			if (try_catch.HasCaught())
 			{
-				FV8Exception::Report(try_catch);
+				FJavascriptContext::FromV8(context())->UncaughtException(FV8Exception::Report(try_catch));
 				return Local<Value>();
 			}
 			else
@@ -1881,6 +1903,27 @@ public:
 
 	// To tell Unreal engine's GC not to destroy these objects!
 	virtual void AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector) override;
+
+	virtual void UncaughtException(const FString& Exception) override
+	{
+		auto _isolate = isolate();
+		Isolate::Scope isolate_scope(_isolate);
+		HandleScope handle_scope(_isolate);
+		Context::Scope context_scope(context());
+		
+		auto global = Local<Value>::Cast(context()->Global())->ToObject();
+		auto func = global->Get(V8_KeywordString(_isolate, "$uncaughtException"));
+		if (!func.IsEmpty() && func->IsFunction())
+		{
+			auto function = func.As<Function>();
+
+			Handle<Value> argv[1];
+
+			argv[0] = V8_String(_isolate, Exception);
+			
+			function->Call(global, 1, argv);
+		}
+	}
 };
 
 FJavascriptContext* FJavascriptContext::FromV8(v8::Local<v8::Context> Context)

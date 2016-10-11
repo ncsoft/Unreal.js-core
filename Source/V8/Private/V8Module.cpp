@@ -29,6 +29,8 @@ DEFINE_STAT(STAT_LoSpace);
 
 using namespace v8;
 
+static float GV8IdleTaskBudget = 1 / 60.0f;
+
 UJavascriptSettings::UJavascriptSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -37,7 +39,7 @@ UJavascriptSettings::UJavascriptSettings(const FObjectInitializer& ObjectInitial
 
 void UJavascriptSettings::Apply() const
 {
-	V8::SetFlagsFromString(TCHAR_TO_ANSI(*V8Flags), strlen(TCHAR_TO_ANSI(*V8Flags)));
+	IV8::Get().SetFlagsFromString(V8Flags);
 }
 
 class FUnrealJSPlatform : public v8::Platform
@@ -111,7 +113,7 @@ public:
 			v8::IdleTask* Task = nullptr;
 			IdleTasks.Dequeue(Task);
 
-			Task->Run(Budget);
+			Task->Run(MonotonicallyIncreasingTime() + Budget);
 			delete Task;
 			
 			float Now = FPlatformTime::Seconds();
@@ -122,11 +124,8 @@ public:
 	}
 
 	bool HandleTicker(float DeltaTime)
-	{
-		float Time = FApp::GetCurrentTime();
-		float RealTime = FPlatformTime::Seconds();
-		float Consumed = RealTime - Time;
-		RunIdleTasks(FMath::Max<float>(0, 1.0f / 60 - Consumed));
+	{	
+		RunIdleTasks(FMath::Max<float>(0, GV8IdleTaskBudget - DeltaTime));
 		return true;
 	}
 };
@@ -141,9 +140,11 @@ public:
 	virtual void StartupModule() override
 	{
 		Paths.Add(GetGameScriptsDirectory());
+		//@HACK : Dirty hacks
 		Paths.Add(GetPluginScriptsDirectory());
 		Paths.Add(GetPluginScriptsDirectory2());
 		Paths.Add(GetPluginScriptsDirectory3());
+		Paths.Add(GetPluginScriptsDirectory4());
 		Paths.Add(GetPakPluginScriptsDirectory());
 
 		const UJavascriptSettings& Settings = *GetDefault<UJavascriptSettings>();
@@ -165,6 +166,7 @@ public:
 		V8::ShutdownPlatform();
 	}
 
+	//@HACK
 	static FString GetPluginScriptsDirectory()
 	{
 		return FPaths::EnginePluginsDir() / "Backend/UnrealJS/Content/Scripts/";
@@ -176,6 +178,11 @@ public:
 	}
 
 	static FString GetPluginScriptsDirectory3()
+	{
+		return FPaths::EnginePluginsDir() / "Marketplace/UnrealJS/Content/Scripts/";
+	}
+
+	static FString GetPluginScriptsDirectory4()
 	{
 		return FPaths::GamePluginsDir() / "UnrealJS/Content/Scripts/";
 	}
@@ -283,6 +290,16 @@ public:
 				OutContexts.Add(Context->ContextId);
 			}
 		}
+	}
+
+	virtual void SetFlagsFromString(const FString& V8Flags) override
+	{
+		V8::SetFlagsFromString(TCHAR_TO_ANSI(*V8Flags), strlen(TCHAR_TO_ANSI(*V8Flags)));
+	}
+
+	virtual void SetIdleTaskBudget(float BudgetInSeconds) override
+	{
+		GV8IdleTaskBudget = BudgetInSeconds;
 	}
 };
 

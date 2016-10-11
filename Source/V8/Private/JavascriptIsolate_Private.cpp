@@ -40,6 +40,7 @@ FObjectInitializer const& FObjectInitializer::SetDefaultSubobjectClass<hack_priv
 struct FPrivateJavascriptFunction
 {
 	Isolate* isolate;
+	UniquePersistent<Context> context;
 	UniquePersistent<Function> Function;
 };
 
@@ -705,6 +706,7 @@ public:
 					auto jsfunc = Value.As<Function>();
 					func.Handle = MakeShareable(new FPrivateJavascriptFunction);
 					func.Handle->isolate = isolate_;
+					func.Handle->context.Reset(isolate_, isolate_->GetCurrentContext());
 					func.Handle->Function.Reset(isolate_, jsfunc);
 					p->Struct->CopyScriptStruct(struct_buffer, &func);
 				}
@@ -1134,6 +1136,8 @@ public:
 		// Intentionally declares iterator outside for-loop scope
 		TFieldIterator<UProperty> It(Function);
 
+		int32 NumArgs = 0;
+
 		// Iterate over input parameters
 		for (; It && (It->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == CPF_Parm; ++It)
 		{
@@ -1155,20 +1159,46 @@ public:
 			}
 		}
 
+		NumArgs = ArgIndex;
+
 		// Call regular native function.
 		FScopeCycleCounterUObject ContextScope(Object);
 		FScopeCycleCounterUObject FunctionScope(Function);
 			
 		Object->ProcessEvent(Function, Buffer);
 
+		auto FetchProperty = [&](UProperty* Param, int32 ArgIndex) -> Local<Value> {
+			if (auto p = Cast<UStructProperty>(Param))
+			{
+				// Get argument from caller
+				auto arg = GetArg(ArgIndex);
+
+				// Do we have valid argument?
+				if (!arg.IsEmpty() && !arg->IsUndefined())
+				{
+					auto Instance = FStructMemoryInstance::FromV8(arg);
+					if (Instance)
+					{
+						p->Struct->CopyScriptStruct(Instance->GetMemory(), p->ContainerPtrToValuePtr<uint8>(Buffer));
+
+						return arg;
+					}
+				}
+			}
+
+			return ReadProperty(isolate, Param, Buffer, FNoPropertyOwner());
+		};
+
 		// In case of 'out ref'
 		if (bHasAnyOutParams)
 		{
+			ArgIndex = 0;
+
 			// Allocate an object to pass return values within
 			auto OutParameters = Object::New(isolate);
 
 			// Iterate over parameters again
-			for (TFieldIterator<UProperty> It(Function); It; ++It)
+			for (TFieldIterator<UProperty> It(Function); It; ++It, ArgIndex++)
 			{
 				UProperty* Param = *It;
 				
@@ -1178,7 +1208,7 @@ public:
 				if (PropertyFlags & CPF_ReturnParm)
 				{
 					// value can be null if isolate is in trouble
-					auto value = ReadProperty(isolate, Param, Buffer, FNoPropertyOwner());
+					auto value = FetchProperty(Param, NumArgs);
 					if (!value.IsEmpty())
 					{
 						OutParameters->Set(
@@ -1192,8 +1222,7 @@ public:
 				// rejects 'const T&' and pass 'T&' as its name
 				else if ((PropertyFlags & (CPF_ConstParm | CPF_OutParm)) == CPF_OutParm)
 				{
-					// value can be null if isolate is in trouble
-					auto value = ReadProperty(isolate, Param, Buffer, FNoPropertyOwner());
+					auto value = FetchProperty(Param, ArgIndex);
 					if (!value.IsEmpty())
 					{
 						OutParameters->Set(
@@ -1217,7 +1246,7 @@ public:
 				UProperty* Param = *It;
 				if (Param->GetPropertyFlags() & CPF_ReturnParm)
 				{
-					return handle_scope.Escape(ReadProperty(isolate, Param, Buffer, FNoPropertyOwner()));
+					return handle_scope.Escape(FetchProperty(Param, NumArgs));
 				}
 			}
 		}		
@@ -2431,18 +2460,50 @@ void FJavascriptFunction::Execute()
 {
 	if (!Handle.IsValid() || Handle->Function.IsEmpty()) return;
 
-	auto function = Local<Function>::New(Handle->isolate, Handle->Function);
-	function->Call(function, 0, nullptr);
+	{
+		FPrivateJavascriptFunction* Handle = this->Handle.Get();
+
+		auto isolate_ = Handle->isolate;
+
+		Isolate::Scope isolate_scope(isolate_);
+		HandleScope handle_scope(isolate_);
+
+		auto function = Local<Function>::New(Handle->isolate, Handle->Function);
+		if (!function.IsEmpty())
+		{
+			auto context = Local<Context>::New(isolate_, Handle->context);
+
+			Context::Scope context_scope(context);
+
+			function->Call(function, 0, nullptr);
+		}
+	}
 }
 
 void FJavascriptFunction::Execute(UScriptStruct* Struct, void* Buffer)
 {
 	if (!Handle.IsValid() || Handle->Function.IsEmpty()) return;
 
-	auto arg = FJavascriptIsolateImplementation::GetSelf(Handle->isolate)->ExportStructInstance(Struct, (uint8*)Buffer, FNoPropertyOwner());
-	auto function = Local<Function>::New(Handle->isolate, Handle->Function);
-	v8::Handle<Value> args[] = { arg };
-	function->Call(function, 1, args);
+	{
+		FPrivateJavascriptFunction* Handle = this->Handle.Get();
+
+		auto isolate_ = Handle->isolate;
+
+		Isolate::Scope isolate_scope(isolate_);
+		HandleScope handle_scope(isolate_);
+
+		auto function = Local<Function>::New(Handle->isolate, Handle->Function);
+		if (!function.IsEmpty())
+		{
+			auto context = Local<Context>::New(isolate_, Handle->context);
+
+			Context::Scope context_scope(context);
+
+			auto arg = FJavascriptIsolateImplementation::GetSelf(Handle->isolate)->ExportStructInstance(Struct, (uint8*)Buffer, FNoPropertyOwner());
+			v8::Handle<Value> args[] = { arg };
+			function->Call(function, 1, args);
+		}
+	}
 }
 
 PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

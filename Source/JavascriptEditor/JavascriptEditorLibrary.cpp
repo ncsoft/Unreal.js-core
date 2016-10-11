@@ -1,5 +1,6 @@
 #include "JavascriptEditor.h"
 #include "JavascriptEditorLibrary.h"
+#include "LandscapeComponent.h"
 #include "Editor/LandscapeEditor/Private/LandscapeEdModeTools.h"
 #include "JavascriptContext.h"
 #include "DynamicMeshBuilder.h"
@@ -7,11 +8,18 @@
 #include "HotReloadInterface.h"
 #include "JavascriptWindow.h"
 #include "Editor/PropertyEditor/Public/PropertyEditorModule.h"
+#include "Toolkits/AssetEditorToolkit.h"
+#include "LevelEditor.h"
+#include "../../Launch/Resources/Version.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
 {
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 13
 	return Landscape ? Landscape->GetLandscapeInfo(bSpawnNewActor) : nullptr;
+#else
+	return Landscape ? Landscape->GetLandscapeInfo() : nullptr;
+#endif
 }
 
 void UJavascriptEditorLibrary::SetHeightmapDataFromMemory(ULandscapeInfo* LandscapeInfo, int32 MinX, int32 MinY, int32 MaxX, int32 MaxY)
@@ -576,5 +584,71 @@ void UJavascriptEditorLibrary::CreatePropertyEditorToolkit(TArray<UObject*> Obje
 {
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	PropertyEditorModule.CreatePropertyEditorToolkit(EToolkitMode::Standalone, TSharedPtr<IToolkitHost>(), ObjectsForPropertiesMenu);
+}
+
+static FName NAME_LevelEditor("LevelEditor");
+static FName NAME_MaterialEditor("MaterialEditor");
+
+FJavascriptExtensibilityManager UJavascriptEditorLibrary::GetMenuExtensibilityManager(FName What)
+{
+	if (What == NAME_LevelEditor)
+	{
+		FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
+		return {LevelEditor.GetMenuExtensibilityManager()};
+	}
+	return FJavascriptExtensibilityManager();
+}
+
+FJavascriptExtensibilityManager UJavascriptEditorLibrary::GetToolBarExtensibilityManager(FName What)
+{
+	if (What == NAME_LevelEditor)
+	{
+		FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
+		return{ LevelEditor.GetToolBarExtensibilityManager() };
+	}
+	return FJavascriptExtensibilityManager();
+}
+
+void UJavascriptEditorLibrary::AddExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender)
+{
+	if (Manager.Handle.IsValid() && Extender.Handle.IsValid())
+	{
+		Manager->AddExtender(Extender.Handle);
+	}
+}
+
+void UJavascriptEditorLibrary::RemoveExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender)
+{
+	if (Manager.Handle.IsValid() && Extender.Handle.IsValid())
+	{
+		Manager->RemoveExtender(Extender.Handle);
+	}
+}
+
+bool UJavascriptEditorLibrary::SavePackage(UPackage* Package, FString FileName)
+{
+	UWorld* World = UWorld::FindWorldInPackage(Package);
+	bool bSavedCorrectly;
+
+	if (World) 
+	{
+		bSavedCorrectly = UPackage::SavePackage(Package, World, RF_NoFlags, *FileName, GError, NULL, false, true);
+	}
+	else
+	{
+		bSavedCorrectly =  UPackage::SavePackage(Package, NULL, RF_Standalone, *FileName, GError, NULL, false, true);
+	}
+	return bSavedCorrectly;
+}
+
+bool UJavascriptEditorLibrary::DeletePackage(UPackage* Package)
+{
+	FString PackageName = Package->GetName();
+	FString BasePackageFileName = FPackageName::LongPackageNameToFilename(PackageName);
+	if (FPlatformFileManager::Get().GetPlatformFile().FileExists(*BasePackageFileName))
+	{
+		return IFileManager::Get().Delete(*BasePackageFileName);
+	}
+	return false;
 }
 #endif

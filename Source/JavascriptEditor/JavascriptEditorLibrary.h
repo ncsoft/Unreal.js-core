@@ -83,6 +83,25 @@ struct FJavascriptPDI
 	FPrimitiveDrawInterface* PDI;
 };
 
+// forward decl
+class FExtensibilityManager;
+
+USTRUCT()
+struct FJavascriptExtensibilityManager
+{
+	GENERATED_BODY()
+
+public:
+#if WITH_EDITOR
+	FExtensibilityManager* operator -> () const
+	{
+		return Handle.Get();
+	}
+
+	TSharedPtr<FExtensibilityManager> Handle;
+#endif
+};
+
 /**
  * 
  */
@@ -329,5 +348,23 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void CreatePropertyEditorToolkit(TArray<UObject*> ObjectsForPropertiesMenu);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FJavascriptExtensibilityManager GetMenuExtensibilityManager(FName What);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FJavascriptExtensibilityManager GetToolBarExtensibilityManager(FName What);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void AddExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender);
+	
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void RemoveExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool SavePackage(UPackage* Package, FString FileName);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool DeletePackage(UPackage* Package);
 #endif
 };

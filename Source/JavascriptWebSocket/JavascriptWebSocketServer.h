@@ -16,7 +16,6 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Scripting | Javascript")
 	FOnWebSocketServerDelegate OnConnected;
 
-#if WITH_JSWEBSOCKET
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static UJavascriptWebSocketServer* Create(int32 Port);
 
@@ -32,6 +31,7 @@ public:
 	UPROPERTY()
 	TArray<UJavascriptWebSocket*> Connections;
 
+#if WITH_JSWEBSOCKET
 	void OnConnectionLost(UJavascriptWebSocket* Connection);
 
 private:

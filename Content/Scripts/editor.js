@@ -11,7 +11,7 @@
 		function read_dir(dir) {
 			let out = Root.ReadDirectory(dir)
 			if (out.$) {				
-				let items = _.filter(out.OutItems,(item) => !item.bIsDirectory && /extension[^\.]*\.js$/.test(item.Name))
+				let items = _.filter(out.OutItems,(item) => !item.bIsDirectory && /^((?!node_modules).)*$/.test(item.Name) && /extension[^\.]*\.js$/.test(item.Name))
 				extensions = extensions.concat(items.map((item) => item.Name.substr(root_path.length+1)))
 				out.OutItems.forEach((item) => {
 					if (item.bIsDirectory) {
@@ -31,12 +31,11 @@
 				console.error(String(e))
 				return function () {}
 			}
-			
-			return function () {}	
 		}
 		
 		function main() {
-			let byes = extensions.map((what) => spawn(what))		
+		    let byes = _.filter(extensions.map((what) => spawn(what)),x => _.isFunction(x))
+
 			return function () {
 				byes.forEach((bye)=>bye())
 			}
@@ -45,6 +44,9 @@
 		module.exports = () => {
 			try {
 				let cleanup = main()
+
+				global.$$exit = cleanup
+		
 				return () => cleanup()
 			} catch (e) {
 				console.error(String(e))
@@ -52,6 +54,10 @@
 			}			
 		}
 	} else {
+		global.$$exit = function() {}
+		global.$exit = function () {
+			global.$$exit()
+		}
 		Context.WriteDTS(Context.Paths[0] + 'typings/ue.d.ts')
 		Context.WriteAliases(Context.Paths[0] + 'aliases.js')
 	
