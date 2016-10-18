@@ -1,8 +1,10 @@
 #include "JavascriptEditor.h"
 #include "JavascriptEditorViewport.h"
 #include "SEditorViewport.h"
-#include "PreviewScene.h"
+#include "AdvancedPreviewScene.h"
 #include "Runtime/Engine/Public/Slate/SceneViewport.h"
+
+#include "AssetViewerSettings.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptEditor"
 
@@ -15,13 +17,14 @@ public:
 	TWeakObjectPtr<UJavascriptEditorViewport> Widget;
 	
 	/** Constructor */
-	explicit FJavascriptEditorViewportClient(FPreviewScene& InPreviewScene, const TWeakPtr<class SEditorViewport>& InEditorViewportWidget = nullptr, TWeakObjectPtr<UJavascriptEditorViewport> InWidget = nullptr)
+	explicit FJavascriptEditorViewportClient(FAdvancedPreviewScene& InPreviewScene, const TWeakPtr<class SEditorViewport>& InEditorViewportWidget = nullptr, TWeakObjectPtr<UJavascriptEditorViewport> InWidget = nullptr)
 		: FEditorViewportClient(nullptr,&InPreviewScene,InEditorViewportWidget), Widget(InWidget), BackgroundColor(FColor(55,55,55))
-	{		
+	{
+		AdvancedPreviewScene = static_cast<FAdvancedPreviewScene*>(PreviewScene);
 	}
 	~FJavascriptEditorViewportClient()
 	{}
-
+	
 	virtual void ProcessClick(class FSceneView& View, class HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY) override
 	{
 		if (Widget.IsValid() && Widget->OnClick.IsBound())
@@ -141,6 +144,8 @@ public:
 	FPostProcessSettings PostProcessSettings;
 	float PostProcessSettingsWeight;
 	FLinearColor BackgroundColor;
+
+	FAdvancedPreviewScene* AdvancedPreviewScene;
 };
 
 class SAutoRefreshEditorViewport : public SEditorViewport
@@ -159,6 +164,11 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 				.IsEnabled(FSlateApplication::Get().GetNormalExecutionAttribute())
 				.AddMetaData<FTagMetaData>(TEXT("JavascriptEditor.Viewport"))
 			);
+	}
+	SAutoRefreshEditorViewport()
+		: PreviewScene(FPreviewScene::ConstructionValues())
+	{
+
 	}
 
 	virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override
@@ -279,11 +289,21 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 		}
 	}
 
+	void SetProfileIndex(const int32 InProfileIndex)
+	{
+		PreviewScene.SetProfileIndex(InProfileIndex);
+	}
+
+	int32 GetCurrentProfileIndex()
+	{
+		return PreviewScene.GetCurrentProfileIndex();
+	}
+
 public:
 	TSharedPtr<FJavascriptEditorViewportClient> EditorViewportClient;
 	
 	/** preview scene */
-	FPreviewScene PreviewScene;
+	FAdvancedPreviewScene PreviewScene;
 
 private:
 	TWeakObjectPtr<UJavascriptEditorViewport> Widget;
@@ -522,6 +542,29 @@ bool UJavascriptEditorViewport::SetEngineShowFlags(const FString& In)
 	{
 		return false;
 	}
+}
+
+void UJavascriptEditorViewport::SetProfileIndex(const int32 InProfileIndex)
+{
+	if (ViewportWidget.IsValid())
+	{
+		ViewportWidget->SetProfileIndex(InProfileIndex);
+	}
+}
+
+int32 UJavascriptEditorViewport::GetCurrentProfileIndex()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetCurrentProfileIndex();
+	}
+
+	return 0;
+}
+
+UAssetViewerSettings* UJavascriptEditorViewport::GetDefaultAssetViewerSettings()
+{
+	return UAssetViewerSettings::Get();
 }
 
 PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

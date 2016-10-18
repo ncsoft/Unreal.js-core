@@ -4,6 +4,7 @@
 #include "JavascriptEditorViewport.generated.h"
 
 class SAutoRefreshEditorViewport;
+class UAssetViewerSettings;
 
 /**
  * 
@@ -113,6 +114,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	bool SetEngineShowFlags(const FString& In);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void SetProfileIndex(const int32 InProfileIndex);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	int32 GetCurrentProfileIndex();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	UAssetViewerSettings* GetDefaultAssetViewerSettings();
 
 	// UPanelWidget
 	virtual UClass* GetSlotClass() const override;
