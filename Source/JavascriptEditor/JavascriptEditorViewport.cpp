@@ -20,7 +20,6 @@ public:
 	explicit FJavascriptEditorViewportClient(FAdvancedPreviewScene& InPreviewScene, const TWeakPtr<class SEditorViewport>& InEditorViewportWidget = nullptr, TWeakObjectPtr<UJavascriptEditorViewport> InWidget = nullptr)
 		: FEditorViewportClient(nullptr,&InPreviewScene,InEditorViewportWidget), Widget(InWidget), BackgroundColor(FColor(55,55,55))
 	{
-		AdvancedPreviewScene = static_cast<FAdvancedPreviewScene*>(PreviewScene);
 	}
 	~FJavascriptEditorViewportClient()
 	{}
@@ -144,8 +143,6 @@ public:
 	FPostProcessSettings PostProcessSettings;
 	float PostProcessSettingsWeight;
 	FLinearColor BackgroundColor;
-
-	FAdvancedPreviewScene* AdvancedPreviewScene;
 };
 
 class SAutoRefreshEditorViewport : public SEditorViewport
@@ -297,6 +294,36 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 	int32 GetCurrentProfileIndex()
 	{
 		return PreviewScene.GetCurrentProfileIndex();
+	}
+
+	void SetFloorOffset(const float InFloorOffset)
+	{
+		PreviewScene.SetFloorOffset(InFloorOffset);
+	}
+
+	UStaticMeshComponent* GetFloorMeshComponent()
+	{
+		return const_cast<UStaticMeshComponent*>(PreviewScene.GetFloorMeshComponent());
+	}
+
+	UStaticMeshComponent* GetSkyComponent()
+	{
+		for (TObjectIterator<UStaticMeshComponent> Itr; Itr; ++Itr)
+		{
+			if (Itr->GetWorld() != PreviewScene.GetWorld())
+				continue;
+
+			UStaticMeshComponent* Component = *Itr;
+			if (Component && Component->GetOwner() == nullptr) 
+			{
+				if (Component->StaticMesh && Component->StaticMesh->GetName().Equals(FString(TEXT("Sphere_inversenormals"))))
+				{
+					return Component;
+				}
+			}
+		}
+
+		return nullptr;
 	}
 
 public:
@@ -565,6 +592,33 @@ int32 UJavascriptEditorViewport::GetCurrentProfileIndex()
 UAssetViewerSettings* UJavascriptEditorViewport::GetDefaultAssetViewerSettings()
 {
 	return UAssetViewerSettings::Get();
+}
+
+void UJavascriptEditorViewport::SetFloorOffset(const float InFloorOffset)
+{
+	if (ViewportWidget.IsValid())
+	{
+		ViewportWidget->SetFloorOffset(InFloorOffset);
+	}
+}
+
+UStaticMeshComponent* UJavascriptEditorViewport::GetFloorMeshComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetFloorMeshComponent();
+	}
+	return nullptr;
+}
+
+UStaticMeshComponent* UJavascriptEditorViewport::GetSkyComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetSkyComponent();
+	}
+
+	return nullptr;
 }
 
 PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

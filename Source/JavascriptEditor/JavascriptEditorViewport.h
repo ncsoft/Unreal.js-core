@@ -124,6 +124,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	UAssetViewerSettings* GetDefaultAssetViewerSettings();
 
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void SetFloorOffset(const float InFloorOffset);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	UStaticMeshComponent* GetFloorMeshComponent();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	UStaticMeshComponent* GetSkyComponent();
+
 	// UPanelWidget
 	virtual UClass* GetSlotClass() const override;
 	virtual void OnSlotAdded(UPanelSlot* Slot) override;
