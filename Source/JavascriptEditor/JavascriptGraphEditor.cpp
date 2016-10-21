@@ -3,6 +3,32 @@
 
 #define LOCTEXT_NAMESPACE "UMG"
 
+FName FEdGraphSchemaAction_Javascript::StaticGetTypeId()
+{
+	static FName Type("FEdGraphSchemaAction_Javascript"); return Type;
+}
+
+FName FEdGraphSchemaAction_Javascript::GetTypeId() const
+{
+	return StaticGetTypeId();
+}
+
+FEdGraphSchemaAction_Javascript::FEdGraphSchemaAction_Javascript(UObject* InData, const FText& InKey, const FText& InCategory)
+	: FEdGraphSchemaAction_Dummy()
+	, Data(Data)
+	, Key(InKey)
+{
+	check(Data);
+	Update();
+	UpdateCategory(InCategory);
+}
+
+void FEdGraphSchemaAction_Javascript::Update()
+{
+	UpdateSearchData(Key, FText::Format(LOCTEXT("JavascriptSchemaActionFormat", "Schema {0}"), Key).ToString(), FText(), FText());
+}
+
+
 UJavascriptGraphEditor::UJavascriptGraphEditor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -84,11 +110,44 @@ FActionMenuContent UJavascriptGraphEditor::OnCreateGraphActionMenu(UEdGraph* InG
 
 void UJavascriptGraphEditor::CollectAllActions(FGraphActionListBuilderBase& OutAllActions)
 {
-
+	for (auto& Action : Actions)
+	{
+		if (nullptr == Action.Resource) continue;
+		FGraphActionMenuBuilder ActionMenuBuilder;
+		FFormatNamedArguments Arguments;
+		Arguments.Add(TEXT("Name"), FText::FromName(Action.Name));
+		Arguments.Add(TEXT("SelectedItems"), FText::FromString(Action.Resource->GetName()));
+		const FText MenuDesc = FText::Format(LOCTEXT("NewJavascriptAction", "{Name}({SelectedItems})"), Arguments);
+		const FText ToolTip = FText::Format(LOCTEXT("NewJavascriptActionTooltip", "Adds a {Name} node for {SelectedItems} here"), Arguments);
+		TSharedPtr<FEdGraphSchemaAction_Javascript> NewNodeAction(new FEdGraphSchemaAction_Javascript(Action.Resource, FText::FromName(Action.Name), FText::FromName(Action.Category)));
+		ActionMenuBuilder.AddAction(NewNodeAction);
+		OutAllActions.Append(ActionMenuBuilder);
+	}
 }
 
-void UJavascriptGraphEditor::OnActionSelected(const TArray< TSharedPtr<FEdGraphSchemaAction> >& SelectedAction, ESelectInfo::Type InSelectionType)
+void UJavascriptGraphEditor::OnActionSelected(const TArray< TSharedPtr<FEdGraphSchemaAction> >& SelectedActions, ESelectInfo::Type InSelectionType)
 {
-
+	if (InSelectionType == ESelectInfo::OnMouseClick || InSelectionType == ESelectInfo::OnKeyPress || SelectedActions.Num() == 0)
+	{
+		bool bDoDismissMenus = false;
+		for (int32 ActionIndex = 0; ActionIndex < SelectedActions.Num(); ActionIndex++)
+		{
+			FEdGraphSchemaAction_Javascript* CurrentAction = (FEdGraphSchemaAction_Javascript*)(SelectedActions[ActionIndex].Get());
+			if (CurrentAction != nullptr)
+			{
+				UE_LOG(LogHAL, Log, TEXT("Category : %s, Key : %s"), *CurrentAction->GetCategory().ToString(), *CurrentAction->Key.ToString());
+				bDoDismissMenus = true;
+			}
+		}
+	
+		if (bDoDismissMenus)
+		{
+			FSlateApplication::Get().DismissAllMenus();
+		}
+	}
 }
 
+void UJavascriptGraphEditor::AddActionContext(FJavascriptGraphAction Action)
+{
+	Actions.Add(Action);
+}
