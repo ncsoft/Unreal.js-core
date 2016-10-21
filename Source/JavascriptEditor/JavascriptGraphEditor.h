@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Widget.h"
-#include "GraphEditor.h"
-#include "Editor/GraphEditor/Public/SGraphActionMenu.h"
 #include "JavascriptGraphEditor.generated.h"
 
 USTRUCT()
@@ -18,21 +16,6 @@ struct FJavascriptGraphAction
 	
 	UPROPERTY()
 	UObject* Resource;
-};
-
-
-class FEdGraphSchemaAction_Javascript : public FEdGraphSchemaAction_Dummy
-{
-public:
-	static FName StaticGetTypeId();
-	virtual FName GetTypeId() const;
-
-	FEdGraphSchemaAction_Javascript(UObject* InData, const FText& InKey, const FText& InCategory);
-
-	void Update();
-
-	UObject* Data;
-	FText Key;
 };
 
 UCLASS()
@@ -66,11 +49,14 @@ protected:
 	FActionMenuContent OnCreateGraphActionMenu(UEdGraph* InGraph, const FVector2D& InNodePosition, const TArray<UEdGraphPin*>& InDraggedPins, bool bAutoExpand, SGraphEditor::FActionMenuClosed InOnMenuClosed);
 
 	void CollectAllActions(FGraphActionListBuilderBase& OutAllActions);
+	TSharedRef<SWidget> OnCreateWidgetForAction(struct FCreateWidgetForActionData* const InCreateData);
+
 	void OnActionSelected(const TArray< TSharedPtr<FEdGraphSchemaAction> >& SelectedActions, ESelectInfo::Type InSelectionType);
 	void OnNodeDoubleClicked(class UEdGraphNode* Node);
 	void OnSelectedNodesChanged(const TSet<class UObject*>& NewSelection);
 
 	TSharedPtr<SGraphActionMenu> GraphActionMenu;
+	FVector2D NewNodePosition;
 
 #endif
 };
