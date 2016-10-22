@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Classes/AIGraphTypes.h"
 #include "JavascriptEdGraphNode.generated.h"
 
 class FJSEdGraphSchemaAction_NewNode : public FEdGraphSchemaAction_NewNode

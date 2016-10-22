@@ -32,7 +32,8 @@ public class JavascriptEditor : ModuleRules
 					    "Editor/GameplayAbilitiesEditor/Private",
                         "Editor/LandscapeEditor/Private",
                         "Developer/AssetTools/Private",
-				    }
+                        "Editor/AIGraph/Private",
+                    }
                 );
 
             PrivateDependencyModuleNames.AddRange(
@@ -56,6 +57,7 @@ public class JavascriptEditor : ModuleRules
                         "V8",
                         "UMG",
                         "Foliage",
+                        "AIGraph",
                         "LandscapeEditor"
 				    }
             );
