@@ -175,7 +175,6 @@ public class V8 : ModuleRules
             string LibrariesPath = Path.Combine(ThirdPartyPath, "v8", "lib", "Mac", "x64");
             PublicLibraryPaths.Add(LibrariesPath);
 
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8.dylib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8_base.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8_libbase.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8_libplatform.a"));
@@ -183,7 +182,7 @@ public class V8 : ModuleRules
 
             if (ShouldLink_libsampler)
             {
-                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libsampler.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libsampler.a"));
             }
 
             Definitions.Add(string.Format("WITH_V8=1"));
