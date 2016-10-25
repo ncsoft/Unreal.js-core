@@ -8,6 +8,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "JavascriptStats.h"
 #include "JavascriptSettings.h"
 
+DEFINE_STAT(STAT_V8IdleTask);
 DEFINE_STAT(STAT_JavascriptDelegate);
 DEFINE_STAT(STAT_JavascriptProxy);
 DEFINE_STAT(STAT_Scavenge);
@@ -108,12 +109,17 @@ public:
 	void RunIdleTasks(float Budget)
 	{
 		float Start = FPlatformTime::Seconds();
-		while (!IdleTasks.IsEmpty() && Budget >= 0)
+		while (!IdleTasks.IsEmpty() && Budget > 0)
 		{
 			v8::IdleTask* Task = nullptr;
 			IdleTasks.Dequeue(Task);
 
-			Task->Run(MonotonicallyIncreasingTime() + Budget);
+			{
+				SCOPE_CYCLE_COUNTER(STAT_V8IdleTask);
+
+				Task->Run(MonotonicallyIncreasingTime() + Budget);
+			}
+			
 			delete Task;
 			
 			float Now = FPlatformTime::Seconds();

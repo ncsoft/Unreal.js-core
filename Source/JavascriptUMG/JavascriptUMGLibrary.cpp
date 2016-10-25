@@ -103,3 +103,14 @@ FVector2D UJavascriptUMGLibrary::GenerateDynamicImageResource(const FName InDyna
 	FIntPoint Size = FSlateApplication::Get().GetRenderer()->GenerateDynamicImageResource(InDynamicBrushName);
 	return FVector2D(Size.X, Size.Y);
 }
+
+FVector2D UJavascriptUMGLibrary::ComputeDesiredSize(UWidget* Widget, float LayoutScaleMultiplier)
+{
+	TSharedPtr<SWidget> SlateWidget = Widget->TakeWidget();
+	auto CompoundWidget = StaticCastSharedPtr<SCompoundWidget>(SlateWidget);
+	if (CompoundWidget.IsValid())
+	{
+		return CompoundWidget->ComputeDesiredSize(LayoutScaleMultiplier);
+	}
+	return FVector2D(0, 0);
+}
