@@ -35,11 +35,6 @@
 // the V8 DLL USING_V8_SHARED needs to be defined. When either building the V8
 // static library or building a program which uses the V8 static library neither
 // BUILDING_V8_SHARED nor USING_V8_SHARED should be defined.
-#if defined(BUILDING_V8_SHARED) && defined(USING_V8_SHARED)
-#error both BUILDING_V8_SHARED and USING_V8_SHARED are set - please check the\
-  build configuration to ensure that at most one of these is set
-#endif
-
 #ifdef BUILDING_V8_SHARED
 # define V8_EXPORT __declspec(dllexport)
 #elif USING_V8_SHARED
@@ -51,7 +46,7 @@
 #else  // V8_OS_WIN
 
 // Setup for Linux shared library export.
-#if V8_HAS_ATTRIBUTE_VISIBILITY && defined(V8_SHARED)
+#if V8_HAS_ATTRIBUTE_VISIBILITY
 # ifdef BUILDING_V8_SHARED
 #  define V8_EXPORT __attribute__ ((visibility("default")))
 # else
@@ -468,6 +463,16 @@ class WeakCallbackInfo {
 enum class WeakCallbackType { kParameter, kInternalFields, kFinalizer };
 
 /**
+ * A reporter class that embedder will use to report reachable references found
+ * by EmbedderHeapTracer.
+ */
+class V8_EXPORT EmbedderReachableReferenceReporter {
+ public:
+  virtual void ReportExternalReference(Value* object) = 0;
+  virtual ~EmbedderReachableReferenceReporter() = default;
+};
+
+/**
  * An object reference that is independent of any handle scope.  Where
  * a Local handle only lives as long as the HandleScope in which it was
  * allocated, a PersistentBase handle remains valid until it is explicitly
@@ -564,11 +569,18 @@ template <class T> class PersistentBase {
   V8_INLINE void ClearWeak() { ClearWeak<void>(); }
 
   /**
+   * Deprecated.
+   * TODO(hlopko): remove once migration to reporter is finished.
+   */
+  V8_INLINE void RegisterExternalReference(Isolate* isolate) const {}
+
+  /**
    * Allows the embedder to tell the v8 garbage collector that a certain object
    * is alive. Only allowed when the embedder is asked to trace its heap by
    * EmbedderHeapTracer.
    */
-  V8_INLINE void RegisterExternalReference(Isolate* isolate) const;
+  V8_INLINE void RegisterExternalReference(
+      EmbedderReachableReferenceReporter* reporter) const;
 
   /**
    * Marks the reference to this object independent. Garbage collector is free
@@ -1070,6 +1082,47 @@ class V8_EXPORT UnboundScript {
   static const int kNoScriptId = 0;
 };
 
+/**
+ * This is an unfinished experimental feature, and is only exposed
+ * here for internal testing purposes. DO NOT USE.
+ *
+ * A compiled JavaScript module.
+ */
+class V8_EXPORT Module {
+ public:
+  /**
+   * Returns the number of modules requested by this module.
+   */
+  int GetModuleRequestsLength() const;
+
+  /**
+   * Returns the ith module specifier in this module.
+   * i must be < GetModuleRequestsLength() and >= 0.
+   */
+  Local<String> GetModuleRequest(int i) const;
+
+  /**
+   * Returns the identity hash for this object.
+   */
+  int GetIdentityHash() const;
+
+  typedef MaybeLocal<Module> (*ResolveCallback)(Local<Context> context,
+                                                Local<String> specifier,
+                                                Local<Module> referrer);
+
+  /**
+   * ModuleDeclarationInstantiation
+   *
+   * Returns false if an exception occurred during instantiation.
+   */
+  V8_WARN_UNUSED_RESULT bool Instantiate(Local<Context> context,
+                                         ResolveCallback callback);
+
+  /**
+   * ModuleEvaluation
+   */
+  V8_WARN_UNUSED_RESULT MaybeLocal<Value> Evaluate(Local<Context> context);
+};
 
 /**
  * A compiled JavaScript script, tied to a Context which was active when the
@@ -1373,18 +1426,17 @@ class V8_EXPORT ScriptCompiler {
   static uint32_t CachedDataVersionTag();
 
   /**
-   * Compile an ES6 module.
-   *
    * This is an unfinished experimental feature, and is only exposed
-   * here for internal testing purposes.
-   * Only parsing works at the moment. Do not use.
+   * here for internal testing purposes. DO NOT USE.
    *
-   * TODO(adamk): Script is likely the wrong return value for this;
-   * should return some new Module type.
+   * Compile an ES module, returning a Module that encapsulates
+   * the compiled code.
+   *
+   * Corresponds to the ParseModule abstract operation in the
+   * ECMAScript specification.
    */
-  static V8_WARN_UNUSED_RESULT MaybeLocal<Script> CompileModule(
-      Local<Context> context, Source* source,
-      CompileOptions options = kNoCompileOptions);
+  static V8_WARN_UNUSED_RESULT MaybeLocal<Module> CompileModule(
+      Isolate* isolate, Source* source);
 
   /**
    * Compile a function for a given context. This is equivalent to running
@@ -1732,6 +1784,7 @@ class V8_EXPORT ValueSerializer {
    */
   void WriteUint32(uint32_t value);
   void WriteUint64(uint64_t value);
+  void WriteDouble(double value);
   void WriteRawBytes(const void* source, size_t length);
 
  private:
@@ -1818,6 +1871,7 @@ class V8_EXPORT ValueDeserializer {
    */
   V8_WARN_UNUSED_RESULT bool ReadUint32(uint32_t* value);
   V8_WARN_UNUSED_RESULT bool ReadUint64(uint64_t* value);
+  V8_WARN_UNUSED_RESULT bool ReadDouble(double* value);
   V8_WARN_UNUSED_RESULT bool ReadRawBytes(size_t length, const void** data);
 
  private:
@@ -1972,6 +2026,11 @@ class V8_EXPORT Value : public Data {
    * Returns true if this value is a RegExp.
    */
   bool IsRegExp() const;
+
+  /**
+   * Returns true if this value is an async function.
+   */
+  bool IsAsyncFunction() const;
 
   /**
    * Returns true if this value is a Generator function.
@@ -2923,6 +2982,21 @@ class V8_EXPORT Object : public Value {
       Local<Context> context, Local<String> key);
 
   V8_DEPRECATE_SOON("Use maybe version", bool Has(Local<Value> key));
+  /**
+   * Object::Has() calls the abstract operation HasProperty(O, P) described
+   * in ECMA-262, 7.3.10. Has() returns
+   * true, if the object has the property, either own or on the prototype chain.
+   * Interceptors, i.e., PropertyQueryCallbacks, are called if present.
+   *
+   * Has() has the same side effects as JavaScript's `variable in object`.
+   * For example, calling Has() on a revoked proxy will throw an exception.
+   *
+   * \note Has() converts the key to a name, which possibly calls back into
+   * JavaScript.
+   *
+   * See also v8::Object::HasOwnProperty() and
+   * v8::Object::HasRealNamedProperty().
+   */
   V8_WARN_UNUSED_RESULT Maybe<bool> Has(Local<Context> context,
                                         Local<Value> key);
 
@@ -3087,12 +3161,31 @@ class V8_EXPORT Object : public Value {
 
   // Testers for local properties.
   V8_DEPRECATED("Use maybe version", bool HasOwnProperty(Local<String> key));
+
+  /**
+   * HasOwnProperty() is like JavaScript's Object.prototype.hasOwnProperty().
+   *
+   * See also v8::Object::Has() and v8::Object::HasRealNamedProperty().
+   */
   V8_WARN_UNUSED_RESULT Maybe<bool> HasOwnProperty(Local<Context> context,
                                                    Local<Name> key);
   V8_WARN_UNUSED_RESULT Maybe<bool> HasOwnProperty(Local<Context> context,
                                                    uint32_t index);
   V8_DEPRECATE_SOON("Use maybe version",
                     bool HasRealNamedProperty(Local<String> key));
+  /**
+   * Use HasRealNamedProperty() if you want to check if an object has an own
+   * property without causing side effects, i.e., without calling interceptors.
+   *
+   * This function is similar to v8::Object::HasOwnProperty(), but it does not
+   * call interceptors.
+   *
+   * \note Consider using non-masking interceptors, i.e., the interceptors are
+   * not called if the receiver has the real named property. See
+   * `v8::PropertyHandlerFlags::kNonMasking`.
+   *
+   * See also v8::Object::Has().
+   */
   V8_WARN_UNUSED_RESULT Maybe<bool> HasRealNamedProperty(Local<Context> context,
                                                          Local<Name> key);
   V8_DEPRECATE_SOON("Use maybe version",
@@ -3174,6 +3267,12 @@ class V8_EXPORT Object : public Value {
    * Returns the context in which the object was created.
    */
   Local<Context> CreationContext();
+
+  /** Same as above, but works for Persistents */
+  V8_INLINE static Local<Context> CreationContext(
+      const PersistentBase<Object>& object) {
+    return object.val_->CreationContext();
+  }
 
   /**
    * Checks whether a callback is set by the
@@ -3438,7 +3537,7 @@ class PropertyCallbackInfo {
   /**
    * \return The receiver. In many cases, this is the object on which the
    * property access was intercepted. When using
-   * `Reflect.Get`, `Function.prototype.call`, or similar functions, it is the
+   * `Reflect.get`, `Function.prototype.call`, or similar functions, it is the
    * object passed in as receiver or thisArg.
    *
    * \code
@@ -3503,7 +3602,7 @@ class PropertyCallbackInfo {
    * \return True if the intercepted function should throw if an error occurs.
    * Usually, `true` corresponds to `'use strict'`.
    *
-   * \note Always `false` when intercepting `Reflect.Set()`
+   * \note Always `false` when intercepting `Reflect.set()`
    * independent of the language mode.
    */
   V8_INLINE bool ShouldThrowOnError() const;
@@ -3798,13 +3897,29 @@ class V8_EXPORT Proxy : public Object {
 class V8_EXPORT WasmCompiledModule : public Object {
  public:
   typedef std::pair<std::unique_ptr<const uint8_t[]>, size_t> SerializedModule;
+  // A buffer that is owned by the caller.
+  typedef std::pair<const uint8_t*, size_t> CallerOwnedBuffer;
+  // Get the wasm-encoded bytes that were used to compile this module.
+  Local<String> GetWasmWireBytes();
 
+  // Serialize the compiled module. The serialized data does not include the
+  // uncompiled bytes.
   SerializedModule Serialize();
-  static MaybeLocal<WasmCompiledModule> Deserialize(
-      Isolate* isolate, const SerializedModule& serialized_data);
+
+  // If possible, deserialize the module, otherwise compile it from the provided
+  // uncompiled bytes.
+  static MaybeLocal<WasmCompiledModule> DeserializeOrCompile(
+      Isolate* isolate, const CallerOwnedBuffer& serialized_module,
+      const CallerOwnedBuffer& wire_bytes);
   V8_INLINE static WasmCompiledModule* Cast(Value* obj);
 
  private:
+  static MaybeLocal<WasmCompiledModule> Deserialize(
+      Isolate* isolate, const CallerOwnedBuffer& serialized_module,
+      const CallerOwnedBuffer& wire_bytes);
+  static MaybeLocal<WasmCompiledModule> Compile(Isolate* isolate,
+                                                const uint8_t* start,
+                                                size_t length);
   WasmCompiledModule();
   static void CheckCast(Value* obj);
 };
@@ -5081,16 +5196,31 @@ class V8_EXPORT FunctionTemplate : public Template {
   friend class ObjectTemplate;
 };
 
+/**
+ * Configuration flags for v8::NamedPropertyHandlerConfiguration or
+ * v8::IndexedPropertyHandlerConfiguration.
+ */
 enum class PropertyHandlerFlags {
+  /**
+   * None.
+   */
   kNone = 0,
-  // See ALL_CAN_READ above.
+
+  /**
+   * See ALL_CAN_READ above.
+   */
   kAllCanRead = 1,
-  // Will not call into interceptor for properties on the receiver or prototype
-  // chain, i.e., only call into interceptor for properties that do not exist.
-  // Currently only valid for named interceptors.
+
+  /** Will not call into interceptor for properties on the receiver or prototype
+   * chain, i.e., only call into interceptor for properties that do not exist.
+   * Currently only valid for named interceptors.
+   */
   kNonMasking = 1 << 1,
-  // Will not call into interceptor for symbol lookup.  Only meaningful for
-  // named interceptors.
+
+  /**
+   * Will not call into interceptor for symbol lookup.  Only meaningful for
+   * named interceptors.
+   */
   kOnlyInterceptStrings = 1 << 2,
 };
 
@@ -5557,6 +5687,10 @@ class V8_EXPORT ResourceConstraints {
   void set_code_range_size(size_t limit_in_mb) {
     code_range_size_ = limit_in_mb;
   }
+  size_t max_zone_pool_size() const { return max_zone_pool_size_; }
+  void set_max_zone_pool_size(const size_t bytes) {
+    max_zone_pool_size_ = bytes;
+  }
 
  private:
   int max_semi_space_size_;
@@ -5564,6 +5698,7 @@ class V8_EXPORT ResourceConstraints {
   int max_executable_size_;
   uint32_t* stack_limit_;
   size_t code_range_size_;
+  size_t max_zone_pool_size_;
 };
 
 
@@ -6029,8 +6164,8 @@ enum class MemoryPressureLevel { kNone, kModerate, kCritical };
  * Interface for tracing through the embedder heap. During the v8 garbage
  * collection, v8 collects hidden fields of all potential wrappers, and at the
  * end of its marking phase iterates the collection and asks the embedder to
- * trace through its heap and call PersistentBase::RegisterExternalReference on
- * each js object reachable from any of the given wrappers.
+ * trace through its heap and use reporter to report each js object reachable
+ * from any of the given wrappers.
  *
  * Before the first call to the TraceWrappersFrom function TracePrologue will be
  * called. When the garbage collection cycle is finished, TraceEpilogue will be
@@ -6056,14 +6191,21 @@ class V8_EXPORT EmbedderHeapTracer {
       const std::vector<std::pair<void*, void*> >& internal_fields) = 0;
 
   /**
-   * V8 will call this method at the beginning of a GC cycle.
+   * Deprecated.
+   * TODO(hlopko) Remove once the migration to reporter is finished.
    */
-  virtual void TracePrologue() = 0;
+  virtual void TracePrologue() {}
+
+  /**
+   * V8 will call this method at the beginning of a GC cycle. Embedder is
+   * expected to use EmbedderReachableReferenceReporter for reporting all
+   * reachable v8 objects.
+   */
+  virtual void TracePrologue(EmbedderReachableReferenceReporter* reporter) {}
 
   /**
    * Embedder is expected to trace its heap starting from wrappers reported by
-   * RegisterV8References method, and call
-   * PersistentBase::RegisterExternalReference() on all reachable wrappers.
+   * RegisterV8References method, and use reporter for all reachable wrappers.
    * Embedder is expected to stop tracing by the given deadline.
    *
    * Returns true if there is still work to do.
@@ -7380,8 +7522,6 @@ class V8_EXPORT V8 {
                          int* index);
   static Local<Value> GetEternal(Isolate* isolate, int index);
 
-  static void RegisterExternallyReferencedObject(internal::Object** object,
-                                                 internal::Isolate* isolate);
   template <class K, class V, class T>
   friend class PersistentValueMapBase;
 
@@ -8165,8 +8305,8 @@ class Internals {
   static const int kNodeIsPartiallyDependentShift = 4;
   static const int kNodeIsActiveShift = 4;
 
-  static const int kJSObjectType = 0xb8;
-  static const int kJSApiObjectType = 0xb7;
+  static const int kJSObjectType = 0xbb;
+  static const int kJSApiObjectType = 0xba;
   static const int kFirstNonstringType = 0x80;
   static const int kOddballType = 0x83;
   static const int kForeignType = 0x87;
@@ -8442,11 +8582,10 @@ P* PersistentBase<T>::ClearWeak() {
 }
 
 template <class T>
-void PersistentBase<T>::RegisterExternalReference(Isolate* isolate) const {
+void PersistentBase<T>::RegisterExternalReference(
+    EmbedderReachableReferenceReporter* reporter) const {
   if (IsEmpty()) return;
-  V8::RegisterExternallyReferencedObject(
-      reinterpret_cast<internal::Object**>(this->val_),
-      reinterpret_cast<internal::Isolate*>(isolate));
+  reporter->ReportExternalReference(this->val_);
 }
 
 template <class T>
