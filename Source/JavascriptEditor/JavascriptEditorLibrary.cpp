@@ -651,4 +651,103 @@ bool UJavascriptEditorLibrary::DeletePackage(UPackage* Package)
 	}
 	return false;
 }
+
+void UJavascriptEditorLibrary::CreateBrushForVolumeActor(AVolume* NewActor, UBrushBuilder* BrushBuilder)
+{
+	if (NewActor != NULL)
+	{
+		// this code builds a brush for the new actor
+		NewActor->PreEditChange(NULL);
+
+		NewActor->PolyFlags = 0;
+		NewActor->Brush = NewObject<UModel>(NewActor, NAME_None, RF_Transactional);
+		NewActor->Brush->Initialize(nullptr, true);
+		NewActor->Brush->Polys = NewObject<UPolys>(NewActor->Brush, NAME_None, RF_Transactional);
+		NewActor->GetBrushComponent()->Brush = NewActor->Brush;
+		if (BrushBuilder != nullptr)
+		{
+			NewActor->BrushBuilder = DuplicateObject<UBrushBuilder>(BrushBuilder, NewActor);
+		}
+
+		BrushBuilder->Build(NewActor->GetWorld(), NewActor);
+
+		FBSPOps::csgPrepMovingBrush(NewActor);
+
+		// Set the texture on all polys to NULL.  This stops invisible textures
+		// dependencies from being formed on volumes.
+		if (NewActor->Brush)
+		{
+			for (int32 poly = 0; poly < NewActor->Brush->Polys->Element.Num(); ++poly)
+			{
+				FPoly* Poly = &(NewActor->Brush->Polys->Element[poly]);
+				Poly->Material = NULL;
+			}
+		}
+
+		NewActor->PostEditChange();
+	}
+}
+
+UWorld* UJavascriptEditorLibrary::FindWorldInPackage(UPackage* Package)
+{
+	return UWorld::FindWorldInPackage(Package);
+}
+
+FString UJavascriptEditorLibrary::ExportNavigation(UWorld* InWorld, FString Name)
+{
+	InWorld->WorldType = EWorldType::Editor;
+	InWorld->AddToRoot();
+	if (!InWorld->bIsWorldInitialized)
+	{
+		UWorld::InitializationValues IVS;
+		IVS.EnableTraceCollision(true);
+		IVS.CreateNavigation(false);
+
+		InWorld->InitWorld(IVS);
+		InWorld->PersistentLevel->UpdateModelComponents();
+		InWorld->UpdateWorldComponents(true, false);
+		InWorld->UpdateLevelStreaming();
+		//InWorld->LoadSecondaryLevels(true, NULL);
+	}
+
+	UNavigationSystem::InitializeForWorld(InWorld, FNavigationSystemRunMode::EditorMode);
+	FWorldContext &WorldContext = GEditor->GetEditorWorldContext(true);
+	WorldContext.SetCurrentWorld(InWorld);
+	GWorld = InWorld;
+
+//	UGameplayStatics::LoadStreamLevel(InWorld, FName(TEXT("BackgroundMountains")), true, true, FLatentActionInfo());
+// 	UWorld::InitializationValues().ShouldSimulatePhysics(false).EnableTraceCollision(true).CreateNavigation(InWorldType == EWorldType::Editor).CreateAISystem(InWorldType == EWorldType::Editor);
+// 	UNavigationSystem::InitializeForWorld(InWorld, FNavigationSystemRunMode::GameMode);
+	if (InWorld->GetNavigationSystem())
+	{
+		InWorld->GetNavigationSystem()->Build();
+		if (const ANavigationData* NavData = InWorld->GetNavigationSystem()->GetMainNavData())
+		{
+			if (const FNavDataGenerator* Generator = NavData->GetGenerator())
+			{
+				//const FString Name = NavData->GetName();
+				auto fname = FString::Printf(TEXT("%s/%s"), *FPaths::GameSavedDir(), *Name);
+				Generator->ExportNavigationData(fname);
+				InWorld->RemoveFromRoot();
+				return fname;
+			}
+			else
+			{
+				UE_LOG(LogNavigation, Error, TEXT("Failed to export navigation data due to missing generator"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogNavigation, Error, TEXT("Failed to export navigation data due to navigation data"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogNavigation, Error, TEXT("Failed to export navigation data due to missing navigation system"));
+	}
+
+	InWorld->RemoveFromRoot();
+
+	return FString("");
+}
 #endif
