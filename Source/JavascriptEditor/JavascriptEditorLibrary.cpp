@@ -771,5 +771,4 @@ void UJavascriptEditorLibrary::RemoveLevelInstance(UWorld* World)
 	}
 	World->RefreshStreamingLevels();
 }
-
 #endif
