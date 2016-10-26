@@ -448,7 +448,7 @@ struct TypingGenerator : TypingGeneratorBase
 
 			w.push("\tstatic StaticClass: any;\n");
 
-			w.push("\tstatic GetClassObject(): UClass;\n");
+			w.push("\tstatic GetClassObject(): Class;\n");
 
 			w.push("\tstatic GetDefaultObject(): ");
 			w.push(name);
