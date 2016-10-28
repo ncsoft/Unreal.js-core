@@ -506,7 +506,6 @@ struct TypingGenerator : TypingGeneratorBase
 	void ExportBootstrap()
 	{
 		TokenWriter w(*this);
-		w.push("declare type UClass = Class;\n");
 		w.push("declare function gc() : void;\n");
 		w.push("declare type UnrealEngineClass = any;\n");
 
