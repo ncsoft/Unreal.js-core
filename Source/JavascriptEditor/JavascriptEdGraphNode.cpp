@@ -19,7 +19,7 @@ FName FJSEdGraphSchemaAction_NewNode::GetTypeId() const
 
 FJSEdGraphSchemaAction_NewNode::FJSEdGraphSchemaAction_NewNode(UObject* InData, const FText& InKey, const FText& InCategory)
 	: FEdGraphSchemaAction_NewNode()
-	, Data(Data)
+	, Data(InData)
 	, Key(InKey)
 {
 	check(Data);
@@ -84,3 +84,5 @@ UJavascriptEdGraphNode::UJavascriptEdGraphNode(const FObjectInitializer& ObjectI
 {
 
 }
+
+#undef LOCTEXT_NAMESPACE
