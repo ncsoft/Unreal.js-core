@@ -2,7 +2,26 @@ using UnrealBuildTool;
 
 public class JavascriptEditor : ModuleRules
 {
-	public JavascriptEditor(TargetInfo Target)
+    public static bool IsVREditorNeeded()
+    {
+        string[] VersionHeader = Utils.ReadAllText("../Source/Runtime/Launch/Resources/Version.h").Replace("\r\n", "\n").Replace("\t", " ").Split('\n');
+        string EngineVersionMajor = "4";
+        string EngineVersionMinor = "0";
+        foreach (string Line in VersionHeader)
+        {
+            if (Line.StartsWith("#define ENGINE_MAJOR_VERSION "))
+            {
+                EngineVersionMajor = Line.Split(' ')[2];
+            }
+            else if (Line.StartsWith("#define ENGINE_MINOR_VERSION "))
+            {
+                EngineVersionMinor = Line.Split(' ')[2];
+            }
+        }
+        return System.Int32.Parse(EngineVersionMajor) == 4 && System.Int32.Parse(EngineVersionMinor) >= 14;
+    }
+
+    public JavascriptEditor(TargetInfo Target)
 	{        
         PublicDependencyModuleNames.AddRange(
                 new string[]
@@ -35,6 +54,11 @@ public class JavascriptEditor : ModuleRules
                         "Editor/AIGraph/Private",
                     }
                 );
+
+            if (IsVREditorNeeded())
+            {
+                PrivateDependencyModuleNames.AddRange(new string []{ "LevelEditor", "ViewportInteraction", "VREditor" });
+            }
 
             PrivateDependencyModuleNames.AddRange(
                 new string[]

@@ -5,6 +5,7 @@
 #include "Runtime/Engine/Public/Slate/SceneViewport.h"
 
 #include "AssetViewerSettings.h"
+#include "../../Launch/Resources/Version.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptEditor"
 
@@ -428,7 +429,12 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 			UStaticMeshComponent* Component = *Itr;
 			if (Component && Component->GetOwner() == nullptr) 
 			{
-				if (Component->StaticMesh && Component->StaticMesh->GetName().Equals(FString(TEXT("Sphere_inversenormals"))))
+#if ENGINE_MINOR_VERSION >= 14
+				auto StaticMesh = Component->GetStaticMesh();
+#else
+				auto StaticMesh = Component->StaticMesh;
+#endif
+				if (StaticMesh && StaticMesh->GetName().Equals(FString(TEXT("Sphere_inversenormals"))))
 				{
 					return Component;
 				}
@@ -693,7 +699,12 @@ void UJavascriptEditorViewport::DeprojectScreenToWorld(const FVector2D &ScreenPo
         FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues( ViewportWidget->EditorViewportClient->Viewport, ViewportWidget->EditorViewportClient->GetScene(), ViewportWidget->EditorViewportClient->EngineShowFlags ));
         FSceneView* View = ViewportWidget->EditorViewportClient->CalcSceneView(&ViewFamily);
         
-        FSceneView::DeprojectScreenToWorld(ScreenPosition, View->ViewRect, View->ViewMatrices.GetInvViewProjMatrix(), OutRayOrigin, OutRayDirection);
+#if ENGINE_MINOR_VERSION >= 14
+		const auto& InvViewProjMatrix = View->ViewMatrices.GetInvViewProjectionMatrix();
+#else
+		const auto& InvViewProjMatrix = View->ViewMatrices.GetInvViewProjMatrix();
+#endif
+        FSceneView::DeprojectScreenToWorld(ScreenPosition, View->ViewRect, InvViewProjMatrix, OutRayOrigin, OutRayDirection);
     }
 }
 
@@ -703,8 +714,14 @@ void UJavascriptEditorViewport::ProjectWorldToScreen(const FVector &WorldPositio
     {
         FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues( ViewportWidget->EditorViewportClient->Viewport, ViewportWidget->EditorViewportClient->GetScene(), ViewportWidget->EditorViewportClient->EngineShowFlags ));
         FSceneView* View = ViewportWidget->EditorViewportClient->CalcSceneView(&ViewFamily);
+
+#if ENGINE_MINOR_VERSION >= 14
+		const auto& ViewProjMatrix = View->ViewMatrices.GetViewProjectionMatrix();
+#else
+		const auto& ViewProjMatrix = View->ViewMatrices.GetViewProjMatrix();
+#endif
         
-        FSceneView::ProjectWorldToScreen(WorldPosition, View->ViewRect, View->ViewMatrices.GetViewProjMatrix(), OutScreenPosition);
+        FSceneView::ProjectWorldToScreen(WorldPosition, View->ViewRect, ViewProjMatrix, OutScreenPosition);
     }
 }
 
