@@ -35,6 +35,11 @@
 // the V8 DLL USING_V8_SHARED needs to be defined. When either building the V8
 // static library or building a program which uses the V8 static library neither
 // BUILDING_V8_SHARED nor USING_V8_SHARED should be defined.
+#if defined(BUILDING_V8_SHARED) && defined(USING_V8_SHARED)
+#error both BUILDING_V8_SHARED and USING_V8_SHARED are set - please check the\
+  build configuration to ensure that at most one of these is set
+#endif
+
 #ifdef BUILDING_V8_SHARED
 # define V8_EXPORT __declspec(dllexport)
 #elif USING_V8_SHARED
@@ -1101,22 +1106,22 @@ class V8_EXPORT Module {
    */
   Local<String> GetModuleRequest(int i) const;
 
-  /**
-   * Returns the identity hash for this object.
-   */
-  int GetIdentityHash() const;
+  void SetEmbedderData(Local<Value> data);
+  Local<Value> GetEmbedderData() const;
 
   typedef MaybeLocal<Module> (*ResolveCallback)(Local<Context> context,
                                                 Local<String> specifier,
-                                                Local<Module> referrer);
+                                                Local<Module> referrer,
+                                                Local<Value> data);
 
   /**
    * ModuleDeclarationInstantiation
    *
    * Returns false if an exception occurred during instantiation.
    */
-  V8_WARN_UNUSED_RESULT bool Instantiate(Local<Context> context,
-                                         ResolveCallback callback);
+  V8_WARN_UNUSED_RESULT bool Instantiate(
+      Local<Context> context, ResolveCallback callback,
+      Local<Value> callback_data = Local<Value>());
 
   /**
    * ModuleEvaluation
@@ -3537,7 +3542,7 @@ class PropertyCallbackInfo {
   /**
    * \return The receiver. In many cases, this is the object on which the
    * property access was intercepted. When using
-   * `Reflect.get`, `Function.prototype.call`, or similar functions, it is the
+   * `Reflect.Get`, `Function.prototype.call`, or similar functions, it is the
    * object passed in as receiver or thisArg.
    *
    * \code
@@ -3602,7 +3607,7 @@ class PropertyCallbackInfo {
    * \return True if the intercepted function should throw if an error occurs.
    * Usually, `true` corresponds to `'use strict'`.
    *
-   * \note Always `false` when intercepting `Reflect.set()`
+   * \note Always `false` when intercepting `Reflect.Set()`
    * independent of the language mode.
    */
   V8_INLINE bool ShouldThrowOnError() const;
@@ -3897,29 +3902,13 @@ class V8_EXPORT Proxy : public Object {
 class V8_EXPORT WasmCompiledModule : public Object {
  public:
   typedef std::pair<std::unique_ptr<const uint8_t[]>, size_t> SerializedModule;
-  // A buffer that is owned by the caller.
-  typedef std::pair<const uint8_t*, size_t> CallerOwnedBuffer;
-  // Get the wasm-encoded bytes that were used to compile this module.
-  Local<String> GetWasmWireBytes();
 
-  // Serialize the compiled module. The serialized data does not include the
-  // uncompiled bytes.
   SerializedModule Serialize();
-
-  // If possible, deserialize the module, otherwise compile it from the provided
-  // uncompiled bytes.
-  static MaybeLocal<WasmCompiledModule> DeserializeOrCompile(
-      Isolate* isolate, const CallerOwnedBuffer& serialized_module,
-      const CallerOwnedBuffer& wire_bytes);
+  static MaybeLocal<WasmCompiledModule> Deserialize(
+      Isolate* isolate, const SerializedModule& serialized_data);
   V8_INLINE static WasmCompiledModule* Cast(Value* obj);
 
  private:
-  static MaybeLocal<WasmCompiledModule> Deserialize(
-      Isolate* isolate, const CallerOwnedBuffer& serialized_module,
-      const CallerOwnedBuffer& wire_bytes);
-  static MaybeLocal<WasmCompiledModule> Compile(Isolate* isolate,
-                                                const uint8_t* start,
-                                                size_t length);
   WasmCompiledModule();
   static void CheckCast(Value* obj);
 };
@@ -5687,10 +5676,6 @@ class V8_EXPORT ResourceConstraints {
   void set_code_range_size(size_t limit_in_mb) {
     code_range_size_ = limit_in_mb;
   }
-  size_t max_zone_pool_size() const { return max_zone_pool_size_; }
-  void set_max_zone_pool_size(const size_t bytes) {
-    max_zone_pool_size_ = bytes;
-  }
 
  private:
   int max_semi_space_size_;
@@ -5698,7 +5683,6 @@ class V8_EXPORT ResourceConstraints {
   int max_executable_size_;
   uint32_t* stack_limit_;
   size_t code_range_size_;
-  size_t max_zone_pool_size_;
 };
 
 
@@ -8305,8 +8289,8 @@ class Internals {
   static const int kNodeIsPartiallyDependentShift = 4;
   static const int kNodeIsActiveShift = 4;
 
-  static const int kJSObjectType = 0xbb;
-  static const int kJSApiObjectType = 0xba;
+  static const int kJSObjectType = 0xb9;
+  static const int kJSApiObjectType = 0xb8;
   static const int kFirstNonstringType = 0x80;
   static const int kOddballType = 0x83;
   static const int kForeignType = 0x87;
