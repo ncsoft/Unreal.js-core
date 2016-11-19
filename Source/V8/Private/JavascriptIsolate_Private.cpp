@@ -588,6 +588,41 @@ public:
 				return Int32::New(isolate_, Value);
 			}
 		}
+		else if (auto p = Cast<USetProperty>(Property))
+		{
+			FScriptSetHelper_InContainer SetHelper(p, Buffer);
+
+			auto Out = Array::New(isolate_);
+
+			auto Num = SetHelper.Num();
+			for (int Index = 0; Index < Num; ++Index)
+			{
+				auto PairPtr = SetHelper.GetElementPtr(Index);
+
+				Out->Set(Index, InternalReadProperty(p->ElementProp, SetHelper.GetElementPtr(Index), Owner));
+			}
+
+			return Out;
+		}
+		else if (auto p = Cast<UMapProperty>(Property))
+		{
+			FScriptMapHelper_InContainer MapHelper(p, Buffer);
+
+			auto Out = Object::New(isolate_);
+
+			auto Num = MapHelper.Num();
+			for (int Index = 0; Index < Num; ++Index)
+			{
+				uint8* PairPtr = MapHelper.GetPairPtr(Index);
+
+				auto Key = InternalReadProperty(p->KeyProp, PairPtr + p->MapLayout.KeyOffset, Owner);
+				auto Value = InternalReadProperty(p->ValueProp, PairPtr, Owner);
+
+				Out->Set(Key, Value);
+			}
+
+			return Out;
+		}
 		else
 		{
 			return I.Keyword("<Unsupported type>");
@@ -743,7 +778,7 @@ public:
 			{
 				I.Throw(FString::Printf(TEXT("No ScriptStruct found : %s"), *p->Struct->GetName()));
 			}					
-		}		
+		}
 		else if (auto p = Cast<UArrayProperty>(Property))
 		{
 			if (Value->IsArray())
@@ -797,6 +832,49 @@ public:
 		else if (auto p = Cast<UObjectPropertyBase>(Property))
 		{
 			p->SetObjectPropertyValue_InContainer(Buffer, UObjectFromV8(Value));
+		}
+		else if (auto p = Cast<USetProperty>(Property))
+		{
+			if (Value->IsArray())
+			{
+				auto arr = Handle<Array>::Cast(Value);
+				auto len = arr->Length();
+
+				FScriptSetHelper_InContainer SetHelper(p, Buffer);
+
+				auto Num = SetHelper.Num();
+				for (int Index = 0; Index < Num; ++Index)
+				{
+					const int32 ElementIndex = SetHelper.AddDefaultValue_Invalid_NeedsRehash();
+					uint8* ElementPtr = SetHelper.GetElementPtr(Index);
+					InternalWriteProperty(p->ElementProp, ElementPtr, arr->Get(Index));
+				}
+
+				SetHelper.Rehash();
+			}
+		}
+		else if (auto p = Cast<UMapProperty>(Property))
+		{
+			if (Value->IsObject())
+			{
+				auto v = Value->ToObject();
+
+				FScriptMapHelper_InContainer MapHelper(p, Buffer);
+
+				auto PropertyNames = v->GetOwnPropertyNames();
+				auto Num = PropertyNames->Length();
+				for (decltype(Num) Index = 0; Index < Num; ++Index) {
+					auto Key = PropertyNames->Get(Index);
+					auto Value = v->Get(Key);
+
+					auto ElementIndex = MapHelper.AddDefaultValue_Invalid_NeedsRehash();
+					MapHelper.Rehash();
+
+					uint8* PairPtr = MapHelper.GetPairPtr(ElementIndex);
+					InternalWriteProperty(p->KeyProp, PairPtr + p->MapLayout.KeyOffset, Key);
+					InternalWriteProperty(p->ValueProp, PairPtr, Value);
+				}
+			}
 		}
 	};		
 	
