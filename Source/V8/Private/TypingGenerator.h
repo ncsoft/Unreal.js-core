@@ -303,6 +303,8 @@ struct TypingGenerator : TypingGeneratorBase
 
 		const auto name = FV8Config::Safeify(source->GetName());
 		auto super_class = source->GetSuperStruct();
+		
+		w.tooltip("", source);
 
 		w.push("declare class ");
 		w.push(name);
