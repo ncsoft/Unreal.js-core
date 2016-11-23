@@ -80,8 +80,11 @@ void FJavascriptInGameScene::Destroy()
 		Component->UnregisterComponent();
 	}
 
-	PreviewWorld->CleanupWorld();
-	GEngine->DestroyWorldContext(GetWorld());
+	if (GEngine) 
+	{
+		PreviewWorld->CleanupWorld();
+		GEngine->DestroyWorldContext(GetWorld());
+	}
 	bDestroyed = true;
 }
 

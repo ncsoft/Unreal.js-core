@@ -72,4 +72,7 @@ class JAVASCRIPTUMG_API UJavascriptUMGLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FVector2D GenerateDynamicImageResource(const FName InDynamicBrushName);
+	
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FVector2D ComputeDesiredSize(UWidget* Widget, float LayoutScaleMultiplier);
 };

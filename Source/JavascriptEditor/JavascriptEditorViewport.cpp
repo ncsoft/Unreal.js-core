@@ -1,8 +1,11 @@
 #include "JavascriptEditor.h"
 #include "JavascriptEditorViewport.h"
 #include "SEditorViewport.h"
-#include "PreviewScene.h"
+#include "AdvancedPreviewScene.h"
 #include "Runtime/Engine/Public/Slate/SceneViewport.h"
+
+#include "AssetViewerSettings.h"
+#include "../../Launch/Resources/Version.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptEditor"
 
@@ -34,13 +37,13 @@ public:
 	TWeakObjectPtr<UJavascriptEditorViewport> Widget;
 	
 	/** Constructor */
-	explicit FJavascriptEditorViewportClient(FPreviewScene& InPreviewScene, const TWeakPtr<class SEditorViewport>& InEditorViewportWidget = nullptr, TWeakObjectPtr<UJavascriptEditorViewport> InWidget = nullptr)
+	explicit FJavascriptEditorViewportClient(FAdvancedPreviewScene& InPreviewScene, const TWeakPtr<class SEditorViewport>& InEditorViewportWidget = nullptr, TWeakObjectPtr<UJavascriptEditorViewport> InWidget = nullptr)
 		: FEditorViewportClient(nullptr,&InPreviewScene,InEditorViewportWidget), Widget(InWidget), BackgroundColor(FColor(55,55,55))
-	{		
+	{
 	}
 	~FJavascriptEditorViewportClient()
 	{}
-
+	
 	virtual void ProcessClick(class FSceneView& View, class HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY) override
 	{
 		if (Widget.IsValid() && Widget->OnClick.IsBound())
@@ -256,6 +259,11 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 				.AddMetaData<FTagMetaData>(TEXT("JavascriptEditor.Viewport"))
 			);
 	}
+	SAutoRefreshEditorViewport()
+		: PreviewScene(FPreviewScene::ConstructionValues())
+	{
+
+	}
 
 	virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override
 	{
@@ -391,11 +399,56 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 		}
 	}
 
+	void SetProfileIndex(const int32 InProfileIndex)
+	{
+		PreviewScene.SetProfileIndex(InProfileIndex);
+	}
+
+	int32 GetCurrentProfileIndex()
+	{
+		return PreviewScene.GetCurrentProfileIndex();
+	}
+
+	void SetFloorOffset(const float InFloorOffset)
+	{
+		PreviewScene.SetFloorOffset(InFloorOffset);
+	}
+
+	UStaticMeshComponent* GetFloorMeshComponent()
+	{
+		return const_cast<UStaticMeshComponent*>(PreviewScene.GetFloorMeshComponent());
+	}
+
+	UStaticMeshComponent* GetSkyComponent()
+	{
+		for (TObjectIterator<UStaticMeshComponent> Itr; Itr; ++Itr)
+		{
+			if (Itr->GetWorld() != PreviewScene.GetWorld())
+				continue;
+
+			UStaticMeshComponent* Component = *Itr;
+			if (Component && Component->GetOwner() == nullptr) 
+			{
+#if ENGINE_MINOR_VERSION >= 14
+				auto StaticMesh = Component->GetStaticMesh();
+#else
+				auto StaticMesh = Component->StaticMesh;
+#endif
+				if (StaticMesh && StaticMesh->GetName().Equals(FString(TEXT("Sphere_inversenormals"))))
+				{
+					return Component;
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
 public:
 	TSharedPtr<FJavascriptEditorViewportClient> EditorViewportClient;
 	
 	/** preview scene */
-	FPreviewScene PreviewScene;
+	FAdvancedPreviewScene PreviewScene;
 
 private:
 	TWeakObjectPtr<UJavascriptEditorViewport> Widget;
@@ -646,7 +699,12 @@ void UJavascriptEditorViewport::DeprojectScreenToWorld(const FVector2D &ScreenPo
         FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues( ViewportWidget->EditorViewportClient->Viewport, ViewportWidget->EditorViewportClient->GetScene(), ViewportWidget->EditorViewportClient->EngineShowFlags ));
         FSceneView* View = ViewportWidget->EditorViewportClient->CalcSceneView(&ViewFamily);
         
-        FSceneView::DeprojectScreenToWorld(ScreenPosition, View->ViewRect, View->ViewMatrices.GetInvViewProjMatrix(), OutRayOrigin, OutRayDirection);
+#if ENGINE_MINOR_VERSION >= 14
+		const auto& InvViewProjMatrix = View->ViewMatrices.GetInvViewProjectionMatrix();
+#else
+		const auto& InvViewProjMatrix = View->ViewMatrices.GetInvViewProjMatrix();
+#endif
+        FSceneView::DeprojectScreenToWorld(ScreenPosition, View->ViewRect, InvViewProjMatrix, OutRayOrigin, OutRayDirection);
     }
 }
 
@@ -656,8 +714,14 @@ void UJavascriptEditorViewport::ProjectWorldToScreen(const FVector &WorldPositio
     {
         FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues( ViewportWidget->EditorViewportClient->Viewport, ViewportWidget->EditorViewportClient->GetScene(), ViewportWidget->EditorViewportClient->EngineShowFlags ));
         FSceneView* View = ViewportWidget->EditorViewportClient->CalcSceneView(&ViewFamily);
+
+#if ENGINE_MINOR_VERSION >= 14
+		const auto& ViewProjMatrix = View->ViewMatrices.GetViewProjectionMatrix();
+#else
+		const auto& ViewProjMatrix = View->ViewMatrices.GetViewProjMatrix();
+#endif
         
-        FSceneView::ProjectWorldToScreen(WorldPosition, View->ViewRect, View->ViewMatrices.GetViewProjMatrix(), OutScreenPosition);
+        FSceneView::ProjectWorldToScreen(WorldPosition, View->ViewRect, ViewProjMatrix, OutScreenPosition);
     }
 }
 
@@ -683,6 +747,56 @@ bool UJavascriptEditorViewport::SetEngineShowFlags(const FString& In)
 	{
 		return false;
 	}
+}
+
+void UJavascriptEditorViewport::SetProfileIndex(const int32 InProfileIndex)
+{
+	if (ViewportWidget.IsValid())
+	{
+		ViewportWidget->SetProfileIndex(InProfileIndex);
+	}
+}
+
+int32 UJavascriptEditorViewport::GetCurrentProfileIndex()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetCurrentProfileIndex();
+	}
+
+	return 0;
+}
+
+UAssetViewerSettings* UJavascriptEditorViewport::GetDefaultAssetViewerSettings()
+{
+	return UAssetViewerSettings::Get();
+}
+
+void UJavascriptEditorViewport::SetFloorOffset(const float InFloorOffset)
+{
+	if (ViewportWidget.IsValid())
+	{
+		ViewportWidget->SetFloorOffset(InFloorOffset);
+	}
+}
+
+UStaticMeshComponent* UJavascriptEditorViewport::GetFloorMeshComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetFloorMeshComponent();
+	}
+	return nullptr;
+}
+
+UStaticMeshComponent* UJavascriptEditorViewport::GetSkyComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetSkyComponent();
+	}
+
+	return nullptr;
 }
 
 PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

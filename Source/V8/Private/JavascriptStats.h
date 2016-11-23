@@ -7,6 +7,7 @@ DECLARE_CYCLE_STAT_EXTERN(TEXT("MarkSweepCompact"), STAT_MarkSweepCompact, STATG
 DECLARE_CYCLE_STAT_EXTERN(TEXT("IncrementalMarking"), STAT_IncrementalMarking, STATGROUP_Javascript, V8_API);
 DECLARE_CYCLE_STAT_EXTERN(TEXT("ProcessWeakCallbacks"), STAT_ProcessWeakCallbacks, STATGROUP_Javascript, V8_API);
 
+DECLARE_CYCLE_STAT_EXTERN(TEXT("Idle task"), STAT_V8IdleTask, STATGROUP_Javascript, V8_API);
 DECLARE_CYCLE_STAT_EXTERN(TEXT("Delegate"), STAT_JavascriptDelegate, STATGROUP_Javascript, V8_API);
 DECLARE_CYCLE_STAT_EXTERN(TEXT("Proxy"), STAT_JavascriptProxy, STATGROUP_Javascript, V8_API);
 DECLARE_CYCLE_STAT_EXTERN(TEXT("get"), STAT_JavascriptPropertyGet, STATGROUP_Javascript, V8_API);

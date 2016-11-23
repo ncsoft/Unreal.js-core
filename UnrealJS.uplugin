@@ -2,9 +2,9 @@
   "FileVersion": 3,
   "FriendlyName": "Unreal.js - Javascript Runtime",
   "Version": 2,
-  "VersionName": "0.2.2",
-  "FriendlyVersion": "0.2.2",
-  "EngineVersion": "4.13.0",
+  "VersionName": "0.2.4",
+  "FriendlyVersion": "0.2.4",
+  "EngineVersion": "4.14.0",
   "Description": "Javascript powered UnrealEngine",
   "Category": "Programming",
   "CreatedBy": "NCSOFT Corporation",
@@ -29,12 +29,6 @@
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
       "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Android", "Linux"]
-    },
-    {
-      "Name": "JavascriptWebSocket",
-      "Type": "Runtime",
-      "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms" : ["Win64"]
     },
     {
       "Name": "JavascriptEditor",

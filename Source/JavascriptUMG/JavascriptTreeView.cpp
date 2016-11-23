@@ -49,6 +49,11 @@ TSharedPtr<SHeaderRow> UJavascriptTreeView::GetHeaderRowWidget()
 			);
 		}
 	}
+	else 
+	{
+		HeaderRowWidget = SNew(SHeaderRow)
+			.Style(&HeaderRowStyle);
+	}
 	return HeaderRowWidget;
 }
 

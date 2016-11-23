@@ -1400,20 +1400,63 @@ public:
 				return false;
 			};
 
+			auto load_module_paths = [&](FString base_path)
+			{
+				TArray<FString> Dirs;
+				TArray<FString> Parsed;
+				base_path.ParseIntoArray(Parsed, TEXT("/"));
+				auto PartCount = Parsed.Num();
+				while (PartCount > 0) {
+					if (Parsed[PartCount-1].Equals(TEXT("node_modules")))
+					{
+						PartCount--;
+						continue;
+					}
+					else
+					{
+						TArray<FString> Parts;
+						for (int i = 0; i < PartCount; i++) Parts.Add(Parsed[i]);
+						FString Dir = FString::Join(Parts, TEXT("/"));
+						Dirs.Add(Dir);
+					}
+					PartCount--;
+				}
+
+				return Dirs;
+			};
+
+			auto load_node_modules = [&](FString base_path)
+			{
+				TArray<FString> paths = load_module_paths(base_path);
+				auto founded = false;
+				for (const auto& path : paths)
+				{
+					if (inner2(path / TEXT("node_modules")))
+					{
+						founded = true;
+						break;
+					}
+				}
+				return founded;
+			};
+
 			auto current_script_path = FPaths::GetPath(StringFromV8(StackTrace::CurrentStackTrace(isolate, 1, StackTrace::kScriptName)->GetFrame(0)->GetScriptName()));
 #if PLATFORM_WINDOWS
 			current_script_path = current_script_path.Replace(TEXT("\\"), TEXT("/"));
 #endif
+
 			if (!(required_module[0] == '.' && inner2(current_script_path)))
 			{
-				if (!inner2(current_script_path / TEXT("node_modules")))
+				for (const auto& path : load_module_paths(current_script_path))
 				{
-					for (const auto& path : Self->Paths)
-					{
-						if (inner2(path)) break;
+					if (inner2(path)) break;
+					if (inner2(path / TEXT("node_modules"))) break;
+				}
 
-						if (inner2(path / TEXT("node_modules"))) break;
-					}
+				for (const auto& path : Self->Paths)
+				{
+					if (inner2(path)) break;
+					if (inner2(path / TEXT("node_modules"))) break;
 				}
 			}
 
@@ -1956,13 +1999,29 @@ inline void FJavascriptContextImplementation::AddReferencedObjects(UObject * InT
 	for (auto It = ObjectToObjectMap.CreateIterator(); It; ++It)
 	{
 //		UE_LOG(Javascript, Log, TEXT("JavascriptContext referencing %s %s"), *(It.Key()->GetClass()->GetName()), *(It.Key()->GetName()));
-		Collector.AddReferencedObject(It.Key(), InThis);
+		auto Object = It.Key();
+		if (Object->IsPendingKill())
+		{
+			It.RemoveCurrent();
+		}
+		else
+		{
+			Collector.AddReferencedObject(It.Key(), InThis);
+		}
 	}
 
 	// All structs
 	for (auto It = MemoryToObjectMap.CreateIterator(); It; ++It)
 	{
-		Collector.AddReferencedObject(It.Key()->Struct, InThis);
+		auto Struct = It.Key()->Struct;
+		if (Struct->IsPendingKill())
+		{
+			It.RemoveCurrent();
+		}
+		else
+		{
+			Collector.AddReferencedObject(Struct, InThis);
+		}
 	}
 }
 

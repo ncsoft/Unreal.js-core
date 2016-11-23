@@ -366,5 +366,20 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool DeletePackage(UPackage* Package);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void CreateBrushForVolumeActor(AVolume* NewActor, UBrushBuilder* BrushBuilder);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static UWorld* FindWorldInPackage(UPackage* Package);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FString ExportNavigation(UWorld* InWorld, FString Path);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void RequestEndPlayMapInPIE();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void RemoveLevelInstance(UWorld* World);
 #endif
 };

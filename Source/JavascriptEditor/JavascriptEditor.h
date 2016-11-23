@@ -21,5 +21,7 @@
 #include "IDetailsView.h"
 #include "LandscapeDataAccess.h"
 #include "LandscapeEdit.h"
+#include "GraphEditor.h"
+#include "Editor/GraphEditor/Public/SGraphActionMenu.h"
 #include "Editor/LandscapeEditor/Private/LandscapeEdMode.h"
 #endif

@@ -123,3 +123,11 @@ void UJavascriptWidget::OnListenForInputAction(FName ActionName, TEnumAsByte< EI
 		InputComponent->AddActionBinding(NewBinding);
 	}
 }
+
+void UJavascriptWidget::OnInputActionByName_Implementation(FName ActionName)
+{
+	if (OnInputActionEvent.IsBound())
+	{
+		OnInputActionEvent.Broadcast(ActionName);
+	}
+}

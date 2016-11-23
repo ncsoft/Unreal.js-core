@@ -315,9 +315,11 @@ public:
 			GetSelf(isolate)->OnGCEvent(true, type, flags);
 		});
 
+#if V8_MINOR_VERSION < 3
 		isolate_->AddMemoryAllocationCallback([](ObjectSpace space, AllocationAction action,int size) {
 			OnMemoryAllocationEvent(space, action, size);
 		}, kObjectSpaceAll, kAllocationActionAll);
+#endif
 	}
 #endif
 
@@ -586,6 +588,41 @@ public:
 				return Int32::New(isolate_, Value);
 			}
 		}
+		else if (auto p = Cast<USetProperty>(Property))
+		{
+			FScriptSetHelper_InContainer SetHelper(p, Buffer);
+
+			auto Out = Array::New(isolate_);
+
+			auto Num = SetHelper.Num();
+			for (int Index = 0; Index < Num; ++Index)
+			{
+				auto PairPtr = SetHelper.GetElementPtr(Index);
+
+				Out->Set(Index, InternalReadProperty(p->ElementProp, SetHelper.GetElementPtr(Index), Owner));
+			}
+
+			return Out;
+		}
+		else if (auto p = Cast<UMapProperty>(Property))
+		{
+			FScriptMapHelper_InContainer MapHelper(p, Buffer);
+
+			auto Out = Object::New(isolate_);
+
+			auto Num = MapHelper.Num();
+			for (int Index = 0; Index < Num; ++Index)
+			{
+				uint8* PairPtr = MapHelper.GetPairPtr(Index);
+
+				auto Key = InternalReadProperty(p->KeyProp, PairPtr + p->MapLayout.KeyOffset, Owner);
+				auto Value = InternalReadProperty(p->ValueProp, PairPtr, Owner);
+
+				Out->Set(Key, Value);
+			}
+
+			return Out;
+		}
 		else
 		{
 			return I.Keyword("<Unsupported type>");
@@ -669,8 +706,20 @@ public:
 				}
 				else
 				{
-					auto Class = StaticLoadObject(UClass::StaticClass(), nullptr, *UString);
-					p->SetPropertyValue_InContainer(Buffer, Class);
+					auto Object = StaticLoadObject(UObject::StaticClass(), nullptr, *UString);					
+					if (auto Class = Cast<UClass>(Object))
+					{
+						p->SetPropertyValue_InContainer(Buffer, Class);
+					}
+					else if (auto BP = Cast<UBlueprint>(Object))
+					{
+						auto BPGC = BP->GeneratedClass;
+						p->SetPropertyValue_InContainer(Buffer, BPGC);
+					}
+					else
+					{
+						p->SetPropertyValue_InContainer(Buffer, Object);
+					}
 				}
 			}
 			else
@@ -729,7 +778,7 @@ public:
 			{
 				I.Throw(FString::Printf(TEXT("No ScriptStruct found : %s"), *p->Struct->GetName()));
 			}					
-		}		
+		}
 		else if (auto p = Cast<UArrayProperty>(Property))
 		{
 			if (Value->IsArray())
@@ -783,6 +832,49 @@ public:
 		else if (auto p = Cast<UObjectPropertyBase>(Property))
 		{
 			p->SetObjectPropertyValue_InContainer(Buffer, UObjectFromV8(Value));
+		}
+		else if (auto p = Cast<USetProperty>(Property))
+		{
+			if (Value->IsArray())
+			{
+				auto arr = Handle<Array>::Cast(Value);
+				auto len = arr->Length();
+
+				FScriptSetHelper_InContainer SetHelper(p, Buffer);
+
+				auto Num = SetHelper.Num();
+				for (int Index = 0; Index < Num; ++Index)
+				{
+					const int32 ElementIndex = SetHelper.AddDefaultValue_Invalid_NeedsRehash();
+					uint8* ElementPtr = SetHelper.GetElementPtr(Index);
+					InternalWriteProperty(p->ElementProp, ElementPtr, arr->Get(Index));
+				}
+
+				SetHelper.Rehash();
+			}
+		}
+		else if (auto p = Cast<UMapProperty>(Property))
+		{
+			if (Value->IsObject())
+			{
+				auto v = Value->ToObject();
+
+				FScriptMapHelper_InContainer MapHelper(p, Buffer);
+
+				auto PropertyNames = v->GetOwnPropertyNames();
+				auto Num = PropertyNames->Length();
+				for (decltype(Num) Index = 0; Index < Num; ++Index) {
+					auto Key = PropertyNames->Get(Index);
+					auto Value = v->Get(Key);
+
+					auto ElementIndex = MapHelper.AddDefaultValue_Invalid_NeedsRehash();
+					MapHelper.Rehash();
+
+					uint8* PairPtr = MapHelper.GetPairPtr(ElementIndex);
+					InternalWriteProperty(p->KeyProp, PairPtr + p->MapLayout.KeyOffset, Key);
+					InternalWriteProperty(p->ValueProp, PairPtr, Value);
+				}
+			}
 		}
 	};		
 	
@@ -1755,7 +1847,16 @@ public:
 
 						if (Class)
 						{
-							value = I.String(Class->GetPathName());
+							auto BPGC = Cast<UBlueprintGeneratedClass>(Class);
+							if (BPGC)
+							{
+								auto BP = Cast<UBlueprint>(BPGC->ClassGeneratedBy);
+								value = I.String(BP->GetPathName());
+							}
+							else
+							{
+								value = I.String(Class->GetPathName());
+							}
 						}
 						else
 						{
@@ -2312,6 +2413,7 @@ public:
 		typedef typename WeakData::ValueInitType WeakDataValueInitType;
 		typedef TPairInitializer<WeakDataKeyInitType, WeakDataValueInitType> InitializerType;
 
+#if V8_MINOR_VERSION < 3
 		Handle.template SetWeak<WeakData>(new WeakData(InitializerType(GetContext(), GarbageCollectedObject)), [](const WeakCallbackData<U, WeakData>& data) {
 			auto Parameter = data.GetParameter();
 
@@ -2321,6 +2423,17 @@ public:
 
 			delete Parameter;
 		});
+#else
+		Handle.template SetWeak<WeakData>(new WeakData(InitializerType(GetContext(), GarbageCollectedObject)), [](const WeakCallbackInfo<WeakData>& data) {
+			auto Parameter = data.GetParameter();
+
+			auto Context = Parameter->Key;
+			auto Self = static_cast<FJavascriptIsolateImplementation*>(Context->Environment.Get());
+			Self->OnGarbageCollectedByV8(Context, Parameter->Value);
+
+			delete Parameter;
+		}, WeakCallbackType::kParameter);
+#endif
 	}
 
 	template <typename StructType>

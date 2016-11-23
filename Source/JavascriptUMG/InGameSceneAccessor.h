@@ -1,6 +1,8 @@
 #pragma once
 
 #include "JavascriptInGameScene.h"
+#include "Components/SceneCaptureComponent2D.h"
+#include "Components/SceneCaptureComponentCube.h"
 #include "InGameSceneAccessor.generated.h"
 
 UCLASS()
@@ -35,8 +37,11 @@ public:
 		if (GameScene.IsValid()) 
 			GameScene->Destroy();
 		GameScene.Reset();
-		if(DelegateHandle.IsValid())
+		if (DelegateHandle.IsValid())
+		{
 			GEngine->GameViewport->OnTick().Remove(DelegateHandle);
+			DelegateHandle.Reset();
+		}
 	}
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -50,6 +55,7 @@ public:
 	{
 		if (!GIntraFrameDebuggingGameThread)
 		{
+			if(!GameScene.IsValid()) return;
 			// Begin Play
 			if (!GameScene->GetWorld()->bBegunPlay)
 			{
@@ -63,6 +69,10 @@ public:
 			// Tick
 			GameScene->GetWorld()->Tick(LEVELTICK_All, DeltaTime);
 			GameScene->GetWorld()->SendAllEndOfFrameUpdates();
+
+			auto Scene = GameScene->GetScene();
+			USceneCaptureComponent2D::UpdateDeferredCaptures(Scene);
+			USceneCaptureComponentCube::UpdateDeferredCaptures(Scene);
 		}
 	}
 	
