@@ -1999,13 +1999,29 @@ inline void FJavascriptContextImplementation::AddReferencedObjects(UObject * InT
 	for (auto It = ObjectToObjectMap.CreateIterator(); It; ++It)
 	{
 //		UE_LOG(Javascript, Log, TEXT("JavascriptContext referencing %s %s"), *(It.Key()->GetClass()->GetName()), *(It.Key()->GetName()));
-		Collector.AddReferencedObject(It.Key(), InThis);
+		auto Object = It.Key();
+		if (Object->IsPendingKill())
+		{
+			It.RemoveCurrent();
+		}
+		else
+		{
+			Collector.AddReferencedObject(It.Key(), InThis);
+		}
 	}
 
 	// All structs
 	for (auto It = MemoryToObjectMap.CreateIterator(); It; ++It)
 	{
-		Collector.AddReferencedObject(It.Key()->Struct, InThis);
+		auto Struct = It.Key()->Struct;
+		if (Struct->IsPendingKill())
+		{
+			It.RemoveCurrent();
+		}
+		else
+		{
+			Collector.AddReferencedObject(Struct, InThis);
+		}
 	}
 }
 
