@@ -231,11 +231,38 @@ struct TypingGenerator : TypingGeneratorBase
 		auto enumName = FV8Config::Safeify(source->GetName());
 		w.push("declare type ");
 		w.push(enumName);
-		w.push(" = string | symbol;\n");		
+		w.push(" = ");
+
+		
+
+		auto MaxStringLiteralEnumValue = source->GetMaxEnumValue();
+
+		TSet<FString> StringLiteralVisited;
+
+		for (decltype(MaxStringLiteralEnumValue) Index = 0; Index < MaxStringLiteralEnumValue; ++Index)
+		{
+
+			auto name = source->GetEnumName(Index);
+			if ( StringLiteralVisited.Find(name) ) continue;
+			StringLiteralVisited.Add(name);
+		}
+
+		auto MaxStringLiteralValues = StringLiteralVisited.Num();
+		for (int32 Index = 0; Index < MaxStringLiteralValues; Index++) {
+			auto name = StringLiteralVisited.Array()[Index];
+			w.push("'");
+			w.push(name);
+			w.push("'");
+			if (Index < MaxStringLiteralValues - 1) {
+				w.push(" | ");
+			}
+		}
+
+		w.push(";\n");
 
 		w.push("declare var ");
 		w.push(enumName);
-		w.push(" = { ");
+		w.push(" : { ");
 
 		auto MaxEnumValue = source->GetMaxEnumValue();
 
@@ -276,6 +303,8 @@ struct TypingGenerator : TypingGeneratorBase
 
 		const auto name = FV8Config::Safeify(source->GetName());
 		auto super_class = source->GetSuperStruct();
+		
+		w.tooltip("", source);
 
 		w.push("declare class ");
 		w.push(name);
@@ -421,7 +450,7 @@ struct TypingGenerator : TypingGeneratorBase
 
 			w.push("\tstatic StaticClass: any;\n");
 
-			w.push("\tstatic GetClassObject(): UClass;\n");
+			w.push("\tstatic GetClassObject(): Class;\n");
 
 			w.push("\tstatic GetDefaultObject(): ");
 			w.push(name);
