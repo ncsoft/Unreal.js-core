@@ -131,3 +131,13 @@ void UJavascriptWidget::OnInputActionByName_Implementation(FName ActionName)
 		OnInputActionEvent.Broadcast(ActionName);
 	}
 }
+
+void UJavascriptWidget::ReleaseSlateResources(bool bReleaseChildren)
+{
+	Super::ReleaseSlateResources(bReleaseChildren);
+
+	if (OnDestroy.IsBound())
+	{
+		OnDestroy.Broadcast(bReleaseChildren);
+	}
+}

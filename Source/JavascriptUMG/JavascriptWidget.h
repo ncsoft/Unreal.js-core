@@ -7,7 +7,7 @@ class UJavascriptWidget;
 class UJavascriptContext;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInputActionEvent, FName, ActionName);
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReleaseSlateResources, bool, bReleaseChildren);
 /**
  * 
  */
@@ -46,12 +46,18 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Scripting | Javascript")
 	FOnInputActionEvent OnInputActionEvent;
 
+	UPROPERTY(BlueprintAssignable, Category = "Scripting | Javascript")
+	FOnReleaseSlateResources OnDestroy;
 protected:
 
 	UPROPERTY()
 	UPanelSlot* ContentSlot;
 
 protected:
+
+	//UVisual interface
+	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
+	//~ End UVisual Interface
 
 	virtual UClass* GetSlotClass() const
 	{
