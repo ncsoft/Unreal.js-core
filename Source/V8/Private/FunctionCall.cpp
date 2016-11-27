@@ -1,4 +1,5 @@
 #include "V8PCH.h"
+#include "JavascriptIsolate_Private.h"
 #include "JavascriptContext_Private.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
