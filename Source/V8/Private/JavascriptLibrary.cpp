@@ -556,3 +556,70 @@ int32 UJavascriptLibrary::GetFunctionParmsSize(UFunction* Function)
 {
 	return Function->ParmsSize;
 }
+
+void UJavascriptLibrary::ClipboardCopy(const FString& String)
+{
+	FPlatformMisc::ClipboardCopy(*String);
+}
+
+FString UJavascriptLibrary::ClipboardPaste()
+{
+	FString OutString;
+	FPlatformMisc::ClipboardPaste(OutString);
+	return OutString;
+}
+
+FJavascriptStat UJavascriptLibrary::NewStat(
+	FName InStatName,
+	const FString& InStatDesc,
+	FName InGroupName,
+	FName InGroupCategory,
+	const FString& InGroupDesc,
+	bool bDefaultEnable,
+	bool bShouldClearEveryFrame,
+	EJavascriptStatDataType InStatType,
+	bool bCycleStat)
+{
+	FJavascriptStat Out;
+#if STATS
+	Out.Instance = MakeShareable(new FJavascriptThreadSafeStaticStatBase);
+	Out.Instance->DoSetup(
+		InStatName.GetPlainANSIString(),
+		*InStatDesc, 
+		InGroupName.GetPlainANSIString(),
+		InGroupCategory.GetPlainANSIString(),
+		*InGroupDesc, 
+		bDefaultEnable, 
+		bShouldClearEveryFrame, 
+		(EStatDataType::Type)InStatType, 
+		bCycleStat, 
+		FPlatformMemory::EMemoryCounterRegion::MCR_Invalid);
+#endif
+
+	return Out;
+}
+
+void UJavascriptLibrary::AddMessage(FJavascriptStat Stat, EJavascriptStatOperation InStatOperation)
+{
+#if STATS
+	FThreadStats::AddMessage(Stat.Instance->GetStatId().GetName(), (EStatOperation::Type)InStatOperation);
+#endif
+}
+
+void UJavascriptLibrary::AddMessage_int(FJavascriptStat Stat, EJavascriptStatOperation InStatOperation, int Value, bool bIsCycle)
+{
+#if STATS
+	if (!Stat.Instance.IsValid()) return;
+
+	FThreadStats::AddMessage(Stat.Instance->GetStatId().GetName(), (EStatOperation::Type)InStatOperation, (int64)Value, bIsCycle);
+#endif
+}
+
+void UJavascriptLibrary::AddMessage_float(FJavascriptStat Stat, EJavascriptStatOperation InStatOperation, float Value, bool bIsCycle)
+{
+#if STATS
+	if (!Stat.Instance.IsValid()) return;
+
+	FThreadStats::AddMessage(Stat.Instance->GetStatId().GetName(), (EStatOperation::Type)InStatOperation, (double)Value, bIsCycle);
+#endif
+}

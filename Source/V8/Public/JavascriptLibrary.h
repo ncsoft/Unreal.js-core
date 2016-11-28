@@ -17,6 +17,91 @@ struct V8_API FDirectoryItem
 	bool bIsDirectory;
 };
 
+#if STATS
+struct FJavascriptThreadSafeStaticStatBase : FThreadSafeStaticStatBase
+{
+	friend class UJavascriptLibrary;
+
+	FJavascriptThreadSafeStaticStatBase() 
+	{
+		HighPerformanceEnable = nullptr;
+	}
+
+	FORCEINLINE_STATS TStatId GetStatId() const
+	{
+		return *(TStatId*)(&HighPerformanceEnable);
+	}
+};
+#endif
+
+USTRUCT(BlueprintType)
+struct FJavascriptStat
+{
+	GENERATED_BODY()
+
+#if STATS
+	TSharedPtr<FJavascriptThreadSafeStaticStatBase> Instance;
+#endif
+};
+
+/**
+* What the type of the payload is
+*/
+UENUM()
+enum class EJavascriptStatDataType : uint8
+{
+	Invalid,
+	/** Not defined. */
+	ST_None,
+	/** int64. */
+	ST_int64,
+	/** double. */
+	ST_double,
+	/** FName. */
+	ST_FName,
+	/** Memory pointer, stored as uint64. */
+	ST_Ptr,
+};
+
+
+/**
+* The operation being performed by this message
+*/
+UENUM()
+enum class EJavascriptStatOperation : uint8
+{
+	Invalid,
+	/** Indicates metadata message. */
+	SetLongName,
+	/** Special message for advancing the stats frame from the game thread. */
+	AdvanceFrameEventGameThread,
+	/** Special message for advancing the stats frame from the render thread. */
+	AdvanceFrameEventRenderThread,
+	/** Indicates begin of the cycle scope. */
+	CycleScopeStart,
+	/** Indicates end of the cycle scope. */
+	CycleScopeEnd,
+	/** This is not a regular stat operation, but just a special message marker to determine that we encountered a special data in the stat file. */
+	SpecialMessageMarker,
+	/** Set operation. */
+	Set,
+	/** Clear operation. */
+	Clear,
+	/** Add operation. */
+	Add,
+	/** Subtract operation. */
+	Subtract,
+
+	// these are special ones for processed data
+	ChildrenStart,
+	ChildrenEnd,
+	Leaf,
+	MaxVal,
+
+	/** This is a memory operation. @see EMemoryOperation. */
+	Memory,
+};
+
 UENUM()
 enum class ELogVerbosity_JS : uint8
 {
@@ -348,4 +433,31 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static int32 GetFunctionParmsSize(UFunction* Function);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void ClipboardCopy(const FString& String);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FString ClipboardPaste();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptStat NewStat(
+		FName InStatName,
+		const FString& InStatDesc,
+		FName InGroupName,
+		FName InGroupCategory,
+		const FString& InGroupDesc,
+		bool bDefaultEnable,
+		bool bShouldClearEveryFrame,
+		EJavascriptStatDataType InStatType,
+		bool bCycleStat);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddMessage(FJavascriptStat Stat, EJavascriptStatOperation InStatOperation);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddMessage_int(FJavascriptStat Stat, EJavascriptStatOperation InStatOperation, int Value, bool bIsCycle);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddMessage_float(FJavascriptStat Stat, EJavascriptStatOperation InStatOperation, float Value, bool bIsCycle);
 };
