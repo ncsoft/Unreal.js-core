@@ -206,4 +206,7 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool ProcessCommandBindings_PointerEvent(FJavascriptUICommandList CommandList, const FPointerEvent& InMouseEvent);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptUICommandInfo GenericCommand(FString What);
 };

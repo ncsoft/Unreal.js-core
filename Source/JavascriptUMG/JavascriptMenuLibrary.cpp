@@ -1,6 +1,7 @@
 #include "JavascriptUMG.h"
 #include "JavascriptMenuLibrary.h"
 #include "SJavascriptBox.h"
+#include "Framework/Commands/GenericCommands.h"
 
 FJavascriptUICommandList UJavascriptMenuLibrary::CreateUICommandList()
 {
@@ -248,4 +249,24 @@ void UJavascriptMenuLibrary::AddPullDownMenu(FJavascriptMenuBuilder& MenuBuilder
 		});
 		MenuBuilder.MenuBar->AddPullDownMenu(InMenuLabel, InToolTip, Delegate, InExtensionHook, InTutorialHighlightName);
 	}
+}
+
+FJavascriptUICommandInfo UJavascriptMenuLibrary::GenericCommand(FString What)
+{
+	auto Commands = FGenericCommands::Get();
+	FJavascriptUICommandInfo Out;
+
+#define OP(x) if (What == TEXT(#x)) { Out.Handle = Commands.x; }
+	OP(Cut);
+	OP(Copy);
+	OP(Paste);
+	OP(Duplicate);
+	OP(Undo);
+	OP(Redo);
+	OP(Delete);
+	OP(Rename);
+	OP(SelectAll);
+
+#undef OP
+	return Out;
 }
