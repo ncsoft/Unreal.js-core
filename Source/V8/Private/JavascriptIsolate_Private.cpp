@@ -44,6 +44,11 @@ struct FPrivateJavascriptFunction
 	UniquePersistent<Function> Function;
 };
 
+struct FPrivateJavascriptRef
+{
+	UniquePersistent<Object> Object;
+};
+
 template <typename CppType>
 struct TStructReader
 {	
@@ -758,6 +763,15 @@ public:
 					func.Handle->context.Reset(isolate_, isolate_->GetCurrentContext());
 					func.Handle->Function.Reset(isolate_, jsfunc);
 					p->Struct->CopyScriptStruct(struct_buffer, &func);
+				}
+				else if (Value->IsObject() && p->Struct->IsChildOf(FJavascriptRef::StaticStruct()))
+				{
+					auto struct_buffer = p->ContainerPtrToValuePtr<uint8>(Buffer);
+					FJavascriptRef ref;
+					auto jsobj= Value.As<Object>();
+					ref.Handle = MakeShareable(new FPrivateJavascriptRef);
+					ref.Handle->Object.Reset(isolate_, jsobj);
+					p->Struct->CopyScriptStruct(struct_buffer, &ref);
 				}
 				// If raw javascript object has been passed,
 				else if (Value->IsObject())
@@ -1781,6 +1795,31 @@ public:
 		Template->Set(I.Keyword("C"), I.FunctionTemplate(fn, StructToExport));		
 	}
 
+	void AddMemberFunction_JavascriptRef_get(Local<FunctionTemplate> Template)
+	{
+		FIsolateHelper I(isolate_);
+
+		auto fn = [](const FunctionCallbackInfo<Value>& info) {
+			auto isolate = info.GetIsolate();
+
+			auto self = info.This();
+			auto out = Object::New(isolate);
+
+			auto Instance = FStructMemoryInstance::FromV8(self);
+
+			if (Instance->GetMemory())
+			{				
+				auto Ref = reinterpret_cast<FJavascriptRef*>(Instance->GetMemory());
+				FPrivateJavascriptRef* Handle = Ref->Handle.Get();
+				auto object = Local<Object>::New(isolate, Handle->Object);
+
+				info.GetReturnValue().Set(object);
+			}
+		};
+
+		Template->PrototypeTemplate()->Set(I.Keyword("get"), I.FunctionTemplate(fn, nullptr));
+	}
+
 	void AddMemberFunction_Struct_clone(Local<FunctionTemplate> Template, UStruct* StructToExport)
 	{
 		FIsolateHelper I(isolate_);
@@ -2200,6 +2239,11 @@ public:
 		AddMemberFunction_Struct_clone(Template, StructToExport);
 		AddMemberFunction_Struct_toJSON<FStructPropertyAccessors>(Template, StructToExport);
 		AddMemberFunction_Struct_RawAccessor<FStructPropertyAccessors>(Template, StructToExport);
+
+		if (StructToExport == FJavascriptRef::StaticStruct())
+		{
+			AddMemberFunction_JavascriptRef_get(Template);
+		}
 
 		Template->SetClassName(I.Keyword(StructToExport->GetName()));
 

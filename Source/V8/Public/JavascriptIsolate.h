@@ -35,6 +35,7 @@ public:
 };
 
 struct FPrivateJavascriptFunction;
+struct FPrivateJavascriptRef;
 
 USTRUCT()
 struct V8_API FJavascriptFunction
@@ -46,6 +47,15 @@ public:
 	void Execute(UScriptStruct* Struct, void* Buffer);
 
 	TSharedPtr<FPrivateJavascriptFunction> Handle;
+};
+
+USTRUCT()
+struct V8_API FJavascriptRef
+{
+	GENERATED_BODY()
+
+public:
+	TSharedPtr<FPrivateJavascriptRef> Handle;
 };
 
 USTRUCT(BlueprintType)
