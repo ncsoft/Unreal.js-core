@@ -22,8 +22,17 @@ DECLARE_LOG_CATEGORY_EXTERN(Javascript, Log, All);
 struct IJavascriptDebugger
 {
 	virtual ~IJavascriptDebugger() {}
-	
+
 	virtual void Destroy() = 0;
 
 	static IJavascriptDebugger* Create(int32 InPort, v8::Local<v8::Context> InContext);
+};
+
+struct IJavascriptInspector
+{
+	virtual ~IJavascriptInspector() {}
+
+	virtual void Destroy() = 0;
+
+	static IJavascriptInspector* Create(int32 InPort, v8::Local<v8::Context> InContext);
 };

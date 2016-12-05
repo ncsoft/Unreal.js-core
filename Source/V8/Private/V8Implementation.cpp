@@ -143,6 +143,16 @@ void UJavascriptContext::ResetAsDebugContext()
 	JavascriptContext->ResetAsDebugContext();
 }
 
+void UJavascriptContext::CreateInspector(int32 Port)
+{
+	JavascriptContext->CreateInspector(Port);
+}
+
+void UJavascriptContext::DestroyInspector()
+{
+	JavascriptContext->DestroyInspector();
+}
+
 bool UJavascriptContext::IsDebugContext() const
 {
 	return JavascriptContext->IsDebugContext();

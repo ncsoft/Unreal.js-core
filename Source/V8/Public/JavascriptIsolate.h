@@ -96,7 +96,7 @@ class V8_API UJavascriptIsolate : public UObject
 public:
 	virtual ~UJavascriptIsolate() override;
 
-	TSharedPtr<FJavascriptIsolate> JavascriptIsolate;	
+	TSharedPtr<FJavascriptIsolate> JavascriptIsolate;
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	UJavascriptContext* CreateContext();

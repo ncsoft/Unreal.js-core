@@ -958,11 +958,10 @@ public:
 		});
 
 		global_templ->Set(
-			I.Keyword("console"), 
+			I.Keyword("console"),
 			// Create an instance
-			Template->GetFunction()->NewInstance(), 
-			// Do not modify!
-			ReadOnly);
+			Template->GetFunction()->NewInstance()
+			);
 	}	
 
 	void ExportMisc(Local<ObjectTemplate> global_templ)

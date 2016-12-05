@@ -29,4 +29,6 @@ public:
 
 	virtual void SetFlagsFromString(const FString& Flags) = 0;
 	virtual void SetIdleTaskBudget(float BudgetInSeconds) = 0;
+
+	virtual void* GetV8Platform() = 0;
 };

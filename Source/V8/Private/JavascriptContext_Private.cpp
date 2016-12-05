@@ -706,6 +706,7 @@ class FJavascriptContextImplementation : public FJavascriptContext
 
 	Persistent<Context> context_;
 	IJavascriptDebugger* debugger{ nullptr };
+	IJavascriptInspector* inspector{ nullptr };
 
 	TMap<FString, UObject*> WKOs;
 
@@ -746,6 +747,28 @@ public:
 		}
 	}
 
+	void CreateInspector(int32 Port)
+	{
+		if (inspector) return;
+
+		Isolate::Scope isolate_scope(isolate());
+		HandleScope handle_scope(isolate());
+
+		inspector = IJavascriptInspector::Create(Port, context());
+	}
+
+	void DestroyInspector()
+	{
+		if (inspector)
+		{
+			Isolate::Scope isolate_scope(isolate());
+			HandleScope handle_scope(isolate());
+
+			inspector->Destroy();
+			inspector = nullptr;
+		}
+	}
+
 	FJavascriptContextImplementation(TSharedPtr<FJavascriptIsolate> InEnvironment, TArray<FString>& InPaths)
 		: FJavascriptContext(InEnvironment), Paths(InPaths)
 	{
@@ -769,6 +792,7 @@ public:
 		ReleaseAllPersistentHandles();
 
 		ResetAsDebugContext();
+		DestroyInspector();
 
 		context_.Reset();
 	}
@@ -1282,8 +1306,8 @@ public:
 				FString Text;
 				if (FFileHelper::LoadFileToString(Text, *script_path))
 				{
-					Text = FString::Printf(TEXT("(function (global,__dirname) {\nvar module = { exports : {}, filename : __dirname }, exports = module.exports;\n(function () { \n%s\n })()\n;return module.exports;}(this,'%s'));"), *Text, *script_path);
-					auto exports = Self->RunScript(full_path, Text, 3);
+					Text = FString::Printf(TEXT("(function (global,__dirname) { var module = { exports : {}, filename : __dirname }, exports = module.exports; (function () { %s\n })()\n;return module.exports;}(this,'%s'));"), *Text, *script_path);
+					auto exports = Self->RunScript(full_path, Text, 0);
 					if (exports.IsEmpty())
 					{
 						UE_LOG(Javascript, Log, TEXT("Invalid script for require"));
@@ -1659,9 +1683,9 @@ public:
 
 		auto ScriptPath = GetScriptFileFullPath(Filename);
 
-		auto Text = FString::Printf(TEXT("(function (global,__dirname) {\n%s\n;}(this,'%s'));"), *Script, *ScriptPath);
+		auto Text = FString::Printf(TEXT("(function (global,__dirname) { %s\n;}(this,'%s'));"), *Script, *ScriptPath);
 
-		return RunScript(ScriptPath, Text, 1);
+		return RunScript(ScriptPath, Text, 0);
 	}
 
 	void Public_RunFile(const FString& Filename)
@@ -1704,6 +1728,7 @@ public:
 #endif
 		auto source = V8_String(isolate(), Script);
 		auto path = V8_String(isolate(), Path);
+		//auto path = V8_String(isolate(), FString(TEXT("file:///"))+Path.Replace(TEXT("\\"),TEXT("/")).Replace(TEXT(" "), TEXT("%20")));
 		ScriptOrigin origin(path, Integer::New(isolate(), -line_offset));
 		auto script = Script::Compile(source, &origin);
 		if (script.IsEmpty())

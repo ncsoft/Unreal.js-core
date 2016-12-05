@@ -63,6 +63,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Scripting|Javascript")
 	bool IsDebugContext() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	void CreateInspector(int32 Port = 9229);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	void DestroyInspector();
+
 	bool HasProxyFunction(UObject* Holder, UFunction* Function);
 	bool CallProxyFunction(UObject* Holder, UObject* This, UFunction* Function, void* Parms);
 

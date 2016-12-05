@@ -61,7 +61,7 @@ public class V8 : ModuleRules
 
         PrivateDependencyModuleNames.AddRange(new string[] 
         { 
-            "Sockets"
+            "Sockets", "libWebSockets"
         });
 
         if (UEBuildConfiguration.bBuildEditor)

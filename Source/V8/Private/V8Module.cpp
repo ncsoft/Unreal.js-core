@@ -53,6 +53,10 @@ private:
 	bool bActive{ true };
 
 public:
+	v8::Platform* platform() const
+	{
+		return platform_;
+	}
 	FUnrealJSPlatform() 
 		: platform_(platform::CreateDefaultPlatform()) 
 	{
@@ -306,6 +310,11 @@ public:
 	virtual void SetIdleTaskBudget(float BudgetInSeconds) override
 	{
 		GV8IdleTaskBudget = BudgetInSeconds;
+	}
+
+	virtual void* GetV8Platform() override
+	{
+		return platform_.platform();
 	}
 };
 
