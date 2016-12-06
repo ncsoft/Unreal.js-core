@@ -120,24 +120,25 @@ namespace {
 			isolate_->RequestInterrupt(InterruptCallback, this);
 		}
 
-		void sendMessageToFrontend(const v8_inspector::StringView& message) 
+		void sendMessageToFrontend(std::unique_ptr<v8_inspector::StringBuffer> message)
 		{
+			auto view = message->string();
 			TArray<uint16> str;
-			str.Append(message.characters16(), message.length());
+			str.Append(view.characters16(), view.length());
 			str.Add(0);
 			
 			FTCHARToUTF8 utf8((TCHAR*)(str.GetData()));
 			sendMessage(utf8.Get(), utf8.Length());			
 		}
 
-		void sendProtocolResponse(int callId, const v8_inspector::StringView& message) override 
+		void sendResponse(int callId, std::unique_ptr<v8_inspector::StringBuffer> message) override
 		{
-			sendMessageToFrontend(message);
+			sendMessageToFrontend(std::move(message));
 		}
 
-		void sendProtocolNotification(const v8_inspector::StringView& message) override 
+		void sendNotification(std::unique_ptr<v8_inspector::StringBuffer> message) override
 		{
-			sendMessageToFrontend(message);
+			sendMessageToFrontend(std::move(message));
 		}
 
 		virtual void installAdditionalCommandLineAPI(v8::Local<v8::Context>,
@@ -221,7 +222,9 @@ public:
 		}		
 
 		v8inspector = v8_inspector::V8Inspector::create(InContext->GetIsolate(), this);
-		v8inspector->contextCreated(v8_inspector::V8ContextInfo(InContext, CONTEXT_GROUP_ID, v8_inspector::StringView()));
+		const uint8_t CONTEXT_NAME[] = "Unreal.js";
+		v8_inspector::StringView context_name(CONTEXT_NAME, sizeof(CONTEXT_NAME) - 1);
+		v8inspector->contextCreated(v8_inspector::V8ContextInfo(InContext, CONTEXT_GROUP_ID, context_name));
 		
 		Install(InPort);
 
