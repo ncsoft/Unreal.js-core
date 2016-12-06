@@ -70,7 +70,7 @@ namespace {
 		static_cast<AgentImpl*>(agent)->DispatchMessages();
 	}
 
-	/*class DispatchOnInspectorBackendTask : public v8::Task 
+	class DispatchOnInspectorBackendTask : public v8::Task 
 	{
 	public:
 		explicit DispatchOnInspectorBackendTask(TSharedPtr<AgentImpl> agent) 
@@ -84,7 +84,7 @@ namespace {
 
 	private:
 		TSharedPtr<AgentImpl> agent_;
-	};*/
+	};
 
 	class ChannelImpl : public AgentImpl
 	{
@@ -116,7 +116,7 @@ namespace {
 
 		virtual void PostReceiveMessage() override
 		{
-			//platform_->CallOnForegroundThread(isolate_, new DispatchOnInspectorBackendTask(AsShared()));
+			platform_->CallOnForegroundThread(isolate_, new DispatchOnInspectorBackendTask(AsShared()));
 			isolate_->RequestInterrupt(InterruptCallback, this);
 		}
 

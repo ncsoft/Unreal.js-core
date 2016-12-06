@@ -58,7 +58,7 @@ public:
 		return platform_;
 	}
 	FUnrealJSPlatform() 
-		: platform_(platform::CreateDefaultPlatform()) 
+		: platform_(platform::CreateDefaultPlatform())
 	{
 		TickDelegate = FTickerDelegate::CreateRaw(this, &FUnrealJSPlatform::HandleTicker);
 		TickHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);

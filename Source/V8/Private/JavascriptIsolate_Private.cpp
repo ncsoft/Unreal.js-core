@@ -21,6 +21,8 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "ScopedTransaction.h"
 #endif
 #include "JavascriptStats.h"
+#include "IV8.h"
+#include <libplatform/libplatform.h>
 
 using namespace v8;
 
@@ -92,6 +94,9 @@ public:
 	FMallocArrayBufferAllocator AllocatorInstance;	
 
 	IDelegateManager* Delegates;
+
+	FTickerDelegate TickDelegate;
+	FDelegateHandle TickHandle;
 
 	struct FObjectPropertyAccessors
 	{
@@ -341,6 +346,9 @@ public:
 		GenerateBlueprintFunctionLibraryMapping();
 
 		InitializeGlobalTemplate();
+
+		TickDelegate = FTickerDelegate::CreateRaw(this, &FJavascriptIsolateImplementation::HandleTicker);
+		TickHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);
 	}
 
 	void InitializeGlobalTemplate()
@@ -390,8 +398,17 @@ public:
 		Delegates->Destroy();
 		Delegates = nullptr;
 
+		FTicker::GetCoreTicker().RemoveTicker(TickHandle);
+
 		isolate_->Dispose();
 	}	
+
+	bool HandleTicker(float DeltaTime)
+	{
+		auto platform = reinterpret_cast<v8::Platform*>(IV8::Get().GetV8Platform());
+		v8::platform::PumpMessageLoop(platform,isolate_);
+		return true;
+	}
 
 	void ReleaseAllPersistentHandles()
 	{
