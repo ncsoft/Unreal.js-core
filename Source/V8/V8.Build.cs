@@ -120,8 +120,6 @@ public class V8 : ModuleRules
             
 
             Definitions.Add(string.Format("WITH_V8=1"));
-            Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
-            Definitions.Add(string.Format("WITH_JSWEBSOCKET=1"));
 
             return true;
         }
@@ -144,8 +142,6 @@ public class V8 : ModuleRules
             }
 
             Definitions.Add(string.Format("WITH_V8=1"));
-            Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
-            Definitions.Add(string.Format("WITH_JSWEBSOCKET=0"));
 
             return true;
         }
@@ -165,8 +161,6 @@ public class V8 : ModuleRules
             }
 
             Definitions.Add(string.Format("WITH_V8=1"));
-            Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
-            Definitions.Add(string.Format("WITH_JSWEBSOCKET=0"));
 
             return true;
         }
@@ -186,14 +180,10 @@ public class V8 : ModuleRules
             }
 
             Definitions.Add(string.Format("WITH_V8=1"));
-            Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
-            Definitions.Add(string.Format("WITH_JSWEBSOCKET=0"));
 
             return true;
         }
         Definitions.Add(string.Format("WITH_V8=0"));
-        Definitions.Add(string.Format("WITH_V8_FAST_CALL=0"));
-        Definitions.Add(string.Format("WITH_JSWEBSOCKET=0"));
         return false;
     }
 }

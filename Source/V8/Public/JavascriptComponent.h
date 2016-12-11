@@ -91,18 +91,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	UClass* ResolveClass(FName Name);
-
-#if WITH_V8_FAST_CALL
-	template <typename... Rest>
-	bool FastCall(Rest... rest)
-	{
-		return JavascriptContext && JavascriptContext->FastCall(this, rest...);
-	}
-
-	template <typename... Rest>
-	bool FastCallWithReturn(Rest... rest)
-	{
-		return JavascriptContext && JavascriptContext->FastCallWithReturn(this, rest...);
-	}
-#endif
 };
