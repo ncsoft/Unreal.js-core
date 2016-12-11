@@ -31,14 +31,20 @@ namespace {
 	class AgentImpl : public v8_inspector::V8Inspector::Channel, public TSharedFromThis<AgentImpl>
 	{
 	public:
+		AgentImpl(v8::Isolate* isolate)
+		: isolate_(isolate)
+		{}
+
 		virtual ~AgentImpl() {}
 
+		v8::Isolate* isolate_;
 		TArray<uint8> Buffer;
 
 		void receive(void *Data, size_t Size, size_t Remaining)
 		{
 			Buffer.Append((uint8*)Data, Size);
 
+			// Is this the final packet?
 			if (Remaining == 0)
 			{
 				enqueueFrontendMessage(MoveTemp(Buffer));
@@ -48,14 +54,17 @@ namespace {
 
 		void DispatchMessages()
 		{
+			// Dispatch within scope
+			Isolate::Scope isolate_scope(isolate_);
+
+			// Copy messages first from queue
 			TArray<TArray<uint8>> Messages = MoveTemp(PendingMessages);
 			PendingMessages.Empty();
 
+			// Pump messages
 			for (auto& Buffer : Messages)
 			{
 				dispatchFrontendMessage(Buffer);
-
-				//UE_LOG(Javascript, Log, TEXT("< %s"), ANSI_TO_TCHAR((const char*)Buffer.GetData()));
 			}
 		}
 
@@ -96,7 +105,6 @@ namespace {
 	class ChannelImpl : public AgentImpl
 	{
 	public:
-		v8::Isolate* isolate_;
 		v8::Platform* platform_;
 		lws_context* WebSocketContext;
 		lws* Wsi;
@@ -104,7 +112,7 @@ namespace {
 		TArray<TArray<uint8>> OutgoingBuffer;
 
 		ChannelImpl(lws_context *InContext, lws* InWsi, v8::Isolate* isolate, v8::Platform* platform, const std::unique_ptr<v8_inspector::V8Inspector>& v8inspector)
-			: isolate_(isolate), platform_(platform), WebSocketContext(InContext), Wsi(InWsi)
+			: AgentImpl(isolate), platform_(platform), WebSocketContext(InContext), Wsi(InWsi)
 		{
 			v8_inspector::StringView state;
 			v8session = v8inspector->connect(CONTEXT_GROUP_ID, this, state);
@@ -472,7 +480,7 @@ public:
 			return reinterpret_cast<FInspector*>(lws_context_user(context))->inspector_server(Wsi, Reason, User, In, Len);
 		};
 		WebSocketProtocols[0].per_session_data_size = sizeof(PerSessionDataServer);
-		WebSocketProtocols[0].rx_buffer_size = 4096;
+		WebSocketProtocols[0].rx_buffer_size = 1024 * 1024 * 4;
 
 		struct lws_context_creation_info Info;
 		memset(&Info, 0, sizeof(lws_context_creation_info));
