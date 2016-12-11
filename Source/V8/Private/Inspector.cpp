@@ -104,7 +104,7 @@ namespace {
 		TArray<TArray<uint8>> OutgoingBuffer;
 
 		ChannelImpl(lws_context *InContext, lws* InWsi, v8::Isolate* isolate, v8::Platform* platform, const std::unique_ptr<v8_inspector::V8Inspector>& v8inspector)
-			: WebSocketContext(InContext), Wsi(InWsi), isolate_(isolate), platform_(platform)
+			: isolate_(isolate), platform_(platform), WebSocketContext(InContext), Wsi(InWsi)
 		{
 			v8_inspector::StringView state;
 			v8session = v8inspector->connect(CONTEXT_GROUP_ID, this, state);
@@ -117,7 +117,16 @@ namespace {
 
 			FUTF8ToTCHAR unicode((char*)str.GetData());
 
-			v8_inspector::StringView messageview((uint16_t*)unicode.Get(), unicode.Length());
+			// For platforms in where TCHAR is not 16 bit.
+			TArray<uint16> chars;
+			auto* buf = unicode.Get();
+			auto len = unicode.Length();
+			for (decltype(len) i=0; i<len; ++i)
+			{
+				chars.Add(buf[i]);
+			}
+
+			v8_inspector::StringView messageview((uint16_t*)chars.GetData(), len);
 			v8session->dispatchProtocolMessage(messageview);
 		}
 
@@ -134,7 +143,14 @@ namespace {
 			str.Append(view.characters16(), view.length());
 			str.Add(0);
 
-			FTCHARToUTF8 utf8((TCHAR*)(str.GetData()));
+			// For platforms in where TCHAR is not 16 bit.
+			TArray<TCHAR> chars;
+			for (auto ch : str)
+			{
+				chars.Add(ch);
+			}
+
+			FTCHARToUTF8 utf8(chars.GetData());
 			sendMessage(utf8.Get(), utf8.Length());
 		}
 
