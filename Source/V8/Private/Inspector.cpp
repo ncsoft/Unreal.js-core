@@ -326,7 +326,7 @@ public:
 			if (Verbosity == ELogVerbosity::Display)
 			{
 				Handle<Value> argv[2];
-				argv[0] = I.String(FString::Printf(TEXT("%c%s: %s"), *Category.ToString(), V));
+				argv[0] = I.String(FString::Printf(TEXT("%%c%s: %s"), *Category.ToString(), V));
 				argv[1] = I.String(TEXT("color:gray"));
 				function->Call(console, 2, argv);
 			}
