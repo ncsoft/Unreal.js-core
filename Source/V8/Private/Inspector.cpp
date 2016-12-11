@@ -1,8 +1,9 @@
 #include "V8PCH.h"
+#include "../../Launch/Resources/Version.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
-#if WITH_EDITOR 
+#if WITH_EDITOR && (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 14)
 static const int32 CONTEXT_GROUP_ID = 1;
 
 #if PLATFORM_WINDOWS
@@ -42,14 +43,15 @@ namespace {
 
 		void DispatchMessages()
 		{
-			for (auto& Buffer : PendingMessages)
+			TArray<TArray<uint8>> Messages = MoveTemp(PendingMessages);
+			PendingMessages.Empty();
+
+			for (auto& Buffer : Messages)
 			{
 				dispatchFrontendMessage(Buffer);
 
 				//UE_LOG(Javascript, Log, TEXT("< %s"), ANSI_TO_TCHAR((const char*)Buffer.GetData()));
 			}
-
-			PendingMessages.Empty();
 		}
 
 		virtual void dispatchFrontendMessage(const TArray<uint8>& Buffer) {}
