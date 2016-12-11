@@ -33,12 +33,16 @@ namespace {
 	public:
 		virtual ~AgentImpl() {}
 
-		void receive(void *Data, size_t Size)
-		{
-			TArray<uint8> Buffer;
-			Buffer.Append((uint8*)Data, Size);
+		TArray<uint8> Buffer;
 
-			enqueueFrontendMessage(MoveTemp(Buffer));
+		void receive(void *Data, size_t Size, size_t Remaining)
+		{
+			Buffer.Append((uint8*)Data, Size);
+			if (Remaining == 0)
+			{
+				enqueueFrontendMessage(MoveTemp(Buffer));
+				Buffer.Empty();
+			}
 		}
 
 		void DispatchMessages()
@@ -63,23 +67,23 @@ namespace {
 			PendingMessages.Add(Buffer);
 			PostReceiveMessage();
 		}
-		
+
 		TArray<TArray<uint8>> PendingMessages;
 	};
 
-	void InterruptCallback(v8::Isolate*, void* agent) 
+	void InterruptCallback(v8::Isolate*, void* agent)
 	{
 		static_cast<AgentImpl*>(agent)->DispatchMessages();
 	}
 
-	class DispatchOnInspectorBackendTask : public v8::Task 
+	class DispatchOnInspectorBackendTask : public v8::Task
 	{
 	public:
-		explicit DispatchOnInspectorBackendTask(TSharedPtr<AgentImpl> agent) 
-			: agent_(agent) 
+		explicit DispatchOnInspectorBackendTask(TSharedPtr<AgentImpl> agent)
+			: agent_(agent)
 		{}
 
-		void Run() override 
+		void Run() override
 		{
 			agent_->DispatchMessages();
 		}
@@ -99,7 +103,7 @@ namespace {
 		TArray<TArray<uint8>> OutgoingBuffer;
 
 		ChannelImpl(lws_context *InContext, lws* InWsi, v8::Isolate* isolate, v8::Platform* platform, const std::unique_ptr<v8_inspector::V8Inspector>& v8inspector)
-			: WebSocketContext(InContext), Wsi(InWsi), isolate_(isolate), platform_(platform)
+			: isolate_(isolate), platform_(platform), WebSocketContext(InContext), Wsi(InWsi)
 		{
 			v8_inspector::StringView state;
 			v8session = v8inspector->connect(CONTEXT_GROUP_ID, this, state);
@@ -109,10 +113,19 @@ namespace {
 		{
 			TArray<uint8> str(Buffer);
 			str.Add(0);
-			
-			FUTF8ToTCHAR unicode((char*)str.GetData());			
 
-			v8_inspector::StringView messageview((uint16_t*)unicode.Get(), unicode.Length());
+			FUTF8ToTCHAR unicode((char*)str.GetData());
+
+			// For platforms in where TCHAR is not 16 bit.
+			TArray<uint16> chars;
+			auto* buf = unicode.Get();
+			auto len = unicode.Length();
+			for (decltype(len) i=0; i<len; ++i)
+			{
+				chars.Add(buf[i]);
+			}
+
+			v8_inspector::StringView messageview((uint16_t*)chars.GetData(), len);
 			v8session->dispatchProtocolMessage(messageview);
 		}
 
@@ -128,9 +141,16 @@ namespace {
 			TArray<uint16> str;
 			str.Append(view.characters16(), view.length());
 			str.Add(0);
-			
-			FTCHARToUTF8 utf8((TCHAR*)(str.GetData()));
-			sendMessage(utf8.Get(), utf8.Length());			
+
+			// For platforms in where TCHAR is not 16 bit.
+			TArray<TCHAR> chars;
+			for (auto ch : str)
+			{
+				chars.Add(ch);
+			}
+
+			FTCHARToUTF8 utf8(chars.GetData());
+			sendMessage(utf8.Get(), utf8.Length());
 		}
 
 		void sendResponse(int callId, std::unique_ptr<v8_inspector::StringBuffer> message) override
@@ -144,22 +164,22 @@ namespace {
 		}
 
 		virtual void installAdditionalCommandLineAPI(v8::Local<v8::Context>,
-			v8::Local<v8::Object>) 
+			v8::Local<v8::Object>)
 		{
 			UE_LOG(Javascript, Log, TEXT("Received command line api"));
-		}		
+		}
 
 		void sendMessage(const void* Data, uint32 Size)
 		{
 			TArray<uint8> Buffer;
 
 			// Reserve space for WS header data
-			Buffer.AddDefaulted(LWS_PRE); 
+			Buffer.AddDefaulted(LWS_PRE);
 			Buffer.Append((uint8*)Data, Size);
 			OutgoingBuffer.Add(Buffer);
 
 			OnWritable();
-		}		
+		}
 
 		void OnWritable()
 		{
@@ -191,7 +211,7 @@ namespace {
 			OutgoingBuffer.RemoveAt(0);
 		}
 
-		void flushProtocolNotifications() 
+		void flushProtocolNotifications()
 		{}
 	};
 }
@@ -199,7 +219,7 @@ namespace {
 
 class FInspector : public IJavascriptInspector, public FTickableEditorObject, public v8_inspector::V8InspectorClient, public FOutputDevice
 {
-public:		
+public:
 	Isolate* isolate_;
 	Persistent<Context> context_;
 	bool terminated_{ false };
@@ -221,13 +241,13 @@ public:
 		{
 			auto console = InContext->Global()->Get(I.Keyword("console"));
 			InContext->Global()->Set(I.Keyword("$console"), console);
-		}		
+		}
 
 		v8inspector = v8_inspector::V8Inspector::create(InContext->GetIsolate(), this);
 		const uint8_t CONTEXT_NAME[] = "Unreal.js";
 		v8_inspector::StringView context_name(CONTEXT_NAME, sizeof(CONTEXT_NAME) - 1);
 		v8inspector->contextCreated(v8_inspector::V8ContextInfo(InContext, CONTEXT_GROUP_ID, context_name));
-		
+
 		Install(InPort);
 
 		{
@@ -287,14 +307,14 @@ public:
 
 			auto console = context()->Global()->Get(I.Keyword("console")).As<v8::Object>();
 
-			auto method = 
+			auto method =
 				Verbosity == ELogVerbosity::Fatal || Verbosity == ELogVerbosity::Error ? I.Keyword("$error") :
 				Verbosity == ELogVerbosity::Warning ? I.Keyword("$warn") :
 				Verbosity == ELogVerbosity::Display ? I.Keyword("info") :
 				I.Keyword("$log");
 			auto function = console->Get(method).As<v8::Function>();
 
-			if (Verbosity == ELogVerbosity::Display) 
+			if (Verbosity == ELogVerbosity::Display)
 			{
 				Handle<Value> argv[2];
 				argv[0] = I.String(FString::Printf(TEXT("%c%s: %s"), *Category.ToString(), V));
@@ -304,7 +324,7 @@ public:
 			else
 			{
 				Handle<Value> argv[1];
-				argv[0] = I.String(FString::Printf(TEXT("%s: %s"), *Category.ToString(), V));				
+				argv[0] = I.String(FString::Printf(TEXT("%s: %s"), *Category.ToString(), V));
 				function->Call(console, 1, argv);
 			}
 		}
@@ -316,13 +336,13 @@ public:
 	}
 
 	Local<Context> context() { return Local<v8::Context>::New(isolate_, context_); }
-	
-	void runMessageLoopOnPause(int context_group_id) override 
+
+	void runMessageLoopOnPause(int context_group_id) override
 	{
 		if (running_nested_loop_) return;
 		terminated_ = false;
-		running_nested_loop_ = true;		
-		while (!terminated_) 
+		running_nested_loop_ = true;
+		while (!terminated_)
 		{
 			lws_service(WebSocketContext, 0);
 
@@ -333,26 +353,26 @@ public:
 		running_nested_loop_ = false;
 	}
 
-	void quitMessageLoopOnPause() override 
+	void quitMessageLoopOnPause() override
 	{
 		terminated_ = true;
 	}
 
-	double currentTimeMS() override 
+	double currentTimeMS() override
 	{
 		return FPlatformTime::Seconds() * 1000.f;
 	}
 
-	void runIfWaitingForDebugger(int contextGroupId) override 
+	void runIfWaitingForDebugger(int contextGroupId) override
 	{}
 
-	v8::Local<v8::Context> ensureDefaultContextInGroup(int) override 
+	v8::Local<v8::Context> ensureDefaultContextInGroup(int) override
 	{
 		return context();
 	}
 
 	virtual void Tick(float DeltaTime) override
-	{	
+	{
 		if (IsAlive)
 		{
 			lws_service(WebSocketContext, 0);
@@ -367,7 +387,7 @@ public:
 	virtual TStatId GetStatId() const override
 	{
 		RETURN_QUICK_DECLARE_CYCLE_STAT(FV8Inspector, STATGROUP_Tickables);
-	}		
+	}
 
 	// a object of this type is associated by libwebsocket to every connected session.
 	struct PerSessionDataServer
@@ -393,7 +413,7 @@ public:
 				WebSocketContext,
 				Wsi,
 				Server->isolate_,
-				Server->platform_, 
+				Server->platform_,
 				Server->v8inspector
 			);
 			lws_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
@@ -402,7 +422,8 @@ public:
 
 		case LWS_CALLBACK_RECEIVE:
 		{
-			BufferInfo->Channel->receive(In, Len);
+			auto Remaining = lws_remaining_packet_payload(Wsi);
+			BufferInfo->Channel->receive(In, Len, Remaining);
 			lws_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
 		}
 		break;
@@ -437,7 +458,7 @@ public:
 	static void lws_debugLog(int level, const char *line)
 	{
 		UE_LOG(Javascript, Log, TEXT("websocket server: %s"), ANSI_TO_TCHAR(line));
-	}	
+	}
 
 	void Install(int32 Port)
 	{
@@ -449,8 +470,8 @@ public:
 		WebSocketProtocols[0].name = "inspector";
 		WebSocketProtocols[0].callback = inspector_server;
 		WebSocketProtocols[0].per_session_data_size = sizeof(PerSessionDataServer);
-		WebSocketProtocols[0].rx_buffer_size = 10 * 1024 * 1024;
-		
+		WebSocketProtocols[0].rx_buffer_size = 4096;
+
 		struct lws_context_creation_info Info;
 		memset(&Info, 0, sizeof(lws_context_creation_info));
 		// look up libwebsockets.h for details.
@@ -488,7 +509,7 @@ IJavascriptInspector* IJavascriptInspector::Create(int32 InPort, Local<Context> 
 IJavascriptInspector* IJavascriptInspector::Create(int32 InPort, Local<Context> InContext)
 {
 	return nullptr;
-} 
+}
 #endif
 
 PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
