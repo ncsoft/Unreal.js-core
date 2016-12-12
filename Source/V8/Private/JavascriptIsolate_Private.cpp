@@ -781,13 +781,18 @@ public:
 					func.Handle->Function.Reset(isolate_, jsfunc);
 					p->Struct->CopyScriptStruct(struct_buffer, &func);
 				}
-				else if (Value->IsObject() && p->Struct->IsChildOf(FJavascriptRef::StaticStruct()))
+				else if (p->Struct->IsChildOf(FJavascriptRef::StaticStruct()))
 				{
 					auto struct_buffer = p->ContainerPtrToValuePtr<uint8>(Buffer);
 					FJavascriptRef ref;
-					auto jsobj= Value.As<Object>();
-					ref.Handle = MakeShareable(new FPrivateJavascriptRef);
-					ref.Handle->Object.Reset(isolate_, jsobj);
+
+					if (Value->IsObject())
+					{
+						auto jsobj = Value.As<Object>();
+						ref.Handle = MakeShareable(new FPrivateJavascriptRef);
+						ref.Handle->Object.Reset(isolate_, jsobj);
+					}
+					
 					p->Struct->CopyScriptStruct(struct_buffer, &ref);
 				}
 				// If raw javascript object has been passed,
