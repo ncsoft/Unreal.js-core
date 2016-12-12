@@ -81,11 +81,18 @@ namespace {
 		TArray<TArray<uint8>> PendingMessages;
 	};
 
-	void InterruptCallback(v8::Isolate*, void* agent)
-	{
-		static_cast<AgentImpl*>(agent)->DispatchMessages();
-	}
-
+	struct AgentRef
+ 	{
+ 		TSharedPtr<AgentImpl> agent;
+ 	};
+ 
+ 	void InterruptCallback(v8::Isolate*, void* _ref)
+ 	{
+ 		auto ref = reinterpret_cast<AgentRef*>(_ref);
+ 		ref->agent->DispatchMessages();
+ 		delete ref;
+ 	}
+	
 	class DispatchOnInspectorBackendTask : public v8::Task
 	{
 	public:
@@ -141,7 +148,7 @@ namespace {
 		virtual void PostReceiveMessage() override
 		{
 			platform_->CallOnForegroundThread(isolate_, new DispatchOnInspectorBackendTask(AsShared()));
-			isolate_->RequestInterrupt(InterruptCallback, this);
+			isolate_->RequestInterrupt(InterruptCallback, new AgentRef{AsShared()});
 		}
 
 		void sendMessageToFrontend(std::unique_ptr<v8_inspector::StringBuffer> message)
