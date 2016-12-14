@@ -94,7 +94,7 @@ class V8_API UJavascriptIsolate : public UObject
 	GENERATED_UCLASS_BODY()
 
 public:
-	virtual ~UJavascriptIsolate() override;
+	virtual void BeginDestroy() override;
 
 	TSharedPtr<FJavascriptIsolate> JavascriptIsolate;
 

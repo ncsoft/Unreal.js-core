@@ -39,13 +39,15 @@ void UJavascriptIsolate::AddReferencedObjects(UObject* InThis, FReferenceCollect
 	Super::AddReferencedObjects(This, Collector);
 }
 
-UJavascriptIsolate::~UJavascriptIsolate()
+void UJavascriptIsolate::BeginDestroy()
 {
 	const bool bIsClassDefaultObject = IsTemplate(RF_ClassDefaultObject);
 	if (!bIsClassDefaultObject)
 	{
 		JavascriptIsolate.Reset();
 	}
+
+	Super::BeginDestroy();
 }
 
 UJavascriptContext* UJavascriptIsolate::CreateContext()
