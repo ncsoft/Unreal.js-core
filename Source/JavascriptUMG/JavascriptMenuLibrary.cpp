@@ -92,6 +92,41 @@ void UJavascriptMenuLibrary::AddToolBarButton(FJavascriptMenuBuilder& Builder, F
 	}
 }
 
+static FJavascriptSlateWidget GTempJavascriptSlateWidget;
+void UJavascriptMenuLibrary::SetWidget(FJavascriptGetContentContext& Context, FJavascriptSlateWidget& Widget)
+{
+	GTempJavascriptSlateWidget = Widget;
+}
+
+class JavascriptObjectWrap : public UJavascriptObject
+{
+public:
+	TSharedRef<SWidget> OnGetWidget()
+	{
+		FJavascriptGetContentContext Context;
+		Func.Execute(FJavascriptGetContentContext::StaticStruct(), &Context);
+		auto Widget = GTempJavascriptSlateWidget;
+		GTempJavascriptSlateWidget.Widget.Reset();
+		if (Widget.Widget.IsValid())
+		{
+			return Widget.Widget.ToSharedRef();
+		}
+		else
+		{
+			return SNullWidget::NullWidget;
+		}
+	}
+};
+
+void UJavascriptMenuLibrary::AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptObject* Object)
+{
+	if (Builder.ToolBar)
+	{
+		FUIAction DefaultAction;
+		Builder.ToolBar->AddComboButton(DefaultAction, FOnGetContent::CreateUObject(Object, (TSharedRef<SWidget>(UJavascriptObject::*)())&JavascriptObjectWrap::OnGetWidget));
+	}
+}
+
 void UJavascriptMenuLibrary::AddWidget(FJavascriptMenuBuilder& Builder, UWidget* Widget, const FText& Label, bool bNoIndent, FName InTutorialHighlightName, bool bSearchable)
 {
 	if (Builder.ToolBar)
