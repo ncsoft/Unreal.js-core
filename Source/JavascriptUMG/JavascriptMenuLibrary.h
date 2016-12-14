@@ -1,5 +1,7 @@
 #pragma once
 
+#include "JavascriptUMGLibrary.h"
+#include "JavascriptObject.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptMenuLibrary.generated.h"
 
@@ -22,6 +24,15 @@ namespace EJavasrciptUserInterfaceActionType
 	};
 }
 
+USTRUCT()
+struct FJavascriptUICommandInfo
+{
+	GENERATED_BODY()
+
+public:
+	TSharedPtr<FUICommandInfo> Handle;
+};
+
 USTRUCT(BlueprintType)
 struct FJavascriptUICommand
 {
@@ -41,6 +52,9 @@ struct FJavascriptUICommand
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
 	TEnumAsByte<EJavasrciptUserInterfaceActionType::Type> ActionType;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
+	FJavascriptUICommandInfo CommandInfo;
 };
 
 USTRUCT()
@@ -60,6 +74,11 @@ struct FJavascriptUICommandList
 	GENERATED_BODY()
 
 	TSharedPtr<FUICommandList> Handle;
+
+	operator TSharedPtr<FUICommandList>()
+	{
+		return Handle;
+	}
 };
 
 USTRUCT()
@@ -80,15 +99,6 @@ public:
 	TSharedPtr<FBindingContext> Handle;
 };
 
-
-USTRUCT()
-struct FJavascriptUICommandInfo
-{
-	GENERATED_BODY()
-
-public:
-	TSharedPtr<FUICommandInfo> Handle;
-};
 
 USTRUCT()
 struct JAVASCRIPTUMG_API FJavascriptExtender
@@ -129,6 +139,14 @@ namespace EJavascriptExtensionHook
 		First,
 	};
 }
+
+USTRUCT()
+struct FJavascriptGetContentContext
+{
+	GENERATED_BODY()
+
+public:
+};
 
 /**
  * 
@@ -178,6 +196,9 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 	static void AddToolBarButton(FJavascriptMenuBuilder& Builder, FJavascriptUICommandInfo CommandInfo);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptObject* Object);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddWidget(FJavascriptMenuBuilder& Builder, UWidget* Widget, const FText& Label, bool bNoIndent, FName InTutorialHighlightName, bool bSearchable);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -209,4 +230,7 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptUICommandInfo GenericCommand(FString What);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void SetWidget(FJavascriptGetContentContext& Context, FJavascriptSlateWidget& Widget);
 };

@@ -770,15 +770,18 @@ public:
 						I.Throw(FString::Printf(TEXT("Wrong struct type (given:%s), (expected:%s)"), *GivenStruct->GetName(), *p->Struct->GetName()));
 					}
 				}
-				else if (Value->IsFunction() && p->Struct->IsChildOf(FJavascriptFunction::StaticStruct()))
+				else if (p->Struct->IsChildOf(FJavascriptFunction::StaticStruct()))
 				{
 					auto struct_buffer = p->ContainerPtrToValuePtr<uint8>(Buffer);
 					FJavascriptFunction func;
-					auto jsfunc = Value.As<Function>();
-					func.Handle = MakeShareable(new FPrivateJavascriptFunction);
-					func.Handle->isolate = isolate_;
-					func.Handle->context.Reset(isolate_, isolate_->GetCurrentContext());
-					func.Handle->Function.Reset(isolate_, jsfunc);
+					if (Value->IsFunction())
+					{
+						auto jsfunc = Value.As<Function>();
+						func.Handle = MakeShareable(new FPrivateJavascriptFunction);
+						func.Handle->isolate = isolate_;
+						func.Handle->context.Reset(isolate_, isolate_->GetCurrentContext());
+						func.Handle->Function.Reset(isolate_, jsfunc);
+					}
 					p->Struct->CopyScriptStruct(struct_buffer, &func);
 				}
 				else if (p->Struct->IsChildOf(FJavascriptRef::StaticStruct()))
