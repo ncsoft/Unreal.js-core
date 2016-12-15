@@ -17,6 +17,33 @@ struct FJavascriptSlateWidget
 
 	TSharedPtr<SWidget> Widget;
 };
+
+USTRUCT()
+struct FJavascriptSlateIcon
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FName StyleSetName;
+
+	UPROPERTY()
+	FName StyleName;
+
+	UPROPERTY()
+	FName SmallStyleName;
+
+	FSlateIcon GetSlateIcon() const
+	{
+		if (StyleSetName.IsNone() || StyleName.IsNone()) return FSlateIcon();
+		if (SmallStyleName.IsNone()) return FSlateIcon(StyleSetName, StyleName);
+		return FSlateIcon(StyleSetName, StyleName, SmallStyleName);
+	}
+
+	operator FSlateIcon () const
+	{
+		return GetSlateIcon();
+	}
+};
 /**
  * 
  */

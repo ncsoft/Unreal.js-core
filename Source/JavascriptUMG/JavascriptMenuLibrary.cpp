@@ -92,38 +92,19 @@ void UJavascriptMenuLibrary::AddToolBarButton(FJavascriptMenuBuilder& Builder, F
 	}
 }
 
-static FJavascriptSlateWidget GTempJavascriptSlateWidget;
-void UJavascriptMenuLibrary::SetWidget(FJavascriptGetContentContext& Context, FJavascriptSlateWidget& Widget)
-{
-	GTempJavascriptSlateWidget = Widget;
-}
-
-class JavascriptObjectWrap : public UJavascriptObject
-{
-public:
-	TSharedRef<SWidget> OnGetWidget()
-	{
-		FJavascriptGetContentContext Context;
-		Func.Execute(FJavascriptGetContentContext::StaticStruct(), &Context);
-		auto Widget = GTempJavascriptSlateWidget;
-		GTempJavascriptSlateWidget.Widget.Reset();
-		if (Widget.Widget.IsValid())
-		{
-			return Widget.Widget.ToSharedRef();
-		}
-		else
-		{
-			return SNullWidget::NullWidget;
-		}
-	}
-};
-
-void UJavascriptMenuLibrary::AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptObject* Object)
+void UJavascriptMenuLibrary::AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptComboButtonContext* Object)
 {
 	if (Builder.ToolBar)
 	{
 		FUIAction DefaultAction;
-		Builder.ToolBar->AddComboButton(DefaultAction, FOnGetContent::CreateUObject(Object, (TSharedRef<SWidget>(UJavascriptObject::*)())&JavascriptObjectWrap::OnGetWidget));
+		DefaultAction.CanExecuteAction = FCanExecuteAction::CreateUObject(Object, &UJavascriptComboButtonContext::Public_CanExecute);
+		Builder.ToolBar->AddComboButton(
+			DefaultAction, 
+			FOnGetContent::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetWidget),
+			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetLabel)),
+			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetTooltip)),
+			TAttribute< FSlateIcon >::Create(TAttribute< FSlateIcon >::FGetter::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetSlateIcon))
+		);
 	}
 }
 

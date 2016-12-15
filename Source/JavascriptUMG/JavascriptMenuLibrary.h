@@ -3,6 +3,7 @@
 #include "JavascriptUMGLibrary.h"
 #include "JavascriptObject.h"
 #include "JavascriptIsolate.h"
+#include "JavascriptComboButtonContext.h"
 #include "JavascriptMenuLibrary.generated.h"
 
 UENUM()
@@ -140,14 +141,6 @@ namespace EJavascriptExtensionHook
 	};
 }
 
-USTRUCT()
-struct FJavascriptGetContentContext
-{
-	GENERATED_BODY()
-
-public:
-};
-
 /**
  * 
  */
@@ -196,7 +189,7 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 	static void AddToolBarButton(FJavascriptMenuBuilder& Builder, FJavascriptUICommandInfo CommandInfo);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptObject* Object);
+	static void AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptComboButtonContext* Object);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddWidget(FJavascriptMenuBuilder& Builder, UWidget* Widget, const FText& Label, bool bNoIndent, FName InTutorialHighlightName, bool bSearchable);
@@ -230,7 +223,4 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptUICommandInfo GenericCommand(FString What);
-
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void SetWidget(FJavascriptGetContentContext& Context, FJavascriptSlateWidget& Widget);
 };
