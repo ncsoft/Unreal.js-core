@@ -3,7 +3,9 @@
 
     let _ = require('lodash')
     let inputBinding = require('input-binding')
-
+    function isClass (thing) {
+        return typeof thing === 'function' && !thing.hasOwnProperty('arguments')
+    }
     module.exports = function () {
         let mod_patterns = {
             bCtrl: /^ctrl$/i,
@@ -73,8 +75,7 @@
             target = target || {}
             let bindings = []
 
-            let splits = RE_class.exec(template)
-
+            let splits = RE_class.exec(template) || (isClass(template) ? [null, template.name] : null)
             if (!splits) throw "Invalid class definition"
 
             let orgClassName = splits[1]
