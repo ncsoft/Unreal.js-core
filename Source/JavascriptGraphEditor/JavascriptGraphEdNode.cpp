@@ -1,0 +1,68 @@
+#include "JavascriptGraphEditorPrivatePCH.h"
+#include "JavascriptGraphEdNode.h"
+#include "JavascriptGraphAssetGraphSchema.h"
+
+#define LOCTEXT_NAMESPACE "JavascriptGraphEdNode"
+
+void UJavascriptGraphEdNode::AllocateDefaultPins()
+{
+	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GetSchema());
+	Schema->OnAllocateDefaultPins.ExecuteIfBound(this);
+}
+
+void UJavascriptGraphEdNode::NodeConnectionListChanged()
+{
+	Super::NodeConnectionListChanged();
+
+	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GetSchema());
+	Schema->OnNodeConnectionListChanged.ExecuteIfBound(this);
+}
+
+UJavascriptGraphEdGraph* UJavascriptGraphEdNode::GetGenericGraphEdGraph()
+{
+	return Cast<UJavascriptGraphEdGraph>(GetGraph());
+}
+
+FText UJavascriptGraphEdNode::GetNodeTitle(ENodeTitleType::Type TitleType) const
+{
+	if (GraphNode)
+	{
+		auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GetSchema());
+		if (Schema->OnGetString.IsBound())
+		{
+			return Schema->OnGetString.Execute(this, EGraphSchemaGetStringQuery::Title);
+		}
+	}
+
+	return FText();
+}
+
+FText UJavascriptGraphEdNode::GetDescription() const
+{
+	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GetSchema());
+	if (Schema->OnGetString.IsBound())
+	{
+		return Schema->OnGetString.Execute(this,EGraphSchemaGetStringQuery::Description);
+	}
+	
+	return FText();
+}
+
+FJavascriptEdGraphPin UJavascriptGraphEdNode::CreatePin(
+	EEdGraphPinDirection Dir,
+	const FString& PinCategory,
+	const FString& PinSubCategory,
+	UObject* PinSubCategoryObject,
+	bool bIsArray,
+	bool bIsReference,
+	const FString& PinName,
+	bool bIsConst /*= false*/
+				  //int32 Index /*= INDEX_NONE*/
+	)
+{
+	return FJavascriptEdGraphPin{
+		Super::CreatePin(Dir, PinCategory, PinSubCategory, PinSubCategoryObject, bIsArray, bIsReference, PinName, bIsConst, INDEX_NONE)
+	};
+}
+
+#undef LOCTEXT_NAMESPACE

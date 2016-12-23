@@ -36,11 +36,16 @@
       "LoadingPhase": "PreDefault",
       "WhitelistPlatforms" : ["Win64"]
     },
+	{
+      "Name": "JavascriptGraphEditor",
+      "Type": "Editor",
+      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Linux"]
+    },
     {
       "Name": "JavascriptEditor",
       "Type": "Editor",
       "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Linux"]
-    },
+    },	
     {
       "Name": "JavascriptConsole",
       "Type": "Editor",
