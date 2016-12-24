@@ -1802,6 +1802,9 @@ public:
 		int DefaultValueId = 0;
 		auto Packer = RunScript(TEXT(""),TEXT("JSON.stringify")).As<Function>();
 
+		auto guard_pre = [&] { w.push("try { "); };
+		auto guard_post = [&] { w.push(" } catch (e) {};\n"); };
+
 		for (auto it = Environment->ClassToFunctionTemplateMap.CreateConstIterator(); it; ++it)
 		{
 			const UClass* ClassToExport = it.Key();
@@ -1861,6 +1864,9 @@ public:
 					{
 						auto Name = FV8Config::Safeify(Function->GetName());
 						auto FnId = FString::Printf(TEXT("fnprepatch_%d"), DefaultValueId++);
+
+						guard_pre();
+
 						w.push("let ");
 						w.push(FnId);
 						w.push(" = ");
@@ -1877,7 +1883,9 @@ public:
 						w.push(FnId);
 						w.push(".call(this, ");
 						w.push(FString::Join(Parameters, TEXT(", ")));
-						w.push(") };\n");
+						w.push(") };");
+
+						guard_post();
 					}
 				}
 			}
@@ -1889,6 +1897,8 @@ public:
 				auto Alias = FV8Config::GetAlias(Function);
 				if (FV8Config::CanExportFunction(ClassToExport, Function) && Alias.Len() > 0)
 				{
+					guard_pre();
+
 					w.push(ClassName);
 					w.push(".prototype.");
 					w.push(Alias);
@@ -1896,10 +1906,14 @@ public:
 					w.push(ClassName);
 					w.push(".prototype.");
 					w.push(FV8Config::Safeify(Function->GetName()));
-					w.push(";\n");
+					w.push(";");
+
+					guard_post();
 
 					if (!is_thunk && Function->FunctionFlags & FUNC_Static)
 					{
+						guard_pre();
+
 						w.push(ClassName);
 						w.push(".");
 						w.push(Alias);
@@ -1907,7 +1921,9 @@ public:
 						w.push(ClassName);
 						w.push(".");
 						w.push(FV8Config::Safeify(Function->GetName()));
-						w.push(";\n");
+						w.push(";");
+
+						guard_post();
 					}
 				}
 			};
@@ -1936,6 +1952,8 @@ public:
 				auto Alias = FV8Config::GetAlias(Function);
 				if (Alias.Len() > 0)
 				{
+					guard_pre();
+
 					w.push(ClassName);
 					w.push(".prototype.");
 					w.push(Alias);
@@ -1943,7 +1961,9 @@ public:
 					w.push(ClassName);
 					w.push(".prototype.");
 					w.push(FV8Config::Safeify(Function->GetName()));
-					w.push(";\n");
+					w.push(";");
+
+					guard_post();
 				}
 			};
 
