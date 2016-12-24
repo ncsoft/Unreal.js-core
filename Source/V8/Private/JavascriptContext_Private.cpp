@@ -32,6 +32,24 @@ using namespace v8;
 
 static const int kContextEmbedderDataIndex = 1;
 static const int32 MagicNumber = 0x2852abd3;
+static const FString URL_FilePrefix(TEXT("file:///"));
+
+static FString LocalPathToURL(FString Path)
+{
+	return URL_FilePrefix + Path.Replace(TEXT("\\"), TEXT("/")).Replace(TEXT(" "), TEXT("%20"));
+}
+
+static FString URLToLocalPath(FString URL)
+{
+	if (URL.StartsWith(*URL_FilePrefix))
+	{
+		URL = URL.Mid(URL_FilePrefix.Len()).Replace(TEXT("%20"), TEXT(" "));
+	}
+#if PLATFORM_WINDOWS
+	URL = URL.Replace(TEXT("\\"), TEXT("/"));
+#endif
+	return URL;
+}
 
 static TArray<FString> StringArrayFromV8(Handle<Value> InArray)
 {
@@ -1465,9 +1483,7 @@ public:
 			};
 
 			auto current_script_path = FPaths::GetPath(StringFromV8(StackTrace::CurrentStackTrace(isolate, 1, StackTrace::kScriptName)->GetFrame(0)->GetScriptName()));
-#if PLATFORM_WINDOWS
-			current_script_path = current_script_path.Replace(TEXT("\\"), TEXT("/"));
-#endif
+			current_script_path = URLToLocalPath(current_script_path);
 
 			if (!(required_module[0] == '.' && inner2(current_script_path)))
 			{
@@ -1727,8 +1743,7 @@ public:
 		}
 #endif
 		auto source = V8_String(isolate(), Script);
-		auto path = V8_String(isolate(), Path);
-		//auto path = V8_String(isolate(), FString(TEXT("file:///"))+Path.Replace(TEXT("\\"),TEXT("/")).Replace(TEXT(" "), TEXT("%20")));
+		auto path = V8_String(isolate(), LocalPathToURL(Path));
 		ScriptOrigin origin(path, Integer::New(isolate(), -line_offset));
 		auto script = Script::Compile(source, &origin);
 		if (script.IsEmpty())
