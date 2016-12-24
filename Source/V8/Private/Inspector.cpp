@@ -3,7 +3,7 @@
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
-#if WITH_EDITOR && (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 14)
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 14
 static const int32 CONTEXT_GROUP_ID = 1;
 
 #if PLATFORM_WINDOWS
@@ -16,13 +16,18 @@ static const int32 CONTEXT_GROUP_ID = 1;
 #include "HideWindowsPlatformTypes.h"
 #endif
 
-PRAGMA_DISABLE_OPTIMIZATION
-
 #include "v8-inspector.h"
 #include "v8-platform.h"
 #include "libplatform/libplatform.h"
 
+#if WITH_EDITOR 
 #include "TickableEditorObject.h"
+typedef FTickableEditorObject FTickableAnyObject;
+#else
+#include "Tickable.h"
+typedef FTickableGameObject FTickableAnyObject;
+#endif
+
 #include "Helpers.h"
 #include "Translator.h"
 #include "IV8.h"
@@ -233,7 +238,7 @@ namespace {
 }
 
 
-class FInspector : public IJavascriptInspector, public FTickableEditorObject, public v8_inspector::V8InspectorClient, public FOutputDevice
+class FInspector : public IJavascriptInspector, public FTickableAnyObject, public v8_inspector::V8InspectorClient, public FOutputDevice
 {
 public:
 	Isolate* isolate_;
@@ -530,5 +535,3 @@ IJavascriptInspector* IJavascriptInspector::Create(int32 InPort, Local<Context> 
 #endif
 
 PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
-
-PRAGMA_ENABLE_OPTIMIZATION
