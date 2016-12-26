@@ -3,6 +3,69 @@
 #include "Engine/DynamicBlueprintBinding.h"
 #include "JavascriptContext.h"
 #include "IV8.h"
+#include "SocketSubsystem.h"
+
+struct FPrivateSocketHandle
+{
+	FPrivateSocketHandle(ISocketSubsystem* InSocketSub, FSocket* InSocket)
+		: SocketSub(InSocketSub), Socket(InSocket)
+	{}
+
+	~FPrivateSocketHandle()
+	{
+		SocketSub->DestroySocket(Socket);
+	}
+
+	ISocketSubsystem* SocketSub;
+	FSocket* Socket;
+};
+
+FJavascriptSocket UJavascriptLibrary::CreateSocket(FName SocketType, FString Description, bool bForceUDP)
+{
+	auto SocketSub = ISocketSubsystem::Get();
+	return{ MakeShared<FPrivateSocketHandle>(SocketSub, SocketSub->CreateSocket(SocketType, Description, bForceUDP)) };
+}
+
+FJavascriptInternetAddr UJavascriptLibrary::CreateInternetAddr()
+{
+	auto SocketSub = ISocketSubsystem::Get();
+	return{ SocketSub->CreateInternetAddr() };
+}
+
+bool UJavascriptLibrary::ResolveIp(FString HostName, FString& OutIp)
+{
+	auto SocketSub = ISocketSubsystem::Get();
+	TSharedRef<FInternetAddr> HostAddr = SocketSub->CreateInternetAddr();
+	ESocketErrors HostResolveError = SocketSub->GetHostByName(TCHAR_TO_ANSI(*HostName), *HostAddr);
+	if (HostResolveError == SE_NO_ERROR || HostResolveError == SE_EWOULDBLOCK)
+	{
+		OutIp = HostAddr->ToString(false);
+		return true;
+	}
+	return false;
+}
+
+void UJavascriptLibrary::SetIp(FJavascriptInternetAddr& Addr, FString ResolvedAddress, bool& bValid)
+{
+	Addr.Handle->SetIp(*ResolvedAddress, bValid);
+}
+
+void UJavascriptLibrary::SetPort(FJavascriptInternetAddr& Addr, int32 Port)
+{
+	Addr.Handle->SetPort(Port);
+}
+
+bool UJavascriptLibrary::SendMemoryTo(FJavascriptSocket& Socket, const FJavascriptInternetAddr& ToAddr, int32 NumBytes, int32& BytesSent)
+{
+	auto Buffer = FArrayBufferAccessor::GetData();
+	auto Size = FArrayBufferAccessor::GetSize();
+
+	if (NumBytes > Size) return false;
+	if (!Socket.Handle.IsValid()) return false;
+	if (!ToAddr.Handle.IsValid()) return false;
+
+	return Socket.Handle->Socket->SendTo(reinterpret_cast<const uint8*>(Buffer), NumBytes, BytesSent, *ToAddr.Handle);
+}
 
 void UJavascriptLibrary::SetMobile(USceneComponent* SceneComponent)
 {
