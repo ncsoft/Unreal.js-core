@@ -68,7 +68,7 @@ class UEdGraphNode* UJavascriptGraphEditorLibrary::GetOwningNode(FJavascriptEdGr
 
 EEdGraphPinDirection UJavascriptGraphEditorLibrary::GetDirection(FJavascriptEdGraphPin A)
 {
-	return A.GraphPin ? A.GraphPin->Direction : EEdGraphPinDirection::EGPD_Input;
+	return A.GraphPin ? (EEdGraphPinDirection)(A.GraphPin->Direction) : EEdGraphPinDirection::EGPD_Input;
 }
 
 TArray<FJavascriptEdGraphPin> TransformPins(const TArray<UEdGraphPin*>& Pins)
