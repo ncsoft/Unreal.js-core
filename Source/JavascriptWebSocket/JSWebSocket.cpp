@@ -1,6 +1,8 @@
 // Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
 #include "JavascriptWebSocketModule.h"
 
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 #if WITH_JSWEBSOCKET
 
 #include "JSWebSocket.h"
@@ -226,3 +228,5 @@ int FJavascriptWebSocket::unreal_networking_client(lws *InWsi, lws_callback_reas
 	return 0; 
 }
 #endif
+
+PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
