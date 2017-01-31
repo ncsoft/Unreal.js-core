@@ -165,6 +165,12 @@ struct FJavascriptStreamableManager
 	TSharedPtr<FStreamableManager> Handle;
 };
 
+USTRUCT()
+struct FStubStruct
+{
+	GENERATED_BODY()
+};
+
 UCLASS()
 class V8_API UJavascriptLibrary : public UBlueprintFunctionLibrary
 {
@@ -460,4 +466,26 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddMessage_float(FJavascriptStat Stat, EJavascriptStatOperation InStatOperation, float Value, bool bIsCycle);
+
+	UFUNCTION(BlueprintCallable, CustomThunk, Category = "Scripting | Javascript", meta = (CustomStructureParam = "CustomStruct"))
+	static void CallJS(FJavascriptFunction Function, const FStubStruct& CustomStruct);
+
+	DECLARE_FUNCTION(execCallJS)
+	{
+		PARAM_PASSED_BY_VAL(Function, UStructProperty, FJavascriptFunction);
+
+		Stack.MostRecentPropertyAddress = nullptr;
+		Stack.MostRecentProperty = nullptr;
+
+		Stack.StepCompiledIn<UStructProperty>(NULL);
+		void* SrcStructAddr = Stack.MostRecentPropertyAddress;
+		auto SrcStructProperty = Cast<UStructProperty>(Stack.MostRecentProperty);
+
+		if (SrcStructAddr && SrcStructProperty)
+		{
+			Function.Execute(SrcStructProperty->Struct, SrcStructAddr);
+		}
+
+		P_FINISH;
+	}
 };
