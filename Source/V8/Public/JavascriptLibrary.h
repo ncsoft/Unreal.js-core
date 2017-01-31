@@ -171,12 +171,48 @@ struct FStubStruct
 	GENERATED_BODY()
 };
 
+struct FPrivateSocketHandle;
+
+USTRUCT()
+struct FJavascriptSocket
+{
+	GENERATED_BODY()
+
+	TSharedPtr<FPrivateSocketHandle> Handle;
+};
+
+USTRUCT()
+struct FJavascriptInternetAddr
+{
+	GENERATED_BODY()
+
+	TSharedPtr<FInternetAddr> Handle;
+};
+
 UCLASS()
 class V8_API UJavascriptLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
 public:	
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static FJavascriptSocket CreateSocket(FName SocketType, FString Description, bool bForceUDP = false);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static FJavascriptInternetAddr CreateInternetAddr();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static bool ResolveIp(FString HostName, FString& OutIp);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static void SetIp(FJavascriptInternetAddr& Addr, FString ResolvedAddress, bool& bValid);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static void SetPort(FJavascriptInternetAddr& Addr, int32 Port);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static bool SendMemoryTo(FJavascriptSocket& Socket, const FJavascriptInternetAddr& ToAddr, int32 NumBytes, int32& BytesSent);
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static FJavascriptStreamableManager CreateStreamableManager();
 

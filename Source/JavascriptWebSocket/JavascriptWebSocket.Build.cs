@@ -28,13 +28,12 @@ public class JavascriptWebSocket : ModuleRules
 
     public JavascriptWebSocket(TargetInfo Target)
 	{
-        PublicDependencyModuleNames.AddRange(new string[] { 
-            "Core", 
-            "CoreUObject", 
+        PublicDependencyModuleNames.AddRange(new string[] {
+            "Core",
+            "CoreUObject",
             "Engine",
             "V8",
             "Sockets",
-            "libWebSockets",
             "OnlineSubSystemUtils",
             "Networking"
         });
@@ -42,6 +41,7 @@ public class JavascriptWebSocket : ModuleRules
         if (IsUpdated() && (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Win32 || Target.Platform == UnrealTargetPlatform.Mac))
         {
             Definitions.Add(string.Format("WITH_JSWEBSOCKET=1"));
+            AddEngineThirdPartyPrivateStaticDependencies(Target,"libWebSockets");
         }
         else
         {

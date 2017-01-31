@@ -250,8 +250,20 @@ public:
 	bool IsAlive{ false };
 	lws_context* WebSocketContext;
 	lws_protocols* WebSocketProtocols;
+	int32 Port;
+
+	FString WebSocketDebuggerUrl() const
+	{
+		return FString::Printf(TEXT("ws://127.0.0.1:%d"), Port);
+	}
+
+	FString DevToolsFrontEndUrl() const
+	{
+		return FString::Printf(TEXT("chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=127.0.0.1:%d"), Port);
+	}
 
 	FInspector(v8::Platform* platform, int32 InPort, Local<Context> InContext)
+		: Port(InPort)
 	{
 		platform_ = platform;
 		isolate_ = InContext->GetIsolate();
@@ -282,7 +294,7 @@ public:
 			auto result = script->Run();
 		}
 
-		UE_LOG(Javascript, Log, TEXT("open chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=localhost:%d"), InPort);
+		UE_LOG(Javascript, Log, TEXT("open %s"), *DevToolsFrontEndUrl());
 
 		InstallRelay();
 	}
@@ -438,7 +450,52 @@ public:
 			lws_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
 		}
 		break;
+		case LWS_CALLBACK_HTTP:
+		{
+			auto request = (char*)In;
 
+			UE_LOG(Javascript, Log, TEXT("requested URI:%s"), UTF8_TO_TCHAR(request));
+
+			FString res[][2] = {
+				{
+					TEXT("description"), TEXT("unreal.js instance")
+				},
+				{
+					TEXT("devtoolsFrontendUrl"), DevToolsFrontEndUrl()
+				},
+				{
+					TEXT("type"), TEXT("node")
+				},
+				{
+					TEXT("id"), TEXT("0")
+				},
+				{
+					TEXT("title"), TEXT("unreal.js")
+				},
+				{
+					TEXT("webSocketDebuggerUrl"), WebSocketDebuggerUrl()
+				}
+			};
+
+			TArray<FString> res2;
+			for (auto pair : res)
+			{
+				res2.Add(FString::Printf(TEXT("\"%s\" : \"%s\""), *pair[0], *pair[1]));
+			}
+
+			{
+				auto response = FString(TEXT("HTTP/1.0 200 OK\r\nContent-Type: application/json; charset=UTF-8\r\nCache-Control: no-cache\r\n\r\n"));
+				FTCHARToUTF8 utf8(*response);
+				lws_write_http(Wsi, utf8.Get(), utf8.Length());
+			}
+
+			{
+				auto response = FString::Printf(TEXT("[{%s}]"), *FString::Join(res2, TEXT(",")));
+				FTCHARToUTF8 utf8(*response);
+				lws_write_http(Wsi, utf8.Get(), utf8.Length());
+			}
+		}
+		break;
 		case LWS_CALLBACK_RECEIVE:
 		{
 			auto Remaining = lws_remaining_packet_payload(Wsi);
