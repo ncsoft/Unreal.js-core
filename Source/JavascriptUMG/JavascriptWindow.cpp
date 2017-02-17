@@ -1,6 +1,13 @@
 #include "JavascriptUMG.h"
 #include "JavascriptWindow.h"
 #include "SWindow.h"
+#include "Modules/ModuleVersion.h"
+
+#if ENGINE_MINOR_VERSION > 14
+#	define ENUM_VALUE(x) (x)
+#else
+#	define ENUM_VALUE(x) (x.GetValue())
+#endif
 
 UJavascriptWindow::UJavascriptWindow(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -32,17 +39,17 @@ TSharedRef<SWidget> UJavascriptWindow::RebuildWidget()
 	auto Content = (GetChildrenCount() > 0) ? GetContentSlot()->Content : nullptr;
 
 	MyWindow = SNew(SWindow)
-		.Type((EWindowType)Type.GetValue())
+		.Type((EWindowType)ENUM_VALUE(Type))
 		.Style(&FCoreStyle::Get().GetWidgetStyle<FWindowStyle>("Window"))
 		.Title(Title)
 		.bDragAnywhere(bDragAnywhere)
-		.AutoCenter((EAutoCenter::Type)AutoCenter.GetValue())
+		.AutoCenter((EAutoCenter::Type)ENUM_VALUE(AutoCenter))
 		.ScreenPosition(ScreenPosition)
 		.ClientSize(ClientSize)
-		.SupportsTransparency((EWindowTransparency)SupportsTransparency.GetValue())
+		.SupportsTransparency((EWindowTransparency)ENUM_VALUE(SupportsTransparency))
 		.InitialOpacity(InitialOpacity)
 		.IsInitiallyMaximized(IsInitiallyMaximized)
-		.SizingRule((ESizingRule::Type)SizingRule.GetValue())
+		.SizingRule((ESizingRule::Type)ENUM_VALUE(SizingRule))
 		.IsPopupWindow(IsPopupWindow)
 		.FocusWhenFirstShown(FocusWhenFirstShown)
 		.ActivateWhenFirstShown(ActivateWhenFirstShown)

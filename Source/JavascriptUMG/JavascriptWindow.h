@@ -72,7 +72,7 @@ class JAVASCRIPTUMG_API UJavascriptWindow : public UContentWidget
 public:		
 	/** Type of this window */
 	UPROPERTY()
-	TEnumAsByte<EJavascriptWindowType> Type;
+	EJavascriptWindowType Type;
 
 	UPROPERTY()
 	FWindowStyle Style;
@@ -84,7 +84,7 @@ public:
 	bool bDragAnywhere;
 
 	UPROPERTY()
-	TEnumAsByte<EJavascriptAutoCenter> AutoCenter;
+	EJavascriptAutoCenter AutoCenter;
 
 	/** Screen-space position where the window should be initially located. */
 	UPROPERTY()
@@ -96,7 +96,7 @@ public:
 
 	/** Should this window support transparency */
 	UPROPERTY()
-	TEnumAsByte<EJavascriptWindowTransparency> SupportsTransparency;
+	EJavascriptWindowTransparency SupportsTransparency;
 
 	UPROPERTY()
 	float InitialOpacity;
@@ -106,7 +106,7 @@ public:
 	bool IsInitiallyMaximized;
 
 	UPROPERTY()
-	TEnumAsByte<EJavascriptSizingRule> SizingRule;
+	EJavascriptSizingRule SizingRule;
 
 	/** True if this should be a 'pop-up' window */
 	UPROPERTY()

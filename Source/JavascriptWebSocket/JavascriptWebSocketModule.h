@@ -17,6 +17,13 @@ class FJavascriptWebSocketServer;
 #include "AllowWindowsPlatformTypes.h"
 #endif
 
+#ifndef THIRD_PARTY_INCLUDES_START
+#	define THIRD_PARTY_INCLUDES_START
+#	define THIRD_PARTY_INCLUDES_END
+#endif
+
+THIRD_PARTY_INCLUDES_START
+
 #define UI UI_ST
 #ifndef LWS_INCLUDED
 #include "libwebsockets.h"
@@ -25,6 +32,8 @@ class FJavascriptWebSocketServer;
 //#include "private-libwebsockets.h"
 #endif
 #undef UI
+
+THIRD_PARTY_INCLUDES_END
 
 #if PLATFORM_WINDOWS
 #include "HideWindowsPlatformTypes.h"

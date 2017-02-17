@@ -11,12 +11,21 @@
 #include "AllowWindowsPlatformTypes.h"
 #endif
 
+#ifndef THIRD_PARTY_INCLUDES_START
+#	define THIRD_PARTY_INCLUDES_START
+#	define THIRD_PARTY_INCLUDES_END
+#endif
+
+THIRD_PARTY_INCLUDES_START
+
 #ifndef LWS_INCLUDED
 #include "libwebsockets.h"
 #define LWS_INCLUDED
 #define LWS_EXTERN extern
 #include "private-libwebsockets.h"
 #endif
+
+THIRD_PARTY_INCLUDES_END
 
 #if PLATFORM_WINDOWS
 #include "HideWindowsPlatformTypes.h"
