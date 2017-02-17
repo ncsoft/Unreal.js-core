@@ -7,6 +7,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "JavascriptContext.h"
 #include "SocketSubSystem.h"
 #include "Sockets.h"
+#include "IPAddress.h"
 #include "NetworkMessage.h"
 #include "Misc/DefaultValueHelper.h"
 

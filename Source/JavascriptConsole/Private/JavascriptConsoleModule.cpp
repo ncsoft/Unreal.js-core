@@ -1,6 +1,7 @@
 #include "JavascriptLogPrivatePCH.h"
 #include "SJavascriptConsole.h"
 #include "SJavascriptLog.h"
+#include "Editor/WorkspaceMenuStructure/Public/WorkspaceMenuStructure.h"
 #include "Editor/WorkspaceMenuStructure/Public/WorkspaceMenuStructureModule.h"
 #include "SDockTab.h"
 

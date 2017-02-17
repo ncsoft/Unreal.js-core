@@ -5,6 +5,7 @@
 #include "JavascriptEditorTab.h"
 #include "JavascriptUICommands.h"
 #include "JavascriptUIExtender.h"
+#include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
 #endif
 

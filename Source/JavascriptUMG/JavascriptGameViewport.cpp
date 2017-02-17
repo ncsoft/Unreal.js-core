@@ -2,6 +2,7 @@
 #include "JavascriptUMG.h"
 #include "JavascriptGameViewport.h"
 #include "SceneViewport.h"
+#include "Modules/ModuleVersion.h"
 
 #define LOCTEXT_NAMESPACE "UMG"
 
@@ -103,7 +104,11 @@ void FJavascriptUMGViewportClient::Tick(float InDeltaTime)
 		{
 			for (FActorIterator It(GameScene->GetWorld()); It; ++It)
 			{
+#if ENGINE_MINOR_VERSION > 14
+				It->DispatchBeginPlay();
+#else
 				It->BeginPlay();
+#endif
 			}
 			GameScene->GetWorld()->bBegunPlay = true;
 		}

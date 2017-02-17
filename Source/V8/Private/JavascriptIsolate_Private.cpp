@@ -2,6 +2,11 @@
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
+#ifndef THIRD_PARTY_INCLUDES_START
+#	define THIRD_PARTY_INCLUDES_START
+#	define THIRD_PARTY_INCLUDES_END
+#endif
+
 #include "Config.h"
 #include "MallocArrayBufferAllocator.h"
 #include "Translator.h"
@@ -22,7 +27,10 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #endif
 #include "JavascriptStats.h"
 #include "IV8.h"
+
+THIRD_PARTY_INCLUDES_START
 #include <libplatform/libplatform.h>
+THIRD_PARTY_INCLUDES_END
 
 using namespace v8;
 

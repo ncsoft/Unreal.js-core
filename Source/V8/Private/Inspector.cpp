@@ -1,6 +1,11 @@
 #include "V8PCH.h"
 #include "../../Launch/Resources/Version.h"
 
+#ifndef THIRD_PARTY_INCLUDES_START
+#	define THIRD_PARTY_INCLUDES_START
+#	define THIRD_PARTY_INCLUDES_END
+#endif
+
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 14
@@ -10,15 +15,19 @@ static const int32 CONTEXT_GROUP_ID = 1;
 #include "AllowWindowsPlatformTypes.h"
 #endif
 #define UI UI_ST
+THIRD_PARTY_INCLUDES_START
 #include "libwebsockets.h"
+THIRD_PARTY_INCLUDES_END
 #undef UI
 #if PLATFORM_WINDOWS
 #include "HideWindowsPlatformTypes.h"
 #endif
 
+THIRD_PARTY_INCLUDES_START
 #include "v8-inspector.h"
 #include "v8-platform.h"
 #include "libplatform/libplatform.h"
+THIRD_PARTY_INCLUDES_END
 
 #if WITH_EDITOR 
 #include "TickableEditorObject.h"

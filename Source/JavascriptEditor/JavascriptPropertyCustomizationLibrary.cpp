@@ -1,5 +1,7 @@
 #include "JavascriptEditor.h"
 #include "JavascriptPropertyCustomizationLibrary.h"
+#include "IPropertyTypeCustomization.h"
+#include "IDetailChildrenBuilder.h"
 
 #if WITH_EDITOR
 FJavascriptPropertyHandle UJavascriptPropertyCustomizationLibrary::GetChildHandle(FJavascriptPropertyHandle Parent, FName Name)

@@ -3,6 +3,7 @@
 #include "JavascriptInGameScene.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Components/SceneCaptureComponentCube.h"
+#include "Modules/ModuleVersion.h"
 #include "InGameSceneAccessor.generated.h"
 
 UCLASS()
@@ -61,7 +62,11 @@ public:
 			{
 				for (FActorIterator It(GameScene->GetWorld()); It; ++It)
 				{
+#if ENGINE_MINOR_VERSION > 14
+					It->DispatchBeginPlay();
+#else
 					It->BeginPlay();
+#endif
 				}
 				GameScene->GetWorld()->bBegunPlay = true;
 			}

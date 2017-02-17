@@ -1,6 +1,7 @@
 #include "JavascriptUMG.h"
 #include "JavascriptUICommands.h"
 #include "Framework/Commands/Commands.h"
+#include "Modules/ModuleVersion.h"
 
 PRAGMA_DISABLE_OPTIMIZATION
 
@@ -56,19 +57,27 @@ void UJavascriptUICommands::Initialize()
 		CommandInfos.Add(CommandInfo);
 	}
 
-	BroadcastCommandsChanged();
+	BroadcastCommandsChanged(ContextName);
 }
 
 void UJavascriptUICommands::Uninitialize()
 {	
 	CommandInfos.Empty();
 
-	BroadcastCommandsChanged();
+	BroadcastCommandsChanged(ContextName);
 }
 
-void UJavascriptUICommands::BroadcastCommandsChanged()
+void UJavascriptUICommands::BroadcastCommandsChanged(const FString& InContextName)
 {
+#if ENGINE_MINOR_VERSION > 14
+	TSharedPtr<FBindingContext> ExistingBindingContext = FInputBindingManager::Get().GetContextByName(*InContextName);
+	if (ExistingBindingContext.IsValid())
+	{
+		FBindingContext::CommandsChanged.Broadcast(*ExistingBindingContext);
+	}
+#else
 	FBindingContext::CommandsChanged.Broadcast();
+#endif
 }
 
 void UJavascriptUICommands::Refresh()

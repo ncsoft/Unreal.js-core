@@ -4,6 +4,7 @@
 #include "JavascriptContext.h"
 #include "IV8.h"
 #include "SocketSubsystem.h"
+#include "Modules/ModuleVersion.h"
 
 struct FPrivateSocketHandle
 {
@@ -419,7 +420,11 @@ UEnum* UJavascriptLibrary::CreateEnum(UObject* Outer, FName Name, TArray<FName> 
 
 	if (NULL != Enum)
 	{
-		TArray<TPair<FName, uint8>> Names;		
+#if ENGINE_MINOR_VERSION > 14
+		TArray<TPair<FName, int64>> Names;
+#else
+		TArray<TPair<FName, uint8>> Names;
+#endif
 
 		int32 Index = 0;
 

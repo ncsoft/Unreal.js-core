@@ -5,7 +5,7 @@
 #include "Runtime/Engine/Public/Slate/SceneViewport.h"
 
 #include "AssetViewerSettings.h"
-#include "../../Launch/Resources/Version.h"
+#include "Modules/ModuleVersion.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptEditor"
 
@@ -224,7 +224,11 @@ public:
 			{
 				for (FActorIterator It(PreviewScene->GetWorld()); It; ++It)
 				{
+#if ENGINE_MINOR_VERSION > 14
+					It->DispatchBeginPlay();
+#else
 					It->BeginPlay();
+#endif
 				}
 				PreviewScene->GetWorld()->bBegunPlay = true;
 			}

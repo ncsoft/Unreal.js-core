@@ -59,7 +59,7 @@ public:
 	void Unbind(FJavascriptUICommandList List);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void BroadcastCommandsChanged();
+	static void BroadcastCommandsChanged(const FString& InContextName);
 
 	bool bRegistered;
 
