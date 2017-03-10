@@ -431,15 +431,22 @@ struct TypingGenerator : TypingGeneratorBase
 
 		if (auto klass = Cast<UClass>(source))
 		{
+
+			bool bIsUObject = (klass == UObject::StaticClass() || !klass->IsChildOf(UObject::StaticClass()));
+
 			if (klass->IsChildOf(AActor::StaticClass()))
 			{
 				Export(UWorld::StaticClass());
-				w.push("\tconstructor(InWorld: World, Location?: Vector, Rotation?: Rotator);\n");
+				if (klass == AActor::StaticClass()) {
+					w.push("\tconstructor(InWorld: World, Location?: Vector, Rotation?: Rotator);\n");
+				}
 			}
 			else
 			{
-				w.push("\tconstructor();\n");
-				w.push("\tconstructor(Outer: UObject);\n");
+				if (bIsUObject) {
+					w.push("\tconstructor();\n");
+					w.push("\tconstructor(Outer: UObject);\n");
+				}
 				w.push("\tstatic Load(ResourceName: string): ");
 				w.push(name);
 				w.push(";\n");
@@ -448,16 +455,20 @@ struct TypingGenerator : TypingGeneratorBase
 				w.push(";\n");
 			}
 
-			w.push("\tstatic StaticClass: any;\n");
+			if (bIsUObject) {
+				w.push("\tstatic StaticClass: any;\n");
 
-			w.push("\tstatic GetClassObject(): Class;\n");
+				w.push("\tstatic GetClassObject(): Class;\n");
+			}
 
 			w.push("\tstatic GetDefaultObject(): ");
 			w.push(name);
 			w.push(";\n");
 
-			w.push("\tstatic GetDefaultSubobjectByName(Name: string): UObject;\n");
-			w.push("\tstatic SetDefaultSubobjectClass(Name: string): void;\n");
+			if (bIsUObject) {
+				w.push("\tstatic GetDefaultSubobjectByName(Name: string): UObject;\n");
+				w.push("\tstatic SetDefaultSubobjectClass(Name: string): void;\n");
+			}
 			w.push("\tstatic CreateDefaultSubobject(Name: string, Transient?: boolean, Required?: boolean, Abstract?: boolean): ");
 			w.push(name);
 			w.push(";\n");
