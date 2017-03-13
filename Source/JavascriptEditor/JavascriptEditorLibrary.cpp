@@ -1,6 +1,12 @@
 #include "JavascriptEditor.h"
 #include "JavascriptEditorLibrary.h"
 #include "LandscapeComponent.h"
+
+// WORKAROUND for 4.15
+#ifndef WITH_KISSFFT
+#define WITH_KISSFFT 0
+#endif
+
 #include "Editor/LandscapeEditor/Private/LandscapeEdModeTools.h"
 #include "JavascriptContext.h"
 #include "DynamicMeshBuilder.h"

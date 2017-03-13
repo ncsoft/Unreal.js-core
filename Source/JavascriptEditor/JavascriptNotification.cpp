@@ -14,7 +14,7 @@ bUseThrobber(true),
 bUseSuccessFailIcons(true),
 bUseLargeFont(true),
 bFireAndForget(true),
-CheckBoxState(ECheckBoxState::Unchecked),
+CheckBoxState(EJSCheckBoxState::Unchecked),
 bAllowThrottleWhenFrameRateIsLow(true)
 #endif
 {}
@@ -22,7 +22,7 @@ bAllowThrottleWhenFrameRateIsLow(true)
 #if WITH_EDITOR
 ECheckBoxState UJavascriptNotification::GetCheckBoxState() const
 {
-	return CheckBoxState;
+	return (ECheckBoxState)CheckBoxState.GetValue();
 }
 
 void UJavascriptNotification::Fire()
