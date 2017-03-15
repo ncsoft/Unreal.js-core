@@ -166,7 +166,7 @@ struct FJavascriptStreamableManager
 };
 
 USTRUCT()
-struct FStubStruct
+struct FJavascriptStubStruct
 {
 	GENERATED_BODY()
 };
@@ -504,7 +504,7 @@ public:
 	static void AddMessage_float(FJavascriptStat Stat, EJavascriptStatOperation InStatOperation, float Value, bool bIsCycle);
 
 	UFUNCTION(BlueprintCallable, CustomThunk, Category = "Scripting | Javascript", meta = (CustomStructureParam = "CustomStruct"))
-	static void CallJS(FJavascriptFunction Function, const FStubStruct& CustomStruct);
+	static void CallJS(FJavascriptFunction Function, const FJavascriptStubStruct& CustomStruct);
 
 	DECLARE_FUNCTION(execCallJS)
 	{
