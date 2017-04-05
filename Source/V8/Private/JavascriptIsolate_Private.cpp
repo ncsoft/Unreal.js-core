@@ -618,6 +618,11 @@ public:
 				return Int32::New(isolate_, Value);
 			}
 		}
+		else if (auto p = Cast<UEnumProperty>(Property))
+		{
+			int32 Value = p->GetUnderlyingProperty()->GetValueTypeHash(Buffer);
+			return I.Keyword(p->GetEnum()->GetEnumName(Value));
+		}
 		else if (auto p = Cast<USetProperty>(Property))
 		{
 			FScriptSetHelper_InContainer SetHelper(p, Buffer);
@@ -652,11 +657,6 @@ public:
 			}
 
 			return Out;
-		}
-		else if (auto p = Cast<UEnumProperty>(Property))
-		{
-			int32 Value = p->GetUnderlyingProperty()->GetValueTypeHash(Buffer);
-			return I.Keyword(p->GetEnum()->GetEnumName(Value));
 		}
 		else
 		{
