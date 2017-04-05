@@ -165,6 +165,12 @@ struct FJavascriptStreamableManager
 	TSharedPtr<FStreamableManager> Handle;
 };
 
+USTRUCT()
+struct FJavascriptStubStruct
+{
+	GENERATED_BODY()
+};
+
 struct FPrivateSocketHandle;
 
 USTRUCT()
@@ -512,6 +518,25 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool IsGeneratedByBlueprint(UClass* InClass);
 
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FName GetReplacedName(const FString& InString);
+	UFUNCTION(BlueprintCallable, CustomThunk, Category = "Scripting | Javascript", meta = (CustomStructureParam = "CustomStruct"))
+	static void CallJS(FJavascriptFunction Function, const FJavascriptStubStruct& CustomStruct);
+
+	DECLARE_FUNCTION(execCallJS)
+	{
+		PARAM_PASSED_BY_VAL(Function, UStructProperty, FJavascriptFunction);
+
+		Stack.MostRecentPropertyAddress = nullptr;
+		Stack.MostRecentProperty = nullptr;
+
+		Stack.StepCompiledIn<UStructProperty>(NULL);
+		void* SrcStructAddr = Stack.MostRecentPropertyAddress;
+		auto SrcStructProperty = Cast<UStructProperty>(Stack.MostRecentProperty);
+
+		if (SrcStructAddr && SrcStructProperty)
+		{
+			Function.Execute(SrcStructProperty->Struct, SrcStructAddr);
+		}
+
+		P_FINISH;
+	}
 };

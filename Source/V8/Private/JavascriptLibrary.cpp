@@ -723,8 +723,3 @@ bool UJavascriptLibrary::IsGeneratedByBlueprint(UClass* InClass)
 {
 	return NULL != Cast<UBlueprint>(InClass->ClassGeneratedBy);
 }
-
-FName UJavascriptLibrary::GetReplacedName(const FString& InString)
-{
-	return FName(*InString, FNAME_Replace_Not_Safe_For_Threading);
-}
