@@ -14,14 +14,16 @@ public:
 	virtual void UpdateGraphNode() override;
 	virtual void CreatePinWidgets() override;
 	virtual void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
-// 	virtual void OnDragEnter(const FGeometry& MyGeometry, const FDragDropEvent& DragDropEvent) override;
-// 	virtual FReply OnDragOver(const FGeometry& MyGeometry, const FDragDropEvent& DragDropEvent) override;
-// 	virtual FReply OnDrop(const FGeometry& MyGeometry, const FDragDropEvent& DragDropEvent) override;
-// 	virtual void OnDragLeave(const FDragDropEvent& DragDropEvent) override;
-// 	virtual FReply OnMouseMove(const FGeometry& SenderGeometry, const FPointerEvent& MouseEvent) override;
-// 	virtual void SetOwner(const TSharedRef<SGraphPanel>& OwnerPanel) override;
-// 	virtual void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
+	virtual void MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter) override;
+	virtual bool RequiresSecondPassLayout() const override;
+	virtual void PerformSecondPassLayout(const TMap< UObject*, TSharedRef<SNode> >& NodeToWidgetLookup) const override;
+
 	//~ End SGraphNode Interface
+
+	// SWidget interface
+	void OnMouseEnter(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	void OnMouseLeave(const FPointerEvent& MouseEvent) override;
+	// End of SWidget interface
 
 	virtual EVisibility GetDragOverMarkerVisibility() const;
 
@@ -29,8 +31,6 @@ public:
 	virtual EVisibility GetDescriptionVisibility() const;
 
 	virtual const FSlateBrush* GetNameIcon() const;
-
-protected:
-	TSharedPtr<SBox> Content;
-	FSlateColor BackgroundColor;
+public:
+	void PositionBetweenTwoNodesWithOffset(const FGeometry& StartGeom, const FGeometry& EndGeom, int32 NodeIndex, int32 MaxNodes) const;
 };

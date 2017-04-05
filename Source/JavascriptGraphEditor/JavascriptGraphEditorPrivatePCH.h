@@ -17,6 +17,8 @@
 
 #include "SGraphNode.h"
 #include "SGraphPin.h"
+#include "SJavascriptGraphEdNode.h"
+#include "Editor/GraphEditor/Private/SGraphPanel.h"
 #include "SInlineEditableTextBlock.h"
 #include "SCommentBubble.h"
 

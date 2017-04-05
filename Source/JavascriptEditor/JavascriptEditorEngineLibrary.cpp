@@ -136,4 +136,25 @@ int32 UJavascriptEditorEngineLibrary::DeleteObjectsUnchecked(const TArray< UObje
 {
 	return ObjectTools::DeleteObjectsUnchecked(ObjectsToDelete);
 }
+
+UObject* UJavascriptEditorEngineLibrary::DuplicateAsset(const FString& AssetName, const FString& PackagePath, UObject* OriginalObject)
+{
+	if (::IsValid(OriginalObject) == true)
+	{
+		IAssetTools& AssetTools = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools").Get();
+		return AssetTools.DuplicateAsset(AssetName, PackagePath, OriginalObject);
+	}
+	return nullptr;
+}
+
+FString UJavascriptEditorEngineLibrary::GetLongPackagePath(const UPackage* InPackage)
+{
+	if (::IsValid(InPackage) == true)
+	{
+		return FPackageName::GetLongPackagePath(InPackage->GetName());
+	}
+
+	return FString(TEXT(""));
+}
+
 #endif

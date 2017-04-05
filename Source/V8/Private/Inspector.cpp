@@ -96,17 +96,17 @@ namespace {
 	};
 
 	struct AgentRef
- 	{
- 		TSharedPtr<AgentImpl> agent;
- 	};
- 
- 	void InterruptCallback(v8::Isolate*, void* _ref)
- 	{
- 		auto ref = reinterpret_cast<AgentRef*>(_ref);
- 		ref->agent->DispatchMessages();
- 		delete ref;
- 	}
-	
+	{
+		TSharedPtr<AgentImpl> agent;
+	};
+
+	void InterruptCallback(v8::Isolate*, void* _ref)
+	{
+		auto ref = reinterpret_cast<AgentRef*>(_ref);
+		ref->agent->DispatchMessages();
+		delete ref;
+	}
+
 	class DispatchOnInspectorBackendTask : public v8::Task
 	{
 	public:
@@ -389,7 +389,8 @@ public:
 			lws_service(WebSocketContext, 0);
 
 			while (v8::platform::PumpMessageLoop(platform_, isolate_))
-			{}
+			{
+			}
 		}
 		terminated_ = false;
 		running_nested_loop_ = false;
@@ -558,7 +559,7 @@ public:
 			return reinterpret_cast<FInspector*>(lws_context_user(context))->inspector_server(Wsi, Reason, User, In, Len);
 		};
 		WebSocketProtocols[0].per_session_data_size = sizeof(PerSessionDataServer);
-		WebSocketProtocols[0].rx_buffer_size = 1024 * 1024 * 4;
+		WebSocketProtocols[0].rx_buffer_size = 10 * 1024 * 1024;
 
 		struct lws_context_creation_info Info;
 		memset(&Info, 0, sizeof(lws_context_creation_info));
@@ -591,7 +592,7 @@ public:
 
 IJavascriptInspector* IJavascriptInspector::Create(int32 InPort, Local<Context> InContext)
 {
-	return new FInspector(reinterpret_cast<v8::Platform*>(IV8::Get().GetV8Platform()), InPort,InContext);
+	return new FInspector(reinterpret_cast<v8::Platform*>(IV8::Get().GetV8Platform()), InPort, InContext);
 }
 #else
 IJavascriptInspector* IJavascriptInspector::Create(int32 InPort, Local<Context> InContext)

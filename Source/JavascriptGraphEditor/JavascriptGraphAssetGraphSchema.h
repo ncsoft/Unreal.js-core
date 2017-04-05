@@ -2,7 +2,6 @@
 
 #include "JavascriptUMGLibrary.h"
 #include "JavascriptGraphEditorLibrary.h"
-#include "ConnectionDrawingPolicy.h"
 #include "JavascriptGraphAssetGraphSchema.generated.h"
 
 class UJavascriptGraphAssetGraphSchema;
@@ -43,46 +42,6 @@ struct FJavascriptPinConnectionResponse
 };
 
 USTRUCT()
-struct FJavascriptConnectionParams
-{
-	GENERATED_BODY()
-
-	FJavascriptConnectionParams() 
-	{}
-
-	FJavascriptConnectionParams(const FConnectionParams& In);
-
-	UPROPERTY()
-	FLinearColor WireColor;
-
-	UPROPERTY()
-	FJavascriptEdGraphPin AssociatedPin1;
-
-	UPROPERTY()
-	FJavascriptEdGraphPin AssociatedPin2;
-
-	UPROPERTY()
-	float WireThickness;
-
-	UPROPERTY()
-	bool bDrawBubbles;
-
-	UPROPERTY()
-	bool bUserFlag1;
-
-	UPROPERTY()
-	bool bUserFlag2;
-
-	UPROPERTY()
-	TEnumAsByte<EEdGraphPinDirection> StartDirection;
-
-	UPROPERTY()
-	TEnumAsByte<EEdGraphPinDirection> EndDirection;
-
-	operator FConnectionParams () const;
-};
-
-USTRUCT()
 struct FPerformActionContext
 {
 	GENERATED_BODY()
@@ -104,18 +63,18 @@ UCLASS(MinimalAPI)
 class UJavascriptGraphAssetGraphSchema : public UEdGraphSchema
 {
 	GENERATED_BODY()
-
 public:
 	/** Delegate for constructing a UWidget based on a UObject */
-	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnDetermineWiringStyle, FJavascriptEdGraphPin, A, FJavascriptEdGraphPin, B, FJavascriptConnectionParams&, Params);
+	DECLARE_DYNAMIC_DELEGATE_FourParams(FOnDetermineWiringStyle, FJavascriptEdGraphPin, A, FJavascriptEdGraphPin, B, FJavascriptConnectionParams&, Params, FJavascriptGraphConnectionDrawingPolicyContainer, Container);
+
+	DECLARE_DYNAMIC_DELEGATE_SixParams(FOnDrawPreviewConnector, const FGeometry&, PinGeometry, const FVector2D&, StartPoint, const FVector2D&, EndPoint, FJavascriptEdGraphPin, Pin, FJavascriptConnectionParams&, Params, FJavascriptGraphConnectionDrawingPolicyContainer, Container);
 
 	/** Delegate for constructing a UWidget based on a UObject */
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FVector2D, FOnVectorArith, const FVector2D&, A, const FVector2D&, B);
 
 	/** Delegate for constructing a UWidget based on a UObject */
-	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnDrawSplineWithArrow, const FVector2D&, A, const FVector2D&, B, const FJavascriptConnectionParams&, Params);
-	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnDrawSplineWithArrow_Geom, const FGeometry&, A, const FGeometry&, B, const FJavascriptConnectionParams&, Params);
-	DECLARE_DYNAMIC_DELEGATE_FourParams(FOnDrawPreviewConnector, const FGeometry&, PinGeometry, const FVector2D&, StartPoint, const FVector2D&, EndPoint, FJavascriptEdGraphPin, Pin);	
+	DECLARE_DYNAMIC_DELEGATE_FiveParams(FOnDrawSplineWithArrow, const FVector2D&, A, const FVector2D&, B, const FJavascriptConnectionParams&, Params, FJavascriptGraphConnectionDrawingPolicyContainer, Container, FVector2D, ArrowRadius);
+	DECLARE_DYNAMIC_DELEGATE_FourParams(FOnDrawSplineWithArrow_Geom, const FGeometry&, A, const FGeometry&, B, const FJavascriptConnectionParams&, Params, FJavascriptGraphConnectionDrawingPolicyContainer, Container);
 
 	/** Delegate for constructing a UWidget based on a UObject */
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FJavascriptSlateWidget, FOnTakeWidget, UJavascriptGraphEdNode*, Instance);
@@ -136,9 +95,74 @@ public:
 
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnEdNodeAction, UJavascriptGraphEdNode*, Node);
 
+	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnCreateAutomaticConversionNodeAndConnections, FJavascriptEdGraphPin, A, FJavascriptEdGraphPin, B);
+	
 	/** Delegate for constructing a UWidget based on a UObject */
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FJavascriptSlateWidget, FOnCreatePin, FJavascriptEdGraphPin, Pin);
+	
+	DECLARE_DYNAMIC_DELEGATE_FiveParams(FOnDetermineLinkGeometry, FJavascriptEdGraphPin, OutPin, FJavascriptEdGraphPin, InputPin, FJavascriptArrangedWidget&, StartWidgetGeometry, FJavascriptArrangedWidget&, EndWidgetGeometry, FJavascriptDetermineLinkGeometryContainer, Container);
 
+	DECLARE_DYNAMIC_DELEGATE_RetVal(bool, FOnGetBoolean);
+
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnGetBooleanWidget, UJavascriptGraphEdNode*, Instance);
+	
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FName, FOnGetSlateBrushName, bool, bHovered);
+
+	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnMoveTo, UJavascriptGraphEdNode*, Instance, const FVector2D&, NewPosition);
+
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FJavascriptPerformSecondPassLayoutContainer, FOnPerformSecondPassLayout, UJavascriptGraphEdNode*, Instance);
+	
+	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnGetPins, UJavascriptGraphEdNode*, Instance, FJavascriptSlateEdNode, SlateEdNode);
+	
+	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnTryCreateConnection, FJavascriptEdGraphPin&, PinA, FJavascriptEdGraphPin&, PinB);
+
+	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnPinConnectionListChanged, FJavascriptEdGraphPin, Pin);
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnPinConnectionListChanged OnPinConnectionListChanged;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnTryCreateConnection OnTryCreateConnection;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetPins OnMouseEnter;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetPins OnMouseLeave;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnPerformSecondPassLayout OnPerformSecondPassLayout;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetBooleanWidget OnRequiresSecondPassLayout;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetBooleanWidget OnSkipMoveTo;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetBooleanWidget OnUsingCustomContent;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetSlateBrushName OnGetSlateBrushName;
+	
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnCreatePin OnGetLabelWidget;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnCreatePin OnGetActualPinWidget;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnCreatePin OnGetPinStatusIndicator;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetBooleanWidget OnDisableMakePins;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetBoolean OnUsingDefaultPin;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetBoolean OnUsingNodeWidgetMap;
+	
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnDetermineWiringStyle OnDetermineWiringStyle;
 
@@ -156,6 +180,12 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnTakeWidget OnTakeWidget;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnTakeWidget OnTakeTitleWidget;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnTakeWidget OnTakeErrorReportingWidget;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetString OnGetString;
@@ -184,6 +214,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnEdNodeAction OnNodeConnectionListChanged;
 
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnCreateAutomaticConversionNodeAndConnections OnCreateAutomaticConversionNodeAndConnections;
+	
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnDetermineLinkGeometry OnDetermineLinkGeometry;
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void BreakPinLinks(FJavascriptEdGraphPin TargetPin, bool bSendsNodeNotifcation);
 
@@ -202,6 +238,9 @@ public:
 	virtual void BreakNodeLinks(UEdGraphNode& TargetNode) const override;
 	virtual void BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNodeNotifcation) const override;
 	virtual void BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPin* TargetPin) override;
+
+	virtual bool TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) const override;
+	virtual bool CreateAutomaticConversionNodeAndConnections(UEdGraphPin* PinA, UEdGraphPin* PinB) const override;
 	//~ End EdGraphSchema Interface
 };
 

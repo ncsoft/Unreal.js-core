@@ -15,7 +15,8 @@ public class JavascriptUMG : ModuleRules
 			"RenderCore",
 			"RHI", 
             "UMG",
-            "V8"
+            "V8",
+            "KismetWidgets"
         });        
 	}
 }

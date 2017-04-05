@@ -11,16 +11,15 @@ class UJavascriptGraphEdNode : public UEdGraphNode
 
 public:
 	UPROPERTY()
-	FSlateColor BorderBackgroundColor;
-
-	UPROPERTY()
 	FSlateColor BackgroundColor;
 
 	UPROPERTY(VisibleAnywhere, instanced, Category = "JavascriptGraph")
 	UObject* GraphNode;
-
+	
+public:
 	virtual void AllocateDefaultPins() override;
 	virtual void NodeConnectionListChanged() override;
+	virtual void PinConnectionListChanged(UEdGraphPin* Pin) override;
 
 	UJavascriptGraphEdGraph* GetGenericGraphEdGraph();
 
@@ -40,4 +39,10 @@ public:
 		bool bIsConst /*= false*/
 		//int32 Index /*= INDEX_NONE*/
 		);
+public:
+	UPROPERTY()
+	bool Bidirectional;
+
+	UPROPERTY()
+	int32 PriorityOrder;
 };

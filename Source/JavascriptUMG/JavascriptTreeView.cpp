@@ -309,7 +309,7 @@ void UJavascriptTreeView::AddReferencedObjects(UObject* InThis, FReferenceCollec
 
 	if (This->MyTreeView.IsValid())
 	{
-		for (auto It = This->CachedRows.CreateIterator(); It;)
+		for (auto It = This->CachedRows.CreateIterator(); ++It;)
 		{
 			auto Key = It->Key;
 			auto Value = It->Value;
@@ -317,7 +317,6 @@ void UJavascriptTreeView::AddReferencedObjects(UObject* InThis, FReferenceCollec
 			if (Value.IsValid())
 			{
 				Collector.AddReferencedObject(Key, This);
-				++It;
 			}
 			else
 			{

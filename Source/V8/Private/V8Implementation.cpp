@@ -135,9 +135,14 @@ FString UJavascriptContext::RunScript(FString Script, bool bOutput)
 	return JavascriptContext->Public_RunScript(Script, bOutput);	
 }
 
-void UJavascriptContext::SetAsDebugContext()
+void UJavascriptContext::FindPathFile(FString TargetRootPath, FString TargetFileName, TArray<FString>& OutFiles)
 {
-	JavascriptContext->SetAsDebugContext();
+    JavascriptContext->FindPathFile(TargetRootPath, TargetFileName, OutFiles);
+}
+
+void UJavascriptContext::SetAsDebugContext(int32 InPort)
+{
+	JavascriptContext->SetAsDebugContext(InPort);
 }
 
 void UJavascriptContext::ResetAsDebugContext()

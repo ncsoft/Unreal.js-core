@@ -129,8 +129,5 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void Build(UStaticMesh* StaticMesh);
-
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static bool MarkPackageDirty(UObject* InObject);
 #endif
 };

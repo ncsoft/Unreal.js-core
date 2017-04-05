@@ -381,5 +381,14 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void RemoveLevelInstance(UWorld* World);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddWhitelistedObject(UObject* InObject);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void PostEditChange(UObject* InObject);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool MarkPackageDirty(UObject* InObject);
 #endif
 };

@@ -108,6 +108,21 @@ void UJavascriptMenuLibrary::AddComboButton(FJavascriptMenuBuilder& Builder, UJa
 	}
 }
 
+void UJavascriptMenuLibrary::AddMenuEntry(FJavascriptMenuBuilder& Builder, UJavascriptMenuContext* Object)
+{
+	if (Builder.Menu)
+	{
+		FUIAction DefaultAction;
+		DefaultAction.CanExecuteAction = FCanExecuteAction::CreateUObject(Object, &UJavascriptMenuContext::Public_CanExecute);
+		DefaultAction.ExecuteAction = FExecuteAction::CreateUObject(Object, &UJavascriptMenuContext::Public_Execute);
+		Builder.Menu->AddMenuEntry(
+			Object->Description,
+			Object->ToolTip,
+			Object->Icon,
+			DefaultAction);
+	}
+}
+
 void UJavascriptMenuLibrary::AddWidget(FJavascriptMenuBuilder& Builder, UWidget* Widget, const FText& Label, bool bNoIndent, FName InTutorialHighlightName, bool bSearchable)
 {
 	if (Builder.ToolBar)

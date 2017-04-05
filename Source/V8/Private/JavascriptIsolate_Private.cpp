@@ -1842,10 +1842,13 @@ public:
 			if (Instance->GetMemory())
 			{				
 				auto Ref = reinterpret_cast<FJavascriptRef*>(Instance->GetMemory());
-				FPrivateJavascriptRef* Handle = Ref->Handle.Get();
-				auto object = Local<Object>::New(isolate, Handle->Object);
+				if (Ref->Handle.IsValid())
+				{
+					FPrivateJavascriptRef* Handle = Ref->Handle.Get();
+					auto object = Local<Object>::New(isolate, Handle->Object);
 
-				info.GetReturnValue().Set(object);
+					info.GetReturnValue().Set(object);
+				}
 			}
 		};
 

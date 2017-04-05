@@ -31,8 +31,9 @@ namespace UnrealBuildTool.Rules
                     "SlateCore",
                     "GraphEditor",
                     "EditorStyle",
-                    "JavascriptUMG"
-				}
+                    "JavascriptUMG",
+                    "KismetWidgets",
+                }
 				);
 		}
 	}

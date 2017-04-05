@@ -107,7 +107,10 @@ void FJavascriptUMGViewportClient::Tick(float InDeltaTime)
 #if ENGINE_MINOR_VERSION > 14
 				It->DispatchBeginPlay();
 #else
-				It->BeginPlay();
+				if (It->HasActorBegunPlay() == false)
+				{
+					It->BeginPlay();
+				}
 #endif
 			}
 			GameScene->GetWorld()->bBegunPlay = true;

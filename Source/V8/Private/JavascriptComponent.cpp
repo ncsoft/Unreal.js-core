@@ -18,7 +18,7 @@ void UJavascriptComponent::OnRegister()
 	auto ContextOwner = GetOuter();
 	if (ContextOwner && !HasAnyFlags(RF_ClassDefaultObject) && !ContextOwner->HasAnyFlags(RF_ClassDefaultObject))
 	{
-		if (GetWorld() && (GetWorld()->IsGameWorld() || bActiveWithinEditor))
+		if (GetWorld() && ((GetWorld()->IsGameWorld() && !GetWorld()->IsPreviewWorld()) || bActiveWithinEditor))
 		{
 			auto Isolate = NewObject<UJavascriptIsolate>();
 			auto Context = Isolate->CreateContext();

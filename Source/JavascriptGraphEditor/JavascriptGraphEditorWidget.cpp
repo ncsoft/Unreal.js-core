@@ -92,6 +92,30 @@ void UJavascriptGraphEditorWidget::SelectAllNodes()
 	Widget->SelectAllNodes();
 }
 
+void UJavascriptGraphEditorWidget::SetViewLocation(const FVector2D& Location, float ZoomAmount)
+{
+	auto Widget = StaticCastSharedPtr<SGraphEditor>(GetCachedWidget());
+	Widget->SetViewLocation(Location, ZoomAmount);
+}
+
+void UJavascriptGraphEditorWidget::GetViewLocation(FVector2D& OutLocation, float& OutZoomAmount)
+{
+	auto Widget = StaticCastSharedPtr<SGraphEditor>(GetCachedWidget());
+	Widget->GetViewLocation(OutLocation, OutZoomAmount);
+}
+
+void UJavascriptGraphEditorWidget::JumpToNode(UEdGraphNode* JumpToMe, bool bRequestRename/* = false*/, bool bSelectNode/* = true*/)
+{
+	auto Widget = StaticCastSharedPtr<SGraphEditor>(GetCachedWidget());
+	Widget->JumpToNode(JumpToMe, bRequestRename, bSelectNode);
+}
+
+void UJavascriptGraphEditorWidget::JumpToPin(FJavascriptEdGraphPin JumpToMe)
+{
+	auto Widget = StaticCastSharedPtr<SGraphEditor>(GetCachedWidget());
+	Widget->JumpToPin(JumpToMe);
+}
+
 void UJavascriptGraphEditorWidget::HandleDropActors(const TArray< TWeakObjectPtr<class AActor> >& Actors, class UEdGraph* Graph, const FVector2D& Point)
 {
 	TArray<AActor*> Out;
