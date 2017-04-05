@@ -653,6 +653,11 @@ public:
 
 			return Out;
 		}
+		else if (auto p = Cast<UEnumProperty>(Property))
+		{
+			int32 Value = p->GetUnderlyingProperty()->GetValueTypeHash(Buffer);
+			return I.Keyword(p->GetEnum()->GetEnumName(Value));
+		}
 		else
 		{
 			return I.Keyword("<Unsupported type>");
@@ -874,6 +879,20 @@ public:
 			else
 			{				
 				p->SetPropertyValue_InContainer(Buffer, Value->Int32Value());
+			}
+		}
+		else if (auto p = Cast<UEnumProperty>(Property))
+		{
+			auto Str = StringFromV8(Value);
+			auto EnumValue = p->GetEnum()->FindEnumIndex(FName(*Str));
+			if (EnumValue == INDEX_NONE)
+			{
+				I.Throw(FString::Printf(TEXT("Enum Text %s for Enum %s failed to resolve to any value"), *Str, *p->GetName()));
+			}
+			else
+			{
+				uint8* PropData = p->ContainerPtrToValuePtr<uint8>(Buffer);
+				p->GetUnderlyingProperty()->SetIntPropertyValue(PropData, (int64)EnumValue);
 			}
 		}
 		else if (auto p = Cast<UObjectPropertyBase>(Property))
