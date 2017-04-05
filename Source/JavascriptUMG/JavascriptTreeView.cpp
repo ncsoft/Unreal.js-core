@@ -309,7 +309,7 @@ void UJavascriptTreeView::AddReferencedObjects(UObject* InThis, FReferenceCollec
 
 	if (This->MyTreeView.IsValid())
 	{
-		for (auto It = This->CachedRows.CreateIterator(); ++It;)
+		for (auto It = This->CachedRows.CreateIterator(); It; ++It)
 		{
 			auto Key = It->Key;
 			auto Value = It->Value;
@@ -328,4 +328,13 @@ void UJavascriptTreeView::AddReferencedObjects(UObject* InThis, FReferenceCollec
 	{
 		This->CachedRows.Empty();
 	}
+
+	Super::AddReferencedObjects(This, Collector);
+}
+
+void UJavascriptTreeView::ReleaseSlateResources(bool bReleaseChildren)
+{
+	Super::ReleaseSlateResources(bReleaseChildren);
+
+	MyTreeView.Reset();
 }
