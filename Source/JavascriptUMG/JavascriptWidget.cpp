@@ -94,7 +94,7 @@ bool UJavascriptWidget::RemoveChild()
 
 	ContentSlot->Parent = nullptr;
 	ContentSlot->Content = nullptr;
-
+	ContentSlot = nullptr;
 	return true;
 }
 

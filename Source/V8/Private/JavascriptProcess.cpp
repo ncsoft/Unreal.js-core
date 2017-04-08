@@ -95,6 +95,10 @@ void UJavascriptProcess::Close()
 		ReadPipe = WritePipe = nullptr;
 	}
 }
+void UJavascriptProcess::Sleep(float Seconds)
+{
+	FPlatformProcess::Sleep(Seconds);
+}
 
 FString UJavascriptProcess::ReadFromPipe()
 {

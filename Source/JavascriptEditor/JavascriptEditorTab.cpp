@@ -52,6 +52,14 @@ UWidget* UJavascriptEditorTab::TakeWidget(UObject* Context)
 	return NewObject<UButton>();
 }
 
+void UJavascriptEditorTab::TabActivatedCallback(TSharedRef<SDockTab> Tab, ETabActivationCause Cause)
+{
+	if (OnTabActivatedCallback.IsBound())
+	{
+		OnTabActivatedCallback.Execute(Tab->GetLayoutIdentifier().ToString(), TEnumAsByte<EJavasriptTabActivationCause::Type>((uint8)Cause));
+	}
+}
+
 struct FJavascriptEditorTabTracker : public FGCObject
 {
 	TArray<UJavascriptEditorTab*> Spawners;
@@ -189,7 +197,9 @@ void UJavascriptEditorTab::Register(TSharedRef<FTabManager> TabManager, UObject*
 		UJavascriptEditorTab::MajorTab = MajorTab;		 
 		
 		MajorTab->SetContent(Widget->TakeWidget());
-		
+		MajorTab->SetOnTabActivated(FOnTabActivatedCallback::CreateLambda([this](TSharedRef<SDockTab> Tab, ETabActivationCause Cause) {
+			this->TabActivatedCallback(Tab, Cause);
+		}));
 		UJavascriptEditorTab::MajorTab = OldTab;
 
 		return MajorTab;

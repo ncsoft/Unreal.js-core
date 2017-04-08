@@ -47,6 +47,9 @@ public:
 	void Close();
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
+	static void Sleep(float Seconds);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
 	void Wait();
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")

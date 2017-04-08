@@ -48,14 +48,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	FString RunScript(FString Script, bool bOutput = true);
 
-	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+    UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+    void FindPathFile(FString TargetRootPath, FString TargetFileName, TArray<FString>& OutFiles);
+	
+    UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	bool WriteAliases(FString Target);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	bool WriteDTS(FString Target, bool bIncludingTooltip);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	void SetAsDebugContext();
+	void SetAsDebugContext(int32 InPort = 5858);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	void ResetAsDebugContext();

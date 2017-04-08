@@ -120,6 +120,10 @@ public:
 	virtual void ProcessEvent(UFunction* Function, void* Parms) override;
 	// End of UObject interface
 
+	//~ Begin UVisual Interface
+	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
+	//~ End UVisual Interface
+
 	TSharedPtr< STreeView<UObject*> > MyTreeView;
 
 	TSharedPtr<SHeaderRow> GetHeaderRowWidget();

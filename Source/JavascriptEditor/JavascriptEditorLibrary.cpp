@@ -18,6 +18,7 @@
 #include "LevelEditor.h"
 #include "Landscape.h"
 #include "../../Launch/Resources/Version.h"
+#include "VisualLogger/VisualLogger.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -777,5 +778,23 @@ void UJavascriptEditorLibrary::RemoveLevelInstance(UWorld* World)
 		StreamingLevel->bIsRequestingUnloadAndRemoval = true;
 	}
 	World->RefreshStreamingLevels();
+}
+
+void UJavascriptEditorLibrary::AddWhitelistedObject(UObject* InObject)
+{
+	FVisualLogger::Get().AddWhitelistedObject(*InObject);
+}
+
+void UJavascriptEditorLibrary::PostEditChange(UObject* InObject)
+{
+	if (InObject)
+	{
+		InObject->PostEditChange();
+	}
+}
+
+bool UJavascriptEditorLibrary::MarkPackageDirty(UObject* InObject)
+{
+	return InObject && InObject->MarkPackageDirty();
 }
 #endif

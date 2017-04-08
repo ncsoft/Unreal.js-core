@@ -618,6 +618,11 @@ public:
 				return Int32::New(isolate_, Value);
 			}
 		}
+		else if (auto p = Cast<UEnumProperty>(Property))
+		{
+			int32 Value = p->GetUnderlyingProperty()->GetValueTypeHash(Buffer);
+			return I.Keyword(p->GetEnum()->GetEnumName(Value));
+		}
 		else if (auto p = Cast<USetProperty>(Property))
 		{
 			FScriptSetHelper_InContainer SetHelper(p, Buffer);
@@ -874,6 +879,20 @@ public:
 			else
 			{				
 				p->SetPropertyValue_InContainer(Buffer, Value->Int32Value());
+			}
+		}
+		else if (auto p = Cast<UEnumProperty>(Property))
+		{
+			auto Str = StringFromV8(Value);
+			auto EnumValue = p->GetEnum()->FindEnumIndex(FName(*Str));
+			if (EnumValue == INDEX_NONE)
+			{
+				I.Throw(FString::Printf(TEXT("Enum Text %s for Enum %s failed to resolve to any value"), *Str, *p->GetName()));
+			}
+			else
+			{
+				uint8* PropData = p->ContainerPtrToValuePtr<uint8>(Buffer);
+				p->GetUnderlyingProperty()->SetIntPropertyValue(PropData, (int64)EnumValue);
 			}
 		}
 		else if (auto p = Cast<UObjectPropertyBase>(Property))
@@ -1842,10 +1861,13 @@ public:
 			if (Instance->GetMemory())
 			{				
 				auto Ref = reinterpret_cast<FJavascriptRef*>(Instance->GetMemory());
-				FPrivateJavascriptRef* Handle = Ref->Handle.Get();
-				auto object = Local<Object>::New(isolate, Handle->Object);
+				if (Ref->Handle.IsValid())
+				{
+					FPrivateJavascriptRef* Handle = Ref->Handle.Get();
+					auto object = Local<Object>::New(isolate, Handle->Object);
 
-				info.GetReturnValue().Set(object);
+					info.GetReturnValue().Set(object);
+				}
 			}
 		};
 

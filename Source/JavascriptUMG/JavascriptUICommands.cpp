@@ -40,21 +40,28 @@ void UJavascriptUICommands::Initialize()
 {
 	for (auto info : Commands)
 	{
-		FJavascriptUICommandInfo CommandInfo;
+		if (info.CommandInfo.Handle.IsValid())
+		{
+			CommandInfos.Add(info.CommandInfo);
+		}
+		else
+		{
+			FJavascriptUICommandInfo CommandInfo;
 
-		UI_COMMAND_Function(
-			BindingContext.Handle.Get(),
-			CommandInfo.Handle,
-			TEXT(""),
-			*info.Id,
-			*FString::Printf(TEXT("%s_Tooltip"), *info.Id),
-			TCHAR_TO_ANSI(*FString::Printf(TEXT(".%s"), *info.Id)),
-			*info.FriendlyName,
-			*info.Description,
-			EUserInterfaceActionType::Type(info.ActionType.GetValue()),
-			info.DefaultChord);
+			UI_COMMAND_Function(
+				BindingContext.Handle.Get(),
+				CommandInfo.Handle,
+				TEXT(""),
+				*info.Id,
+				*FString::Printf(TEXT("%s_Tooltip"), *info.Id),
+				TCHAR_TO_ANSI(*FString::Printf(TEXT(".%s"), *info.Id)),
+				*info.FriendlyName,
+				*info.Description,
+				EUserInterfaceActionType::Type(info.ActionType.GetValue()),
+				info.DefaultChord);
 
-		CommandInfos.Add(CommandInfo);
+			CommandInfos.Add(CommandInfo);
+		}
 	}
 
 	BroadcastCommandsChanged(ContextName);

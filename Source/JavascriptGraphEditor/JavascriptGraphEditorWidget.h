@@ -97,6 +97,18 @@ class JAVASCRIPTGRAPHEDITOR_API UJavascriptGraphEditorWidget : public UWidget
 	UFUNCTION(BlueprintCallable, Category = Content)
 	void SelectAllNodes();		
 
+	UFUNCTION(BlueprintCallable, Category = Content)
+	void SetViewLocation(const FVector2D& Location, float ZoomAmount);
+
+	UFUNCTION(BlueprintCallable, Category = Content)
+	void GetViewLocation(FVector2D& OutLocation, float& OutZoomAmount);
+
+	UFUNCTION(BlueprintCallable, Category = Content)
+	void JumpToNode(UEdGraphNode* JumpToMe, bool bRequestRename = false, bool bSelectNode = true);
+
+	UFUNCTION(BlueprintCallable, Category = Content)
+	void JumpToPin(FJavascriptEdGraphPin JumpToMe);
+
 protected:
 	// UWidget interface
 	virtual TSharedRef<SWidget> RebuildWidget() override;

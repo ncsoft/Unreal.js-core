@@ -57,4 +57,12 @@ UEditorEngine* UJavascriptEditorTick::GetEngine()
 {
 	return Cast<UEditorEngine>(GEngine);
 }
+
+void UJavascriptEditorTick::ForceTick(float DeltaTime)
+{
+	if (Tickable)
+	{
+		Tickable->Tick(DeltaTime);
+	}
+}
 #endif

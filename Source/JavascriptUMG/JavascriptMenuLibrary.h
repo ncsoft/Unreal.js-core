@@ -4,6 +4,7 @@
 #include "JavascriptObject.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptComboButtonContext.h"
+#include "JavascriptMenuContext.h"
 #include "JavascriptMenuLibrary.generated.h"
 
 UENUM()
@@ -190,6 +191,9 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptComboButtonContext* Object);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddMenuEntry(FJavascriptMenuBuilder& Builder, UJavascriptMenuContext* Object);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddWidget(FJavascriptMenuBuilder& Builder, UWidget* Widget, const FText& Label, bool bNoIndent, FName InTutorialHighlightName, bool bSearchable);

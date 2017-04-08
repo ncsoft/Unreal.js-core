@@ -409,6 +409,15 @@ void UJavascriptLibrary::SetObjectFlags(UObject* Obj, int32 Flags)
 	Obj->SetFlags((EObjectFlags)Flags);
 }
 
+void UJavascriptLibrary::ClearFlags(UObject* Obj)
+{
+	Obj->ClearFlags(RF_AllFlags);
+}
+
+int32 UJavascriptLibrary::GetMaskedFlags(UObject* Obj) {
+	return Obj->GetMaskedFlags();
+}
+
 float UJavascriptLibrary::GetLastRenderTime(AActor* Actor)
 {
 	return Actor->GetLastRenderTime();
@@ -457,6 +466,11 @@ bool UJavascriptLibrary::SegmentIntersection2D(const FVector& SegmentStartA, con
 bool UJavascriptLibrary::FileExists(const FString& Filename)
 {
 	return IFileManager::Get().FileExists(*Filename);
+}
+
+bool UJavascriptLibrary::DeleteFile(const FString& Filename, bool ReadOnly)
+{
+    return IFileManager::Get().Delete(*Filename, false, ReadOnly);
 }
 
 bool UJavascriptLibrary::DirectoryExists(const FString& InDirectory)
@@ -690,4 +704,22 @@ void UJavascriptLibrary::AddMessage_float(FJavascriptStat Stat, EJavascriptStatO
 
 	FThreadStats::AddMessage(Stat.Instance->GetStatId().GetName(), (EStatOperation::Type)InStatOperation, (double)Value, bIsCycle);
 #endif
+}
+
+TArray<UClass*> UJavascriptLibrary::GetSuperClasses(UClass* InClass)
+{
+	TArray<UClass*> Classes;
+	auto Klass = InClass;
+	while (auto Cls = Klass->GetSuperClass())
+	{
+		Classes.Add(Cls);
+		Klass = Cls;
+	}
+
+	return Classes;
+}
+
+bool UJavascriptLibrary::IsGeneratedByBlueprint(UClass* InClass)
+{
+	return NULL != Cast<UBlueprint>(InClass->ClassGeneratedBy);
 }

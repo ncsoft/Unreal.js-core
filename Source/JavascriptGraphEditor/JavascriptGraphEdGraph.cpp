@@ -4,12 +4,10 @@
 
 UJavascriptGraphEdGraph::UJavascriptGraphEdGraph()
 {
-
 }
 
 UJavascriptGraphEdGraph::~UJavascriptGraphEdGraph()
 {
-
 }
 
 void UJavascriptGraphEdGraph::RebuildGenericGraph()

@@ -166,7 +166,7 @@ struct FJavascriptStreamableManager
 };
 
 USTRUCT()
-struct FStubStruct
+struct FJavascriptStubStruct
 {
 	GENERATED_BODY()
 };
@@ -241,10 +241,10 @@ public:
 	static void Log(const FJavascriptLogCategory& Category, ELogVerbosity_JS Verbosity, const FString& Message, const FString& FileName, int32 LineNumber);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	bool IsSuppressed(const FJavascriptLogCategory& Category, ELogVerbosity_JS Verbosity);
+	static bool IsSuppressed(const FJavascriptLogCategory& Category, ELogVerbosity_JS Verbosity);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	FName GetCategoryName(const FJavascriptLogCategory& Category);
+	static FName GetCategoryName(const FJavascriptLogCategory& Category);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static void SetMobile(USceneComponent* SceneComponent);
@@ -420,6 +420,12 @@ public:
 	static void SetObjectFlags(UObject* Obj, int32 Flags);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void ClearFlags(UObject* Obj);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static int32 GetMaskedFlags(UObject* Obj);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static float GetLastRenderTime(AActor* Actor);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -436,6 +442,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool FileExists(const FString& Filename);
+    
+    UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+    static bool DeleteFile(const FString& Filename, bool ReadOnly = false);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool DirectoryExists(const FString& InDirectory);
@@ -503,8 +512,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddMessage_float(FJavascriptStat Stat, EJavascriptStatOperation InStatOperation, float Value, bool bIsCycle);
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static TArray<UClass*> GetSuperClasses(UClass* InClass);
+	
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool IsGeneratedByBlueprint(UClass* InClass);
+
 	UFUNCTION(BlueprintCallable, CustomThunk, Category = "Scripting | Javascript", meta = (CustomStructureParam = "CustomStruct"))
-	static void CallJS(FJavascriptFunction Function, const FStubStruct& CustomStruct);
+	static void CallJS(FJavascriptFunction Function, const FJavascriptStubStruct& CustomStruct);
 
 	DECLARE_FUNCTION(execCallJS)
 	{
