@@ -28,7 +28,9 @@ THIRD_PARTY_INCLUDES_START
 #ifndef LWS_INCLUDED
 #include "libwebsockets.h"
 #define LWS_INCLUDED
+#ifndef LWS_EXTERN
 #define LWS_EXTERN extern
+#endif
 //#include "private-libwebsockets.h"
 #endif
 #undef UI
