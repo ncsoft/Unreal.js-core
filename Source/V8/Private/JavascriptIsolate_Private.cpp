@@ -88,6 +88,34 @@ void FArrayBufferAccessor::Discard()
 	GCurrentContents = v8::ArrayBuffer::Contents();
 }
 
+FString PropertyNameToString(UProperty* Property)
+{
+	auto Struct = Property->GetOwnerStruct();
+	auto name = Property->GetFName();
+	if (Struct)
+	{
+		if (auto s = Cast<UUserDefinedStruct>(Struct))
+		{
+			return s->PropertyNameToDisplayName(name);
+		}
+	}
+	return name.ToString();
+}
+
+bool MatchPropertyName(UProperty* Property, FName NameToMatch)
+{
+	auto Struct = Property->GetOwnerStruct();
+	auto name = Property->GetFName();
+	if (Struct)
+	{
+		if (auto s = Cast<UUserDefinedStruct>(Struct))
+		{
+			return s->PropertyNameToDisplayName(name) == NameToMatch.ToString();
+		}
+	}
+	return name == NameToMatch;
+}
+
 class FJavascriptIsolateImplementation : public FJavascriptIsolate
 {
 public:
@@ -681,9 +709,9 @@ public:
 		for (TFieldIterator<UProperty> PropertyIt(Struct, EFieldIteratorFlags::IncludeSuper); PropertyIt && len; ++PropertyIt)
 		{
 			auto Property = *PropertyIt;
-			auto PropertyName = Property->GetFName();
+			auto PropertyName = PropertyNameToString(Property);
 
-			auto name = I.Keyword(PropertyName.ToString());
+			auto name = I.Keyword(PropertyName);
 			auto value = v8_obj->Get(name);
 
 			if (!value.IsEmpty() && !value->IsUndefined())
@@ -1582,7 +1610,7 @@ public:
 		};
 
 		Template->PrototypeTemplate()->SetAccessor(
-			I.Keyword(PropertyToExport->GetName()),
+			I.Keyword(PropertyNameToString(PropertyToExport)),
 			Getter, 
 			Setter, 
 			I.External(PropertyToExport),
@@ -1930,9 +1958,9 @@ public:
 
 				if (FV8Config::CanExportProperty(Class, Property))
 				{
-					auto PropertyName = Property->GetFName();
+					auto PropertyName = PropertyNameToString(Property);
 
-					auto name = I.Keyword(PropertyName.ToString());
+					auto name = I.Keyword(PropertyName);
 					auto value = PropertyAccessor::Get(isolate, self, Property);
 					if (auto p = Cast<UClassProperty>(Property))
 					{
@@ -2024,7 +2052,7 @@ public:
 				{
 					FScriptArrayHelper_InContainer helper(p, Instance);
 
-					if (FV8Config::CanExportProperty(Class, Property) && Property->GetFName() == PropertyNameToAccess)
+					if (FV8Config::CanExportProperty(Class, Property) && MatchPropertyName(Property,PropertyNameToAccess))
 					{
 						Handle<Value> argv[1];
 
