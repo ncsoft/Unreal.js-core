@@ -1,4 +1,4 @@
-#include "JavascriptHttp.h"
+#include "IJavascriptHttpModule.h"
 
 class FJavascripHttpModule : public IJavascriptHttpModule
 {

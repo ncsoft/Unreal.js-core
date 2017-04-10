@@ -1,4 +1,4 @@
-#include "JavascriptLogPrivatePCH.h"
+#include "JavascriptConsoleModule.h"
 #include "SJavascriptConsole.h"
 #include "SJavascriptLog.h"
 #include "Editor/WorkspaceMenuStructure/Public/WorkspaceMenuStructure.h"

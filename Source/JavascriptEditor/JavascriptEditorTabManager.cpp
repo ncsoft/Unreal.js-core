@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptEditorTabManager.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptTabManager"

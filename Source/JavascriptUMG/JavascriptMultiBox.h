@@ -1,6 +1,7 @@
 #pragma once
 
 #include "JavascriptMenuLibrary.h"
+#include "Widget.h"
 #include "JavascriptMultiBox.generated.h"
 
 

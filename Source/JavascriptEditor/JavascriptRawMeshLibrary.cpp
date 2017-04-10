@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptRawMeshLibrary.h"
 
 #if WITH_EDITOR

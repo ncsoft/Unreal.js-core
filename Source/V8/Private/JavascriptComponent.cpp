@@ -1,4 +1,3 @@
-#include "V8PCH.h"
 #include "JavascriptComponent.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"

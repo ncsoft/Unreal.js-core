@@ -1,6 +1,7 @@
 #pragma once
 
 #include "JavascriptEditorGlobalDelegates.h"
+#include "LandscapeProxy.h"
 #include "JavascriptMenuLibrary.h"
 #include "JavascriptUMGLibrary.h"
 #include "JavascriptInputEventStateLibrary.h"

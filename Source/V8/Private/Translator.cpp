@@ -1,4 +1,3 @@
-#include "V8PCH.h"
 #include "Translator.h"
 
 namespace v8

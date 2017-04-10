@@ -1,4 +1,6 @@
 #pragma once
+#include "SGraphNode.h"
+#include "SGraphPin.h"
 
 class UJavascriptGraphEdNode;
 

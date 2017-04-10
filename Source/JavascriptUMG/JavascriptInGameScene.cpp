@@ -1,7 +1,6 @@
 
-#include "JavascriptUMG.h"
-#include "SoundDefinitions.h"
 #include "JavascriptInGameScene.h"
+#include "SoundDefinitions.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/LineBatchComponent.h"
 #include "../../Launch/Resources/Version.h"

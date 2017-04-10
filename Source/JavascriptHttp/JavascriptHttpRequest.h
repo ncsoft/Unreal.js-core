@@ -1,5 +1,9 @@
 #pragma once
 
+#include "IHttpRequest.h"
+#include "IHttpResponse.h"
+#include "HttpModule.h"
+
 #include "JavascriptHttpRequest.generated.h"
 
 UENUM()

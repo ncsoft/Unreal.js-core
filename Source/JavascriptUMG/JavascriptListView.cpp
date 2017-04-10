@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptListView.h"
 #include "JavascriptContext.h"
 

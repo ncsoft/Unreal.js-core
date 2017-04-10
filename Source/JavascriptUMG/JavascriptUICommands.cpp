@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptUICommands.h"
 #include "Framework/Commands/Commands.h"
 #include "Modules/ModuleVersion.h"

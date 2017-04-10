@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptEditorLibrary.h"
 #include "LandscapeComponent.h"
 
@@ -17,8 +16,15 @@
 #include "Toolkits/AssetEditorToolkit.h"
 #include "LevelEditor.h"
 #include "Landscape.h"
+#include "LandscapeDataAccess.h"
+#include "LandscapeEdit.h"
+
 #include "../../Launch/Resources/Version.h"
 #include "VisualLogger/VisualLogger.h"
+
+#if WITH_EDITOR
+#include "UnrealEd.h"
+#endif
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)

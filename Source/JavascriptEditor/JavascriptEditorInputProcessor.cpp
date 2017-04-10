@@ -1,6 +1,5 @@
-#include "JavascriptEditor.h"
-#include "Framework/Application/IInputProcessor.h"
 #include "JavascriptEditorInputProcessor.h"
+#include "Framework/Application/IInputProcessor.h"
 
 #if WITH_EDITOR
 class FMyInputProcessor : public IInputProcessor

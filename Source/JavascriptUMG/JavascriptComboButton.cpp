@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptComboButton.h"
 #include "SComboButton.h"
 

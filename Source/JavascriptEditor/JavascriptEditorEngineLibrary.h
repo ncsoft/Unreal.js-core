@@ -1,5 +1,5 @@
 #pragma once
-
+#include "CoreMinimal.h"
 #include "JavascriptEditorGlobalDelegates.h"
 #include "JavascriptEditorEngineLibrary.generated.h"
 

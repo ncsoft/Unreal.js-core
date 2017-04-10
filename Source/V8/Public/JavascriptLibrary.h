@@ -2,6 +2,8 @@
 
 #include "JavascriptProfile.h"
 #include "JavascriptIsolate.h"
+#include "Engine/StreamableManager.h"
+#include "IPAddress.h"
 #include "AI/Navigation/RecastNavMesh.h"
 #include "JavascriptLibrary.generated.h"
 

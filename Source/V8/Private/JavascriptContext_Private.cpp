@@ -1,7 +1,6 @@
-#include "V8PCH.h"
-
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
+#include "JavascriptContext_Private.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
 #include "JavascriptComponent.h"
@@ -12,7 +11,6 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "IV8.h"
 
 #include "JavascriptIsolate_Private.h"
-#include "JavascriptContext_Private.h"
 
 #if WITH_EDITOR
 #include "TypingGenerator.h"

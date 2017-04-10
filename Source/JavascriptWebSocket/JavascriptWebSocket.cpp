@@ -1,12 +1,7 @@
 // Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
-#include "JavascriptWebSocketModule.h"
 
 #include "JavascriptWebSocket.h"
 #include "JavascriptWebSocketServer.h"
-#if WITH_JSWEBSOCKET
-#include "JavascriptContext.h"
-#include "JSWebSocket.h"
-#endif
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 

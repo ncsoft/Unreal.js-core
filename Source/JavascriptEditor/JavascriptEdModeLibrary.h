@@ -1,6 +1,9 @@
 #pragma once
 
 #include "JavascriptEditorLibrary.h"
+#if WITH_EDITOR
+#include "EditorModeManager.h"
+#endif
 #include "JavascriptEdModeLibrary.generated.h"
 
 // Extended axis enum for more specialized usage

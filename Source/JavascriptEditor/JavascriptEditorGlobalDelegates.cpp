@@ -1,7 +1,6 @@
-#include "JavascriptEditor.h"
+#include "JavascriptEditorGlobalDelegates.h"
 #include "AssetRegistryModule.h"
 #include "EditorSupportDelegates.h"
-#include "JavascriptEditorGlobalDelegates.h"
 
 #if WITH_EDITOR
 void UJavascriptEditorGlobalDelegates::BeginDestroy()

@@ -1,5 +1,6 @@
-#include "JavascriptEditor.h"
+#include "JavascriptEditorModule.h"
 #include "AssetToolsModule.h"
+#include "JavascriptSettings.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
 #include "JavascriptEditorTick.h"

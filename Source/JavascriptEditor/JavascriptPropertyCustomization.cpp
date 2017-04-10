@@ -1,5 +1,3 @@
-#include "JavascriptEditor.h"
-
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptPropertyCustomization.h"

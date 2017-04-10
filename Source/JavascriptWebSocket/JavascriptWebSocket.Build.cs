@@ -28,6 +28,7 @@ public class JavascriptWebSocket : ModuleRules
 
     public JavascriptWebSocket(TargetInfo Target)
 	{
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new string[] {
             "Core",
             "CoreUObject",

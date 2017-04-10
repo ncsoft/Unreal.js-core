@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptEditorEngineLibrary.h"
 #include "JavascriptContext.h"
 #include "ObjectTools.h"

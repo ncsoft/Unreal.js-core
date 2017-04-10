@@ -1,5 +1,3 @@
-#include "V8PCH.h"
-
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #ifndef THIRD_PARTY_INCLUDES_START
@@ -7,6 +5,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #	define THIRD_PARTY_INCLUDES_END
 #endif
 
+#include "JavascriptIsolate_Private.h"
 #include "Config.h"
 #include "MallocArrayBufferAllocator.h"
 #include "Translator.h"
@@ -14,7 +13,6 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "Exception.h"
 #include "Delegates.h"
 #include "JavascriptIsolate.h"
-#include "JavascriptIsolate_Private.h"
 #include "JavascriptContext_Private.h"
 #include "JavascriptContext.h"
 #include "Helpers.h"

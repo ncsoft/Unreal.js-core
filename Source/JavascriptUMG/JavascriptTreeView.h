@@ -1,5 +1,7 @@
 #pragma once
 
+#include "STreeView.h"
+#include "TableViewBase.h"
 #include "JavascriptTreeView.generated.h"
 
 class UJavascriptContext;

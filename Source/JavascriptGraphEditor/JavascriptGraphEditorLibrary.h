@@ -1,6 +1,7 @@
 #pragma once
 
 #include "JavascriptMenuLibrary.h"
+#include "SJavascriptGraphEdNode.h"
 #include "ConnectionDrawingPolicy.h"
 
 #include "JavascriptGraphEditorLibrary.generated.h"

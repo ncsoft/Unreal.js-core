@@ -1,6 +1,6 @@
-#include "JavascriptUMG.h"
 #include "JavascriptTreeView.h"
 #include "JavascriptContext.h"
+#include "SlateOptMacros.h"
 
 UJavascriptTreeView::UJavascriptTreeView(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)

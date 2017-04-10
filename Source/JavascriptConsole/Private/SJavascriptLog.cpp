@@ -1,9 +1,9 @@
-#include "JavascriptLogPrivatePCH.h"
-
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "SJavascriptLog.h"
+#include "EditorStyleSettings.h"
 #include "SScrollBorder.h"
+#include "SlateBasics.h"
 #include "BaseTextLayoutMarshaller.h"
 #include "GameFramework/GameMode.h"
 #include "Engine/LocalPlayer.h"

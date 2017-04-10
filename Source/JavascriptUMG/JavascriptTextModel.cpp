@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptTextModel.h"
 
 void UJavascriptTextModel::SetString(const FString& String)

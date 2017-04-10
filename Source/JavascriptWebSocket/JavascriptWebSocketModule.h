@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Core.h"
-#include "Engine.h"
+#include "Engine/Engine.h"
 #include "Networking.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"

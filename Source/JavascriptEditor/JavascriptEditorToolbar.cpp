@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptEditorToolbar.h"
 #include "SJavascriptBox.h"
 

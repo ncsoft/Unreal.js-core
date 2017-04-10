@@ -1,6 +1,5 @@
-#include "JavascriptLogPrivatePCH.h"
-#include "JavascriptConsoleModule.h"
 #include "SJavascriptConsole.h"
+#include "JavascriptConsoleModule.h"
 #include "SJavascriptLog.h"
 
 namespace JavascriptConsoleDefs

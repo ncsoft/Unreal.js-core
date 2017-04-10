@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptComboButtonContext.h"
 
 TSharedRef<SWidget> UJavascriptComboButtonContext::Public_OnGetWidget()

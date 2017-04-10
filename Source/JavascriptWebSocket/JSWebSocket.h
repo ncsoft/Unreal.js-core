@@ -3,6 +3,9 @@
 // libwebsocket client wrapper. 
 //
 #pragma  once
+#if WITH_JSWEBSOCKET
+#include "JavascriptWebSocketModule.h"
+#endif
 
 DECLARE_DELEGATE(FJavascriptWebSocketInfoCallBack);
 

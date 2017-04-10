@@ -1,9 +1,9 @@
-#include "JavascriptEditor.h"
 #include "JavascriptEditorViewport.h"
 #include "SEditorViewport.h"
 #include "AdvancedPreviewScene.h"
 #include "Runtime/Engine/Public/Slate/SceneViewport.h"
-
+#include "Engine/Canvas.h"
+#include "OverlaySlot.h"
 #include "AssetViewerSettings.h"
 #include "Modules/ModuleVersion.h"
 

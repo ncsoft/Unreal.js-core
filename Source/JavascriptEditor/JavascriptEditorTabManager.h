@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Widget.h"
 #include "JavascriptEditorTab.h"
 #include "JavascriptEditorTabManager.generated.h"
 

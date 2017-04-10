@@ -1,4 +1,5 @@
-#include "JavascriptUMG.h"
+#include "IJavascriptUMGModule.h"
+#include "UMG.h"
 
 class FJavascripUMGModule : public IJavascriptUMGModule
 {

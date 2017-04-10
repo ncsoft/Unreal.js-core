@@ -1,4 +1,3 @@
-#include "JavascriptGraphEditorPrivatePCH.h"
 #include "JavascriptGraphConnectionDrawingPolicy.h"
 #include "JavascriptGraphAssetGraphSchema.h"
 

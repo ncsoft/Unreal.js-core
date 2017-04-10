@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptEditorTick.h"
 #include "ScopedTransaction.h"
 

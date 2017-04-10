@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptTextBlock.h"
 
 UJavascriptTextBlock::UJavascriptTextBlock(const FObjectInitializer& ObjectInitializer)

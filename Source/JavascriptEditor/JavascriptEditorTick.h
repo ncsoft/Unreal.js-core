@@ -3,6 +3,7 @@
 #if WITH_EDITOR
 #include "TickableEditorObject.h"
 #endif
+#include "CoreMinimal.h"
 #include "JavascriptEditorTick.generated.h"
 
 /**

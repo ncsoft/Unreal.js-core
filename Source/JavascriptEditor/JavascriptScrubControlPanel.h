@@ -34,22 +34,22 @@ protected:
 
 public:
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "ScrubControlPanel")
 	FOnClick_Forward OnClick_Forward_Delegate;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "ScrubControlPanel")
 	FOnClick_Forward_Step OnClick_Forward_Step_Delegate;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "ScrubControlPanel")
 	FOnClick_Forward_End OnClick_Forward_End_Delegate;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "ScrubControlPanel")
 	FOnClick_Backward OnClick_Backward_Delegate;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "ScrubControlPanel")
 	FOnClick_Backward_Step OnClick_Backward_Step_Delegate;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "ScrubControlPanel")
 	FOnClick_Backward_End OnClick_Backward_End_Delegate;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "ScrubControlPanel")
 	FOnClick_ToggleLoop OnClick_ToggleLoop_Delegate;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "ScrubControlPanel")
 	FSetPlaybackPosition SetPlaybackPosition_Delegate;
 
 protected:

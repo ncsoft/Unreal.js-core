@@ -1,10 +1,9 @@
-#include "JavascriptGraphEditorPrivatePCH.h"
-
 #include "SJavascriptGraphEdNode.h"
 #include "SJavascriptGraphEdNodePin.h"
 
 #include "JavascriptGraphEdNode.h"
 #include "JavascriptGraphAssetGraphSchema.h"
+#include "SlateOptMacros.h"
 
 void SJavascriptGraphEdNode::Construct(const FArguments& InArgs, UJavascriptGraphEdNode* InNode)
 {

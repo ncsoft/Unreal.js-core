@@ -1,9 +1,7 @@
-#include "JavascriptEditor.h"
-
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
-#include "SJavascriptBox.h"
 #include "JavascriptEdMode.h"
+#include "SJavascriptBox.h"
 #include "Toolkits/ToolkitManager.h"
 
 

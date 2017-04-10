@@ -1,6 +1,7 @@
-#include "JavascriptEditor.h"
 #include "PropertyEditor.h"
-
+#if WITH_EDITOR
+#include "IDetailsView.h"
+#endif
 #define LOCTEXT_NAMESPACE "UMG"
 
 UPropertyEditor::UPropertyEditor(const FObjectInitializer& ObjectInitializer)

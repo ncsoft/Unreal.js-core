@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptMenuLibrary.h"
 #include "SJavascriptBox.h"
 #include "Framework/Commands/GenericCommands.h"

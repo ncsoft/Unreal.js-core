@@ -1,7 +1,7 @@
-#include "JavascriptGraphEditorPrivatePCH.h"
 #include "JavascriptGraphEditorWidget.h"
 #include "JavascriptGraphAssetGraphSchema.h"
 #include "JavascriptGraphEdGraph.h"
+#include "Kismet2/BlueprintEditorUtils.h"
 
 UJavascriptGraphEditorWidget::UJavascriptGraphEditorWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

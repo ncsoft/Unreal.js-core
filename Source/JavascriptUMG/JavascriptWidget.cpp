@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptWidget.h"
 #include "JavascriptContext.h"
 #include "Blueprint/WidgetTree.h"

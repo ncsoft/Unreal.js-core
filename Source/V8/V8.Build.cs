@@ -35,6 +35,7 @@ public class V8 : ModuleRules
 
     public V8(TargetInfo Target)
     {
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PrivateIncludePaths.AddRange(new string[]
         {
             Path.Combine(ThirdPartyPath, "v8", "include"),

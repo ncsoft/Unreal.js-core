@@ -1,8 +1,15 @@
 
-#include "JavascriptUMG.h"
 #include "JavascriptGameViewport.h"
 #include "SceneViewport.h"
 #include "Modules/ModuleVersion.h"
+#include "SlateApplication.h"
+
+#include "CoreMinimal.h"
+#include "EngineUtils.h"
+#include "EngineModule.h"
+#include "SceneView.h"
+#include "CanvasTypes.h"
+#include "SViewport.h"
 
 #define LOCTEXT_NAMESPACE "UMG"
 

@@ -1,4 +1,3 @@
-#include "V8PCH.h"
 #include "JavascriptProfile.h"
 #include "Config.h"
 #include "Translator.h"

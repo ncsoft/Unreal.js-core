@@ -22,7 +22,8 @@ public class JavascriptEditor : ModuleRules
     }
 
     public JavascriptEditor(TargetInfo Target)
-	{        
+	{
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(
                 new string[]
 				{

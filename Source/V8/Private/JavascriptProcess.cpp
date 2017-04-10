@@ -1,4 +1,3 @@
-#include "V8PCH.h"
 #include "JavascriptProcess.h"
 
 UJavascriptProcess::UJavascriptProcess(const FObjectInitializer& ObjectInitializer)

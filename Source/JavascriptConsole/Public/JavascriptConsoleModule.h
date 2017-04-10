@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CoreMinimal.h"
 #include "SlateBasics.h"
 
 /** Style of the debug console */

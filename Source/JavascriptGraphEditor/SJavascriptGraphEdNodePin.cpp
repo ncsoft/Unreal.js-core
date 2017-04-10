@@ -1,9 +1,7 @@
-#include "JavascriptGraphEditorPrivatePCH.h"
 #include "SJavascriptGraphEdNodePin.h"
-
 #include "SLevelOfDetailBranchNode.h"
-
 #include "JavascriptGraphAssetGraphSchema.h"
+#include "SWrapBox.h"
 
 void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin)
 {

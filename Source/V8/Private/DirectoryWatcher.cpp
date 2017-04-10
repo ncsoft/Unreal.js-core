@@ -1,5 +1,3 @@
-#include "V8PCH.h"
-
 #include "DirectoryWatcher.h"
 
 #if V8_ENABLE_DIRECTORY_WATCHER

@@ -1,4 +1,3 @@
-#include "JavascriptHttp.h"
 #include "JavascriptHttpRequest.h"
 #include "JavascriptContext.h"
 

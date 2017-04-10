@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptUMGLibrary.h"
 
 FJavascriptSlateStyle UJavascriptUMGLibrary::CreateSlateStyle(FName InStyleSetName)

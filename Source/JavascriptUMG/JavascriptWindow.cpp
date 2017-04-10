@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptWindow.h"
 #include "SWindow.h"
 #include "Modules/ModuleVersion.h"

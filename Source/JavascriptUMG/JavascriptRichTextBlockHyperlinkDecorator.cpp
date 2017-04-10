@@ -1,5 +1,5 @@
-#include "JavascriptUMG.h"
 #include "JavascriptRichTextBlockHyperlinkDecorator.h"
+#include "SRichTextBlock.h"
 
 TSharedRef<ITextDecorator> UJavascriptRichTextBlockHyperlinkDecorator::CreateDecorator(const FSlateFontInfo& DefaultFont, const FLinearColor& DefaultColor)
 {

@@ -1,5 +1,5 @@
 #pragma once
-
+#include "SlateStyle.h"
 #include "JavascriptUMGLibrary.generated.h"
 
 USTRUCT()
