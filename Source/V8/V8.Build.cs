@@ -49,7 +49,7 @@ public class V8 : ModuleRules
 
         PublicDependencyModuleNames.AddRange(new string[] 
         { 
-            "Core", "CoreUObject", "Engine"
+            "Core", "CoreUObject", "Engine", "Sockets"
         });
 
         if (UEBuildConfiguration.bBuildEditor)
@@ -62,7 +62,7 @@ public class V8 : ModuleRules
 
         PrivateDependencyModuleNames.AddRange(new string[] 
         { 
-            "Sockets", "libWebSockets"
+            "libWebSockets"
         });
 
         if (UEBuildConfiguration.bBuildEditor)
