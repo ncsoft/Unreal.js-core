@@ -1,7 +1,6 @@
 #pragma once
-
-#include "CoreMinimal.h"
-#include "SlateBasics.h"
+#include "ModuleInterface.h"
+#include "SEditableTextBox.h"
 
 /** Style of the debug console */
 namespace EJavascriptConsoleStyle

@@ -1,6 +1,9 @@
 #include "JavascriptComponent.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
+#include "Engine/World.h"
+#include "V8PCH.h"
+#include "UnrealEngine.h"
 #include "IV8.h"
 
 UJavascriptComponent::UJavascriptComponent(const FObjectInitializer& ObjectInitializer)

@@ -1,5 +1,11 @@
 #pragma once
 
+#include "CoreMinimal.h"
+#include "ObjectMacros.h"
+#include "Object.h"
+#include "UObjectGlobals.h"
+#include "ScriptMacros.h"
+#include "Engine/BlueprintGeneratedClass.h"
 #include "../../Launch/Resources/Version.h"
 #include "JavascriptGeneratedClass_Native.generated.h"
 

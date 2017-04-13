@@ -1,4 +1,7 @@
 #pragma once
+#include "GCObject.h"
+#include "SceneInterface.h"
+#include "Engine/World.h"
 
 class JAVASCRIPTUMG_API FJavascriptInGameScene : public FGCObject
 {

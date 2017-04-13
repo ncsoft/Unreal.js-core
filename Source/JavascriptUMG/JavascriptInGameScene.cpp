@@ -1,8 +1,10 @@
 
 #include "JavascriptInGameScene.h"
-#include "SoundDefinitions.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/LineBatchComponent.h"
+#include "Components/MeshComponent.h"
+#include "AudioDevice.h"
+#include "ConfigCacheIni.h"
 #include "../../Launch/Resources/Version.h"
 
 FJavascriptInGameScene::FJavascriptInGameScene(FJavascriptInGameScene::ConstructionValues CVS)
@@ -33,7 +35,7 @@ FJavascriptInGameScene::FJavascriptInGameScene(FJavascriptInGameScene::Construct
 	GetScene()->UpdateDynamicSkyLight(FLinearColor::White * CVS.SkyBrightness, FLinearColor::Black);
 #endif
 
-	DirectionalLight = NewObject<UDirectionalLightComponent>(GetTransientPackage());
+	DirectionalLight = NewObject<UDirectionalLightComponent>((UObject*)GetTransientPackage());
 	DirectionalLight->Intensity = CVS.LightBrightness;
 	DirectionalLight->LightColor = FColor::White;
 	AddComponent(DirectionalLight, FTransform(CVS.LightRotation));

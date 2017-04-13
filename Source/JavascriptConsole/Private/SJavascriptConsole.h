@@ -1,6 +1,5 @@
 #pragma once
-#include "CoreMinimal.h"
-
+#include "SCompoundWidget.h"
 
 /**
  * Debug console widget, designed to be summoned on top of a viewport or window

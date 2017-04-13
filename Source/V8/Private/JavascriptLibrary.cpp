@@ -3,6 +3,10 @@
 #include "JavascriptContext.h"
 #include "IV8.h"
 #include "SocketSubsystem.h"
+#include "GameFramework/GameMode.h"
+#include "Sockets.h"
+#include "EngineUtils.h"
+#include "AI/Navigation//NavigationSystem.h"
 #include "Modules/ModuleVersion.h"
 
 struct FPrivateSocketHandle

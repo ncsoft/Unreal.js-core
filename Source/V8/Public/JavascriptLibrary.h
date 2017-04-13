@@ -1,10 +1,12 @@
 #pragma once
 
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "JavascriptProfile.h"
 #include "JavascriptIsolate.h"
 #include "Engine/StreamableManager.h"
 #include "IPAddress.h"
 #include "AI/Navigation/RecastNavMesh.h"
+#include "Model.h"
 #include "JavascriptLibrary.generated.h"
 
 USTRUCT(BlueprintType)

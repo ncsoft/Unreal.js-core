@@ -1,9 +1,12 @@
 #pragma once
 
+#include "CoreMinimal.h"
+#include "ObjectMacros.h"
+#include "Object.h"
+#include "ScriptMacros.h"
 #include "IHttpRequest.h"
 #include "IHttpResponse.h"
 #include "HttpModule.h"
-
 #include "JavascriptHttpRequest.generated.h"
 
 UENUM()

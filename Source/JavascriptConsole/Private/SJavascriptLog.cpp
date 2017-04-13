@@ -3,7 +3,6 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "SJavascriptLog.h"
 #include "EditorStyleSettings.h"
 #include "SScrollBorder.h"
-#include "SlateBasics.h"
 #include "BaseTextLayoutMarshaller.h"
 #include "GameFramework/GameMode.h"
 #include "Engine/LocalPlayer.h"
@@ -11,6 +10,9 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "IV8.h"
 #include "STextComboBox.h"
 #include "ScopedTransaction.h"
+#include "SlateTextRun.h"
+#include "SlateStyle.h"
+#include "OutputDeviceHelper.h"
 #include "../../Launch/Resources/Version.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptConsole"

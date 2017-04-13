@@ -1,7 +1,10 @@
 #pragma once
 
-#include "CoreUObject.h"
-#include "Engine.h"
+#include "CoreMinimal.h"
+#include "ObjectMacros.h"
+#include "Object.h"
+#include "UObjectGlobals.h"
+#include "ScriptMacros.h"
 
 #pragma warning( push )
 #pragma warning( disable : 4946 )

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Config.h"
+#include "FileHelper.h"
 
 struct TypingGeneratorBase
 {

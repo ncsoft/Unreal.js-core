@@ -1,5 +1,10 @@
 #pragma once
 #include "SlateStyle.h"
+#include "SWidget.h"
+#include "CoreMinimal.h"
+#include "ScriptMacros.h"
+#include "SlateIcon.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "JavascriptUMGLibrary.generated.h"
 
 USTRUCT()

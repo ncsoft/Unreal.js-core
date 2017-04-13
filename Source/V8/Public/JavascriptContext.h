@@ -1,5 +1,10 @@
 #pragma once
 
+#include "CoreMinimal.h"
+#include "ObjectMacros.h"
+#include "Object.h"
+#include "UObjectGlobals.h"
+#include "ScriptMacros.h"
 #include "JavascriptContext.generated.h"
 
 struct FJavascriptContext;

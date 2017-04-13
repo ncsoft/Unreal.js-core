@@ -2,6 +2,7 @@
 
 #include "JavascriptMenuLibrary.h"
 #include "Widget.h"
+#include "SBox.h"
 #include "JavascriptMultiBox.generated.h"
 
 

@@ -18,13 +18,16 @@
 #include "Landscape.h"
 #include "LandscapeDataAccess.h"
 #include "LandscapeEdit.h"
-
+#include "Engine/BrushBuilder.h"
+#include "Engine/Selection.h"
+#include "EngineUtils.h"
+#include "GameFramework/Volume.h"
+#include "Components/BrushComponent.h"
 #include "../../Launch/Resources/Version.h"
+#include "PlatformFileManager.h"
+#include "FileManager.h"
+#include "NavDataGenerator.h"
 #include "VisualLogger/VisualLogger.h"
-
-#if WITH_EDITOR
-#include "UnrealEd.h"
-#endif
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -767,7 +770,7 @@ FString UJavascriptEditorLibrary::ExportNavigation(UWorld* InWorld, FString Name
 
 void UJavascriptEditorLibrary::RequestEndPlayMapInPIE()
 {
-	if (GUnrealEd->PlayWorld)
+	if (GEditor->PlayWorld)
 	{
 		GEditor->RequestEndPlayMap();
 	}

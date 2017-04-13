@@ -3,6 +3,7 @@
 #include "Camera/CameraTypes.h"
 #include "ContentWidget.h"
 #include "JavascriptInGameScene.h"
+#include "SceneManagement.h"
 #include "JavascriptGameViewport.generated.h"
 
 class FJavascriptInGameScene;

@@ -3,6 +3,9 @@
 #include "JavascriptWebSocket.h"
 #include "JavascriptWebSocketServer.h"
 
+#if WITH_JSWEBSOCKET
+#include "IPv4Endpoint.h"
+#endif
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 UJavascriptWebSocket* UJavascriptWebSocket::Connect(const FString& EndpointString)
@@ -16,7 +19,7 @@ UJavascriptWebSocket* UJavascriptWebSocket::Connect(const FString& EndpointStrin
 	}
 	
 	auto addr = Endpoint.ToInternetAddr();
-	return CreateFrom(new FJavascriptWebSocket(*addr), GetTransientPackage());
+	return CreateFrom(new FJavascriptWebSocket(*addr), (UObject*)GetTransientPackage());
 #else
 	return nullptr;
 #endif

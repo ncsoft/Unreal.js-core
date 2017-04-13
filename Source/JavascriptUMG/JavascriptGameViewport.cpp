@@ -4,7 +4,6 @@
 #include "Modules/ModuleVersion.h"
 #include "SlateApplication.h"
 
-#include "CoreMinimal.h"
 #include "EngineUtils.h"
 #include "EngineModule.h"
 #include "SceneView.h"

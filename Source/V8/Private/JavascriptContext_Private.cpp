@@ -9,7 +9,10 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "Translator.h"
 #include "Exception.h"
 #include "IV8.h"
-
+#include "V8PCH.h"
+#include "Engine/Blueprint.h"
+#include "FileHelper.h"
+#include "Paths.h"
 #include "JavascriptIsolate_Private.h"
 
 #if WITH_EDITOR
@@ -311,11 +314,11 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 				UObject* TypeObject = nullptr;
 				for (auto PackageToSearch : PackagesToSearch)
 				{
-					TypeObject = StaticFindObject(UObject::StaticClass(), ANY_PACKAGE, *FString::Printf(TEXT("/Script/%s.%s"), PackageToSearch, ObjectName));
+					TypeObject = StaticFindObject(UObject::StaticClass(), (UObject*)ANY_PACKAGE, *FString::Printf(TEXT("/Script/%s.%s"), PackageToSearch, ObjectName));
 					if (TypeObject) return TypeObject;
 				}
 
-				TypeObject = StaticFindObject(UObject::StaticClass(), ANY_PACKAGE, ObjectName);
+				TypeObject = StaticFindObject(UObject::StaticClass(), (UObject*)ANY_PACKAGE, ObjectName);
 				if (TypeObject) return TypeObject;
 
 				TypeObject = StaticLoadObject(UObject::StaticClass(), nullptr, ObjectName);

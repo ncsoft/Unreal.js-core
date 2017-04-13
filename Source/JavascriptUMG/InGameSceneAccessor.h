@@ -1,12 +1,11 @@
 #pragma once
 
-#include "CoreMinimal.h"
-#include "EngineUtils.h"
-
 #include "JavascriptInGameScene.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Components/SceneCaptureComponentCube.h"
 #include "Modules/ModuleVersion.h"
+#include "EngineUtils.h"
+#include "UnrealEngine.h"
 #include "InGameSceneAccessor.generated.h"
 
 UCLASS()
