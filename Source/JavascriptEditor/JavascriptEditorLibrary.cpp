@@ -27,6 +27,8 @@
 #include "PlatformFileManager.h"
 #include "FileManager.h"
 #include "NavDataGenerator.h"
+#include "SlateApplication.h"
+#include "Engine/LevelStreaming.h"
 #include "VisualLogger/VisualLogger.h"
 
 #if WITH_EDITOR

@@ -1,6 +1,6 @@
 #include "JavascriptGraphConnectionDrawingPolicy.h"
 #include "JavascriptGraphAssetGraphSchema.h"
-
+#include "EdGraph/EdGraph.h"
 #include "DrawElements.h"
 
 FJavascriptGraphConnectionDrawingPolicy::FJavascriptGraphConnectionDrawingPolicy(int32 InBackLayerID, int32 InFrontLayerID, float ZoomFactor, const FSlateRect& InClippingRect, FSlateWindowElementList& InDrawElements, UEdGraph* InGraphObj)

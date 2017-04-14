@@ -14,6 +14,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "FileHelper.h"
 #include "Paths.h"
 #include "JavascriptIsolate_Private.h"
+#include "PropertyPortFlags.h"
 
 #if WITH_EDITOR
 #include "TypingGenerator.h"

@@ -2,7 +2,9 @@
 #if WITH_EDITOR
 #include "AssetData.h"
 #include "IAssetRegistry.h"
+#include "Editor/UnrealEdTypes.h"
 #endif
+#include "ScriptMacros.h"
 #include "JavascriptEditorGlobalDelegates.generated.h"
 
 USTRUCT()

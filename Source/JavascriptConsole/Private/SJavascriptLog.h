@@ -1,6 +1,9 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "SMultiLineEditableTextBox.h"
+#include "SMenuAnchor.h"
+#include "SListView.h"
+#include "STextComboBox.h"
 
 class FJavascriptLogTextLayoutMarshaller;
 

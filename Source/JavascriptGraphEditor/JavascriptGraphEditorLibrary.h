@@ -3,7 +3,7 @@
 #include "JavascriptMenuLibrary.h"
 #include "SJavascriptGraphEdNode.h"
 #include "ConnectionDrawingPolicy.h"
-
+#include "EdGraph/EdGraph.h"
 #include "JavascriptGraphEditorLibrary.generated.h"
 
 class UEdGraph;

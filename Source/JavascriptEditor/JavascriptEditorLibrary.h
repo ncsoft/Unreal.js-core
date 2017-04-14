@@ -5,6 +5,9 @@
 #include "JavascriptMenuLibrary.h"
 #include "JavascriptUMGLibrary.h"
 #include "JavascriptInputEventStateLibrary.h"
+#include "Editor/Transactor.h"
+#include "Engine/Brush.h"
+#include "WorkspaceItem.h"
 #include "JavascriptEditorLibrary.generated.h"
 
 UENUM()

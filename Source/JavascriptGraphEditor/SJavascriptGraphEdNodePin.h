@@ -1,4 +1,5 @@
 #pragma once
+#include "SGraphPin.h"
 
 class UEdGraphPin;
 

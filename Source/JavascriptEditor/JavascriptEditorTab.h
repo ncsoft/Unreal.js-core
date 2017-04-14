@@ -2,6 +2,7 @@
 
 #include "SDockTab.h"
 #include "JavascriptEditorLibrary.h"
+#include "Object.h"
 #include "JavascriptEditorTab.generated.h"
 
 UENUM()

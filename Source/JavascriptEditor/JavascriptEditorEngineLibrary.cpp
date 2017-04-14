@@ -1,6 +1,8 @@
 #include "JavascriptEditorEngineLibrary.h"
 #include "JavascriptContext.h"
 #include "ObjectTools.h"
+#include "Engine/Engine.h"
+#include "Editor/EditorEngine.h"
 
 #if WITH_EDITOR
 UWorld* UJavascriptEditorEngineLibrary::GetEditorWorld(UEngine* Engine)

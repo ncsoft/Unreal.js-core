@@ -4,6 +4,8 @@
 #include "Editor/WorkspaceMenuStructure/Public/WorkspaceMenuStructure.h"
 #include "Editor/WorkspaceMenuStructure/Public/WorkspaceMenuStructureModule.h"
 #include "SDockTab.h"
+#include "EditorStyleSet.h"
+#include "SlateApplication.h"
 
 IMPLEMENT_MODULE( FJavascriptConsoleModule, JavascriptLog );
 

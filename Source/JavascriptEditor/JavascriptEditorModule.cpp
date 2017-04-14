@@ -6,6 +6,7 @@
 #include "JavascriptEditorTick.h"
 #include "IV8.h"
 #include "ScopedTransaction.h"
+#include "CoreDelegates.h"
 #if WITH_EDITOR
 // Settings
 #include "JavascriptSettings.h"

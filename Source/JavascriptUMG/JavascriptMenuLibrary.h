@@ -9,6 +9,8 @@
 #include "MultiBoxBuilder.h"
 #include "MultiBoxExtender.h"
 #include "InputBindingManager.h"
+#include "ScriptMacros.h"
+#include "TextProperty.h"
 #include "JavascriptMenuLibrary.generated.h"
 
 UENUM()

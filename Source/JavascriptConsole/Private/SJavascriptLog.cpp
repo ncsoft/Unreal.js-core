@@ -13,6 +13,8 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "SlateTextRun.h"
 #include "SlateStyle.h"
 #include "OutputDeviceHelper.h"
+#include "UIAction.h"
+#include "MultiBox/MultiBoxBuilder.h"
 #include "../../Launch/Resources/Version.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptConsole"
