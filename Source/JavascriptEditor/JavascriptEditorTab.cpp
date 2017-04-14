@@ -1,8 +1,8 @@
-#include "JavascriptEditor.h"
-
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptEditorTab.h"
+#include "Button.h"
+#include "SSpacer.h"
 #include "WorkspaceMenuStructureModule.h"
 
 UJavascriptEditorTab::UJavascriptEditorTab(const FObjectInitializer& ObjectInitializer)
@@ -50,6 +50,14 @@ UWidget* UJavascriptEditorTab::TakeWidget(UObject* Context)
 		if (Widget) return Widget;
 	}
 	return NewObject<UButton>();
+}
+
+void UJavascriptEditorTab::TabActivatedCallback(TSharedRef<SDockTab> Tab, ETabActivationCause Cause)
+{
+	if (OnTabActivatedCallback.IsBound())
+	{
+		OnTabActivatedCallback.Execute(Tab->GetLayoutIdentifier().ToString(), TEnumAsByte<EJavasriptTabActivationCause::Type>((uint8)Cause));
+	}
 }
 
 struct FJavascriptEditorTabTracker : public FGCObject
@@ -189,7 +197,9 @@ void UJavascriptEditorTab::Register(TSharedRef<FTabManager> TabManager, UObject*
 		UJavascriptEditorTab::MajorTab = MajorTab;		 
 		
 		MajorTab->SetContent(Widget->TakeWidget());
-		
+		MajorTab->SetOnTabActivated(FOnTabActivatedCallback::CreateLambda([this](TSharedRef<SDockTab> Tab, ETabActivationCause Cause) {
+			this->TabActivatedCallback(Tab, Cause);
+		}));
 		UJavascriptEditorTab::MajorTab = OldTab;
 
 		return MajorTab;

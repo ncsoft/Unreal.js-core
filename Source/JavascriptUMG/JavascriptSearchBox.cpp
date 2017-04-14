@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptSearchBox.h"
 #include "SSearchBox.h"
 

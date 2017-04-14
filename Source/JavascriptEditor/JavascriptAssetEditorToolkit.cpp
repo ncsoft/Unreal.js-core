@@ -1,7 +1,6 @@
-#include "JavascriptEditor.h"
+#include "JavascriptAssetEditorToolkit.h"
 
 #if WITH_EDITOR
-#include "JavascriptAssetEditorToolkit.h"
 #include "JavascriptEditorTab.h"
 #include "JavascriptUICommands.h"
 #include "JavascriptUIExtender.h"

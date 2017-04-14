@@ -1,10 +1,8 @@
-#include "V8PCH.h"
-
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
+#include "Delegates.h"
 #include "JavascriptDelegate.h"
 #include "Translator.h"
-#include "Delegates.h"
 #include "JavascriptStats.h"
 #include "UObject/GCObject.h"
 

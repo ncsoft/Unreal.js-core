@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Widget.h"
 #include "JavascriptEditorTab.h"
+#include "SBox.h"
 #include "JavascriptEditorTabManager.generated.h"
 
 class UJavascriptEditorTabManager;

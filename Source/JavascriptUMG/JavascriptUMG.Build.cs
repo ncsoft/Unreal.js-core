@@ -4,6 +4,7 @@ public class JavascriptUMG : ModuleRules
 {
 	public JavascriptUMG(TargetInfo Target)
 	{
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new string[] { 
             "Core", 
             "CoreUObject", 

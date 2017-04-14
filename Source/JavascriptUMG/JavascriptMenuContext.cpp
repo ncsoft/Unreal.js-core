@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptMenuContext.h"
 
 bool UJavascriptMenuContext::Public_CanExecute()

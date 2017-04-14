@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptWidget.h"
 #include "JavascriptContext.h"
 #include "Blueprint/WidgetTree.h"
@@ -94,7 +93,7 @@ bool UJavascriptWidget::RemoveChild()
 
 	ContentSlot->Parent = nullptr;
 	ContentSlot->Content = nullptr;
-
+	ContentSlot = nullptr;
 	return true;
 }
 

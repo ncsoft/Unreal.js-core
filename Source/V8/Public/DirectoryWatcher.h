@@ -9,7 +9,11 @@
 #if V8_ENABLE_DIRECTORY_WATCHER
 #include "IDirectoryWatcher.h"
 #endif
-
+#include "CoreMinimal.h"
+#include "ObjectMacros.h"
+#include "Object.h"
+#include "UObjectGlobals.h"
+#include "ScriptMacros.h"
 #include "DirectoryWatcher.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDirectoryWatcherCallback);

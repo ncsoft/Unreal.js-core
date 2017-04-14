@@ -1,5 +1,7 @@
 #pragma once
 
+#include "SlateTextRun.h"
+#include "IRun.h"
 #include "JavascriptTextModel.generated.h"
 
 USTRUCT()

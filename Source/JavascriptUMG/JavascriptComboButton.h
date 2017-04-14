@@ -1,6 +1,8 @@
 #pragma once
 
 #include "JavascriptUMGLibrary.h"
+#include "ContentWidget.h"
+#include "SlateTypes.h"
 #include "JavascriptComboButton.generated.h"
 
 class SComboButton;

@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptMenuLibrary.h"
 #include "SJavascriptBox.h"
 #include "Framework/Commands/GenericCommands.h"
@@ -105,6 +104,21 @@ void UJavascriptMenuLibrary::AddComboButton(FJavascriptMenuBuilder& Builder, UJa
 			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetTooltip)),
 			TAttribute< FSlateIcon >::Create(TAttribute< FSlateIcon >::FGetter::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetSlateIcon))
 		);
+	}
+}
+
+void UJavascriptMenuLibrary::AddMenuEntry(FJavascriptMenuBuilder& Builder, UJavascriptMenuContext* Object)
+{
+	if (Builder.Menu)
+	{
+		FUIAction DefaultAction;
+		DefaultAction.CanExecuteAction = FCanExecuteAction::CreateUObject(Object, &UJavascriptMenuContext::Public_CanExecute);
+		DefaultAction.ExecuteAction = FExecuteAction::CreateUObject(Object, &UJavascriptMenuContext::Public_Execute);
+		Builder.Menu->AddMenuEntry(
+			Object->Description,
+			Object->ToolTip,
+			Object->Icon,
+			DefaultAction);
 	}
 }
 

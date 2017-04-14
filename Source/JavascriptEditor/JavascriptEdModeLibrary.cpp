@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptEdModeLibrary.h"
 
 #if WITH_EDITOR

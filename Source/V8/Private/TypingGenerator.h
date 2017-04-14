@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Config.h"
+#include "FileHelper.h"
 
 struct TypingGeneratorBase
 {
@@ -124,6 +125,11 @@ struct TokenWriter
 			{
 				push("number");
 			}
+		}
+		else if (auto p = Cast<UEnumProperty>(Property))
+		{
+			generator.Export(p->GetEnum());
+			push(FV8Config::Safeify(p->GetName()));
 		}
 		else if (auto p = Cast<UMulticastDelegateProperty>(Property))
 		{

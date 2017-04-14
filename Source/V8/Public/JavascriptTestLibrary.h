@@ -1,6 +1,7 @@
 #pragma once
 
 #include "JavascriptIsolate.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "JavascriptTestLibrary.generated.h"
 
 struct FJavascriptAutomatedTestImpl;

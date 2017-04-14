@@ -1,4 +1,6 @@
 #pragma once
+#include "Package.h"
+#include "MetaData.h"
 
 struct FV8Config
 {

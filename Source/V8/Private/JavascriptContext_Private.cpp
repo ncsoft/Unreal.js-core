@@ -1,7 +1,6 @@
-#include "V8PCH.h"
-
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
+#include "JavascriptContext_Private.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
 #include "JavascriptComponent.h"
@@ -10,9 +9,12 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "Translator.h"
 #include "Exception.h"
 #include "IV8.h"
-
+#include "V8PCH.h"
+#include "Engine/Blueprint.h"
+#include "FileHelper.h"
+#include "Paths.h"
 #include "JavascriptIsolate_Private.h"
-#include "JavascriptContext_Private.h"
+#include "PropertyPortFlags.h"
 
 #if WITH_EDITOR
 #include "TypingGenerator.h"
@@ -222,7 +224,7 @@ static void SetStructFlags(UScriptStruct* Struct, const TArray<FString>& Flags)
 	}
 }
 
-static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FString>& Decorators, FString Type, bool bIsArray, bool bIsSubclass)
+static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FString>& Decorators, FString Type, bool bIsArray, bool bIsSubclass, bool bIsMap)
 {
 	auto SetupProperty = [&](UProperty* NewProperty) {
 		static struct FKeyword {
@@ -313,11 +315,11 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 				UObject* TypeObject = nullptr;
 				for (auto PackageToSearch : PackagesToSearch)
 				{
-					TypeObject = StaticFindObject(UObject::StaticClass(), ANY_PACKAGE, *FString::Printf(TEXT("/Script/%s.%s"), PackageToSearch, ObjectName));
+					TypeObject = StaticFindObject(UObject::StaticClass(), (UObject*)ANY_PACKAGE, *FString::Printf(TEXT("/Script/%s.%s"), PackageToSearch, ObjectName));
 					if (TypeObject) return TypeObject;
 				}
 
-				TypeObject = StaticFindObject(UObject::StaticClass(), ANY_PACKAGE, ObjectName);
+				TypeObject = StaticFindObject(UObject::StaticClass(), (UObject*)ANY_PACKAGE, ObjectName);
 				if (TypeObject) return TypeObject;
 
 				TypeObject = StaticLoadObject(UObject::StaticClass(), nullptr, ObjectName);
@@ -402,7 +404,36 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 			}
 		};
 
-		if (bIsArray)
+		if (bIsMap)
+		{
+			auto q = NewObject<UMapProperty>(Outer, Name);
+			FString Left, Right;
+			if (Type.Split(TEXT(":"), &Left, &Right))
+			{
+				auto Key = FName(*Name.ToString().Append(TEXT("_Key")));
+				if (auto KeyProperty = CreateProperty(q, Key, Decorators, Left, false, false, false))
+				{
+					q->KeyProp = KeyProperty;
+					q->KeyProp->SetPropertyFlags(CPF_HasGetValueTypeHash);
+					auto Value = FName(*Name.ToString().Append(TEXT("_Value")));
+					if (auto ValueProperty = CreateProperty(q, Value, Decorators, Right, bIsArray, bIsSubclass, false))
+					{
+						q->ValueProp = ValueProperty;
+						if (q->ValueProp && q->ValueProp->HasAnyPropertyFlags(CPF_ContainsInstancedReference))
+						{
+							q->ValueProp->SetPropertyFlags(CPF_ContainsInstancedReference);
+						}
+					}
+					else
+						q->MarkPendingKill();
+				}
+				else
+					q->MarkPendingKill();
+			}
+
+			return q;
+		}
+		else if (bIsArray)
 		{
 			auto q = NewObject<UArrayProperty>(Outer, Name);
 			q->Inner = SetupProperty(Inner(q, Type));
@@ -425,14 +456,15 @@ static UProperty* CreatePropertyFromDecl(FIsolateHelper& I, UObject* Outer, Hand
 	auto Decorators = Decl->Get(I.Keyword("Decorators"));
 	auto IsArray = Decl->Get(I.Keyword("IsArray"));
 	auto IsSubClass = Decl->Get(I.Keyword("IsSubclass"));
-
+	auto IsMap = Decl->Get(I.Keyword("IsMap"));
 	return CreateProperty(
 		Outer,
 		*StringFromV8(Name),
 		StringArrayFromV8(Decorators),
 		StringFromV8(Type),
 		!IsArray.IsEmpty() && IsArray->BooleanValue(),
-		!IsSubClass.IsEmpty() && IsSubClass->BooleanValue()
+		!IsSubClass.IsEmpty() && IsSubClass->BooleanValue(),
+		!IsMap.IsEmpty() && IsMap->BooleanValue()
 		);
 }
 
@@ -738,14 +770,14 @@ public:
 	TMap<FString, UniquePersistent<Value>> Modules;
 	TArray<FString>& Paths;
 
-	void SetAsDebugContext()
+	void SetAsDebugContext(int32 InPort)
 	{
 		if (debugger) return;
 
 		Isolate::Scope isolate_scope(isolate());
 		HandleScope handle_scope(isolate());
 
-		debugger = IJavascriptDebugger::Create(5858, context());
+		debugger = IJavascriptDebugger::Create(InPort, context());
 	}
 
 	bool IsDebugContext() const
@@ -1765,6 +1797,11 @@ public:
 			}
 		}
 	}
+
+    void FindPathFile(FString TargetRootPath, FString TargetFileName, TArray<FString>& OutFiles)
+    {
+        IFileManager::Get().FindFilesRecursive(OutFiles, TargetRootPath.GetCharArray().GetData(), TargetFileName.GetCharArray().GetData(), true, false);
+    }
 
 	void Expose(FString RootName, UObject* Object)
 	{

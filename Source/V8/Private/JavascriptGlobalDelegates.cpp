@@ -1,4 +1,3 @@
-#include "V8PCH.h"
 #include "JavascriptGlobalDelegates.h"
 #include "../../Launch/Resources/Version.h"
 

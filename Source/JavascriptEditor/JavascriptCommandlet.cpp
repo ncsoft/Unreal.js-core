@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptCommandlet.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"

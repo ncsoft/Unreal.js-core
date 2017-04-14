@@ -1,10 +1,10 @@
-#include "JavascriptEditor.h"
+#include "JavascriptAssetTypeActions.h"
 
 #if WITH_EDITOR
-#include "JavascriptAssetTypeActions.h"
 #include "AssetTypeActions_Base.h"
 #include "JavascriptAssetEditorToolkit.h"
 #include "JavascriptUIExtender.h"
+#include "MessageDialog.h"
 #endif
 
 UJavascriptAssetTypeActions::UJavascriptAssetTypeActions(const FObjectInitializer& ObjectInitializer)

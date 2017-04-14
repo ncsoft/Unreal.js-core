@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ContentWidget.h"
 #include "JavascriptWindow.generated.h"
 
 class SWindow;

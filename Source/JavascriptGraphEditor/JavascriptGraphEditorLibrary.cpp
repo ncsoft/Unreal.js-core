@@ -1,7 +1,27 @@
-#include "JavascriptGraphEditorPrivatePCH.h"
 #include "JavascriptGraphEditorLibrary.h"
+#include "JavascriptGraphConnectionDrawingPolicy.h"
+#include "SJavascriptGraphEdNode.h"
+#include "Editor/GraphEditor/Private/SGraphPanel.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptGraph"
+
+#define DO_OP() OP(WireColor);	OP(AssociatedPin1);	OP(AssociatedPin2);	OP(WireThickness);	OP(bDrawBubbles);	OP(bUserFlag1);	OP(bUserFlag2);	OP(StartDirection);	OP(EndDirection);
+FJavascriptConnectionParams::FJavascriptConnectionParams(const FConnectionParams& In)
+{
+#define OP(x) x = In.x
+	DO_OP()
+#undef OP
+}
+
+FJavascriptConnectionParams::operator FConnectionParams () const
+{
+	FConnectionParams Out;
+#define OP(x) Out.x = x
+	DO_OP()
+#undef OP
+		return Out;
+}
+#undef DO_OP
 
 FJavascriptNodeCreator UJavascriptGraphEditorLibrary::NodeCreator(UJavascriptGraphEdGraph* Graph)
 {
@@ -28,6 +48,14 @@ void UJavascriptGraphEditorLibrary::MakeLinkTo(FJavascriptEdGraphPin A, FJavascr
 	{
 		A.GraphPin->MakeLinkTo(B.GraphPin);
 	}	
+}
+
+void UJavascriptGraphEditorLibrary::TryConnection(UEdGraphSchema* Schema, FJavascriptEdGraphPin A, FJavascriptEdGraphPin B)
+{
+	if (A.GraphPin && B.GraphPin)
+	{
+		Schema->TryCreateConnection(A.GraphPin, B.GraphPin);
+	}
 }
 
 void UJavascriptGraphEditorLibrary::BreakLinkTo(FJavascriptEdGraphPin A, FJavascriptEdGraphPin B)
@@ -68,7 +96,7 @@ class UEdGraphNode* UJavascriptGraphEditorLibrary::GetOwningNode(FJavascriptEdGr
 
 EEdGraphPinDirection UJavascriptGraphEditorLibrary::GetDirection(FJavascriptEdGraphPin A)
 {
-	return A.GraphPin ? (EEdGraphPinDirection)(A.GraphPin->Direction) : EEdGraphPinDirection::EGPD_Input;
+	return A.GraphPin ? A.GraphPin->Direction : EEdGraphPinDirection::EGPD_Input;
 }
 
 TArray<FJavascriptEdGraphPin> TransformPins(const TArray<UEdGraphPin*>& Pins)
@@ -89,6 +117,134 @@ TArray<FJavascriptEdGraphPin> UJavascriptGraphEditorLibrary::GetLinkedTo(FJavasc
 TArray<FJavascriptEdGraphPin> UJavascriptGraphEditorLibrary::GetPins(UEdGraphNode* Node)
 {
 	return TransformPins(Node->Pins);
+}
+// @unused
+FJavascriptArrangedWidget UJavascriptGraphEditorLibrary::FindPinGeometries(FJavascriptDetermineLinkGeometryContainer Container, FJavascriptPinWidget PinWidget)
+{
+	FJavascriptArrangedWidget Widget;
+	Widget.Handle = Container.PinGeometries->Find(*(PinWidget.Handle));
+
+	return Widget;
+}
+// @unused
+FJavascriptPinWidget UJavascriptGraphEditorLibrary::FindPinToPinWidgetMap(FJavascriptDetermineLinkGeometryContainer Container, FJavascriptEdGraphPin Pin)
+{
+	FJavascriptPinWidget Widget;
+	
+	TSharedRef<SGraphPin>* SGraphPinHandle = Container.PinToPinWidgetMap->Find(Pin.GraphPin);
+	TSharedRef<SWidget> SWidgetHandle  = static_cast<SWidget&>(SGraphPinHandle->Get()).AsShared();
+	Widget.Handle = &SWidgetHandle;
+
+	return Widget;
+}
+// @unused
+FJavascriptArrangedWidget UJavascriptGraphEditorLibrary::GetArrangedNodes(FJavascriptDetermineLinkGeometryContainer Container, UEdGraphNode* Node)
+{
+	FJavascriptArrangedWidget Widget;
+	Widget.Handle = nullptr;
+	int32* Index = Container.NodeWidgetMap->Find(Node);
+	if (Index != NULL)
+	{
+		Widget.Handle = &(*Container.ArrangedNodes)[*Index];
+	}
+
+	return Widget;
+}
+// @unused
+FJavascriptPinWidget UJavascriptGraphEditorLibrary::GetOutputPinWidget(FJavascriptDetermineLinkGeometryContainer Container)
+{
+	FJavascriptPinWidget Widget;
+	Widget.Handle = Container.OutputPinWidget;
+
+	return Widget;
+}
+
+void UJavascriptGraphEditorLibrary::DrawConnection(FJavascriptGraphConnectionDrawingPolicyContainer Container, const FVector2D& A, const FVector2D& B, const FJavascriptConnectionParams& Params)
+{
+	FJavascriptGraphConnectionDrawingPolicy* DrawingPolicy = Container.Handle;
+	if (DrawingPolicy)
+	{
+		int32 WireLayerID = DrawingPolicy->GetWireLayerID();
+		DrawingPolicy->DrawConnection(WireLayerID, A, B, Params);
+	}
+}
+
+void UJavascriptGraphEditorLibrary::MakeRotatedBox(FJavascriptGraphConnectionDrawingPolicyContainer Container, FVector2D ArrowDrawPos, float AngleInRadians, FLinearColor WireColor)
+{
+	FJavascriptGraphConnectionDrawingPolicy* DrawingPolicy = Container.Handle;
+	if (DrawingPolicy)
+	{
+		DrawingPolicy->MakeRotatedBox(ArrowDrawPos, AngleInRadians, WireColor);
+	}
+}
+
+int UJavascriptGraphEditorLibrary::GetHorveredPinNum(FJavascriptGraphConnectionDrawingPolicyContainer Container)
+{
+	FJavascriptGraphConnectionDrawingPolicy* DrawingPolicy = Container.Handle;
+	if (DrawingPolicy)
+	{
+		return DrawingPolicy->GetHoveredPins().Num();
+	}
+
+	return 0;
+}
+
+bool UJavascriptGraphEditorLibrary::IsContainedHoveredPins(FJavascriptGraphConnectionDrawingPolicyContainer Container, FJavascriptEdGraphPin Pin)
+{
+	FJavascriptGraphConnectionDrawingPolicy* DrawingPolicy = Container.Handle;
+	if (DrawingPolicy)
+	{
+		return DrawingPolicy->GetHoveredPins().Contains(Pin.GraphPin);
+	}
+
+	return false;
+}
+
+void UJavascriptGraphEditorLibrary::ApplyHoverDeemphasis(FJavascriptGraphConnectionDrawingPolicyContainer Container, FJavascriptEdGraphPin OutputPin, FJavascriptEdGraphPin InputPin, float Thickness, FLinearColor WireColor)
+{
+	FJavascriptGraphConnectionDrawingPolicy* DrawingPolicy = Container.Handle;
+	if (DrawingPolicy)
+	{
+		DrawingPolicy->ApplyHoverDeemphasis(OutputPin.GraphPin, InputPin.GraphPin, Thickness, WireColor);
+	}
+}
+
+void UJavascriptGraphEditorLibrary::DetermineWiringStyle(FJavascriptGraphConnectionDrawingPolicyContainer Container, FJavascriptEdGraphPin OutputPin, FJavascriptEdGraphPin InputPin, FJavascriptConnectionParams& Params)
+{
+	FJavascriptGraphConnectionDrawingPolicy* DrawingPolicy = Container.Handle;
+	if (DrawingPolicy)
+	{
+		FConnectionParams X = Params;
+		DrawingPolicy->DetermineWiringStyle(OutputPin.GraphPin, InputPin.GraphPin, X);
+		Params = X;
+	}
+}
+
+void UJavascriptGraphEditorLibrary::DrawSplineWithArrow(FJavascriptGraphConnectionDrawingPolicyContainer Container, FVector2D StartAnchorPoint, FVector2D EndAnchorPoint, FJavascriptConnectionParams Params)
+{
+	FJavascriptGraphConnectionDrawingPolicy* DrawingPolicy = Container.Handle;
+	if (DrawingPolicy)
+	{
+		DrawingPolicy->DrawSplineWithArrow(StartAnchorPoint, EndAnchorPoint, Params);
+	}
+}
+
+void UJavascriptGraphEditorLibrary::AddPinToHoverSet(const FJavascriptSlateEdNode& InSlateEdNode, FJavascriptEdGraphPin Pin)
+{
+	SJavascriptGraphEdNode* SlateEdNode = InSlateEdNode.Handle;
+	if (SlateEdNode && Pin.GraphPin)
+	{
+		SlateEdNode->GetOwnerPanel()->AddPinToHoverSet(Pin.GraphPin);
+	}
+}
+
+void UJavascriptGraphEditorLibrary::RemovePinFromHoverSet(const FJavascriptSlateEdNode& InSlateEdNode, FJavascriptEdGraphPin Pin)
+{
+	SJavascriptGraphEdNode* SlateEdNode = InSlateEdNode.Handle;
+	if (SlateEdNode && Pin.GraphPin)
+	{
+		SlateEdNode->GetOwnerPanel()->RemovePinFromHoverSet(Pin.GraphPin);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

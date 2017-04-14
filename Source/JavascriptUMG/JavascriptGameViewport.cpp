@@ -1,8 +1,14 @@
 
-#include "JavascriptUMG.h"
 #include "JavascriptGameViewport.h"
 #include "SceneViewport.h"
 #include "Modules/ModuleVersion.h"
+#include "SlateApplication.h"
+
+#include "EngineUtils.h"
+#include "EngineModule.h"
+#include "SceneView.h"
+#include "CanvasTypes.h"
+#include "SViewport.h"
 
 #define LOCTEXT_NAMESPACE "UMG"
 
@@ -107,7 +113,10 @@ void FJavascriptUMGViewportClient::Tick(float InDeltaTime)
 #if ENGINE_MINOR_VERSION > 14
 				It->DispatchBeginPlay();
 #else
-				It->BeginPlay();
+				if (It->HasActorBegunPlay() == false)
+				{
+					It->BeginPlay();
+				}
 #endif
 			}
 			GameScene->GetWorld()->bBegunPlay = true;

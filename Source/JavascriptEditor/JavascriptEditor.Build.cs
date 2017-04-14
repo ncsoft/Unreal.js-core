@@ -22,7 +22,8 @@ public class JavascriptEditor : ModuleRules
     }
 
     public JavascriptEditor(TargetInfo Target)
-	{        
+	{
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(
                 new string[]
 				{
@@ -46,12 +47,10 @@ public class JavascriptEditor : ModuleRules
                 );
             PrivateIncludePaths.AddRange(
                     new string[] {
-                        "Editor/GraphEditor/Private",
 				        "Editor/Kismet/Private",
 					    "Editor/GameplayAbilitiesEditor/Private",
                         "Editor/LandscapeEditor/Private",
-                        "Developer/AssetTools/Private",
-                        "Editor/AIGraph/Private",
+                        "Developer/AssetTools/Private"
                     }
                 );
 
@@ -74,15 +73,14 @@ public class JavascriptEditor : ModuleRules
 					    "Slate",
 					    "SlateCore",
                         "EditorStyle",                    
-					    "GraphEditor",
 					    "MainFrame",
 					    "UnrealEd",
                         "WorkspaceMenuStructure",
                         "V8",
                         "UMG",
                         "Foliage",
-                        "AIGraph",
-                        "LandscapeEditor"
+                        "LandscapeEditor",
+                        "KismetWidgets"
 				    }
             );
         }

@@ -1,5 +1,3 @@
-#include "V8PCH.h"
-
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #ifndef THIRD_PARTY_INCLUDES_START
@@ -7,6 +5,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #	define THIRD_PARTY_INCLUDES_END
 #endif
 
+#include "JavascriptIsolate_Private.h"
 #include "Config.h"
 #include "MallocArrayBufferAllocator.h"
 #include "Translator.h"
@@ -14,7 +13,6 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "Exception.h"
 #include "Delegates.h"
 #include "JavascriptIsolate.h"
-#include "JavascriptIsolate_Private.h"
 #include "JavascriptContext_Private.h"
 #include "JavascriptContext.h"
 #include "Helpers.h"
@@ -22,6 +20,13 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "JavascriptGeneratedClass_Native.h"
 #include "StructMemoryInstance.h"
 #include "JavascriptMemoryObject.h"
+#include "Engine/UserDefinedStruct.h"
+#include "Ticker.h"
+#include "V8PCH.h"
+#include "UObjectIterator.h"
+#include "TextProperty.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
+
 #if WITH_EDITOR
 #include "ScopedTransaction.h"
 #endif
@@ -86,6 +91,34 @@ void* FArrayBufferAccessor::GetData()
 void FArrayBufferAccessor::Discard()
 {
 	GCurrentContents = v8::ArrayBuffer::Contents();
+}
+
+FString PropertyNameToString(UProperty* Property)
+{
+	auto Struct = Property->GetOwnerStruct();
+	auto name = Property->GetFName();
+	if (Struct)
+	{
+		if (auto s = Cast<UUserDefinedStruct>(Struct))
+		{
+			return s->PropertyNameToDisplayName(name);
+		}
+	}
+	return name.ToString();
+}
+
+bool MatchPropertyName(UProperty* Property, FName NameToMatch)
+{
+	auto Struct = Property->GetOwnerStruct();
+	auto name = Property->GetFName();
+	if (Struct)
+	{
+		if (auto s = Cast<UUserDefinedStruct>(Struct))
+		{
+			return s->PropertyNameToDisplayName(name) == NameToMatch.ToString();
+		}
+	}
+	return name == NameToMatch;
 }
 
 class FJavascriptIsolateImplementation : public FJavascriptIsolate
@@ -618,6 +651,11 @@ public:
 				return Int32::New(isolate_, Value);
 			}
 		}
+		else if (auto p = Cast<UEnumProperty>(Property))
+		{
+			int32 Value = p->GetUnderlyingProperty()->GetValueTypeHash(Buffer);
+			return I.Keyword(p->GetEnum()->GetEnumName(Value));
+		}
 		else if (auto p = Cast<USetProperty>(Property))
 		{
 			FScriptSetHelper_InContainer SetHelper(p, Buffer);
@@ -676,9 +714,9 @@ public:
 		for (TFieldIterator<UProperty> PropertyIt(Struct, EFieldIteratorFlags::IncludeSuper); PropertyIt && len; ++PropertyIt)
 		{
 			auto Property = *PropertyIt;
-			auto PropertyName = Property->GetFName();
+			auto PropertyName = PropertyNameToString(Property);
 
-			auto name = I.Keyword(PropertyName.ToString());
+			auto name = I.Keyword(PropertyName);
 			auto value = v8_obj->Get(name);
 
 			if (!value.IsEmpty() && !value->IsUndefined())
@@ -874,6 +912,20 @@ public:
 			else
 			{				
 				p->SetPropertyValue_InContainer(Buffer, Value->Int32Value());
+			}
+		}
+		else if (auto p = Cast<UEnumProperty>(Property))
+		{
+			auto Str = StringFromV8(Value);
+			auto EnumValue = p->GetEnum()->FindEnumIndex(FName(*Str));
+			if (EnumValue == INDEX_NONE)
+			{
+				I.Throw(FString::Printf(TEXT("Enum Text %s for Enum %s failed to resolve to any value"), *Str, *p->GetName()));
+			}
+			else
+			{
+				uint8* PropData = p->ContainerPtrToValuePtr<uint8>(Buffer);
+				p->GetUnderlyingProperty()->SetIntPropertyValue(PropData, (int64)EnumValue);
 			}
 		}
 		else if (auto p = Cast<UObjectPropertyBase>(Property))
@@ -1563,7 +1615,7 @@ public:
 		};
 
 		Template->PrototypeTemplate()->SetAccessor(
-			I.Keyword(PropertyToExport->GetName()),
+			I.Keyword(PropertyNameToString(PropertyToExport)),
 			Getter, 
 			Setter, 
 			I.External(PropertyToExport),
@@ -1842,10 +1894,13 @@ public:
 			if (Instance->GetMemory())
 			{				
 				auto Ref = reinterpret_cast<FJavascriptRef*>(Instance->GetMemory());
-				FPrivateJavascriptRef* Handle = Ref->Handle.Get();
-				auto object = Local<Object>::New(isolate, Handle->Object);
+				if (Ref->Handle.IsValid())
+				{
+					FPrivateJavascriptRef* Handle = Ref->Handle.Get();
+					auto object = Local<Object>::New(isolate, Handle->Object);
 
-				info.GetReturnValue().Set(object);
+					info.GetReturnValue().Set(object);
+				}
 			}
 		};
 
@@ -1908,9 +1963,9 @@ public:
 
 				if (FV8Config::CanExportProperty(Class, Property))
 				{
-					auto PropertyName = Property->GetFName();
+					auto PropertyName = PropertyNameToString(Property);
 
-					auto name = I.Keyword(PropertyName.ToString());
+					auto name = I.Keyword(PropertyName);
 					auto value = PropertyAccessor::Get(isolate, self, Property);
 					if (auto p = Cast<UClassProperty>(Property))
 					{
@@ -2002,7 +2057,7 @@ public:
 				{
 					FScriptArrayHelper_InContainer helper(p, Instance);
 
-					if (FV8Config::CanExportProperty(Class, Property) && Property->GetFName() == PropertyNameToAccess)
+					if (FV8Config::CanExportProperty(Class, Property) && MatchPropertyName(Property,PropertyNameToAccess))
 					{
 						Handle<Value> argv[1];
 

@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptUMGBlueprintLibrary.h"
 #include "JavascriptTextModel.h"
 

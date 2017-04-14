@@ -1,5 +1,5 @@
-#include "JavascriptUMG.h"
 #include "JavascriptMultiLineEditableTextBox.h"
+#include "SMultiLineEditableTextBox.h"
 #include "BaseTextLayoutMarshaller.h"
 
 struct FJavascriptTextLayoutMarshaller : FBaseTextLayoutMarshaller

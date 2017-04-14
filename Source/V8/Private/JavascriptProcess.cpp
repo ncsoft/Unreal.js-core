@@ -1,4 +1,3 @@
-#include "V8PCH.h"
 #include "JavascriptProcess.h"
 
 UJavascriptProcess::UJavascriptProcess(const FObjectInitializer& ObjectInitializer)
@@ -94,6 +93,10 @@ void UJavascriptProcess::Close()
 		FPlatformProcess::ClosePipe(ReadPipe, WritePipe);
 		ReadPipe = WritePipe = nullptr;
 	}
+}
+void UJavascriptProcess::Sleep(float Seconds)
+{
+	FPlatformProcess::Sleep(Seconds);
 }
 
 FString UJavascriptProcess::ReadFromPipe()

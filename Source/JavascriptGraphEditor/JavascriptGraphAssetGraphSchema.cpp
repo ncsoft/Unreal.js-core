@@ -1,4 +1,3 @@
-#include "JavascriptGraphEditorPrivatePCH.h"
 #include "JavascriptGraphAssetGraphSchema.h"
 #include "JavascriptGraphEdNode.h"
 #include "JavascriptGraphConnectionDrawingPolicy.h"
@@ -133,24 +132,31 @@ void UJavascriptGraphAssetGraphSchema::BreakSinglePinLink(UEdGraphPin* SourcePin
 	Super::BreakSinglePinLink(SourcePin, TargetPin);
 }
 
-#define DO_OP() OP(WireColor);	OP(AssociatedPin1);	OP(AssociatedPin2);	OP(WireThickness);	OP(bDrawBubbles);	OP(bUserFlag1);	OP(bUserFlag2);	OP(StartDirection);	OP(EndDirection);
-
-FJavascriptConnectionParams::FJavascriptConnectionParams(const FConnectionParams& In)
+bool UJavascriptGraphAssetGraphSchema::TryCreateConnection(UEdGraphPin* PinA, UEdGraphPin* PinB) const
 {
-#define OP(x) x = In.x
-	DO_OP()
-#undef OP
+	if (OnTryCreateConnection.IsBound())
+	{
+		FJavascriptEdGraphPin A = FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(PinA) };
+		FJavascriptEdGraphPin B = FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(PinB) };
+		OnTryCreateConnection.Execute(A, B);
+		PinA = A.GraphPin;
+		PinB = B.GraphPin;
+	}
+
+	const bool bModified = UEdGraphSchema::TryCreateConnection(PinA, PinB);
+	return bModified;
 }
 
-FJavascriptConnectionParams::operator FConnectionParams () const
+bool UJavascriptGraphAssetGraphSchema::CreateAutomaticConversionNodeAndConnections(UEdGraphPin* PinA, UEdGraphPin* PinB) const
 {
-	FConnectionParams Out;
-#define OP(x) Out.x = x
-	DO_OP()
-#undef OP
-	return Out;
+	if (OnCreateAutomaticConversionNodeAndConnections.IsBound())
+	{
+		OnCreateAutomaticConversionNodeAndConnections.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(PinA) }, FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(PinB) });
+		return true;
+	}
+
+	return false;
 }
-#undef DO_OP
 
 bool UJavascriptGraphEditorLibrary::CanUserDeleteNode(UEdGraphNode* Node)
 {

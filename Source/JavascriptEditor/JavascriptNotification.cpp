@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptNotification.h"
 
 #define LOCTEXT_NAMESPACE "UMG"

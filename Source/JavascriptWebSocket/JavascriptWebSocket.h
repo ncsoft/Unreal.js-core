@@ -1,5 +1,10 @@
 #pragma once
 
+#if WITH_JSWEBSOCKET
+#include "JavascriptContext.h"
+#include "JSWebSocket.h"
+#endif
+
 #include "JavascriptWebSocket.generated.h"
 
 UCLASS()

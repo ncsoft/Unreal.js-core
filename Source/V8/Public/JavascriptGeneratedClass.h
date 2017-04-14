@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Engine/BlueprintGeneratedClass.h"
 #include "JavascriptGeneratedClass.generated.h"
 
 struct FJavascriptContext;

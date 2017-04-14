@@ -1,7 +1,9 @@
-#include "V8PCH.h"
 #include "JavascriptComponent.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
+#include "Engine/World.h"
+#include "V8PCH.h"
+#include "UnrealEngine.h"
 #include "IV8.h"
 
 UJavascriptComponent::UJavascriptComponent(const FObjectInitializer& ObjectInitializer)
@@ -18,7 +20,7 @@ void UJavascriptComponent::OnRegister()
 	auto ContextOwner = GetOuter();
 	if (ContextOwner && !HasAnyFlags(RF_ClassDefaultObject) && !ContextOwner->HasAnyFlags(RF_ClassDefaultObject))
 	{
-		if (GetWorld() && (GetWorld()->IsGameWorld() || bActiveWithinEditor))
+		if (GetWorld() && ((GetWorld()->IsGameWorld() && !GetWorld()->IsPreviewWorld()) || bActiveWithinEditor))
 		{
 			auto Isolate = NewObject<UJavascriptIsolate>();
 			auto Context = Isolate->CreateContext();

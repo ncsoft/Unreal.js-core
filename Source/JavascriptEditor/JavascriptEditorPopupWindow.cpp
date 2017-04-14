@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptEditorPopupWindow.h"
 
 #if WITH_EDITOR

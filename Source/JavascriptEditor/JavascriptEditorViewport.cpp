@@ -1,9 +1,9 @@
-#include "JavascriptEditor.h"
 #include "JavascriptEditorViewport.h"
 #include "SEditorViewport.h"
 #include "AdvancedPreviewScene.h"
 #include "Runtime/Engine/Public/Slate/SceneViewport.h"
-
+#include "Engine/Canvas.h"
+#include "OverlaySlot.h"
 #include "AssetViewerSettings.h"
 #include "Modules/ModuleVersion.h"
 
@@ -227,7 +227,10 @@ public:
 #if ENGINE_MINOR_VERSION > 14
 					It->DispatchBeginPlay();
 #else
-					It->BeginPlay();
+					if (It->HasActorBegunPlay() == false)
+					{
+						It->BeginPlay();
+					}
 #endif
 				}
 				PreviewScene->GetWorld()->bBegunPlay = true;
@@ -264,7 +267,7 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 			);
 	}
 	SAutoRefreshEditorViewport()
-		: PreviewScene(FPreviewScene::ConstructionValues())
+		: PreviewScene(FPreviewScene::ConstructionValues().SetEditor(false).AllowAudioPlayback(true))
 	{
 
 	}

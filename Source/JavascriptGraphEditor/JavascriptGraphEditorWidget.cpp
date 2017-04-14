@@ -1,7 +1,9 @@
-#include "JavascriptGraphEditorPrivatePCH.h"
 #include "JavascriptGraphEditorWidget.h"
 #include "JavascriptGraphAssetGraphSchema.h"
 #include "JavascriptGraphEdGraph.h"
+#include "Kismet2/BlueprintEditorUtils.h"
+#include "GraphEditor.h"
+#include "SBox.h"
 
 UJavascriptGraphEditorWidget::UJavascriptGraphEditorWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -90,6 +92,30 @@ void UJavascriptGraphEditorWidget::SelectAllNodes()
 {
 	auto Widget = StaticCastSharedPtr<SGraphEditor>(GetCachedWidget());
 	Widget->SelectAllNodes();
+}
+
+void UJavascriptGraphEditorWidget::SetViewLocation(const FVector2D& Location, float ZoomAmount)
+{
+	auto Widget = StaticCastSharedPtr<SGraphEditor>(GetCachedWidget());
+	Widget->SetViewLocation(Location, ZoomAmount);
+}
+
+void UJavascriptGraphEditorWidget::GetViewLocation(FVector2D& OutLocation, float& OutZoomAmount)
+{
+	auto Widget = StaticCastSharedPtr<SGraphEditor>(GetCachedWidget());
+	Widget->GetViewLocation(OutLocation, OutZoomAmount);
+}
+
+void UJavascriptGraphEditorWidget::JumpToNode(UEdGraphNode* JumpToMe, bool bRequestRename/* = false*/, bool bSelectNode/* = true*/)
+{
+	auto Widget = StaticCastSharedPtr<SGraphEditor>(GetCachedWidget());
+	Widget->JumpToNode(JumpToMe, bRequestRename, bSelectNode);
+}
+
+void UJavascriptGraphEditorWidget::JumpToPin(FJavascriptEdGraphPin JumpToMe)
+{
+	auto Widget = StaticCastSharedPtr<SGraphEditor>(GetCachedWidget());
+	Widget->JumpToPin(JumpToMe);
 }
 
 void UJavascriptGraphEditorWidget::HandleDropActors(const TArray< TWeakObjectPtr<class AActor> >& Actors, class UEdGraph* Graph, const FVector2D& Point)

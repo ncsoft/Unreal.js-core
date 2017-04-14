@@ -21,7 +21,8 @@ struct FJavascriptContext : TSharedFromThis<FJavascriptContext>
 	virtual FString ReadScriptFile(const FString& Filename) = 0;
 	virtual FString Public_RunScript(const FString& Script, bool bOutput = true) = 0;
 	virtual void Public_RunFile(const FString& Filename) = 0;
-	virtual void SetAsDebugContext() = 0;
+    virtual void FindPathFile(const FString TargetRootPath, const FString TargetFileName, TArray<FString>& OutFiles) = 0;
+	virtual void SetAsDebugContext(int32 InPort) = 0;
 	virtual void ResetAsDebugContext() = 0;
 	virtual bool IsDebugContext() const = 0;
 	virtual void CreateInspector(int32 Port) = 0;

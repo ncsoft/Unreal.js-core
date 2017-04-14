@@ -6,7 +6,8 @@ namespace UnrealBuildTool.Rules
 	{
 		public JavascriptGraphEditor(TargetInfo Target)
 		{
-			PrivateIncludePaths.AddRange(
+            PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+            PrivateIncludePaths.AddRange(
 				new string[] {
                     "JavascriptGraphEditor/Private",
 				}
@@ -31,8 +32,9 @@ namespace UnrealBuildTool.Rules
                     "SlateCore",
                     "GraphEditor",
                     "EditorStyle",
-                    "JavascriptUMG"
-				}
+                    "JavascriptUMG",
+                    "KismetWidgets",
+                }
 				);
 		}
 	}

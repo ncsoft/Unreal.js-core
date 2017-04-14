@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptTileView.h"
 #include "JavascriptContext.h"
 

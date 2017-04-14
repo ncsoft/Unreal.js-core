@@ -4,6 +4,7 @@
 #include "AssetEditorToolkit.h"
 #endif
 
+#include "JavascriptEditorModule.h"
 #include "JavascriptEditorLibrary.h"
 #include "JavascriptAssetEditorToolkit.generated.h"
 

@@ -1,5 +1,5 @@
-#include "JavascriptEditor.h"
 #include "JavascriptEditorTabManager.h"
+#include "SButton.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptTabManager"
 

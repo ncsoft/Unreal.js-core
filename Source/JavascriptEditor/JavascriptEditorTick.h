@@ -25,6 +25,9 @@ public:
 	UFUNCTION()
 	UEditorEngine* GetEngine();
 
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	void ForceTick(float DeltaTime);
+
 	virtual void BeginDestroy() override;
 #endif
 };

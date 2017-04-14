@@ -1,4 +1,3 @@
-#include "JavascriptGraphEditorPrivatePCH.h"
 #include "JavascriptGraphEdNode.h"
 #include "JavascriptGraphAssetGraphSchema.h"
 
@@ -16,6 +15,14 @@ void UJavascriptGraphEdNode::NodeConnectionListChanged()
 
 	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GetSchema());
 	Schema->OnNodeConnectionListChanged.ExecuteIfBound(this);
+}
+
+void UJavascriptGraphEdNode::PinConnectionListChanged(UEdGraphPin* Pin)
+{
+	Super::PinConnectionListChanged(Pin);
+
+	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GetSchema());
+	Schema->OnPinConnectionListChanged.ExecuteIfBound(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(Pin) });
 }
 
 UJavascriptGraphEdGraph* UJavascriptGraphEdNode::GetGenericGraphEdGraph()

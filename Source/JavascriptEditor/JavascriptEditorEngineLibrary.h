@@ -1,5 +1,4 @@
 #pragma once
-
 #include "JavascriptEditorGlobalDelegates.h"
 #include "JavascriptEditorEngineLibrary.generated.h"
 
@@ -69,5 +68,12 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorEngineLibrary : public UBlueprintFun
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static int32 DeleteObjectsUnchecked(const TArray< UObject* >& ObjectsToDelete);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static UObject* DuplicateAsset(const FString& AssetName, const FString& PackagePath, UObject* OriginalObject);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FString GetLongPackagePath(const UPackage* InPackage);
+
 #endif
 };

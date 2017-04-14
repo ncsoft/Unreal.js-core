@@ -1,5 +1,3 @@
-#include "V8PCH.h"
-
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptTestLibrary.h"

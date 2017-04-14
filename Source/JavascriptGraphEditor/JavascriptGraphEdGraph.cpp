@@ -1,15 +1,12 @@
-#include "JavascriptGraphEditorPrivatePCH.h"
 #include "JavascriptGraphEdGraph.h"
 #include "JavascriptGraphEdNode.h"
 
 UJavascriptGraphEdGraph::UJavascriptGraphEdGraph()
 {
-
 }
 
 UJavascriptGraphEdGraph::~UJavascriptGraphEdGraph()
 {
-
 }
 
 void UJavascriptGraphEdGraph::RebuildGenericGraph()

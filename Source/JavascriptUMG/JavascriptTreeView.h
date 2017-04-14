@@ -1,5 +1,7 @@
 #pragma once
 
+#include "STreeView.h"
+#include "TableViewBase.h"
 #include "JavascriptTreeView.generated.h"
 
 class UJavascriptContext;
@@ -119,6 +121,10 @@ public:
 	// UObject interface
 	virtual void ProcessEvent(UFunction* Function, void* Parms) override;
 	// End of UObject interface
+
+	//~ Begin UVisual Interface
+	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
+	//~ End UVisual Interface
 
 	TSharedPtr< STreeView<UObject*> > MyTreeView;
 
