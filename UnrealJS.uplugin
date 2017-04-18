@@ -16,19 +16,19 @@
       "Name": "V8",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Android", "Linux"]
+      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Linux"]
     },
     {
       "Name": "JavascriptUMG",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Android", "Linux"]
+      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Linux"]
     },
     {
       "Name": "JavascriptHttp",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Android", "Linux" ]
+      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux" ]
     },
     {
       "Name": "JavascriptWebSocket",
