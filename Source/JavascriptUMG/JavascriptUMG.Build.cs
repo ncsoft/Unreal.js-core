@@ -2,7 +2,7 @@ using UnrealBuildTool;
 
 public class JavascriptUMG : ModuleRules
 {
-	public JavascriptUMG(TargetInfo Target)
+	public JavascriptUMG(ReadOnlyTargetRules Target) : base(Target)
 	{
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new string[] { 

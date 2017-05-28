@@ -569,7 +569,7 @@ FJavascriptStreamableManager UJavascriptLibrary::CreateStreamableManager()
 
 void UJavascriptLibrary::SimpleAsyncLoad(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target, int32 Priority)
 {
-	Manager->SimpleAsyncLoad(Target, Priority);
+	Manager->RequestAsyncLoad(Target, FStreamableDelegate(), Priority, true);
 }
 
 void UJavascriptLibrary::Unload(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target)

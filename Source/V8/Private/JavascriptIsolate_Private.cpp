@@ -6,6 +6,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #endif
 
 #include "JavascriptIsolate_Private.h"
+#include "Templates/Tuple.h"
 #include "Config.h"
 #include "MallocArrayBufferAllocator.h"
 #include "Translator.h"
@@ -644,7 +645,7 @@ public:
 
 			if (p->Enum)
 			{							
-				return I.Keyword(p->Enum->GetEnumName(Value));
+				return I.Keyword(p->Enum->GetNameStringByIndex(Value));
 			}			
 			else
 			{
@@ -654,7 +655,7 @@ public:
 		else if (auto p = Cast<UEnumProperty>(Property))
 		{
 			int32 Value = p->GetUnderlyingProperty()->GetValueTypeHash(Buffer);
-			return I.Keyword(p->GetEnum()->GetEnumName(Value));
+			return I.Keyword(p->GetEnum()->GetNameStringByIndex(Value));
 		}
 		else if (auto p = Cast<USetProperty>(Property))
 		{
@@ -899,7 +900,7 @@ public:
 			if (p->Enum)
 			{
 				auto Str = StringFromV8(Value);
-				auto EnumValue = p->Enum->FindEnumIndex(FName(*Str));
+				auto EnumValue = p->Enum->GetIndexByName(FName(*Str), true);
 				if (EnumValue == INDEX_NONE)
 				{
 					I.Throw(FString::Printf(TEXT("Enum Text %s for Enum %s failed to resolve to any value"), *Str, *p->Enum->GetName()));
@@ -917,7 +918,7 @@ public:
 		else if (auto p = Cast<UEnumProperty>(Property))
 		{
 			auto Str = StringFromV8(Value);
-			auto EnumValue = p->GetEnum()->FindEnumIndex(FName(*Str));
+			auto EnumValue = p->GetEnum()->GetIndexByName(FName(*Str), true);
 			if (EnumValue == INDEX_NONE)
 			{
 				I.Throw(FString::Printf(TEXT("Enum Text %s for Enum %s failed to resolve to any value"), *Str, *p->GetName()));
@@ -2387,7 +2388,7 @@ public:
 
 		for (decltype(MaxEnumValue) Index = 0; Index < MaxEnumValue; ++Index)
 		{
-			auto value = I.Keyword(Enum->GetEnumName(Index));
+			auto value = I.Keyword(Enum->GetNameStringByIndex(Index));
 			arr->Set(Index, value);
 			arr->Set(value, value);
 		}
@@ -2540,8 +2541,8 @@ public:
 	void SetWeak(UniquePersistent<U>& Handle, T* GarbageCollectedObject)
 	{		
 		typedef TPair<FJavascriptContext*, T*> WeakData;
-		typedef typename WeakData::KeyInitType WeakDataKeyInitType;
-		typedef typename WeakData::ValueInitType WeakDataValueInitType;
+		typedef typename WeakData::KeyType WeakDataKeyInitType;
+		typedef typename WeakData::ValueType WeakDataValueInitType;
 		typedef TPairInitializer<WeakDataKeyInitType, WeakDataValueInitType> InitializerType;
 
 #if V8_MINOR_VERSION < 3

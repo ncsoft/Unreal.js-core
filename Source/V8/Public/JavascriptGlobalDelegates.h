@@ -50,7 +50,7 @@ public:
 	}
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-	void PostLoadMap();
+	void PostLoadMapWithWorld(UWorld* World);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void PostDemoPlay();

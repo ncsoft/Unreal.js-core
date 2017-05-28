@@ -14,7 +14,7 @@ OP_REFLECT(OnObjectPropertyChanged)\
 OP_REFLECT(RedirectorFollowed)\
 OP_REFLECT(PreGarbageCollect)\
 OP_REFLECT(PostGarbageCollect)\
-OP_REFLECT(PostLoadMap)\
+OP_REFLECT(PostLoadMapWithWorld)\
 OP_REFLECT(PostDemoPlay)\
 OP_REFLECT(PackageCreatedForLoad)
 

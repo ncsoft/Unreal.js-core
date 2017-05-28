@@ -4,7 +4,7 @@ using UnrealBuildTool;
 
 public class JavascriptConsole : ModuleRules
 {
-    public JavascriptConsole(TargetInfo Target)
+    public JavascriptConsole(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PrivateDependencyModuleNames.AddRange(

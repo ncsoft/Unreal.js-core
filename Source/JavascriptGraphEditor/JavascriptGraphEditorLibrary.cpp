@@ -1,7 +1,7 @@
 #include "JavascriptGraphEditorLibrary.h"
 #include "JavascriptGraphConnectionDrawingPolicy.h"
 #include "SJavascriptGraphEdNode.h"
-#include "Editor/GraphEditor/Private/SGraphPanel.h"
+#include "Editor/GraphEditor/Public/SGraphPanel.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptGraph"
 

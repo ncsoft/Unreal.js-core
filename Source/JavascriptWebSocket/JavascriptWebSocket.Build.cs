@@ -26,7 +26,7 @@ public class JavascriptWebSocket : ModuleRules
         return System.Int32.Parse(EngineVersionMajor) == 4 && System.Int32.Parse(EngineVersionMinor) >= 14;
     }
 
-    public JavascriptWebSocket(TargetInfo Target)
+    public JavascriptWebSocket(ReadOnlyTargetRules Target) : base(Target)
 	{
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new string[] {

@@ -4,7 +4,7 @@ namespace UnrealBuildTool.Rules
 {
 	public class JavascriptGraphEditor : ModuleRules
 	{
-		public JavascriptGraphEditor(TargetInfo Target)
+		public JavascriptGraphEditor(ReadOnlyTargetRules Target)
 		{
             PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
             PrivateIncludePaths.AddRange(

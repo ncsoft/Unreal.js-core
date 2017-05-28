@@ -36,9 +36,6 @@ public:
 	FSetText SetTextDelegate;
 
 	UPROPERTY()
-	bool bIsReadOnly;
-
-	UPROPERTY()
 	bool bAlwaysShowScrollbars;
 
 	virtual TSharedRef<SWidget> RebuildWidget() override;
