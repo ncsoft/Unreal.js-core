@@ -21,7 +21,7 @@ public class JavascriptEditor : ModuleRules
         return System.Int32.Parse(EngineVersionMajor) == 4 && System.Int32.Parse(EngineVersionMinor) >= 14;
     }
 
-    public JavascriptEditor(TargetInfo Target)
+    public JavascriptEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(
@@ -70,7 +70,8 @@ public class JavascriptEditor : ModuleRules
 					    "ClassViewer",
                         "InputCore",
                         "PropertyEditor",
-					    "Slate",
+                        "AdvancedPreviewScene",
+                        "Slate",
 					    "SlateCore",
                         "EditorStyle",                    
 					    "MainFrame",

@@ -2,7 +2,7 @@ using UnrealBuildTool;
 
 public class JavascriptHttp : ModuleRules
 {
-	public JavascriptHttp(TargetInfo Target)
+	public JavascriptHttp(ReadOnlyTargetRules Target) : base(Target)
 	{
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new string[] { 

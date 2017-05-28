@@ -137,7 +137,7 @@ void UJavascriptTestLibrary::AddLogItem(const FJavascriptAutomatedTestInstance& 
 #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 	if (Test.Handle.IsValid())
 	{
-		Test.Handle->AddLogItem(InLogItem);
+		Test.Handle->AddInfo(InLogItem);
 	}
 #endif
 }
