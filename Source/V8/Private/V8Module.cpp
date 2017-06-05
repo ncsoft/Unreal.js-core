@@ -35,7 +35,7 @@ static float GV8IdleTaskBudget = 1 / 60.0f;
 UJavascriptSettings::UJavascriptSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	V8Flags = TEXT("--harmony --harmony-shipping --es-staging --expose-debug-as=v8debug --expose-gc --harmony_simd");
+	V8Flags = TEXT("--harmony --harmony-shipping --es-staging --expose-gc");
 }
 
 void UJavascriptSettings::Apply() const
