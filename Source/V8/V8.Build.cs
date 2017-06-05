@@ -107,7 +107,7 @@ public class V8 : ModuleRules
     private bool LoadV8(ReadOnlyTargetRules Target)
     {
         int[] v8_version = GetV8Version();
-        bool ShouldLink_libsampler = v8_version[1] >= 3;
+        bool ShouldLink_libsampler = !(v8_version[0] == 5 && v8_version[1] < 3);
 
         if ((Target.Platform == UnrealTargetPlatform.Win64) || (Target.Platform == UnrealTargetPlatform.Win32))
         {

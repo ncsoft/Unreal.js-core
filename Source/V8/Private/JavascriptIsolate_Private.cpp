@@ -367,7 +367,7 @@ public:
 			GetSelf(isolate)->OnGCEvent(true, type, flags);
 		});
 
-#if V8_MINOR_VERSION < 3
+#if V8_MAJOR_VERSION == 5 && V8_MINOR_VERSION < 3
 		isolate_->AddMemoryAllocationCallback([](ObjectSpace space, AllocationAction action,int size) {
 			OnMemoryAllocationEvent(space, action, size);
 		}, kObjectSpaceAll, kAllocationActionAll);
@@ -2545,7 +2545,7 @@ public:
 		typedef typename WeakData::ValueType WeakDataValueInitType;
 		typedef TPairInitializer<WeakDataKeyInitType, WeakDataValueInitType> InitializerType;
 
-#if V8_MINOR_VERSION < 3
+#if V8_MAJOR_VERSION == 5 && V8_MINOR_VERSION < 3
 		Handle.template SetWeak<WeakData>(new WeakData(InitializerType(GetContext(), GarbageCollectedObject)), [](const WeakCallbackData<U, WeakData>& data) {
 			auto Parameter = data.GetParameter();
 

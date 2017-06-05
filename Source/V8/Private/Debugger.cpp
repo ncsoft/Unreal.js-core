@@ -24,12 +24,12 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "Translator.h"
 #endif
 
-#if V8_MINOR_VERSION >= 5
-#	define V8_Debug_ProcessDebugMessages(isolate) Debug::ProcessDebugMessages(isolate)
-#	define V8_Debug_SetMessageHandler(isolate,fn) Debug::SetMessageHandler(isolate,fn)
-#else
+#if V8_MAJOR_VERSION == 5 && V8_MINOR_VERSION < 5
 #	define V8_Debug_ProcessDebugMessages(isolate) Debug::ProcessDebugMessages()
 #	define V8_Debug_SetMessageHandler(isolate,fn) Debug::SetMessageHandler(fn)
+#else
+#	define V8_Debug_ProcessDebugMessages(isolate) Debug::ProcessDebugMessages(isolate)
+#	define V8_Debug_SetMessageHandler(isolate,fn) Debug::SetMessageHandler(isolate,fn)
 #endif
 
 using namespace v8;
