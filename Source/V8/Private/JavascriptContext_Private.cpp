@@ -1356,7 +1356,15 @@ public:
 				FString Text;
 				if (FFileHelper::LoadFileToString(Text, *script_path))
 				{
-					Text = FString::Printf(TEXT("(function (global,__dirname) { var module = { exports : {}, filename : __dirname }, exports = module.exports; (function () { %s\n })()\n;return module.exports;}(this,'%s'));"), *Text, *script_path);
+					auto scriptDir = FPaths::GetPath(full_path);
+					Text = FString::Printf(
+						TEXT("(function (global, __filename, __dirname) {"
+							 "  var module = { exports: {}, filename : __filename }, exports = module.exports;"
+							 "  (function() { %s\n})();\n"
+							 "  return module.exports;\n"
+							 "}(this, '%s', '%s'));"),
+						*Text, *full_path, *scriptDir
+					);
 					auto exports = Self->RunScript(full_path, Text, 0);
 					if (exports.IsEmpty())
 					{
@@ -1730,9 +1738,11 @@ public:
 		auto Script = ReadScriptFile(Filename);
 
 		auto ScriptPath = GetScriptFileFullPath(Filename);
-
-		auto Text = FString::Printf(TEXT("(function (global,__dirname) { %s\n;}(this,'%s'));"), *Script, *ScriptPath);
-
+		auto ScriptDir = FPaths::GetPath(ScriptPath);
+		auto Text = FString::Printf(
+			TEXT("(function (global,__filename,__dirname) { %s\n;}(this,'%s','%s'));"),
+			*Script, *ScriptPath, *ScriptDir
+		);
 		return RunScript(ScriptPath, Text, 0);
 	}
 
