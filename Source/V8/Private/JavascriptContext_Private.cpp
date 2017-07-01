@@ -1356,7 +1356,7 @@ public:
 				FString Text;
 				if (FFileHelper::LoadFileToString(Text, *script_path))
 				{
-					Text = FString::Printf(TEXT("(function (global,__dirname) { var module = { exports : {}, filename : __dirname }, exports = module.exports; (function () { %s\n })()\n;return module.exports;}(this,'%s'));"), *Text, *script_path);
+					Text = FString::Printf(TEXT("(function (global, __filename, __dirname) { var module = { exports : {}, filename : __filename }, exports = module.exports; (function () { %s\n })()\n;return module.exports;}(this,'%s', '%s'));"), *Text, *script_path, *FPaths::GetPath(script_path));
 					auto exports = Self->RunScript(full_path, Text, 0);
 					if (exports.IsEmpty())
 					{
@@ -1497,21 +1497,6 @@ public:
 				}
 
 				return Dirs;
-			};
-
-			auto load_node_modules = [&](FString base_path)
-			{
-				TArray<FString> paths = load_module_paths(base_path);
-				auto founded = false;
-				for (const auto& path : paths)
-				{
-					if (inner2(path / TEXT("node_modules")))
-					{
-						founded = true;
-						break;
-					}
-				}
-				return founded;
 			};
 
 			auto current_script_path = FPaths::GetPath(StringFromV8(StackTrace::CurrentStackTrace(isolate, 1, StackTrace::kScriptName)->GetFrame(0)->GetScriptName()));
@@ -1730,9 +1715,7 @@ public:
 		auto Script = ReadScriptFile(Filename);
 
 		auto ScriptPath = GetScriptFileFullPath(Filename);
-
-		auto Text = FString::Printf(TEXT("(function (global,__dirname) { %s\n;}(this,'%s'));"), *Script, *ScriptPath);
-
+		auto Text = FString::Printf(TEXT("(function (global,__filename,__dirname) { %s\n;}(this,'%s','%s'));"), *Script, *ScriptPath, *FPaths::GetPath(ScriptPath));
 		return RunScript(ScriptPath, Text, 0);
 	}
 
