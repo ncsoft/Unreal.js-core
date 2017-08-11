@@ -1740,6 +1740,12 @@ public:
 		return str;
 	}
 
+	void RequestV8GarbageCollection()
+	{
+		// @todo: using 'ForTesting' function
+		isolate()->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
+	}
+
 	// Should be guarded with proper handle scope
 	Local<Value> RunScript(const FString& Filename, const FString& Script, int line_offset = 0)
 	{
@@ -2147,7 +2153,7 @@ FJavascriptContext* FJavascriptContext::Create(TSharedPtr<FJavascriptIsolate> In
 
 inline void FJavascriptContextImplementation::AddReferencedObjects(UObject * InThis, FReferenceCollector & Collector)
 {
-	Public_RunScript(TEXT("gc();"), false);
+	RequestV8GarbageCollection();
 
 	// All objects
 	for (auto It = ObjectToObjectMap.CreateIterator(); It; ++It)

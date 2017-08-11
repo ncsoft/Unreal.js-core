@@ -216,6 +216,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void BreakAllPinLinks(FJavascriptEdGraphPin A);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FEdGraphPinType GetPinType(FJavascriptEdGraphPin A);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void SetPinType(FJavascriptEdGraphPin Pin, FEdGraphPinType PinType);
 	
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptEdGraphPin FindPin(UEdGraphNode* Node, const FString& PinName, EEdGraphPinDirection Direction);

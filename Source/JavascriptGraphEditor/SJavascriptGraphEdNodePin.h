@@ -17,6 +17,10 @@ public:
 	SLATE_END_ARGS()
 	void Construct(const FArguments& InArgs, UEdGraphPin* InPin);
 protected:
+	/** SGraphPin */
+	virtual EVisibility GetDefaultValueVisibility() const;
+
+	virtual FSlateColor GetPinColor() const override;
 	// Begin SGraphPin interface
 	// virtual TSharedRef<SWidget>    GetDefaultValueWidget() override;
 	// End SGraphPin interface

@@ -117,7 +117,7 @@ struct FV8Config
 		};
 
 		static FName NAME_DisplayName("DisplayName");
-		if (has_meta(Function, NAME_DisplayName))
+		if (!no_empty && has_meta(Function, NAME_DisplayName))
 		{
 			FString Name = get_meta(Function, NAME_DisplayName).Replace(TEXT(" "), TEXT(""));
 

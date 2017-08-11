@@ -1,5 +1,6 @@
 
 #include "JavascriptInGameScene.h"
+#include "SoundDefinitions.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/LineBatchComponent.h"
 #include "Components/MeshComponent.h"

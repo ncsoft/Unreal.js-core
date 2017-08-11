@@ -53,6 +53,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	FString RunScript(FString Script, bool bOutput = true);
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	void RequestV8GarbageCollection();
+
     UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
     void FindPathFile(FString TargetRootPath, FString TargetFileName, TArray<FString>& OutFiles);
 	

@@ -290,7 +290,10 @@ public:
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void WorldChange();
-	
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void EndPlayMapDelegate();
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void Bind(FString Key);
 

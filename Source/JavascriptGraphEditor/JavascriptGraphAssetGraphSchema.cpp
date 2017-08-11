@@ -61,9 +61,11 @@ void UJavascriptGraphAssetGraphSchema::GetGraphContextActions(FGraphContextMenuB
 {
 	const bool bNoParent = (ContextMenuBuilder.FromPin == NULL);
 
+	FJavascriptEdGraphPin FromPin = FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(ContextMenuBuilder.FromPin) };
+
 	if (OnContextActions.IsBound())
 	{
-		auto Actions = OnContextActions.Execute();
+		auto Actions = OnContextActions.Execute(FromPin);
 
 		for (const auto& Action : Actions)
 		{
@@ -109,11 +111,6 @@ class FConnectionDrawingPolicy* UJavascriptGraphAssetGraphSchema::CreateConnecti
 	return new FJavascriptGraphConnectionDrawingPolicy(InBackLayerID, InFrontLayerID, InZoomFactor, InClippingRect, InDrawElements, InGraphObj);
 }
 
-FLinearColor UJavascriptGraphAssetGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType) const
-{
-	return OnGetPinTypeColor.IsBound() ? OnGetPinTypeColor.Execute(PinType) : FColor::White;
-}
-
 // To make UBT happy
 void UJavascriptGraphAssetGraphSchema::BreakNodeLinks(UEdGraphNode& TargetNode) const
 {
@@ -151,8 +148,7 @@ bool UJavascriptGraphAssetGraphSchema::CreateAutomaticConversionNodeAndConnectio
 {
 	if (OnCreateAutomaticConversionNodeAndConnections.IsBound())
 	{
-		OnCreateAutomaticConversionNodeAndConnections.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(PinA) }, FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(PinB) });
-		return true;
+		return OnCreateAutomaticConversionNodeAndConnections.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(PinA) }, FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(PinB) });
 	}
 
 	return false;

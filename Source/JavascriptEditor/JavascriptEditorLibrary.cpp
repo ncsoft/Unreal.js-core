@@ -18,11 +18,13 @@
 #include "Landscape.h"
 #include "LandscapeDataAccess.h"
 #include "LandscapeEdit.h"
+
 #include "Engine/BrushBuilder.h"
 #include "Engine/Selection.h"
 #include "EngineUtils.h"
 #include "GameFramework/Volume.h"
 #include "Components/BrushComponent.h"
+
 #include "../../Launch/Resources/Version.h"
 #include "PlatformFileManager.h"
 #include "FileManager.h"
@@ -30,6 +32,14 @@
 #include "SlateApplication.h"
 #include "Engine/LevelStreaming.h"
 #include "VisualLogger/VisualLogger.h"
+#include "JavascriptUICommands.h"
+
+#include "Developer/MessageLog/Public/MessageLogModule.h"
+#include "Developer/MessageLog/Public/IMessageLogListing.h"
+
+#if WITH_EDITOR
+#include "UnrealEd.h"
+#endif
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -628,6 +638,17 @@ FJavascriptExtensibilityManager UJavascriptEditorLibrary::GetToolBarExtensibilit
 	return FJavascriptExtensibilityManager();
 }
 
+FJavascriptUICommandList UJavascriptEditorLibrary::GetLevelEditorActions()
+{
+	FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
+	TSharedRef<FUICommandList> LevelEditorActions = LevelEditor.GetGlobalLevelEditorActions();
+	
+	FJavascriptUICommandList CommandList;
+	CommandList.Handle = LevelEditorActions;
+	return CommandList;
+}
+
+
 void UJavascriptEditorLibrary::AddExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender)
 {
 	if (Manager.Handle.IsValid() && Extender.Handle.IsValid())
@@ -808,4 +829,37 @@ bool UJavascriptEditorLibrary::MarkPackageDirty(UObject* InObject)
 {
 	return InObject && InObject->MarkPackageDirty();
 }
+
+void UJavascriptEditorLibrary::CreateLogListing(const FName& InLogName, const FText& InLabel)
+{
+	FMessageLogModule& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>("MessageLog");
+	FMessageLogInitializationOptions InitOptions;
+	InitOptions.bShowFilters = true;
+	InitOptions.bShowPages = true;
+	TSharedRef<class IMessageLogListing> Listing = MessageLogModule.CreateLogListing(InLogName, InitOptions);
+	Listing->SetLabel(InLabel);
+	MessageLogModule.RegisterLogListing(InLogName, InLabel, InitOptions);
+}
+
+FJavascriptSlateWidget UJavascriptEditorLibrary::CreateLogListingWidget(const FName& InLogName)
+{
+	FMessageLogModule& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>("MessageLog");
+	FJavascriptSlateWidget Out;
+	Out.Widget = MessageLogModule.CreateLogListingWidget(MessageLogModule.GetLogListing(InLogName));
+	return Out;
+}
+
+void UJavascriptEditorLibrary::AddLogListingMessage(const FName& InLogName, EJavascriptMessageSeverity::Type InSeverity, const FString& LogText)
+{
+	FMessageLogModule& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>("MessageLog");
+	TSharedRef<FTokenizedMessage> Line = FTokenizedMessage::Create((EMessageSeverity::Type)(InSeverity));
+	Line->AddToken(FTextToken::Create(FText::FromString(LogText)));
+	MessageLogModule.GetLogListing(InLogName)->AddMessage(Line, false);
+}
+
+UEditorEngine* UJavascriptEditorLibrary::GetEngine()
+{
+	return Cast<UEditorEngine>(GEngine);
+}
+
 #endif

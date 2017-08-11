@@ -67,14 +67,14 @@ public:
 	/** Delegate for constructing a UWidget based on a UObject */
 	DECLARE_DYNAMIC_DELEGATE_FourParams(FOnDetermineWiringStyle, FJavascriptEdGraphPin, A, FJavascriptEdGraphPin, B, FJavascriptConnectionParams&, Params, FJavascriptGraphConnectionDrawingPolicyContainer, Container);
 
-	DECLARE_DYNAMIC_DELEGATE_SixParams(FOnDrawPreviewConnector, const FGeometry&, PinGeometry, const FVector2D&, StartPoint, const FVector2D&, EndPoint, FJavascriptEdGraphPin, Pin, FJavascriptConnectionParams&, Params, FJavascriptGraphConnectionDrawingPolicyContainer, Container);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_SixParams(bool, FOnDrawPreviewConnector, const FGeometry&, PinGeometry, const FVector2D&, StartPoint, const FVector2D&, EndPoint, FJavascriptEdGraphPin, Pin, const FJavascriptConnectionParams&, Params, FJavascriptGraphConnectionDrawingPolicyContainer, Container);
 
 	/** Delegate for constructing a UWidget based on a UObject */
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FVector2D, FOnVectorArith, const FVector2D&, A, const FVector2D&, B);
 
 	/** Delegate for constructing a UWidget based on a UObject */
-	DECLARE_DYNAMIC_DELEGATE_FiveParams(FOnDrawSplineWithArrow, const FVector2D&, A, const FVector2D&, B, const FJavascriptConnectionParams&, Params, FJavascriptGraphConnectionDrawingPolicyContainer, Container, FVector2D, ArrowRadius);
-	DECLARE_DYNAMIC_DELEGATE_FourParams(FOnDrawSplineWithArrow_Geom, const FGeometry&, A, const FGeometry&, B, const FJavascriptConnectionParams&, Params, FJavascriptGraphConnectionDrawingPolicyContainer, Container);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_FiveParams(bool, FOnDrawSplineWithArrow, const FVector2D&, A, const FVector2D&, B, const FJavascriptConnectionParams&, Params, FJavascriptGraphConnectionDrawingPolicyContainer, Container, FVector2D, ArrowRadius);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_FourParams(bool, FOnDrawSplineWithArrow_Geom, const FGeometry&, A, const FGeometry&, B, const FJavascriptConnectionParams&, Params, FJavascriptGraphConnectionDrawingPolicyContainer, Container);
 
 	/** Delegate for constructing a UWidget based on a UObject */
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FJavascriptSlateWidget, FOnTakeWidget, UJavascriptGraphEdNode*, Instance);
@@ -87,26 +87,24 @@ public:
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(UEdGraphNode*, FOnPerformAction, const FEdGraphSchemaAction&, Action, FPerformActionContext&, Context);	
 
-	DECLARE_DYNAMIC_DELEGATE_RetVal(TArray<FEdGraphSchemaAction>, FOnContextActions);
-
-	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FLinearColor, FOnGetPinTypeColor, const FEdGraphPinType&, PinType);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(TArray<FEdGraphSchemaAction>, FOnContextActions, FJavascriptEdGraphPin, FromPin);
 	
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnBuildMenu, FJavascriptGraphMenuBuilder&, Builder);
 
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnEdNodeAction, UJavascriptGraphEdNode*, Node);
 
-	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnCreateAutomaticConversionNodeAndConnections, FJavascriptEdGraphPin, A, FJavascriptEdGraphPin, B);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FOnCreateAutomaticConversionNodeAndConnections, FJavascriptEdGraphPin, A, FJavascriptEdGraphPin, B);
 	
 	/** Delegate for constructing a UWidget based on a UObject */
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FJavascriptSlateWidget, FOnCreatePin, FJavascriptEdGraphPin, Pin);
 	
-	DECLARE_DYNAMIC_DELEGATE_FiveParams(FOnDetermineLinkGeometry, FJavascriptEdGraphPin, OutPin, FJavascriptEdGraphPin, InputPin, FJavascriptArrangedWidget&, StartWidgetGeometry, FJavascriptArrangedWidget&, EndWidgetGeometry, FJavascriptDetermineLinkGeometryContainer, Container);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_FiveParams(bool, FOnDetermineLinkGeometry, FJavascriptEdGraphPin, OutPin, FJavascriptEdGraphPin, InputPin, FJavascriptArrangedWidget&, StartWidgetGeometry, FJavascriptArrangedWidget&, EndWidgetGeometry, FJavascriptDetermineLinkGeometryContainer, Container);
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal(bool, FOnGetBoolean);
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnGetBooleanWidget, UJavascriptGraphEdNode*, Instance);
 	
-	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FName, FOnGetSlateBrushName, bool, bHovered);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FName, FOnGetSlateBrushName, bool, bHovered, FJavascriptEdGraphPin, Pin);
 
 	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnMoveTo, UJavascriptGraphEdNode*, Instance, const FVector2D&, NewPosition);
 
@@ -117,6 +115,21 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnTryCreateConnection, FJavascriptEdGraphPin&, PinA, FJavascriptEdGraphPin&, PinB);
 
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnPinConnectionListChanged, FJavascriptEdGraphPin, Pin);
+
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnGetBoolean_GraphPin, FJavascriptEdGraphPin, Pin);
+
+	DECLARE_DYNAMIC_DELEGATE_RetVal_FourParams(FJavascriptSlateWidget, FOnTakeCustomContentWidget, UJavascriptGraphEdNode*, Instance, FJavascriptSlateWidget, OutUserWidget, FJavascriptSlateWidget, OutLeftNodeBoxWidget, FJavascriptSlateWidget, OutRightNodeBoxWidget);
+
+	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FSlateColor, FOnGetPinColor, bool, bHovered, FJavascriptEdGraphPin, Pin);
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetPinColor OnGetPinColor;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetBoolean_GraphPin OnGetDefaultValueVisibility;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetSlateBrushName OnGetSlateBrushName;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnPinConnectionListChanged OnPinConnectionListChanged;
@@ -140,13 +153,10 @@ public:
 	FOnGetBooleanWidget OnSkipMoveTo;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnGetBooleanWidget OnUsingCustomContent;
-
-	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnGetSlateBrushName OnGetSlateBrushName;
+	FOnTakeCustomContentWidget OnTakeCustomContentWidget;
 	
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnCreatePin OnGetLabelWidget;
+	FOnCreatePin OnGetValueWidget;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnCreatePin OnGetActualPinWidget;
@@ -158,7 +168,7 @@ public:
 	FOnGetBooleanWidget OnDisableMakePins;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnGetBoolean OnUsingDefaultPin;
+	FOnGetBoolean_GraphPin OnUsingDefaultPin;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetBoolean OnUsingNodeWidgetMap;
@@ -209,9 +219,6 @@ public:
 	FOnContextActions OnContextActions;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnGetPinTypeColor OnGetPinTypeColor;
-
-	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnEdNodeAction OnNodeConnectionListChanged;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
@@ -234,7 +241,6 @@ public:
  	virtual void GetContextMenuActions(const UEdGraph* CurrentGraph, const UEdGraphNode* InGraphNode, const UEdGraphPin* InGraphPin, class FMenuBuilder* MenuBuilder, bool bIsDebugging) const override;
  	virtual const FPinConnectionResponse CanCreateConnection(const UEdGraphPin* A, const UEdGraphPin* B) const override;
 	virtual class FConnectionDrawingPolicy* CreateConnectionDrawingPolicy(int32 InBackLayerID, int32 InFrontLayerID, float InZoomFactor, const FSlateRect& InClippingRect, class FSlateWindowElementList& InDrawElements, class UEdGraph* InGraphObj) const override;
- 	virtual FLinearColor GetPinTypeColor(const FEdGraphPinType& PinType) const override;
 	virtual void BreakNodeLinks(UEdGraphNode& TargetNode) const override;
 	virtual void BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNodeNotifcation) const override;
 	virtual void BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPin* TargetPin) override;

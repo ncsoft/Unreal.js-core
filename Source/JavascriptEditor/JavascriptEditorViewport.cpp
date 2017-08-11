@@ -41,8 +41,6 @@ public:
 		: FEditorViewportClient(nullptr,&InPreviewScene,InEditorViewportWidget), Widget(InWidget), BackgroundColor(FColor(55,55,55))
 	{
 	}
-	~FJavascriptEditorViewportClient()
-	{}
 	
 	virtual void ProcessClick(class FSceneView& View, class HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY) override
 	{
@@ -270,6 +268,11 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 		: PreviewScene(FPreviewScene::ConstructionValues().SetEditor(false).AllowAudioPlayback(true))
 	{
 
+	}
+
+	~SAutoRefreshEditorViewport()
+	{
+		EditorViewportClient.Reset();
 	}
 
 	virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override
@@ -538,6 +541,12 @@ void UJavascriptEditorViewport::OnSlotRemoved(UPanelSlot* Slot)
 			MyOverlay->RemoveSlot(Widget.ToSharedRef());
 		}
 	}
+}
+
+void UJavascriptEditorViewport::ReleaseSlateResources(bool bReleaseChildren)
+{
+	Super::ReleaseSlateResources(bReleaseChildren);
+	ViewportWidget.Reset();
 }
 
 void UJavascriptEditorViewport::SetRealtime(bool bInRealtime, bool bStoreCurrentValue)

@@ -24,12 +24,12 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 
 	if (GraphSchema->OnUsingDefaultPin.IsBound())
 	{
-		auto bDisable = GraphSchema->OnUsingDefaultPin.Execute();
+		auto bDisable = GraphSchema->OnUsingDefaultPin.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) });
 		if (bDisable)
 		{
 			SBorder::Construct(SBorder::FArguments()
 				.BorderImage(this, &SJavascriptGraphPin::GetPinBorder)
-				.BorderBackgroundColor(this, &ThisClass::GetPinColor)
+				.BorderBackgroundColor(this, &SJavascriptGraphPin::GetPinColor)
 				.OnMouseButtonDown(this, &ThisClass::OnPinMouseDown)
 				.Cursor(this, &ThisClass::GetPinCursor)
 				);
@@ -82,12 +82,13 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 		.TextStyle(FEditorStyle::Get(), InArgs._PinLabelStyle)
 		.Visibility(this, &ThisClass::GetPinLabelVisibility)
 		.ColorAndOpacity(this, &ThisClass::GetPinTextColor);
-	if (GraphSchema->OnGetLabelWidget.IsBound())
+	TSharedRef<SWidget> ValueWidget = SNew(SBox);
+	if (GraphSchema->OnGetValueWidget.IsBound())
 	{
-		auto Widget = GraphSchema->OnGetLabelWidget.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) }).Widget;
+		auto Widget = GraphSchema->OnGetValueWidget.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) }).Widget;
 		if (Widget.IsValid())
 		{
-			LabelWidget = Widget.ToSharedRef();
+			ValueWidget = Widget.ToSharedRef();
 		}
 	}
 	// Create the widget used for the pin body (status indicator, label, and value)
@@ -95,7 +96,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 		SNew(SWrapBox)
 		.PreferredWidth(150.f);
 
-	if (!bIsInput)
+	if (bIsInput)
 	{
 		LabelAndValue->AddSlot()
 			.VAlign(VAlign_Center)
@@ -103,36 +104,47 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 				PinStatusIndicator
 			];
 
+
 		LabelAndValue->AddSlot()
 			.VAlign(VAlign_Center)
 			[
 				LabelWidget
+			];
+		LabelAndValue->AddSlot()
+			.Padding(bIsInput ? FMargin(InArgs._SideToSideMargin, 0, 0, 0) : FMargin(0, 0, InArgs._SideToSideMargin, 0))
+			.VAlign(VAlign_Center)
+			[
+				SNew(SBox)
+				.Padding(0.0f)
+			.IsEnabled(this, &ThisClass::IsEditingEnabled)
+			[
+				SNew(SHorizontalBox)
+				.Visibility(this, &ThisClass::GetDefaultValueVisibility)
+				+ SHorizontalBox::Slot()
+				[
+					ValueWidget
+				]
+			]
 			];
 	}
 	else
 	{
 		LabelAndValue->AddSlot()
+			.Padding(bIsInput ? FMargin(InArgs._SideToSideMargin, 0, 0, 0) : FMargin(0, 0, InArgs._SideToSideMargin, 0))
 			.VAlign(VAlign_Center)
 			[
-				LabelWidget
-			];
-
-		TSharedRef<SWidget> ValueWidget = GetDefaultValueWidget();
-
-		if (ValueWidget != SNullWidget::NullWidget)
-		{
-			LabelAndValue->AddSlot()
-				.Padding(bIsInput ? FMargin(InArgs._SideToSideMargin, 0, 0, 0) : FMargin(0, 0, InArgs._SideToSideMargin, 0))
-				.VAlign(VAlign_Center)
-				[
-					SNew(SBox)
-					.Padding(0.0f)
-				.IsEnabled(this, &ThisClass::IsEditingEnabled)
+				SNew(SBox)
+				.Padding(0.0f)
+			.IsEnabled(this, &ThisClass::IsEditingEnabled)
+			[
+				SNew(SHorizontalBox)
+				.Visibility(this, &ThisClass::GetDefaultValueVisibility)
+				+ SHorizontalBox::Slot()
 				[
 					ValueWidget
 				]
-				];
-		}
+			]
+			];
 
 		LabelAndValue->AddSlot()
 			.VAlign(VAlign_Center)
@@ -182,8 +194,8 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 	
 	// Set up a hover for pins that is tinted the color of the pin.
 	SBorder::Construct(SBorder::FArguments()
-		.BorderImage(this, &ThisClass::GetPinBorder)
-		.BorderBackgroundColor(this, &ThisClass::GetPinColor)
+		.BorderImage(this, &SJavascriptGraphPin::GetPinBorder)
+		.BorderBackgroundColor(this, &SJavascriptGraphPin::GetPinColor)
 		.OnMouseButtonDown(this, &ThisClass::OnPinNameMouseDown)
 		[
 			SNew(SLevelOfDetailBranchNode)
@@ -200,6 +212,23 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 		]
 	);
 
+	TAttribute<FText> ToolTipAttribute = TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(this, &SJavascriptGraphPin::GetTooltipText));
+	SetToolTipText(ToolTipAttribute);
+}
+
+EVisibility SJavascriptGraphPin::GetDefaultValueVisibility() const
+{
+	const UEdGraphSchema* Schema = GraphPinObj->GetSchema();
+	check(Schema);
+
+	auto GraphSchema = CastChecked<UJavascriptGraphAssetGraphSchema>(Schema);
+	if (GraphSchema->OnGetDefaultValueVisibility.IsBound())
+	{
+		bool bVisibility = GraphSchema->OnGetDefaultValueVisibility.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) });
+		return bVisibility ? EVisibility::Visible : EVisibility::Collapsed;
+	}
+
+	return SGraphPin::GetDefaultValueVisibility();
 }
 
 const FSlateBrush* SJavascriptGraphPin::GetPinBorder() const
@@ -211,9 +240,24 @@ const FSlateBrush* SJavascriptGraphPin::GetPinBorder() const
 
 	if (GraphSchema->OnGetSlateBrushName.IsBound())
 	{
-		FName SlateBrushName = GraphSchema->OnGetSlateBrushName.Execute(IsHovered());
+		FName SlateBrushName = GraphSchema->OnGetSlateBrushName.Execute(IsHovered(), FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) });
 		return FEditorStyle::GetBrush(SlateBrushName);
 	}
 
 	return SGraphPin::GetPinBorder();
+}
+
+FSlateColor SJavascriptGraphPin::GetPinColor() const
+{
+	const UEdGraphSchema* Schema = GraphPinObj->GetSchema();
+	check(Schema);
+
+	auto GraphSchema = CastChecked<UJavascriptGraphAssetGraphSchema>(Schema);
+
+	if (GraphSchema->OnGetPinColor.IsBound())
+	{
+		return GraphSchema->OnGetPinColor.Execute(IsHovered(), FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) });
+	}
+
+	return SGraphPin::GetPinColor();
 }

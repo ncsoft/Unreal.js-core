@@ -18,7 +18,7 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorViewport : public UPanelWidget
 public:	
 #if WITH_EDITOR
 	virtual TSharedRef<SWidget> RebuildWidget();
-
+	
 	TSharedPtr<class SAutoRefreshEditorViewport> ViewportWidget;
 #endif
 
@@ -178,4 +178,8 @@ public:
 	virtual void OnSlotAdded(UPanelSlot* Slot) override;
 	virtual void OnSlotRemoved(UPanelSlot* Slot) override;
 	// End UPanelWidget
+
+	//UVisual interface
+	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
+	//~ End UVisual Interface
 };

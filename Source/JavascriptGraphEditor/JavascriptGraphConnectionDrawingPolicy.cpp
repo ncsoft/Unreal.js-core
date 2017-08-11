@@ -37,12 +37,13 @@ void FJavascriptGraphConnectionDrawingPolicy::DrawPreviewConnector(const FGeomet
 	{
 		FConnectionParams Params;
 		FJavascriptConnectionParams X = Params;
-		Schema->OnDrawPreviewConnector.Execute(PinGeometry, StartPoint, EndPoint, FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(Pin) }, X, FJavascriptGraphConnectionDrawingPolicyContainer{ this });
+		if (Schema->OnDrawPreviewConnector.Execute(PinGeometry, StartPoint, EndPoint, FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(Pin) }, X, FJavascriptGraphConnectionDrawingPolicyContainer{ this }))
+		{
+			return;
+		}
 	}
-	else
-	{
-		FConnectionDrawingPolicy::DrawPreviewConnector(PinGeometry, StartPoint, EndPoint, Pin);
-	}
+
+	FConnectionDrawingPolicy::DrawPreviewConnector(PinGeometry, StartPoint, EndPoint, Pin);	
 }
 
 void FJavascriptGraphConnectionDrawingPolicy::DrawSplineWithArrow(const FVector2D& StartAnchorPoint, const FVector2D& EndAnchorPoint, const FConnectionParams& Params)
@@ -50,12 +51,13 @@ void FJavascriptGraphConnectionDrawingPolicy::DrawSplineWithArrow(const FVector2
 	auto Schema = Cast<UJavascriptGraphAssetGraphSchema>(GraphObj->GetSchema());
 	if (Schema->OnDrawSplineWithArrow.IsBound())
 	{
-		Schema->OnDrawSplineWithArrow.Execute(StartAnchorPoint, EndAnchorPoint, Params, FJavascriptGraphConnectionDrawingPolicyContainer{ this }, ArrowRadius);
+		if (Schema->OnDrawSplineWithArrow.Execute(StartAnchorPoint, EndAnchorPoint, Params, FJavascriptGraphConnectionDrawingPolicyContainer{ this }, ArrowRadius))
+		{
+			return;
+		}
 	}
-	else
-	{
-		FConnectionDrawingPolicy::DrawSplineWithArrow(StartAnchorPoint, EndAnchorPoint, Params);
-	}
+
+	FConnectionDrawingPolicy::DrawSplineWithArrow(StartAnchorPoint, EndAnchorPoint, Params);
 }
 
 void FJavascriptGraphConnectionDrawingPolicy::DrawSplineWithArrow(const FGeometry& StartGeom, const FGeometry& EndGeom, const FConnectionParams& Params)
@@ -63,12 +65,13 @@ void FJavascriptGraphConnectionDrawingPolicy::DrawSplineWithArrow(const FGeometr
 	auto Schema = Cast<UJavascriptGraphAssetGraphSchema>(GraphObj->GetSchema());
 	if (Schema->OnDrawSplineWithArrow_Geom.IsBound())
 	{
-		Schema->OnDrawSplineWithArrow_Geom.Execute(StartGeom, EndGeom, Params, FJavascriptGraphConnectionDrawingPolicyContainer{ this });
+		if (Schema->OnDrawSplineWithArrow_Geom.Execute(StartGeom, EndGeom, Params, FJavascriptGraphConnectionDrawingPolicyContainer{ this }))
+		{
+			return;
+		}
 	}
-	else
-	{
-		FConnectionDrawingPolicy::DrawSplineWithArrow(StartGeom, EndGeom, Params);
-	}
+	
+	FConnectionDrawingPolicy::DrawSplineWithArrow(StartGeom, EndGeom, Params);
 }
 
 FVector2D FJavascriptGraphConnectionDrawingPolicy::ComputeSplineTangent(const FVector2D& Start, const FVector2D& End) const
@@ -121,21 +124,21 @@ void FJavascriptGraphConnectionDrawingPolicy::DetermineLinkGeometry(
 		FJavascriptArrangedWidget Start = FJavascriptArrangedWidget{ StartWidgetGeometry };
 		FJavascriptArrangedWidget End = FJavascriptArrangedWidget{ EndWidgetGeometry };
 
-		Schema->OnDetermineLinkGeometry.Execute(
+		if (Schema->OnDetermineLinkGeometry.Execute(
 			FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(OutputPin) },
 			FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(InputPin) },
 			Start,
 			End,
 			FJavascriptDetermineLinkGeometryContainer{ &ArrangedNodes, &OutputPinWidget, &NodeWidgetMap, PinGeometries, &PinToPinWidgetMap }
-		);
-		
-		StartWidgetGeometry = Start.Handle;
-		EndWidgetGeometry = End.Handle;
+			))
+		{
+			StartWidgetGeometry = Start.Handle;
+			EndWidgetGeometry = End.Handle;
+			return;
+		}			
 	}
-	else
-	{
-		FConnectionDrawingPolicy::DetermineLinkGeometry(ArrangedNodes, OutputPinWidget, OutputPin, InputPin, StartWidgetGeometry, EndWidgetGeometry);
-	}
+	
+	FConnectionDrawingPolicy::DetermineLinkGeometry(ArrangedNodes, OutputPinWidget, OutputPin, InputPin, StartWidgetGeometry, EndWidgetGeometry);
 }
 
 void FJavascriptGraphConnectionDrawingPolicy::MakeRotatedBox(FVector2D ArrowDrawPos, float AngleInRadians, FLinearColor WireColor) {

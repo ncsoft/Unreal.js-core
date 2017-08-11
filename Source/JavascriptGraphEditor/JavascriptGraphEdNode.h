@@ -2,6 +2,7 @@
 
 #include "JavascriptGraphEdGraph.h"
 #include "JavascriptGraphEditorLibrary.h"
+#include "SGraphPin.h"
 #include "JavascriptGraphEdNode.generated.h"
 
 UCLASS(MinimalAPI)
@@ -36,8 +37,9 @@ public:
 		bool bIsArray,
 		bool bIsReference,
 		const FString& PinName,
-		bool bIsConst /*= false*/
+		bool bIsConst /*= false*/,
 		//int32 Index /*= INDEX_NONE*/
+		const FString& PinToolTip
 		);
 public:
 	UPROPERTY()
@@ -45,4 +47,6 @@ public:
 
 	UPROPERTY()
 	int32 PriorityOrder;
+
+	SGraphNode* SlateGraphNode;
 };

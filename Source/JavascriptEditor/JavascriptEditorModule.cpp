@@ -182,7 +182,7 @@ void FJavascriptEditorModule::Unregister()
 	Extensions.Empty();
 
 	JavascriptContext->RunScript(TEXT("this['$exit'] && this['$exit']()"));
-	JavascriptContext->RunScript(TEXT("gc()"));
+	JavascriptContext->RequestV8GarbageCollection();
 
 	JavascriptContext->JavascriptContext.Reset();
 	

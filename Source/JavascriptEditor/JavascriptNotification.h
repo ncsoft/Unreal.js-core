@@ -51,6 +51,9 @@ class JAVASCRIPTEDITOR_API UJavascriptNotification : public UObject
 	UFUNCTION(BlueprintCallable, Category = "JavascriptNotification")
 	void Reset();
 
+	UFUNCTION(BlueprintCallable, Category = "JavascriptNotification")
+	void SetText(FText InText);
+
 	/** The text displayed in this text block */
 	UPROPERTY(BlueprintReadWrite, Category = "Javscript|Editor")
 	FText Text;

@@ -135,6 +135,11 @@ FString UJavascriptContext::RunScript(FString Script, bool bOutput)
 	return JavascriptContext->Public_RunScript(Script, bOutput);	
 }
 
+void UJavascriptContext::RequestV8GarbageCollection()
+{
+	JavascriptContext->RequestV8GarbageCollection();
+}
+
 void UJavascriptContext::FindPathFile(FString TargetRootPath, FString TargetFileName, TArray<FString>& OutFiles)
 {
     JavascriptContext->FindPathFile(TargetRootPath, TargetFileName, OutFiles);

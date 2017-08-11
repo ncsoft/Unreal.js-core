@@ -27,9 +27,11 @@ void SJavascriptGraphEdNode::UpdateGraphNode()
 	TSharedPtr<SWidget> UserWidget = SNew(SBox);
 	TSharedPtr<SWidget> TitleAreaWidget = SNew(SBox);
 	TSharedPtr<SWidget> ErrorReportingWidget = SNew(SBox);
-	auto LeftNodeBoxWidget = SAssignNew(LeftNodeBox, SVerticalBox);
-	auto RightNodeBoxWidget = SAssignNew(RightNodeBox, SVerticalBox);
-	
+
+
+	TSharedPtr<SWidget> LeftNodeBoxWidget = SAssignNew(LeftNodeBox, SVerticalBox);
+	TSharedPtr<SWidget> RightNodeBoxWidget = SAssignNew(RightNodeBox, SVerticalBox);
+
 	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GraphNode->GetSchema());
 	auto GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphNode);
 
@@ -55,7 +57,7 @@ void SJavascriptGraphEdNode::UpdateGraphNode()
 			}
 		}
 
-		if (Schema->OnTakeTitleWidget.IsBound())
+		if (Schema->OnTakeErrorReportingWidget.IsBound())
 		{
 			auto Widget = Schema->OnTakeErrorReportingWidget.Execute(GraphEdNode).Widget;
 			if (Widget.IsValid())
@@ -75,7 +77,7 @@ void SJavascriptGraphEdNode::UpdateGraphNode()
 			SNew(SBox)
 			.MinDesiredHeight(NodePadding.Top)
 			[
-				SAssignNew(LeftNodeBox, SVerticalBox)
+				LeftNodeBoxWidget.ToSharedRef()
 			]
 		]
 		// STATE NAME AREA
@@ -91,35 +93,27 @@ void SJavascriptGraphEdNode::UpdateGraphNode()
 			SNew(SBox)
 			.MinDesiredHeight(NodePadding.Bottom)
 			[
-				SAssignNew(RightNodeBox, SVerticalBox)
+				RightNodeBoxWidget.ToSharedRef()
 			]
 		];
 	
 
 	if (GraphEdNode)
 	{
-		if (Schema->OnUsingCustomContent.IsBound())
+		if (Schema->OnTakeCustomContentWidget.IsBound())
 		{
-			auto bUsingCostomContent = Schema->OnUsingCustomContent.Execute(GraphEdNode);
-			if (bUsingCostomContent)
-			{
-				ContentWidget = SNew(SOverlay)
-					// PIN AREA
-					+ SOverlay::Slot()
-					.HAlign(HAlign_Fill)
-					.VAlign(VAlign_Fill)
-					[
-						SAssignNew(RightNodeBox, SVerticalBox)
-					]
+			FJavascriptSlateWidget OutUserWidget;
+			FJavascriptSlateWidget OutLeftNodeBoxWidget;
+			FJavascriptSlateWidget OutRightNodeBoxWidget;
 
-				// STATE NAME AREA
-				+ SOverlay::Slot()
-					.HAlign(HAlign_Center)
-					.VAlign(VAlign_Center)
-					.Padding(10.0f)
-					[
-						UserWidget.ToSharedRef()
-					];
+			OutUserWidget.Widget = UserWidget;
+			OutLeftNodeBoxWidget.Widget = LeftNodeBoxWidget;
+			OutRightNodeBoxWidget.Widget = RightNodeBoxWidget;
+
+			auto CustomContentWidget = Schema->OnTakeCustomContentWidget.Execute(GraphEdNode, OutUserWidget, OutLeftNodeBoxWidget, OutRightNodeBoxWidget).Widget;
+			if (CustomContentWidget.IsValid())
+			{
+				ContentWidget = CustomContentWidget;
 			}
 		}
 	}
@@ -200,6 +194,10 @@ void SJavascriptGraphEdNode::CreatePinWidgets()
 {
 	UJavascriptGraphEdNode* GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphNode);
 
+	// @todo:
+	GraphEdNode->SlateGraphNode = this;
+	
+
 	for (int32 PinIdx = 0; PinIdx < GraphEdNode->Pins.Num(); PinIdx++)
 	{
 		UEdGraphPin* MyPin = GraphEdNode->Pins[PinIdx];
@@ -207,11 +205,11 @@ void SJavascriptGraphEdNode::CreatePinWidgets()
 		{
 			TSharedPtr<SGraphPin> NewPin;
 
-			auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GraphNode->GetSchema());			
+			/*auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GraphNode->GetSchema());
 			if (Schema->OnCreatePin.IsBound())
 			{
-				NewPin = StaticCastSharedPtr<SJavascriptGraphPin>(Schema->OnCreatePin.Execute(FJavascriptEdGraphPin{ MyPin }).Widget);
-			}
+				NewPin = StaticCastSharedPtr<SGraphPin>(Schema->OnCreatePin.Execute(FJavascriptEdGraphPin{ MyPin }).Widget);
+			}*/
 			
 			if (!NewPin.IsValid())
 			{
@@ -234,26 +232,57 @@ void SJavascriptGraphEdNode::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 		PinToAdd->SetVisibility( TAttribute<EVisibility>(PinToAdd, &SGraphPin::IsPinVisibleAsAdvanced) );
 	}
 
+	bool bDisable = false;
+	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GraphNode->GetSchema());
+	if (Schema->OnUsingDefaultPin.IsBound())
+	{
+		bDisable = Schema->OnUsingDefaultPin.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(PinObj) });
+	}
+
 	if (PinToAdd->GetDirection() == EEdGraphPinDirection::EGPD_Input)
 	{
-		LeftNodeBox->AddSlot()
-			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Fill)
-			.FillHeight(1.0f)			
+		if (bDisable)
+		{
+			LeftNodeBox->AddSlot()
 			[
 				PinToAdd
 			];
+		}
+		else
+		{
+			LeftNodeBox->AddSlot()
+				.AutoHeight()
+				.HAlign(HAlign_Left)
+				.VAlign(VAlign_Center)
+				.Padding(Settings->GetInputPinPadding())
+				[
+					PinToAdd
+				];
+
+		}
 		InputPins.Add(PinToAdd);
 	}
 	else // Direction == EEdGraphPinDirection::EGPD_Output
 	{
-		RightNodeBox->AddSlot()
-			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Fill)
-			.FillHeight(1.0f)
-			[
-				PinToAdd
-			];
+		if (bDisable) 
+		{
+			RightNodeBox->AddSlot()
+				[
+					PinToAdd
+				];
+		}
+		else
+		{
+			RightNodeBox->AddSlot()
+				.AutoHeight()
+				.HAlign(HAlign_Left)
+				.VAlign(VAlign_Center)
+				.Padding(Settings->GetInputPinPadding())
+				[
+					PinToAdd
+				];
+
+		}
 		OutputPins.Add(PinToAdd);
 	}
 }

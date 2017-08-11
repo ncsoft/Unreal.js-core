@@ -857,7 +857,10 @@ public:
 				}
 				else
 				{
-					I.Throw(TEXT("Needed struct data"));
+					if (nullptr == p->Struct->GetOwnerClass())
+						I.Throw(FString::Printf(TEXT("Needed struct data : [null] %s"), *p->Struct->GetName()));
+					else
+						I.Throw(FString::Printf(TEXT("Needed struct data : %s %s"), *p->Struct->GetOwnerClass()->GetName(), *p->Struct->GetName()));
 				}
 			}
 			else

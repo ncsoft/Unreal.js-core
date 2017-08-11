@@ -63,13 +63,14 @@ FJavascriptEdGraphPin UJavascriptGraphEdNode::CreatePin(
 	bool bIsArray,
 	bool bIsReference,
 	const FString& PinName,
-	bool bIsConst /*= false*/
-				  //int32 Index /*= INDEX_NONE*/
+	bool bIsConst /*= false*/,
+	//int32 Index /*= INDEX_NONE*/
+	const FString& PinToolTip
 	)
 {
-	return FJavascriptEdGraphPin{
-		Super::CreatePin(Dir, PinCategory, PinSubCategory, PinSubCategoryObject, bIsArray, bIsReference, PinName, bIsConst, INDEX_NONE)
-	};
+	UEdGraphPin* GraphPin = Super::CreatePin(Dir, PinCategory, PinSubCategory, PinSubCategoryObject, bIsArray, bIsReference, PinName, bIsConst, INDEX_NONE);
+	GraphPin->PinToolTip = PinToolTip;
+	return FJavascriptEdGraphPin{ GraphPin };
 }
 
 #undef LOCTEXT_NAMESPACE

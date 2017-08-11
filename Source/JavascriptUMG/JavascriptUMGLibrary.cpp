@@ -1,4 +1,6 @@
 #include "JavascriptUMGLibrary.h"
+#include "JavascriptWidget.h"
+#include "NativeWidgetHost.h"
 
 FJavascriptSlateStyle UJavascriptUMGLibrary::CreateSlateStyle(FName InStyleSetName)
 {
@@ -74,6 +76,18 @@ FJavascriptSlateWidget UJavascriptUMGLibrary::TakeWidget(UWidget* Widget)
 		Out.Widget = Widget->TakeWidget();
 	}
 	return Out;
+}
+
+UWidget* UJavascriptUMGLibrary::SetContent(UNativeWidgetHost* TargetWidget, FJavascriptSlateWidget SlateWidget)
+{
+	UWidget* Widget = nullptr;
+	if (TargetWidget != nullptr && SlateWidget.Widget.IsValid())
+	{
+		TargetWidget->SetContent(SlateWidget.Widget.ToSharedRef());
+		Widget = Cast<UWidget>(TargetWidget);
+	}
+
+	return Widget;
 }
 
 void UJavascriptUMGLibrary::AddWindowAsNativeChild(FJavascriptSlateWidget NewWindow, FJavascriptSlateWidget RootWindow)

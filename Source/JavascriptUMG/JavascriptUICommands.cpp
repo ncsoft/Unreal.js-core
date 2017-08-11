@@ -128,6 +128,13 @@ void UJavascriptUICommands::Bind(FUICommandList* CommandList)
 void UJavascriptUICommands::Unbind(FUICommandList* CommandList)
 {
 	// unbind is not supported, just rebind again!
+	for (auto CommandInfo : CommandInfos)
+	{
+		if (CommandList->IsActionMapped(CommandInfo.Handle))
+		{
+			CommandList->UnmapAction(CommandInfo.Handle);
+		}
+	}
 }
 
 FJavascriptUICommandInfo UJavascriptUICommands::GetAction(FString Id)

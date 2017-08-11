@@ -193,6 +193,18 @@ struct FJavascriptInternetAddr
 	TSharedPtr<FInternetAddr> Handle;
 };
 
+USTRUCT()
+struct FJavscriptProperty
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString Type;
+
+	UPROPERTY()
+	FString Name;
+};
+
 UCLASS()
 class V8_API UJavascriptLibrary : public UBlueprintFunctionLibrary
 {
@@ -311,7 +323,7 @@ public:
 	static UDynamicBlueprintBinding* GetDynamicBinding(UClass* Outer, TSubclassOf<UDynamicBlueprintBinding> BindingObjectClass);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	static void HandleSeamlessTravelPlayer(AGameMode* GameMode, AController*& C);
+	static void HandleSeamlessTravelPlayer(AGameModeBase* GameMode, AController*& C);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static void SetRootComponent(AActor* Actor, USceneComponent* Component);
@@ -422,12 +434,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void SetObjectFlags(UObject* Obj, int32 Flags);
-
+	
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void ClearFlags(UObject* Obj);
-
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static int32 GetMaskedFlags(UObject* Obj);
+	static void SetActorFlags(AActor* Actor, int32 Flags);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static float GetLastRenderTime(AActor* Actor);
@@ -487,6 +496,9 @@ public:
 	static TArray<UField*> GetFields(const UObject* Object, bool bIncludeSuper);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static TArray<FJavscriptProperty> GetStructProperties(const FString StructName, bool bIncludeSuper);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static int32 GetFunctionParmsSize(UFunction* Function);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -521,6 +533,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool IsGeneratedByBlueprint(UClass* InClass);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool IsPendingKill(AActor* InActor);
 
 	UFUNCTION(BlueprintCallable, CustomThunk, Category = "Scripting | Javascript", meta = (CustomStructureParam = "CustomStruct"))
 	static void CallJS(FJavascriptFunction Function, const FJavascriptStubStruct& CustomStruct);

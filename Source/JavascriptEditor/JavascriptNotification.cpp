@@ -87,6 +87,12 @@ void UJavascriptNotification::Reset()
 {
 	Item.Reset();
 }
+
+void UJavascriptNotification::SetText(FText InText)
+{
+	if (Item.IsValid()) Item->SetText(InText);
+}
+
 #endif
 
 #undef LOCTEXT_NAMESPACE

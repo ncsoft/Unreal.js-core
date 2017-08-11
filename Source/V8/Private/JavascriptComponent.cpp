@@ -6,6 +6,9 @@
 #include "UnrealEngine.h"
 #include "IV8.h"
 
+
+DECLARE_CYCLE_STAT(TEXT("Javascript Component Tick Time"), STAT_JavascriptComponentTickTime, STATGROUP_Javascript);
+
 UJavascriptComponent::UJavascriptComponent(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
@@ -71,6 +74,8 @@ void UJavascriptComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 {
 	check(bRegistered);
 
+	SCOPE_CYCLE_COUNTER(STAT_JavascriptComponentTickTime);
+
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	OnTick.ExecuteIfBound(DeltaTime);
@@ -78,7 +83,7 @@ void UJavascriptComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 
 void UJavascriptComponent::ForceGC()
 {
-	JavascriptContext->RunScript(TEXT("gc();"));
+	JavascriptContext->RequestV8GarbageCollection();
 }
 
 void UJavascriptComponent::Expose(FString ExposedAs, UObject* Object)

@@ -12,7 +12,7 @@ struct FJavascriptColumn
 	GENERATED_BODY()
 
 	UPROPERTY()
-	FName Id;
+	FString Id;
 
 	UPROPERTY()
 	float Width;

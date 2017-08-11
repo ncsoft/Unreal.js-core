@@ -74,6 +74,25 @@ void UJavascriptGraphEditorLibrary::BreakAllPinLinks(FJavascriptEdGraphPin A)
 	}
 }
 
+FEdGraphPinType UJavascriptGraphEditorLibrary::GetPinType(FJavascriptEdGraphPin A)
+{
+	FEdGraphPinType PinType;
+	if (A.GraphPin)
+	{
+		PinType = A.GraphPin->PinType;
+	}
+
+	return PinType;
+}
+
+void UJavascriptGraphEditorLibrary::SetPinType(FJavascriptEdGraphPin Pin, FEdGraphPinType PinType)
+{
+	if (Pin.GraphPin)
+	{
+		Pin.GraphPin->PinType = PinType;
+	}
+}
+
 FJavascriptEdGraphPin UJavascriptGraphEditorLibrary::FindPin(UEdGraphNode* Node, const FString& PinName, EEdGraphPinDirection Direction)
 {
 	return FJavascriptEdGraphPin{ Node->FindPin(PinName, Direction) };
