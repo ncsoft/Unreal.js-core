@@ -9,7 +9,7 @@ UJavascriptListView::UJavascriptListView(const FObjectInitializer& ObjectInitial
 TSharedRef<SWidget> UJavascriptListView::RebuildWidget()
 {
 	TSharedRef<SScrollBar> ExternalScrollbar = SNew(SScrollBar).Style(&ScrollBarStyle);
-	TSharedRef<SWidget> MyView = StaticCastSharedRef<SWidget>
+	return StaticCastSharedRef<SWidget>
 	(
 		SNew(SHorizontalBox)
 		+SHorizontalBox::Slot()
@@ -61,8 +61,6 @@ TSharedRef<SWidget> UJavascriptListView::RebuildWidget()
 			]
 		]
 	);
-
-	return BuildDesignTimeWidget(MyView);
 }
 
 void UJavascriptListView::RequestListRefresh()

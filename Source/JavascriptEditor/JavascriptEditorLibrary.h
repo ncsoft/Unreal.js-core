@@ -22,7 +22,7 @@ enum class EJavascriptWidgetMode : uint8
 	WM_None = 255,
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptTransaction
 {
 	GENERATED_BODY()
@@ -38,7 +38,7 @@ public:
 #endif
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptWorkspaceItem
 {
 	GENERATED_BODY()
@@ -49,7 +49,7 @@ public:
 #endif
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptHitProxy
 {
 	GENERATED_BODY()
@@ -57,7 +57,7 @@ struct FJavascriptHitProxy
 	class HHitProxy* HitProxy;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptViewportClick
 {
 	GENERATED_BODY()
@@ -72,7 +72,7 @@ struct FJavascriptViewportClick
 	const FViewportClick* Click;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptPDI
 {
 	GENERATED_BODY()
@@ -90,7 +90,7 @@ struct FJavascriptPDI
 // forward decl
 class FExtensibilityManager;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptExtensibilityManager
 {
 	GENERATED_BODY()

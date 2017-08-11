@@ -469,7 +469,7 @@ TSharedRef<SWidget> UJavascriptEditorViewport::RebuildWidget()
 {
 	if (IsDesignTime())
 	{
-		return BuildDesignTimeWidget(SNew(SBox)
+		return RebuildDesignWidget(SNew(SBox)
 			.HAlign(HAlign_Center)
 			.VAlign(VAlign_Center)
 			[
@@ -490,7 +490,7 @@ TSharedRef<SWidget> UJavascriptEditorViewport::RebuildWidget()
 			}
 		}
 		
-		return BuildDesignTimeWidget(ViewportWidget.ToSharedRef());
+		return ViewportWidget.ToSharedRef();
 	}
 }
 #endif

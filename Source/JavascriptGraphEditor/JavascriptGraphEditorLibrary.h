@@ -11,7 +11,7 @@ class UEdGraphPin;
 class UEdGraphNode;
 class UJavascriptGraphEdNode;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptEdGraphPin
 {
 	GENERATED_BODY()
@@ -34,7 +34,7 @@ struct FJavascriptEdGraphPin
 	}
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptConnectionParams
 {
 	GENERATED_BODY()
@@ -74,7 +74,7 @@ struct FJavascriptConnectionParams
 	operator FConnectionParams () const;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptDetermineLinkGeometryContainer
 {
 	GENERATED_BODY()
@@ -97,7 +97,7 @@ struct FJavascriptDetermineLinkGeometryContainer
 	TMap< UEdGraphPin*, TSharedRef<SGraphPin> >* PinToPinWidgetMap;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptPerformSecondPassLayoutContainer
 {
 	GENERATED_BODY()
@@ -115,7 +115,7 @@ struct FJavascriptPerformSecondPassLayoutContainer
 	int32 MaxNodes;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptArrangedWidget
 {
 	GENERATED_BODY()
@@ -127,7 +127,7 @@ struct FJavascriptArrangedWidget
 	FArrangedWidget* Handle;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptPinWidget
 {
 	GENERATED_BODY()
@@ -135,7 +135,7 @@ struct FJavascriptPinWidget
 	TSharedRef<SWidget>* Handle;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptGraphConnectionDrawingPolicyContainer
 {
 	GENERATED_BODY()
@@ -148,7 +148,7 @@ struct FJavascriptGraphConnectionDrawingPolicyContainer
 	class FJavascriptGraphConnectionDrawingPolicy* Handle;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptGraphMenuBuilder : public FJavascriptMenuBuilder
 {
 	GENERATED_BODY()
@@ -166,7 +166,7 @@ struct FJavascriptGraphMenuBuilder : public FJavascriptMenuBuilder
 	bool bIsDebugging;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptNodeCreator
 {
 	GENERATED_BODY()
@@ -177,7 +177,7 @@ struct FJavascriptNodeCreator
 	TSharedPtr<FGraphNodeCreator<UEdGraphNode>> Instance;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptSlateEdNode
 {
 	GENERATED_BODY()
@@ -217,10 +217,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void BreakAllPinLinks(FJavascriptEdGraphPin A);
 
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	UFUNCTION(BlueprintInternalUseOnly, Category = "Scripting | Javascript")
 	static FEdGraphPinType GetPinType(FJavascriptEdGraphPin A);
 
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	UFUNCTION(BlueprintInternalUseOnly, Category = "Scripting | Javascript")
 	static void SetPinType(FJavascriptEdGraphPin Pin, FEdGraphPinType PinType);
 	
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")

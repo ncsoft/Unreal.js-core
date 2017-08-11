@@ -344,7 +344,7 @@ void UJavascriptLibrary::GetAllActorsOfClassAndTags(UObject* WorldContextObject,
 {
 	OutActors.Empty();
 
-	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject);
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::ReturnNull);
 
 	// We do nothing if not class provided, rather than giving ALL actors!
 	if (ActorClass != NULL && World != nullptr)

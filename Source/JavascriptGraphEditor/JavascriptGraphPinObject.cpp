@@ -21,17 +21,17 @@ void UJavascriptGraphPinObject::ReleaseSlateResources(bool bReleaseChildren)
 
 TSharedRef<SWidget> UJavascriptGraphPinObject::RebuildWidget()
 {
-	auto defaultWidget = BuildDesignTimeWidget(SNew(SBox)
+	auto defaultWidget = SNew(SBox)
 		.HAlign(HAlign_Center)
 		.VAlign(VAlign_Center)
 		[
 			SNew(STextBlock)
 			.Text(LOCTEXT("JavascriptGraphPinObject", "JavascriptGraphPinObject"))
-		]);
+		];
 
 	if (IsDesignTime())
 	{
-		return defaultWidget;
+		return RebuildDesignWidget(defaultWidget);
 	}
 	else
 	{

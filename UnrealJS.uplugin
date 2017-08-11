@@ -2,9 +2,9 @@
   "FileVersion": 3,
   "FriendlyName": "Unreal.js - Javascript Runtime",
   "Version": 2,
-  "VersionName": "0.2.8",
-  "FriendlyVersion": "0.2.8",
-  "EngineVersion": "4.16.0",
+  "VersionName": "0.2.9",
+  "FriendlyVersion": "0.2.9",
+  "EngineVersion": "4.17.0",
   "Description": "Javascript powered UnrealEngine",
   "Category": "Programming",
   "CreatedBy": "NCSOFT Corporation",
@@ -51,6 +51,12 @@
       "Type": "Editor",
       "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Linux"]
     }
+  ],
+  "Plugins": [
+	{
+      "Name": "OnlineSubsystemUtils",
+	  "Enabled": true
+	}
   ],
   "CanContainContent": true
 }

@@ -66,11 +66,11 @@ void UJavascriptPropertyCustomizationLibrary::SetFilterString(FJavascriptDetailW
 
 FJavascriptDetailWidgetRow UJavascriptPropertyCustomizationLibrary::AddChildContent(FJavascriptDetailChildrenBuilder ChildBuilder, const FText& SearchString)
 {
-	return{ &(ChildBuilder->AddChildContent(SearchString)) };
+	return{ &(ChildBuilder->AddCustomRow(SearchString)) };
 }
 FJavascriptDetailPropertyRow UJavascriptPropertyCustomizationLibrary::AddChildProperty(FJavascriptDetailChildrenBuilder ChildBuilder, FJavascriptPropertyHandle PropertyHandle)
 {
-	return{ &(ChildBuilder->AddChildProperty(PropertyHandle.PropertyHandle.ToSharedRef() )) };
+	return{ &(ChildBuilder->AddProperty(PropertyHandle.PropertyHandle.ToSharedRef() )) };
 }
 FJavascriptSlateWidget UJavascriptPropertyCustomizationLibrary::GenerateStructValueWidget(FJavascriptDetailChildrenBuilder ChildBuilder, FJavascriptPropertyHandle StructPropertyHandle)
 {

@@ -51,4 +51,7 @@ public:
 
 protected:
 	TSharedPtr<SSearchBox> MySearchBox;
+	PROPERTY_BINDING_IMPLEMENTATION(FText, Text);
+	PROPERTY_BINDING_IMPLEMENTATION(FText, HintText);
+
 };

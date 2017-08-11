@@ -42,7 +42,7 @@ TSharedRef<SWidget> UJavascriptComboButton::RebuildWidget()
 		.VAlign(VAlign)
 		;
 
-	return BuildDesignTimeWidget(MyComboButton.ToSharedRef());
+	return MyComboButton.ToSharedRef();
 }
 
 void UJavascriptComboButton::HandleComboBoxOpened()

@@ -146,7 +146,7 @@ enum class ELogVerbosity_JS : uint8
 	VeryVerbose
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptLogCategory
 {
 	GENERATED_USTRUCT_BODY()
@@ -156,7 +156,7 @@ struct FJavascriptLogCategory
 #endif
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptStreamableManager
 {
 	GENERATED_USTRUCT_BODY()
@@ -169,7 +169,7 @@ struct FJavascriptStreamableManager
 	TSharedPtr<FStreamableManager> Handle;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptStubStruct
 {
 	GENERATED_BODY()
@@ -177,7 +177,7 @@ struct FJavascriptStubStruct
 
 struct FPrivateSocketHandle;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptSocket
 {
 	GENERATED_BODY()
@@ -185,7 +185,7 @@ struct FJavascriptSocket
 	TSharedPtr<FPrivateSocketHandle> Handle;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptInternetAddr
 {
 	GENERATED_BODY()
@@ -193,7 +193,7 @@ struct FJavascriptInternetAddr
 	TSharedPtr<FInternetAddr> Handle;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavscriptProperty
 {
 	GENERATED_BODY()

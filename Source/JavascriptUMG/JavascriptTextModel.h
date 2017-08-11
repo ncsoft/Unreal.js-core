@@ -4,7 +4,7 @@
 #include "IRun.h"
 #include "JavascriptTextModel.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptSlateTextRun
 {
 	GENERATED_BODY()

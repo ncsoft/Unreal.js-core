@@ -14,7 +14,7 @@ TSharedRef<SWidget> UJavascriptSearchBox::RebuildWidget()
 		.OnTextCommitted_Lambda([this](const FText& InText, ETextCommit::Type CommitMethod) { OnTextCommitted.Broadcast(InText, CommitMethod); })
 		;
 
-	return BuildDesignTimeWidget(MySearchBox.ToSharedRef());
+	return MySearchBox.ToSharedRef();
 }
 
 void UJavascriptSearchBox::SetText(FText InText)
@@ -39,8 +39,8 @@ void UJavascriptSearchBox::SynchronizeProperties()
 {
 	Super::SynchronizeProperties();
 
-	TAttribute<FText> TextBinding = OPTIONAL_BINDING(FText, Text);
-	TAttribute<FText> HintTextBinding = OPTIONAL_BINDING(FText, HintText);
+	TAttribute<FText> TextBinding = PROPERTY_BINDING(FText, Text);
+	TAttribute<FText> HintTextBinding = PROPERTY_BINDING(FText, HintText);
 
 	MySearchBox->SetText(TextBinding);
 	MySearchBox->SetHintText(HintTextBinding);	

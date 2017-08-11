@@ -4,7 +4,7 @@
 #include "ScriptMacros.h"
 #include "JavascriptInputEventStateLibrary.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptInputEventState
 {
 	GENERATED_BODY()

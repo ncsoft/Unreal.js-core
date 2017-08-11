@@ -6,7 +6,7 @@
 #include "JavascriptUMGLibrary.h"
 #include "JavascriptPropertyCustomizationLibrary.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptDetailWidgetDecl
 {
 	GENERATED_BODY()
@@ -26,7 +26,7 @@ struct FJavascriptDetailWidgetDecl
 #endif
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptPropertyHandle
 {
 	GENERATED_BODY()
@@ -41,7 +41,7 @@ struct FJavascriptPropertyHandle
 #endif
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptDetailWidgetRow
 {
 	GENERATED_BODY()
@@ -56,7 +56,7 @@ struct FJavascriptDetailWidgetRow
 #endif
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptDetailPropertyRow
 {
 	GENERATED_BODY()
@@ -71,7 +71,7 @@ struct FJavascriptDetailPropertyRow
 #endif
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptDetailChildrenBuilder
 {
 	GENERATED_BODY()
@@ -122,37 +122,37 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 
 #if WITH_EDITOR
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static FJavascriptPropertyHandle GetChildHandle(FJavascriptPropertyHandle Parent, FName Name);
+	static FJavascriptPropertyHandle GetChildHandle(FJavascriptPropertyHandle Parent, FName Name);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static FJavascriptSlateWidget CreatePropertyNameWidget(FJavascriptPropertyHandle Handle, const FText& NameOverride, const FText& ToolTipOverride, bool bDisplayResetToDefault, bool bHideText, bool bHideThumbnail);
+	static FJavascriptSlateWidget CreatePropertyNameWidget(FJavascriptPropertyHandle Handle, const FText& NameOverride, const FText& ToolTipOverride, bool bDisplayResetToDefault, bool bHideText, bool bHideThumbnail);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static FJavascriptSlateWidget CreatePropertyValueWidget(FJavascriptPropertyHandle Handle, bool bHideDefaultPropertyButtons);
+	static FJavascriptSlateWidget CreatePropertyValueWidget(FJavascriptPropertyHandle Handle, bool bHideDefaultPropertyButtons);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static FString GetMetaData(FJavascriptPropertyHandle Handle, const FName& Key);
+	static FString GetMetaData(FJavascriptPropertyHandle Handle, const FName& Key);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static EPropertyAccessResult GetValueAsFormattedString(FJavascriptPropertyHandle Handle, FString& OutValue);
+	static EPropertyAccessResult GetValueAsFormattedString(FJavascriptPropertyHandle Handle, FString& OutValue);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static EPropertyAccessResult SetValueFromFormattedString(FJavascriptPropertyHandle Handle, const FString& InValue);
+	static EPropertyAccessResult SetValueFromFormattedString(FJavascriptPropertyHandle Handle, const FString& InValue);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static UProperty* GetProperty(FJavascriptPropertyHandle Handle);
+	static UProperty* GetProperty(FJavascriptPropertyHandle Handle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static void SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, FJavascriptFunction Function);
+	static void SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, FJavascriptFunction Function);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static FJavascriptDetailWidgetDecl WholeRowContent(FJavascriptDetailWidgetRow Row);
+	static FJavascriptDetailWidgetDecl WholeRowContent(FJavascriptDetailWidgetRow Row);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static FJavascriptDetailWidgetDecl NameContent(FJavascriptDetailWidgetRow Row);
+	static FJavascriptDetailWidgetDecl NameContent(FJavascriptDetailWidgetRow Row);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static FJavascriptDetailWidgetDecl ValueContent(FJavascriptDetailWidgetRow Row);
+	static FJavascriptDetailWidgetDecl ValueContent(FJavascriptDetailWidgetRow Row);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static void SetFilterString(FJavascriptDetailWidgetRow Row, const FText& InFilterString);
+	static void SetFilterString(FJavascriptDetailWidgetRow Row, const FText& InFilterString);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static FJavascriptDetailWidgetRow AddChildContent(FJavascriptDetailChildrenBuilder ChildBuilder, const FText& SearchString);
+	static FJavascriptDetailWidgetRow AddChildContent(FJavascriptDetailChildrenBuilder ChildBuilder, const FText& SearchString);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static FJavascriptDetailPropertyRow AddChildProperty(FJavascriptDetailChildrenBuilder ChildBuilder, FJavascriptPropertyHandle PropertyHandle);
+	static FJavascriptDetailPropertyRow AddChildProperty(FJavascriptDetailChildrenBuilder ChildBuilder, FJavascriptPropertyHandle PropertyHandle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static FJavascriptSlateWidget GenerateStructValueWidget(FJavascriptDetailChildrenBuilder ChildBuilder, FJavascriptPropertyHandle StructPropertyHandle);
+	static FJavascriptSlateWidget GenerateStructValueWidget(FJavascriptDetailChildrenBuilder ChildBuilder, FJavascriptPropertyHandle StructPropertyHandle);
 
 		
 	//void DisplayName(FJavascriptDetailPropertyRow Row, const FText& InDisplayName);
@@ -166,18 +166,18 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 	//void GetDefaultWidgets(TSharedPtr<SWidget>& OutNameWidget, TSharedPtr<SWidget>& OutValueWidget);
 	//void GetDefaultWidgets(TSharedPtr<SWidget>& OutNameWidget, TSharedPtr<SWidget>& OutValueWidget, FDetailWidgetRow& Row);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static FJavascriptDetailWidgetRow CustomWidget(FJavascriptDetailPropertyRow Row, bool bShowChildren);
+	static FJavascriptDetailWidgetRow CustomWidget(FJavascriptDetailPropertyRow Row, bool bShowChildren);
 
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static void SetContent(FJavascriptDetailWidgetDecl Decl, FJavascriptSlateWidget Widget);
+	static void SetContent(FJavascriptDetailWidgetDecl Decl, FJavascriptSlateWidget Widget);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static void SetVAlign(FJavascriptDetailWidgetDecl Decl, EVerticalAlignment InAlignment);
+	static void SetVAlign(FJavascriptDetailWidgetDecl Decl, EVerticalAlignment InAlignment);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static void SetHAlign(FJavascriptDetailWidgetDecl Decl, EHorizontalAlignment InAlignment);
+	static void SetHAlign(FJavascriptDetailWidgetDecl Decl, EHorizontalAlignment InAlignment);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static void SetMinDesiredWidth(FJavascriptDetailWidgetDecl Decl, float MinWidth);
+	static void SetMinDesiredWidth(FJavascriptDetailWidgetDecl Decl, float MinWidth);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-		static void SetMaxDesiredWidth(FJavascriptDetailWidgetDecl Decl, float MaxWidth);
+	static void SetMaxDesiredWidth(FJavascriptDetailWidgetDecl Decl, float MaxWidth);
 #endif
 };

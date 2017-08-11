@@ -29,7 +29,7 @@ TSharedRef<SWidget> UJavascriptTileView::RebuildWidget()
 		//	);
 		;
 
-	return BuildDesignTimeWidget(MyTileView.ToSharedRef());
+	return MyTileView.ToSharedRef();
 }
 
 void UJavascriptTileView::ProcessEvent(UFunction* Function, void* Parms)

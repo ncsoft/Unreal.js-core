@@ -144,7 +144,7 @@ void FJavascriptInGameScene::AddReferencedObjects(FReferenceCollector& Collector
 /** Accessor for finding the current direction of the preview scene's DirectionalLight. */
 FRotator FJavascriptInGameScene::GetLightDirection()
 {
-	return DirectionalLight->ComponentToWorld.GetUnitAxis(EAxis::X).Rotation();
+	return DirectionalLight->GetComponentTransform().GetUnitAxis(EAxis::X).Rotation();
 }
 
 /** Function for modifying the current direction of the preview scene's DirectionalLight. */

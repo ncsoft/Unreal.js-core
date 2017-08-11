@@ -287,7 +287,7 @@ TSharedRef<SWidget> SJavascriptGraphPinObject::GenerateAssetPicker()
 		];
 }
 
-void SJavascriptGraphPinObject::OnAssetSelectedFromPicker(const class FAssetData& AssetData)
+void SJavascriptGraphPinObject::OnAssetSelectedFromPicker(const FAssetData& AssetData)
 {
 	UObject* AssetObject = AssetData.GetAsset();
 	if (GraphPinObj->DefaultObject != AssetObject)

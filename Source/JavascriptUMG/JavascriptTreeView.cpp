@@ -60,7 +60,7 @@ TSharedPtr<SHeaderRow> UJavascriptTreeView::GetHeaderRowWidget()
 TSharedRef<SWidget> UJavascriptTreeView::RebuildWidget()
 {
 	TSharedRef<SScrollBar> ExternalScrollbar = SNew(SScrollBar).Style(&ScrollBarStyle);
-	TSharedRef<SWidget> MyView = StaticCastSharedRef<SWidget>
+	return StaticCastSharedRef<SWidget>
 	(
 		SNew(SHorizontalBox)
 		+SHorizontalBox::Slot()
@@ -110,8 +110,6 @@ TSharedRef<SWidget> UJavascriptTreeView::RebuildWidget()
 		]
 		]
 	);
-
-	return BuildDesignTimeWidget(MyView);
 }
 
 void UJavascriptTreeView::ProcessEvent(UFunction* Function, void* Parms)

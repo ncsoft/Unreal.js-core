@@ -6,7 +6,7 @@
 
 class UJavascriptContext;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptColumn
 {
 	GENERATED_BODY()
@@ -63,10 +63,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Content)
 	TArray<UObject*> Items;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Javascript")
+	UPROPERTY(EditAnywhere, BlueprintInternalUseOnly, Category = "Javascript")
 	FHeaderRowStyle HeaderRowStyle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Javascript")
+	UPROPERTY(EditAnywhere, BlueprintInternalUseOnly, Category = "Javascript")
 	FTableRowStyle TableRowStyle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Javascript")

@@ -2,7 +2,7 @@
 
 #include "JavascriptProfile.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptProfileNode
 {
 	GENERATED_BODY()

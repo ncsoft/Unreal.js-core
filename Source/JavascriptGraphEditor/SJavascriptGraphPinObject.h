@@ -54,7 +54,7 @@ protected:
 	/** Generate asset picker window */
 	virtual TSharedRef<SWidget> GenerateAssetPicker();
 	/** Called to validate selection from picker window */
-	virtual void OnAssetSelectedFromPicker(const class FAssetData& AssetData);
+	virtual void OnAssetSelectedFromPicker(const FAssetData& AssetData);
 
 	/** Used to update the combo button text */
 	FText OnGetComboTextValue() const;

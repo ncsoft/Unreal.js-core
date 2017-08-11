@@ -27,8 +27,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void Activate(bool bEnable);
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	void Register();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	void UnRegister();
+
 	virtual void BeginDestroy() override;
 
 	bool bActivated{ false };
+	TSharedPtr<IInputProcessor> InputProcessor;
 #endif
 };

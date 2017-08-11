@@ -24,7 +24,7 @@ void UJavascriptUMGBlueprintLibrary::DrawSpaceSpline(UPARAM(ref) FPaintContext& 
 		Transform.TransformVector(InStartDir),
 		Transform.TransformPoint(InEnd),
 		Transform.TransformVector(InEndDir),
-		Context.MyClippingRect,
+		Context.MyCullingRect,
 		InThickness * Transform.GetScale(),
 		ESlateDrawEffect::None,
 		InTint);

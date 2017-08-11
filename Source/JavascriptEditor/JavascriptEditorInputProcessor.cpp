@@ -52,18 +52,36 @@ void UJavascriptEditorInputProcessor::Activate(bool bActivate)
 	{
 		if (bActivated) return;
 		bActivated = true;
-
-		FSlateApplication::Get().SetInputPreProcessor(true, MakeShareable(new FMyInputProcessor(this)));
+		InputProcessor = MakeShareable(new FMyInputProcessor(this));
+		FSlateApplication::Get().RegisterInputPreProcessor(InputProcessor);
 	}
 	else
 	{
 		if (!bActivated) return;
 		bActivated = false;
 
-		if (FSlateApplication::IsInitialized())
+		if (InputProcessor.IsValid())
 		{
-			FSlateApplication::Get().SetInputPreProcessor(false);
+			FSlateApplication::Get().UnregisterInputPreProcessor(InputProcessor);
 		}
+		else
+		{
+			FSlateApplication::Get().UnregisterAllInputPreProcessors();
+		}
+	}
+}
+
+void UJavascriptEditorInputProcessor::Register()
+{
+	InputProcessor = MakeShareable(new FMyInputProcessor(this));
+	FSlateApplication::Get().RegisterInputPreProcessor(InputProcessor);
+}
+
+void UJavascriptEditorInputProcessor::UnRegister()
+{
+	if (InputProcessor.IsValid())
+	{
+		FSlateApplication::Get().UnregisterInputPreProcessor(InputProcessor);
 	}
 }
 #endif

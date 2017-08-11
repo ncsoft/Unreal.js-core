@@ -7,7 +7,7 @@
 #include "ScriptMacros.h"
 #include "JavascriptEditorGlobalDelegates.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptTagAndValue
 {
 	GENERATED_BODY()
@@ -19,7 +19,7 @@ struct FJavascriptTagAndValue
 	FString Value;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptAssetData
 {
 	GENERATED_BODY()
@@ -36,8 +36,8 @@ struct FJavascriptAssetData
 	FName PackageName;
 	UPROPERTY()
 	FName PackagePath;
-	UPROPERTY()
-	FName GroupNames;
+	//UPROPERTY()
+	//FName GroupNames;
 	UPROPERTY()
 	FName AssetName;
 	UPROPERTY()

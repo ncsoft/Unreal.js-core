@@ -2,7 +2,7 @@
 
 #include "JavascriptStyleSetLibrary.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptStyleSet
 {
 	GENERATED_BODY()

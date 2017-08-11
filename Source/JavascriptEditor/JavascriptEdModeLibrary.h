@@ -7,7 +7,7 @@
 #include "JavascriptEdModeLibrary.generated.h"
 
 // Extended axis enum for more specialized usage
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptEditorModeTools
 {
 	GENERATED_BODY()
@@ -27,7 +27,7 @@ struct FJavascriptEditorModeTools
 	}
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptEditorMode
 {
 	GENERATED_BODY()
@@ -49,7 +49,7 @@ struct FJavascriptEditorMode
 };
 
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptEdViewport
 {
 	GENERATED_BODY()
@@ -72,43 +72,43 @@ class JAVASCRIPTEDITOR_API UJavascriptEdModeLibrary : public UBlueprintFunctionL
 
 #if WITH_EDITOR	
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static void SetDefaultMode(FJavascriptEditorModeTools& Tools, FName DefaultID);
+	static void SetDefaultMode(FJavascriptEditorModeTools& Tools, FName DefaultID);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static void ActivateDefaultMode(FJavascriptEditorModeTools& Tools);
+	static void ActivateDefaultMode(FJavascriptEditorModeTools& Tools);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static bool IsDefaultModeActive(FJavascriptEditorModeTools& Tools);
+	static bool IsDefaultModeActive(FJavascriptEditorModeTools& Tools);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static void ActivateMode(FJavascriptEditorModeTools& Tools, FName InID, bool bToggle);
+	static void ActivateMode(FJavascriptEditorModeTools& Tools, FName InID, bool bToggle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static void DeactivateMode(FJavascriptEditorModeTools& Tools, FName InID);
+	static void DeactivateMode(FJavascriptEditorModeTools& Tools, FName InID);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static void DestroyMode(FJavascriptEditorModeTools& Tools, FName InID);
+	static void DestroyMode(FJavascriptEditorModeTools& Tools, FName InID);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static void DeactivateAllModes(FJavascriptEditorModeTools& Tools);
+	static void DeactivateAllModes(FJavascriptEditorModeTools& Tools);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static bool EnsureNotInMode(FJavascriptEditorModeTools& Tools, FName ModeID, const FText& ErrorMsg, bool bNotifyUser);
+	static bool EnsureNotInMode(FJavascriptEditorModeTools& Tools, FName ModeID, const FText& ErrorMsg, bool bNotifyUser);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static bool IsModeActive(FJavascriptEditorModeTools& Tools, FName InID);
+	static bool IsModeActive(FJavascriptEditorModeTools& Tools, FName InID);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static bool StartTracking(FJavascriptEditorModeTools Tools, FJavascriptEdViewport Viewport);
+	static bool StartTracking(FJavascriptEditorModeTools Tools, FJavascriptEdViewport Viewport);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static bool EndTracking(FJavascriptEditorModeTools Tools, FJavascriptEdViewport Viewport);
+	static bool EndTracking(FJavascriptEditorModeTools Tools, FJavascriptEdViewport Viewport);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static bool IsTracking(FJavascriptEditorModeTools Tools);
+	static bool IsTracking(FJavascriptEditorModeTools Tools);
 
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static FJavascriptHitProxy GetHitProxy(FJavascriptEdViewport Viewport);
+	static FJavascriptHitProxy GetHitProxy(FJavascriptEdViewport Viewport);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static FJavascriptEditorModeTools GetModeManager(FJavascriptEditorMode Mode);
+	static FJavascriptEditorModeTools GetModeManager(FJavascriptEditorMode Mode);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static int32 GetCurrentWidgetAxis(FJavascriptEditorMode Mode);
+	static int32 GetCurrentWidgetAxis(FJavascriptEditorMode Mode);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static void SetCurrentWidgetAxis(FJavascriptEditorMode Mode, int32 InAxis);
+	static void SetCurrentWidgetAxis(FJavascriptEditorMode Mode, int32 InAxis);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
-		static void SelectNone(FJavascriptEditorMode Mode);
+	static void SelectNone(FJavascriptEditorMode Mode);
 #endif
 };

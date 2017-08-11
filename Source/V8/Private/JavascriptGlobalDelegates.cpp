@@ -11,7 +11,6 @@ void UJavascriptGlobalDelegates::BeginDestroy()
 #define DO_REFLECT() \
 OP_REFLECT(OnPreObjectPropertyChanged)\
 OP_REFLECT(OnObjectPropertyChanged)\
-OP_REFLECT(RedirectorFollowed)\
 OP_REFLECT(PreGarbageCollect)\
 OP_REFLECT(PostGarbageCollect)\
 OP_REFLECT(PostLoadMapWithWorld)\

@@ -3,7 +3,7 @@
 #include "MultiLineEditableTextBox.h"
 #include "JavascriptMultiLineEditableTextBox.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptTextLayout
 {
 	GENERATED_BODY()

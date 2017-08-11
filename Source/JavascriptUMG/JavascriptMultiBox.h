@@ -20,15 +20,15 @@ public:
 	UPROPERTY()
 	FOnHook OnHook;
 
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	UFUNCTION(BlueprintInternalUseOnly, Category = "Scripting | Javascript")
 	void AddPullDownMenu(FJavascriptMenuBuilder& Builder, FName Id, const FText& Label, const FText& ToolTip);
 	
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	UFUNCTION(BlueprintInternalUseOnly, Category = "Scripting | Javascript")
 	void AddSubMenu(FJavascriptMenuBuilder& Builder, FName Id, const FText& Label, const FText& ToolTip, const bool bInOpenSubMenuOnClick);
 
 	void Setup(TSharedRef<SBox> Box);
 
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	UFUNCTION(BlueprintInternalUseOnly, Category = "Scripting | Javascript")
 	static void Bind(FJavascriptMenuBuilder Builder);
 	
 	virtual TSharedRef<SWidget> RebuildWidget();

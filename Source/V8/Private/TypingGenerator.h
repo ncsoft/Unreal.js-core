@@ -38,7 +38,7 @@ struct TypingGeneratorBase
 			ExportEnum(s);
 		}
 	}
-
+	virtual ~TypingGeneratorBase() {}
 	virtual void ExportClass(UClass* source) {}
 	virtual void ExportStruct(UStruct* source) {}
 	virtual void ExportEnum(UEnum* source) {}
@@ -214,7 +214,7 @@ struct TypingGenerator : TypingGeneratorBase
 	TypingGenerator(FJavascriptIsolate& InEnvironment)
 	: Environment(InEnvironment)
 	{}
-
+	virtual ~TypingGenerator() {}
 	FJavascriptIsolate& Environment;
 
 	FString Text;

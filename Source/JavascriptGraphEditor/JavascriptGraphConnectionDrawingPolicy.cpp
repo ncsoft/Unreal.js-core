@@ -147,7 +147,6 @@ void FJavascriptGraphConnectionDrawingPolicy::MakeRotatedBox(FVector2D ArrowDraw
 		ArrowLayerID,
 		FPaintGeometry(ArrowDrawPos, ArrowImage->ImageSize * ZoomFactor, ZoomFactor),
 		ArrowImage,
-		ClippingRect,
 		ESlateDrawEffect::None,
 		AngleInRadians,
 		TOptional<FVector2D>(),

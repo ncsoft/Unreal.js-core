@@ -38,10 +38,6 @@
 #include "Developer/MessageLog/Public/IMessageLogListing.h"
 
 #if WITH_EDITOR
-#include "UnrealEd.h"
-#endif
-
-#if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
 {
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 13

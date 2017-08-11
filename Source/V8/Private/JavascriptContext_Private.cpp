@@ -90,7 +90,7 @@ static void SetFunctionFlags(UFunction* Function, const TArray<FString>& Flags)
 {
 	static struct FKeyword {
 		const TCHAR* Keyword;
-		int32 Flags;
+		EFunctionFlags Flags;
 	} Keywords[] = {
 		{ TEXT("Exec"), FUNC_Exec },
 		{ TEXT("Server"), FUNC_Net | FUNC_NetServer },
@@ -135,7 +135,7 @@ static void SetClassFlags(UClass* Class, const TArray<FString>& Flags)
 {
 	static struct FKeyword {
 		const TCHAR* Keyword;
-		uint64 Flags;
+		EClassFlags Flags;
 	} Keywords[] = {
 		{ TEXT("Abstract"), CLASS_Abstract },
 		{ TEXT("DefaultConfig"), CLASS_DefaultConfig },
@@ -189,7 +189,7 @@ static void SetStructFlags(UScriptStruct* Struct, const TArray<FString>& Flags)
 {
 	static struct FKeyword {
 		const TCHAR* Keyword;
-		uint64 Flags;
+		EStructFlags Flags;
 	} Keywords[] = {
 		{ TEXT("Atomic"), STRUCT_Atomic },
 		{ TEXT("Immutable"), STRUCT_Immutable }
@@ -1878,7 +1878,7 @@ public:
 						FString ParameterWithValue = Parameter;
 						if (!MetadataCppDefaultValue.IsEmpty())
 						{
-							const uint32 ExportFlags = PPF_Localized;
+							const uint32 ExportFlags = PPF_None;
 							auto Buffer = It->ContainerPtrToValuePtr<uint8>(Parms);
 							const TCHAR* Result = It->ImportText(*MetadataCppDefaultValue, Buffer, ExportFlags, NULL);
 							if (Result)
