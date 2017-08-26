@@ -168,6 +168,12 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add("v8_libplatform");
             PublicAdditionalLibraries.Add("v8_nosnapshot");
 
+            if (v8_version[0] >= 6)
+            {
+                PublicAdditionalLibraries.Add("v8_builtins_setup");
+                PublicAdditionalLibraries.Add("v8_builtins_generators");                
+            }
+
             if (ShouldLink_libsampler)
             {
                 PublicAdditionalLibraries.Add("v8_libsampler");
@@ -187,6 +193,12 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add("v8_libplatform");
             PublicAdditionalLibraries.Add("v8_nosnapshot");
 
+            if (v8_version[0] >= 6)
+            {
+                PublicAdditionalLibraries.Add("v8_builtins_setup");
+                PublicAdditionalLibraries.Add("v8_builtins_generators");                
+            }
+
             if (ShouldLink_libsampler)
             {
                 PublicAdditionalLibraries.Add("v8_libsampler");
@@ -205,6 +217,12 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8_libbase.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8_libplatform.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"libv8_nosnapshot.a"));
+
+            if (v8_version[0] >= 6)
+            {
+                PublicAdditionalLibraries.Add("libv8_builtins_setup.a");
+                PublicAdditionalLibraries.Add("libv8_builtins_generators.a");                
+            }
 
             if (ShouldLink_libsampler)
             {
