@@ -18,6 +18,6 @@ else
         (cd ThirdParty/v8; curl -O -L https://github.com/ncsoft/Unreal.js-core/releases/download/$Tag/$ZipFile)
     fi
 
-    (cd ThirdParty/v8; unzip $ZipFile; mv v8-$Version-libs/ lib/)
+    (cd ThirdParty/v8; unzip $ZipFile;)
 fi
 
