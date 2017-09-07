@@ -220,8 +220,8 @@ public class V8 : ModuleRules
 
             if (v8_version[0] >= 6)
             {
-                PublicAdditionalLibraries.Add("libv8_builtins_setup.a");
-                PublicAdditionalLibraries.Add("libv8_builtins_generators.a");                
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_builtins_setup.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_builtins_generators.a"));
             }
 
             if (ShouldLink_libsampler)
