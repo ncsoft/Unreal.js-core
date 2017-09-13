@@ -110,11 +110,12 @@ public:
 	{
 		return platform_->MonotonicallyIncreasingTime();
 	}
-
+#if V8_MAJOR_VERSION > 5
 	v8::TracingController* GetTracingController() override
 	{
 		return platform_->GetTracingController();
 	}
+#endif
 
 	void RunIdleTasks(float Budget)
 	{
