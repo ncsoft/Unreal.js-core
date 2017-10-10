@@ -88,7 +88,7 @@ struct FStructMemoryInstance
 	TSharedPtr<FStructMemoryInstance> Parent;
 
 	// Independent memory buffer
-	TArray<uint8> Buffer;
+	TArray<uint8, TAlignedHeapAllocator<16>> Buffer;
 
 	uint8* GetMemory()
 	{
