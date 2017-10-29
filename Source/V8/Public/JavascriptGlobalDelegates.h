@@ -36,7 +36,7 @@ public:
 	void RedirectorFollowed(const FString& PackageName, UObject* Redirector);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-	void PreGarbageCollect();
+	void PreGarbageCollectDelegate();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void PostGarbageCollect();

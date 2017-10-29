@@ -245,7 +245,7 @@ public:
 			UCanvas* CanvasObject = GetCanvasByName(CanvasObjectName);
 			CanvasObject->Canvas = Canvas;
 
-			CanvasObject->Init(View->UnscaledViewRect.Width(), View->UnscaledViewRect.Height(), const_cast<FSceneView*>(View));
+			CanvasObject->Init(View->UnscaledViewRect.Width(), View->UnscaledViewRect.Height(), const_cast<FSceneView*>(View), Canvas);
 			CanvasObject->ApplySafeZoneTransform();
 
 			Parent->OnDrawHUD.Execute(CanvasObject, this);

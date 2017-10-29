@@ -37,7 +37,7 @@ public class JavascriptEditor : ModuleRules
 				}
             );	// @todo Mac: for some reason CoreUObject and Engine are needed to link in debug on Mac
 
-        if (UEBuildConfiguration.bBuildEditor == true)
+        if (Target.bBuildEditor == true)
         {
             PublicDependencyModuleNames.AddRange(
                     new string[]

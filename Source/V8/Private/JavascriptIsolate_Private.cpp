@@ -903,7 +903,7 @@ public:
 			if (p->Enum)
 			{
 				auto Str = StringFromV8(Value);
-				auto EnumValue = p->Enum->GetIndexByName(FName(*Str), true);
+				auto EnumValue = p->Enum->GetIndexByName(FName(*Str), EGetByNameFlags::None);
 				if (EnumValue == INDEX_NONE)
 				{
 					I.Throw(FString::Printf(TEXT("Enum Text %s for Enum %s failed to resolve to any value"), *Str, *p->Enum->GetName()));
@@ -921,7 +921,7 @@ public:
 		else if (auto p = Cast<UEnumProperty>(Property))
 		{
 			auto Str = StringFromV8(Value);
-			auto EnumValue = p->GetEnum()->GetIndexByName(FName(*Str), true);
+			auto EnumValue = p->GetEnum()->GetIndexByName(FName(*Str), EGetByNameFlags::None);
 			if (EnumValue == INDEX_NONE)
 			{
 				I.Throw(FString::Printf(TEXT("Enum Text %s for Enum %s failed to resolve to any value"), *Str, *p->GetName()));
