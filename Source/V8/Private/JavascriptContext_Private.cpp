@@ -1008,7 +1008,7 @@ public:
 				auto MakeFunction = [&]() {
 					Function = NewObject<UJavascriptGeneratedFunction>(Class, NewFunctionName, RF_Public);
 					Function->JavascriptContext = Context->AsShared();
-					Function->RepOffset = MAX_uint16;
+					//Function->RepOffset = MAX_uint16;
 					Function->ReturnValueOffset = MAX_uint16;
 					Function->FirstPropertyToInit = NULL;
 
@@ -1148,7 +1148,7 @@ public:
 				Class->Children = Function;
 
 				// Add the function to it's owner class function name -> function map
-				Class->AddFunctionToFunctionMap(Function);
+				Class->AddFunctionToFunctionMap(Function, Function->GetFName());
 
 				return true;
 			};

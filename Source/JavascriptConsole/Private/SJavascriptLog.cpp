@@ -15,6 +15,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "OutputDeviceHelper.h"
 #include "UIAction.h"
 #include "MultiBox/MultiBoxBuilder.h"
+#include "SSearchBox.h"
 #include "../../Launch/Resources/Version.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptConsole"
@@ -535,7 +536,7 @@ class FJavascriptLogTextLayoutMarshaller : public FBaseTextLayoutMarshaller
 {
 public:
 
-	static TSharedRef< FJavascriptLogTextLayoutMarshaller > Create(TArray< TSharedPtr<FLogMessage> > InMessages);
+	static TSharedRef< FJavascriptLogTextLayoutMarshaller > Create(TArray< TSharedPtr<FLogMessage> > InMessages, FJavascriptLogFilter* InFilter);
 
 	virtual ~FJavascriptLogTextLayoutMarshaller();
 	
@@ -545,23 +546,39 @@ public:
 
 	bool AppendMessage(const TCHAR* InText, const ELogVerbosity::Type InVerbosity, const FName& InCategory);
 	void ClearMessages();
+
+	void CountMessages();
+
 	int32 GetNumMessages() const;
+	int32 GetNumFilteredMessages();
+
+	void MarkMessagesCacheAsDirty();
 
 protected:
 
-	FJavascriptLogTextLayoutMarshaller(TArray< TSharedPtr<FLogMessage> > InMessages);
+	FJavascriptLogTextLayoutMarshaller(TArray< TSharedPtr<FLogMessage> > InMessages, FJavascriptLogFilter* InFilter);
 
 	void AppendMessageToTextLayout(const TSharedPtr<FLogMessage>& Message);
+	void AppendMessagesToTextLayout(const TArray<TSharedPtr<FLogMessage>>& InMessages);
 
 	/** All log messages to show in the text box */
 	TArray< TSharedPtr<FLogMessage> > Messages;
 
+	/** Holds cached numbers of messages to avoid unnecessary re-filtering */
+	int32 CachedNumMessages;
+
+	/** Flag indicating the messages count cache needs rebuilding */
+	bool bNumMessagesCacheDirty;
+
+	/** Visible messages filter */
+	FJavascriptLogFilter* Filter;
+
 	FTextLayout* TextLayout;
 };
 
-TSharedRef< FJavascriptLogTextLayoutMarshaller > FJavascriptLogTextLayoutMarshaller::Create(TArray< TSharedPtr<FLogMessage> > InMessages)
+TSharedRef< FJavascriptLogTextLayoutMarshaller > FJavascriptLogTextLayoutMarshaller::Create(TArray< TSharedPtr<FLogMessage> > InMessages, FJavascriptLogFilter* InFilter)
 {
-	return MakeShareable(new FJavascriptLogTextLayoutMarshaller(MoveTemp(InMessages)));
+	return MakeShareable(new FJavascriptLogTextLayoutMarshaller(MoveTemp(InMessages), InFilter));
 }
 
 FJavascriptLogTextLayoutMarshaller::~FJavascriptLogTextLayoutMarshaller()
@@ -591,6 +608,12 @@ bool FJavascriptLogTextLayoutMarshaller::AppendMessage(const TCHAR* InText, cons
 		const bool bWasEmpty = Messages.Num() == 0;
 		Messages.Append(NewMessages);
 
+		// Add new message categories to the filter's available log categories
+		for (const auto& NewMessage : NewMessages)
+		{
+			Filter->AddAvailableLogCategory(NewMessage->Category);
+		}
+
 		if(TextLayout)
 		{
 			// If we were previously empty, then we'd have inserted a dummy empty line into the document
@@ -608,6 +631,7 @@ bool FJavascriptLogTextLayoutMarshaller::AppendMessage(const TCHAR* InText, cons
 		}
 		else
 		{
+			MarkMessagesCacheAsDirty();
 			MakeDirty();
 		}
 
@@ -617,17 +641,64 @@ bool FJavascriptLogTextLayoutMarshaller::AppendMessage(const TCHAR* InText, cons
 	return false;
 }
 
-void FJavascriptLogTextLayoutMarshaller::AppendMessageToTextLayout(const TSharedPtr<FLogMessage>& Message)
+void FJavascriptLogTextLayoutMarshaller::AppendMessageToTextLayout(const TSharedPtr<FLogMessage>& InMessage)
 {
-	const FTextBlockStyle& MessageTextStyle = FEditorStyle::Get().GetWidgetStyle<FTextBlockStyle>(Message->Style);
+	if (!Filter->IsMessageAllowed(InMessage))
+	{
+		return;
+	}
 
-	TSharedRef<FString> LineText = Message->Message;
+	// Increment the cached count if we're not rebuilding the log
+	if (!IsDirty())
+	{
+		CachedNumMessages++;
+	}
+
+	const FTextBlockStyle& MessageTextStyle = FEditorStyle::Get().GetWidgetStyle<FTextBlockStyle>(InMessage->Style);
+
+	TSharedRef<FString> LineText = InMessage->Message;
 
 	TArray<TSharedRef<IRun>> Runs;
 	Runs.Add(FSlateTextRun::Create(FRunInfo(), LineText, MessageTextStyle));
 
-	TextLayout->AddLine(FTextLayout::FNewLineData(LineText, Runs));
+	TextLayout->AddLine(FSlateTextLayout::FNewLineData(MoveTemp(LineText), MoveTemp(Runs)));
 }
+
+void FJavascriptLogTextLayoutMarshaller::AppendMessagesToTextLayout(const TArray<TSharedPtr<FLogMessage>>& InMessages)
+{
+	TArray<FTextLayout::FNewLineData> LinesToAdd;
+	LinesToAdd.Reserve(InMessages.Num());
+
+	int32 NumAddedMessages = 0;
+
+	for (const auto& CurrentMessage : InMessages)
+	{
+		if (!Filter->IsMessageAllowed(CurrentMessage))
+		{
+			continue;
+		}
+
+		++NumAddedMessages;
+
+		const FTextBlockStyle& MessageTextStyle = FEditorStyle::Get().GetWidgetStyle<FTextBlockStyle>(CurrentMessage->Style);
+
+		TSharedRef<FString> LineText = CurrentMessage->Message;
+
+		TArray<TSharedRef<IRun>> Runs;
+		Runs.Add(FSlateTextRun::Create(FRunInfo(), LineText, MessageTextStyle));
+
+		LinesToAdd.Emplace(MoveTemp(LineText), MoveTemp(Runs));
+	}
+
+	// Increment the cached message count if the log is not being rebuilt
+	if (!IsDirty())
+	{
+		CachedNumMessages += NumAddedMessages;
+	}
+
+	TextLayout->AddLines(LinesToAdd);
+}
+
 
 void FJavascriptLogTextLayoutMarshaller::ClearMessages()
 {
@@ -635,13 +706,59 @@ void FJavascriptLogTextLayoutMarshaller::ClearMessages()
 	MakeDirty();
 }
 
+void FJavascriptLogTextLayoutMarshaller::CountMessages()
+{
+	// Do not re-count if not dirty
+	if (!bNumMessagesCacheDirty)
+	{
+		return;
+	}
+
+	CachedNumMessages = 0;
+
+	for (const auto& CurrentMessage : Messages)
+	{
+		if (Filter->IsMessageAllowed(CurrentMessage))
+		{
+			CachedNumMessages++;
+		}
+	}
+
+	// Cache re-built, remove dirty flag
+	bNumMessagesCacheDirty = false;
+}
+
 int32 FJavascriptLogTextLayoutMarshaller::GetNumMessages() const
 {
 	return Messages.Num();
 }
 
-FJavascriptLogTextLayoutMarshaller::FJavascriptLogTextLayoutMarshaller(TArray< TSharedPtr<FLogMessage> > InMessages)
+int32 FJavascriptLogTextLayoutMarshaller::GetNumFilteredMessages()
+{
+	// No need to filter the messages if the filter is not set
+	if (!Filter->IsFilterSet())
+	{
+		return GetNumMessages();
+	}
+
+	// Re-count messages if filter changed before we refresh
+	if (bNumMessagesCacheDirty)
+	{
+		CountMessages();
+	}
+
+	return CachedNumMessages;
+}
+
+void FJavascriptLogTextLayoutMarshaller::MarkMessagesCacheAsDirty()
+{
+	bNumMessagesCacheDirty = true;
+}
+
+FJavascriptLogTextLayoutMarshaller::FJavascriptLogTextLayoutMarshaller(TArray< TSharedPtr<FLogMessage> > InMessages, FJavascriptLogFilter* InFilter)
 	: Messages(MoveTemp(InMessages))
+	, CachedNumMessages(0)
+	, Filter(InFilter)
 	, TextLayout(nullptr)
 {
 }
@@ -649,7 +766,13 @@ FJavascriptLogTextLayoutMarshaller::FJavascriptLogTextLayoutMarshaller(TArray< T
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SJavascriptLog::Construct( const FArguments& InArgs )
 {
-	MessagesTextMarshaller = FJavascriptLogTextLayoutMarshaller::Create(MoveTemp(InArgs._Messages));
+	// Build list of available log categories from historical logs
+	for (const auto& Message : InArgs._Messages)
+	{
+		Filter.AddAvailableLogCategory(Message->Category);
+	}
+
+	MessagesTextMarshaller = FJavascriptLogTextLayoutMarshaller::Create(InArgs._Messages, &Filter);
 
 	MessagesTextBox = SNew(SMultiLineEditableTextBox)
 		.Style(FEditorStyle::Get(), "Log.TextBox")
@@ -662,27 +785,93 @@ void SJavascriptLog::Construct( const FArguments& InArgs )
 		.ContextMenuExtender(this, &SJavascriptLog::ExtendTextBoxMenu);
 
 	ChildSlot
-	[
-		SNew(SVerticalBox)
+		[
+			SNew(SVerticalBox)
 
-			// Output log area
-			+SVerticalBox::Slot()
-			.FillHeight(1)
-			[
-				MessagesTextBox.ToSharedRef()
-			]
-			// The console input boxa
-			+SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(FMargin(0.0f, 4.0f, 0.0f, 0.0f))
-			[
-				SNew( SJavascriptConsoleInputBox )
-				.OnConsoleCommandExecuted(this, &SJavascriptLog::OnConsoleCommandExecuted)
+			// Console output and filters
+		+ SVerticalBox::Slot()
+		[
+			SNew(SBorder)
+			.Padding(3)
+		.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
+		[
+			SNew(SVerticalBox)
 
-				// Always place suggestions above the input line for the output log widget
-				.SuggestionListPlacement( MenuPlacement_AboveAnchor )
-			]
+			// Output Log Filter
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(FMargin(0.0f, 0.0f, 0.0f, 4.0f))
+		[
+			SNew(SHorizontalBox)
+
+			+ SHorizontalBox::Slot()
+		.AutoWidth()
+		[
+			SNew(SComboButton)
+			.ComboButtonStyle(FEditorStyle::Get(), "GenericFilters.ComboButtonStyle")
+		.ForegroundColor(FLinearColor::White)
+		.ContentPadding(0)
+		.ToolTipText(LOCTEXT("AddFilterToolTip", "Add an output log filter."))
+		.OnGetMenuContent(this, &SJavascriptLog::MakeAddFilterMenu)
+		.HasDownArrow(true)
+		.ContentPadding(FMargin(1, 0))
+		.ButtonContent()
+		[
+			SNew(SHorizontalBox)
+
+			+ SHorizontalBox::Slot()
+		.AutoWidth()
+		[
+			SNew(STextBlock)
+			.TextStyle(FEditorStyle::Get(), "GenericFilters.TextStyle")
+		.Font(FEditorStyle::Get().GetFontStyle("FontAwesome.9"))
+		.Text(FText::FromString(FString(TEXT("\xf0b0"))) /*fa-filter*/)
+		]
+
+	+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.Padding(2, 0, 0, 0)
+		[
+			SNew(STextBlock)
+			.TextStyle(FEditorStyle::Get(), "GenericFilters.TextStyle")
+		.Text(LOCTEXT("Filters", "Filters"))
+		]
+		]
+		]
+
+	+ SHorizontalBox::Slot()
+		.Padding(4, 1, 0, 0)
+		[
+			SAssignNew(FilterTextBox, SSearchBox)
+			.HintText(LOCTEXT("SearchLogHint", "Search Log"))
+		.OnTextChanged(this, &SJavascriptLog::OnFilterTextChanged)
+		.OnTextCommitted(this, &SJavascriptLog::OnFilterTextCommitted)
+		.DelayChangeNotificationsWhileTyping(true)
+		]
+		]
+
+	// Output log area
+	+ SVerticalBox::Slot()
+		.FillHeight(1)
+		[
+			MessagesTextBox.ToSharedRef()
+		]
+		]
+		]
+
+	// The console input box
+	+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(FMargin(0.0f, 4.0f, 0.0f, 0.0f))
+		[
+			SNew(SJavascriptConsoleInputBox)
+			.OnConsoleCommandExecuted(this, &SJavascriptLog::OnConsoleCommandExecuted)
+
+		// Always place suggestions above the input line for the output log widget
+		.SuggestionListPlacement(MenuPlacement_AboveAnchor)
+		]
 	];
+
 	
 	GLog->AddOutputDevice(this);
 
@@ -781,16 +970,50 @@ bool SJavascriptLog::CreateLogMessages( const TCHAR* V, ELogVerbosity::Type Verb
 		};
 
 		bool bIsFirstLineInMessage = true;
+		//for (const FTextRange& LineRange : LineRanges)
+		//{
+		//	if (!LineRange.IsEmpty())
+		//	{
+		//		FString Line = CurrentLogDump.Mid(LineRange.BeginIndex, LineRange.Len());
+		//		Line = Line.ConvertTabsToSpaces(4);
+		//		
+		//		OutMessages.Add(MakeShareable(new FLogMessage(MakeShareable(new FString((bIsFirstLineInMessage) ? FormatLogLine(Verbosity, Category, *Line) : Line)), Style)));
+
+		//		bIsFirstLineInMessage = false;
+		//	}
+		//}
 		for (const FTextRange& LineRange : LineRanges)
 		{
 			if (!LineRange.IsEmpty())
 			{
 				FString Line = CurrentLogDump.Mid(LineRange.BeginIndex, LineRange.Len());
 				Line = Line.ConvertTabsToSpaces(4);
-				
-				OutMessages.Add(MakeShareable(new FLogMessage(MakeShareable(new FString((bIsFirstLineInMessage) ? FormatLogLine(Verbosity, Category, *Line) : Line)), Style)));
 
-				bIsFirstLineInMessage = false;
+				// Hard-wrap lines to avoid them being too long
+				static const int32 HardWrapLen = 360;
+				for (int32 CurrentStartIndex = 0; CurrentStartIndex < Line.Len();)
+				{
+					int32 HardWrapLineLen = 0;
+					if (bIsFirstLineInMessage)
+					{
+						FString MessagePrefix = FormatLogLine(Verbosity, Category, nullptr);
+
+						HardWrapLineLen = FMath::Min(HardWrapLen - MessagePrefix.Len(), Line.Len() - CurrentStartIndex);
+						FString HardWrapLine = Line.Mid(CurrentStartIndex, HardWrapLineLen);
+
+						OutMessages.Add(MakeShared<FLogMessage>(MakeShared<FString>(MessagePrefix + HardWrapLine), Verbosity, Category, Style));
+					}
+					else
+					{
+						HardWrapLineLen = FMath::Min(HardWrapLen, Line.Len() - CurrentStartIndex);
+						FString HardWrapLine = Line.Mid(CurrentStartIndex, HardWrapLineLen);
+
+						OutMessages.Add(MakeShared<FLogMessage>(MakeShared<FString>(MoveTemp(HardWrapLine)), Verbosity, Category, Style));
+					}
+
+					bIsFirstLineInMessage = false;
+					CurrentStartIndex += HardWrapLineLen;
+				}
 			}
 		}
 
@@ -857,6 +1080,304 @@ void SJavascriptLog::RequestForceScroll()
 		MessagesTextBox->ScrollTo(FTextLocation(MessagesTextMarshaller->GetNumMessages() - 1));
 		bIsUserScrolled = false;
 	}
+}
+
+
+void SJavascriptLog::Refresh()
+{
+	// Re-count messages if filter changed before we refresh
+	MessagesTextMarshaller->CountMessages();
+
+	MessagesTextBox->GoTo(FTextLocation(0));
+	MessagesTextMarshaller->MakeDirty();
+	MessagesTextBox->Refresh();
+	RequestForceScroll();
+}
+
+void SJavascriptLog::OnFilterTextChanged(const FText& InFilterText)
+{
+	if (Filter.GetFilterText().ToString().Equals(InFilterText.ToString(), ESearchCase::CaseSensitive))
+	{
+		// nothing to do
+		return;
+	}
+
+	// Flag the messages count as dirty
+	MessagesTextMarshaller->MarkMessagesCacheAsDirty();
+
+	// Set filter phrases
+	Filter.SetFilterText(InFilterText);
+
+	// Report possible syntax errors back to the user
+	FilterTextBox->SetError(Filter.GetSyntaxErrors());
+
+	// Repopulate the list to show only what has not been filtered out.
+	Refresh();
+
+	// Apply the new search text
+	MessagesTextBox->BeginSearch(InFilterText);
+}
+
+void SJavascriptLog::OnFilterTextCommitted(const FText& InFilterText, ETextCommit::Type InCommitType)
+{
+	OnFilterTextChanged(InFilterText);
+}
+
+TSharedRef<SWidget> SJavascriptLog::MakeAddFilterMenu()
+{
+	FMenuBuilder MenuBuilder(/*bInShouldCloseWindowAfterMenuSelection=*/true, nullptr);
+
+	MenuBuilder.BeginSection("OutputLogVerbosityEntries", LOCTEXT("OutputLogVerbosityHeading", "Verbosity"));
+	{
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("ShowMessages", "Messages"),
+			LOCTEXT("ShowMessages_Tooltip", "Filter the Output Log to show messages"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateSP(this, &SJavascriptLog::VerbosityLogs_Execute),
+				FCanExecuteAction::CreateLambda([] { return true; }),
+				FIsActionChecked::CreateSP(this, &SJavascriptLog::VerbosityLogs_IsChecked)),
+			NAME_None,
+			EUserInterfaceActionType::ToggleButton
+		);
+
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("ShowWarnings", "Warnings"),
+			LOCTEXT("ShowWarnings_Tooltip", "Filter the Output Log to show warnings"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateSP(this, &SJavascriptLog::VerbosityWarnings_Execute),
+				FCanExecuteAction::CreateLambda([] { return true; }),
+				FIsActionChecked::CreateSP(this, &SJavascriptLog::VerbosityWarnings_IsChecked)),
+			NAME_None,
+			EUserInterfaceActionType::ToggleButton
+		);
+
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("ShowErrors", "Errors"),
+			LOCTEXT("ShowErrors_Tooltip", "Filter the Output Log to show errors"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateSP(this, &SJavascriptLog::VerbosityErrors_Execute),
+				FCanExecuteAction::CreateLambda([] { return true; }),
+				FIsActionChecked::CreateSP(this, &SJavascriptLog::VerbosityErrors_IsChecked)),
+			NAME_None,
+			EUserInterfaceActionType::ToggleButton
+		);
+	}
+	MenuBuilder.EndSection();
+
+	MenuBuilder.BeginSection("OutputLogMiscEntries", LOCTEXT("OutputLogMiscHeading", "Miscellaneous"));
+	{
+		MenuBuilder.AddSubMenu(
+			LOCTEXT("Categories", "Categories"),
+			LOCTEXT("SelectCategoriesToolTip", "Select Categories to display."),
+			FNewMenuDelegate::CreateSP(this, &SJavascriptLog::MakeSelectCategoriesSubMenu)
+		);
+	}
+
+	return MenuBuilder.MakeWidget();
+}
+
+void SJavascriptLog::MakeSelectCategoriesSubMenu(FMenuBuilder& MenuBuilder)
+{
+	MenuBuilder.BeginSection("OutputLogCategoriesEntries");
+	{
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("ShowAllCategories", "Show All"),
+			LOCTEXT("ShowAllCategories_Tooltip", "Filter the Output Log to show all categories"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateSP(this, &SJavascriptLog::CategoriesShowAll_Execute),
+				FCanExecuteAction::CreateLambda([] { return true; }),
+				FIsActionChecked::CreateSP(this, &SJavascriptLog::CategoriesShowAll_IsChecked)),
+			NAME_None,
+			EUserInterfaceActionType::ToggleButton
+		);
+
+		for (const FName Category : Filter.GetAvailableLogCategories())
+		{
+			MenuBuilder.AddMenuEntry(
+				FText::AsCultureInvariant(Category.ToString()),
+				FText::Format(LOCTEXT("Category_Tooltip", "Filter the Output Log to show Category: %s"), FText::AsCultureInvariant(Category.ToString())),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateSP(this, &SJavascriptLog::CategoriesSingle_Execute, Category),
+					FCanExecuteAction::CreateLambda([] { return true; }),
+					FIsActionChecked::CreateSP(this, &SJavascriptLog::CategoriesSingle_IsChecked, Category)),
+				NAME_None,
+				EUserInterfaceActionType::ToggleButton
+			);
+		}
+	}
+	MenuBuilder.EndSection();
+}
+
+bool SJavascriptLog::VerbosityLogs_IsChecked() const
+{
+	return Filter.bShowLogs;
+}
+
+bool SJavascriptLog::VerbosityWarnings_IsChecked() const
+{
+	return Filter.bShowWarnings;
+}
+
+bool SJavascriptLog::VerbosityErrors_IsChecked() const
+{
+	return Filter.bShowErrors;
+}
+
+void SJavascriptLog::VerbosityLogs_Execute()
+{
+	Filter.bShowLogs = !Filter.bShowLogs;
+
+	// Flag the messages count as dirty
+	MessagesTextMarshaller->MarkMessagesCacheAsDirty();
+
+	Refresh();
+}
+
+void SJavascriptLog::VerbosityWarnings_Execute()
+{
+	Filter.bShowWarnings = !Filter.bShowWarnings;
+
+	// Flag the messages count as dirty
+	MessagesTextMarshaller->MarkMessagesCacheAsDirty();
+
+	Refresh();
+}
+
+void SJavascriptLog::VerbosityErrors_Execute()
+{
+	Filter.bShowErrors = !Filter.bShowErrors;
+
+	// Flag the messages count as dirty
+	MessagesTextMarshaller->MarkMessagesCacheAsDirty();
+
+	Refresh();
+}
+
+bool SJavascriptLog::CategoriesShowAll_IsChecked() const
+{
+	return Filter.bShowAllCategories;
+}
+
+bool SJavascriptLog::CategoriesSingle_IsChecked(FName InName) const
+{
+	return Filter.IsLogCategoryEnabled(InName);
+}
+
+void SJavascriptLog::CategoriesShowAll_Execute()
+{
+	Filter.bShowAllCategories = !Filter.bShowAllCategories;
+
+	Filter.ClearSelectedLogCategories();
+	if (Filter.bShowAllCategories)
+	{
+		for (const auto& AvailableCategory : Filter.GetAvailableLogCategories())
+		{
+			Filter.ToggleLogCategory(AvailableCategory);
+		}
+	}
+
+	// Flag the messages count as dirty
+	MessagesTextMarshaller->MarkMessagesCacheAsDirty();
+
+	Refresh();
+}
+
+void SJavascriptLog::CategoriesSingle_Execute(FName InName)
+{
+	Filter.ToggleLogCategory(InName);
+
+	// Flag the messages count as dirty
+	MessagesTextMarshaller->MarkMessagesCacheAsDirty();
+
+	Refresh();
+}
+
+
+bool FJavascriptLogFilter::IsMessageAllowed(const TSharedPtr<FLogMessage>& Message)
+{
+	// Filter Verbosity
+	{
+		if (Message->Verbosity == ELogVerbosity::Error && !bShowErrors)
+		{
+			return false;
+		}
+
+		if (Message->Verbosity == ELogVerbosity::Warning && !bShowWarnings)
+		{
+			return false;
+		}
+
+		if (Message->Verbosity != ELogVerbosity::Error && Message->Verbosity != ELogVerbosity::Warning && !bShowLogs)
+		{
+			return false;
+		}
+	}
+
+	// Filter by Category
+	{
+		if (!IsLogCategoryEnabled(Message->Category))
+		{
+			return false;
+		}
+	}
+
+	// Filter search phrase
+	{
+		if (!TextFilterExpressionEvaluator.TestTextFilter(FJSLogFilter_TextFilterExpressionContext(*Message)))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void FJavascriptLogFilter::AddAvailableLogCategory(FName& LogCategory)
+{
+	// Use an insert-sort to keep AvailableLogCategories alphabetically sorted
+	int32 InsertIndex = 0;
+	for (InsertIndex = AvailableLogCategories.Num() - 1; InsertIndex >= 0; --InsertIndex)
+	{
+		FName CheckCategory = AvailableLogCategories[InsertIndex];
+		// No duplicates
+		if (CheckCategory == LogCategory)
+		{
+			return;
+		}
+		else if (CheckCategory.Compare(LogCategory) < 0)
+		{
+			break;
+		}
+	}
+	AvailableLogCategories.Insert(LogCategory, InsertIndex + 1);
+	if (bShowAllCategories)
+	{
+		ToggleLogCategory(LogCategory);
+	}
+}
+
+void FJavascriptLogFilter::ToggleLogCategory(const FName& LogCategory)
+{
+	int32 FoundIndex = SelectedLogCategories.Find(LogCategory);
+	if (FoundIndex == INDEX_NONE)
+	{
+		SelectedLogCategories.Add(LogCategory);
+	}
+	else
+	{
+		SelectedLogCategories.RemoveAt(FoundIndex, /*Count=*/1, /*bAllowShrinking=*/false);
+	}
+}
+
+bool FJavascriptLogFilter::IsLogCategoryEnabled(const FName& LogCategory) const
+{
+	return SelectedLogCategories.Contains(LogCategory);
+}
+
+void FJavascriptLogFilter::ClearSelectedLogCategories()
+{
+	// No need to churn memory each time the selected categories are cleared
+	SelectedLogCategories.Reset(SelectedLogCategories.GetAllocatedSize());
 }
 
 #undef LOCTEXT_NAMESPACE

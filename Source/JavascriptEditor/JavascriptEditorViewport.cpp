@@ -156,7 +156,7 @@ public:
             }
             
             CanvasOwner.Canvas->Canvas = &Canvas;
-            CanvasOwner.Canvas->Init(View.UnscaledViewRect.Width(), View.UnscaledViewRect.Height(), const_cast<FSceneView*>(&View));
+            CanvasOwner.Canvas->Init(View.UnscaledViewRect.Width(), View.UnscaledViewRect.Height(), const_cast<FSceneView*>(&View), &Canvas);
             CanvasOwner.Canvas->ApplySafeZoneTransform();
             
             Widget->OnDrawCanvas.Execute(CanvasOwner.Canvas, Widget.Get());

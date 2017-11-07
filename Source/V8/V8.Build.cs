@@ -49,10 +49,10 @@ public class V8 : ModuleRules
 
         PublicDependencyModuleNames.AddRange(new string[] 
         { 
-            "Core", "CoreUObject", "Engine", "Sockets"
+            "Core", "CoreUObject", "Engine", "Sockets", "ApplicationCore"
         });
 
-        if (UEBuildConfiguration.bBuildEditor)
+        if (Target.bBuildEditor)
         {
             PublicDependencyModuleNames.AddRange(new string[]
             {
@@ -67,7 +67,7 @@ public class V8 : ModuleRules
 
         HackWebSocketIncludeDir(Target);
 
-        if (UEBuildConfiguration.bBuildEditor)
+        if (Target.bBuildEditor)
         {
             PrivateDependencyModuleNames.AddRange(new string[] 
             { 
@@ -82,14 +82,14 @@ public class V8 : ModuleRules
 
     private void HackWebSocketIncludeDir(ReadOnlyTargetRules Target)
     {
-        string WebsocketPath = Path.Combine(UEBuildConfiguration.UEThirdPartySourceDirectory, "libWebSockets", "libwebsockets");
+        string WebsocketPath = Path.Combine(Target.UEThirdPartySourceDirectory, "libWebSockets", "libwebsockets");
         string PlatformSubdir = (Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32") ? "Win32" :
         	Target.Platform.ToString();
         
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Win32 ||
 			(Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32"))
         {
-            PlatformSubdir = Path.Combine(PlatformSubdir, WindowsPlatform.GetVisualStudioCompilerVersionName());
+            PlatformSubdir = Path.Combine(PlatformSubdir, Target.WindowsPlatform.GetVisualStudioCompilerVersionName());
 		}        
 
         PrivateIncludePaths.Add(Path.Combine(WebsocketPath, "include"));

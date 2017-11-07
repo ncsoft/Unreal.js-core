@@ -13,7 +13,7 @@ public class JavascriptHttp : ModuleRules
             "Http"
         });
 
-        if (UEBuildConfiguration.bBuildEditor == true)
+        if (Target.bBuildEditor == true)
         {
             PrivateDependencyModuleNames.Add("UnrealEd");
         }

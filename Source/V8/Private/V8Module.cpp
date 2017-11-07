@@ -201,7 +201,7 @@ public:
 
 	static FString GetPluginScriptsDirectory4()
 	{
-		return FPaths::GamePluginsDir() / "UnrealJS/Content/Scripts/";
+		return FPaths::ProjectPluginsDir() / "UnrealJS/Content/Scripts/";
 	}
 
 	static FString GetPakPluginScriptsDirectory()
@@ -211,7 +211,7 @@ public:
 
 	static FString GetGameScriptsDirectory()
 	{
-		return FPaths::GameContentDir() / "Scripts/";
+		return FPaths::ProjectContentDir() / "Scripts/";
 	}
 
 	virtual void AddGlobalScriptSearchPath(const FString& Path) override
