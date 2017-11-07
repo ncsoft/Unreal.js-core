@@ -996,7 +996,7 @@ bool SJavascriptLog::CreateLogMessages( const TCHAR* V, ELogVerbosity::Type Verb
 					int32 HardWrapLineLen = 0;
 					if (bIsFirstLineInMessage)
 					{
-						FString MessagePrefix = FormatLogLine(Verbosity, Category, *Line);
+						FString MessagePrefix = FormatLogLine(Verbosity, Category, nullptr);
 
 						HardWrapLineLen = FMath::Min(HardWrapLen - MessagePrefix.Len(), Line.Len() - CurrentStartIndex);
 						FString HardWrapLine = Line.Mid(CurrentStartIndex, HardWrapLineLen);
