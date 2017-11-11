@@ -241,11 +241,11 @@ struct TypingGenerator : TypingGeneratorBase
 
 		
 
-		auto MaxStringLiteralEnumValue = source->GetMaxEnumValue();
+		auto EnumCount = source->NumEnums();
 
 		TSet<FString> StringLiteralVisited;
 
-		for (decltype(MaxStringLiteralEnumValue) Index = 0; Index < MaxStringLiteralEnumValue; ++Index)
+		for (decltype(EnumCount) Index = 0; Index < EnumCount; ++Index)
 		{
 
 			auto name = source->GetNameStringByIndex(Index);
@@ -270,11 +270,9 @@ struct TypingGenerator : TypingGeneratorBase
 		w.push(enumName);
 		w.push(" : { ");
 
-		auto MaxEnumValue = source->GetMaxEnumValue();
-
 		TSet<FString> Visited;
 
-		for (decltype(MaxEnumValue) Index = 0; Index < MaxEnumValue; ++Index)
+		for (decltype(EnumCount) Index = 0; Index < EnumCount; ++Index)
 		{
 			auto name = source->GetNameStringByIndex(Index);
 
