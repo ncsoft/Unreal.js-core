@@ -1057,6 +1057,12 @@ public:
 	{
 		FIsolateHelper I(isolate_);
 
+		auto fileManagerCwd = [](const FunctionCallbackInfo<Value>& info)
+		{
+			info.GetReturnValue().Set(V8_String(info.GetIsolate(), IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(L"."))); // FPaths::ProjectDir()
+        };
+		global_templ->Set(I.Keyword("$cwd"), I.FunctionTemplate(fileManagerCwd));
+
 #if WITH_EDITOR
 		auto exec_editor = [](const FunctionCallbackInfo<Value>& info) 
 		{
