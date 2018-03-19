@@ -1,5 +1,7 @@
 #pragma once
 
+#include "v8.h"
+
 enum class EPropertyOwner
 {
 	None,

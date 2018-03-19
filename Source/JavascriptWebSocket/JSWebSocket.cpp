@@ -5,6 +5,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #if WITH_JSWEBSOCKET
 
 #include "JSWebSocket.h"
+#include "IPAddress.h"
 #include "JavascriptWebSocketModule.h"
 
 uint8 PREPADDING_JS[LWS_PRE];

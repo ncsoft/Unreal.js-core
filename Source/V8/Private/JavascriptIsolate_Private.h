@@ -1,6 +1,9 @@
 #pragma once
 
+#include "v8.h"
+
 struct FStructMemoryInstance;
+struct IPropertyOwner;
 class FJavascriptIsolate;
 
 struct FPendingClassConstruction

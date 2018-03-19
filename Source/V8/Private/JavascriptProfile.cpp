@@ -3,6 +3,7 @@
 #include "Translator.h"
 #include "Helpers.h"
 #include "JavascriptLibrary.h"
+#include "v8-profiler.h"
 
 using namespace v8;
 

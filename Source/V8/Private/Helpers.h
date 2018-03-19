@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Translator.h"
+#include "v8.h"
+
 struct FIsolateHelper
 {
 	v8::Isolate* isolate_;

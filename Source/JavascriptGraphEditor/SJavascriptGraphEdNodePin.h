@@ -21,9 +21,11 @@ protected:
 	virtual EVisibility GetDefaultValueVisibility() const;
 
 	virtual FSlateColor GetPinColor() const override;
-	// Begin SGraphPin interface
-	// virtual TSharedRef<SWidget>    GetDefaultValueWidget() override;
-	// End SGraphPin interface
+	// SWidget interface
+	virtual void OnMouseLeave(const FPointerEvent& MouseEvent) override;
+	// End of SWidget interface
 
 	const FSlateBrush* GetPinBorder() const;
+
+	EVisibility GetPinVisiblity() const;
 };

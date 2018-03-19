@@ -93,6 +93,10 @@ public:
 
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnEdNodeAction, UJavascriptGraphEdNode*, Node);
 
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FText, FOnGetText, UJavascriptGraphEdNode*, Node);
+
+	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSetText, UJavascriptGraphEdNode*, Node, FText, String);
+
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FOnCreateAutomaticConversionNodeAndConnections, FJavascriptEdGraphPin, A, FJavascriptEdGraphPin, B);
 	
 	/** Delegate for constructing a UWidget based on a UObject */
@@ -103,10 +107,10 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_RetVal(bool, FOnGetBoolean);
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnGetBooleanWidget, UJavascriptGraphEdNode*, Instance);
+
+	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FOnGetBooleanMoveTo, UJavascriptGraphEdNode*, Instance, const FVector2D&, NewPosition);
 	
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FName, FOnGetSlateBrushName, bool, bHovered, FJavascriptEdGraphPin, Pin);
-
-	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnMoveTo, UJavascriptGraphEdNode*, Instance, const FVector2D&, NewPosition);
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FJavascriptPerformSecondPassLayoutContainer, FOnPerformSecondPassLayout, UJavascriptGraphEdNode*, Instance);
 	
@@ -122,6 +126,10 @@ public:
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FSlateColor, FOnGetPinColor, bool, bHovered, FJavascriptEdGraphPin, Pin);
 
+	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnMouseEvent, UJavascriptGraphEdNode*, Instance, const FGeometry&, MyGeometry);
+	
+	DECLARE_DYNAMIC_DELEGATE_FourParams(FOnMouseEventAdvanced, UJavascriptGraphEdNode*, Instance, FVector2D, Delta, bool, bUserIsDragging, int32, MouseZone);
+	
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetPinColor OnGetPinColor;
 
@@ -144,13 +152,22 @@ public:
 	FOnGetPins OnMouseLeave;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnMouseEventAdvanced OnMouseMove;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnMouseEvent OnMouseButtonDown;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnMouseEvent OnMouseButtonUp;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnPerformSecondPassLayout OnPerformSecondPassLayout;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetBooleanWidget OnRequiresSecondPassLayout;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnGetBooleanWidget OnSkipMoveTo;
+	FOnGetBooleanMoveTo OnMoveTo;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnTakeCustomContentWidget OnTakeCustomContentWidget;
@@ -226,6 +243,24 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnDetermineLinkGeometry OnDetermineLinkGeometry;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetText OnGetNodeComment;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnSetText OnSetNodeComment;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetBooleanWidget OnIsNodeComment;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnEdNodeAction OnEndUserInteraction;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetBooleanWidget OnCreateOutputSideAddButton;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnEdNodeAction OnAddPinByAddButton;
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void BreakPinLinks(FJavascriptEdGraphPin TargetPin, bool bSendsNodeNotifcation);

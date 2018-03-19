@@ -1,6 +1,7 @@
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptTestLibrary.h"
+#include "Engine/Engine.h"
 #include "Misc/AutomationTest.h"
 
 #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
@@ -203,6 +204,13 @@ void UJavascriptTestLibrary::DestroyWorld(UWorld* World)
 #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 	GEngine->DestroyWorldContext(World);
 	World->DestroyWorld(false);
+#endif
+}
+
+void UJavascriptTestLibrary::DestroyUObject(UObject* Object)
+{
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	Object->ConditionalBeginDestroy();
 #endif
 }
 

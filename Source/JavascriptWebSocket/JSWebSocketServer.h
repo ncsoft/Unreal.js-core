@@ -4,6 +4,8 @@
 // This uses https://libwebsockets.org/trac/libwebsockets 
 #pragma  once
 
+#include "JavascriptWebSocketModule.h"
+
 class FJavascriptWebSocketServer
 {
 public:

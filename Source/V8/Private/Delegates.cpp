@@ -5,6 +5,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "Translator.h"
 #include "JavascriptStats.h"
 #include "UObject/GCObject.h"
+#include "V8PCH.h"
 
 using namespace v8;
 

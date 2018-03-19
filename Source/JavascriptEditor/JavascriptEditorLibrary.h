@@ -378,6 +378,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static FJavascriptUICommandList GetLevelEditorActions();
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void SetCustomDetailViewWidget(FJavascriptSlateWidget UserWidget);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void AddExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender);
 	
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")

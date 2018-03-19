@@ -41,6 +41,8 @@ typedef FTickableGameObject FTickableAnyObject;
 #include "Translator.h"
 #include "IV8.h"
 
+using namespace v8;
+
 namespace {
 	class AgentImpl : public v8_inspector::V8Inspector::Channel, public TSharedFromThis<AgentImpl>
 	{

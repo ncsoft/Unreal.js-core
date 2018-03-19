@@ -1,6 +1,9 @@
 #pragma once
 
+#include "v8.h"
+
 struct FStructMemoryInstance;
+class FJavascriptIsolate;
 
 struct FJavascriptContext : TSharedFromThis<FJavascriptContext>
 {

@@ -1,4 +1,5 @@
 #include "JavascriptEditorEngineLibrary.h"
+#include "AssetToolsModule.h"
 #include "JavascriptContext.h"
 #include "ObjectTools.h"
 #include "Engine/Engine.h"

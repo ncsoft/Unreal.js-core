@@ -6,6 +6,7 @@
 #define WITH_KISSFFT 0
 #endif
 
+#include "AssetRegistryModule.h"
 #include "Editor/LandscapeEditor/Private/LandscapeEdModeTools.h"
 #include "JavascriptContext.h"
 #include "DynamicMeshBuilder.h"
@@ -33,6 +34,8 @@
 #include "Engine/LevelStreaming.h"
 #include "VisualLogger/VisualLogger.h"
 #include "JavascriptUICommands.h"
+#include "WorkspaceMenuStructure.h"
+#include "WorkspaceMenuStructureModule.h"
 
 #include "Developer/MessageLog/Public/MessageLogModule.h"
 #include "Developer/MessageLog/Public/IMessageLogListing.h"
@@ -216,7 +219,11 @@ bool UJavascriptEditorLibrary::IsAssetLoaded(const FJavascriptAssetData& AssetDa
 
 bool UJavascriptEditorLibrary::EditorDestroyActor(UWorld* World, AActor* Actor, bool bShouldModifyLevel)
 {
-	return World->EditorDestroyActor(Actor, bShouldModifyLevel);
+	if (World && Actor)
+	{
+		return World->EditorDestroyActor(Actor, bShouldModifyLevel);
+	}
+	return false;
 }
 
 void UJavascriptEditorLibrary::SetIsTemporarilyHiddenInEditor(AActor* Actor, bool bIsHidden)
@@ -644,6 +651,18 @@ FJavascriptUICommandList UJavascriptEditorLibrary::GetLevelEditorActions()
 	return CommandList;
 }
 
+void UJavascriptEditorLibrary::SetCustomDetailViewWidget(FJavascriptSlateWidget UserWidget)
+{
+	FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
+	if (UserWidget.Widget.IsValid())
+	{
+		if (LevelEditor.OnCustomDetailViewWidget().IsBound())
+		{
+			LevelEditor.OnCustomDetailViewWidget().Unbind();
+		}
+		LevelEditor.OnCustomDetailViewWidget().BindLambda([UserWidget]() { return UserWidget.Widget; });
+	}
+}
 
 void UJavascriptEditorLibrary::AddExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender)
 {
@@ -737,7 +756,7 @@ FString UJavascriptEditorLibrary::ExportNavigation(UWorld* InWorld, FString Name
 	{
 		UWorld::InitializationValues IVS;
 		IVS.EnableTraceCollision(true);
-		IVS.CreateNavigation(false);
+		IVS.CreateNavigation(true);
 
 		InWorld->InitWorld(IVS);
 		InWorld->PersistentLevel->UpdateModelComponents();
@@ -757,7 +776,7 @@ FString UJavascriptEditorLibrary::ExportNavigation(UWorld* InWorld, FString Name
 	if (InWorld->GetNavigationSystem())
 	{
 		InWorld->GetNavigationSystem()->Build();
-		if (const ANavigationData* NavData = InWorld->GetNavigationSystem()->GetMainNavData())
+		if (const ANavigationData* NavData = InWorld->GetNavigationSystem()->GetMainNavData(FNavigationSystem::ECreateIfEmpty::Create))
 		{
 			if (const FNavDataGenerator* Generator = NavData->GetGenerator())
 			{

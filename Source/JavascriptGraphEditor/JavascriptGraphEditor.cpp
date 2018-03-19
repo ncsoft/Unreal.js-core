@@ -2,6 +2,7 @@
 #include "EdGraph/EdGraphNode.h"
 #include "EdGraphUtilities.h"
 #include "IJavascriptGraphEditor.h"
+#include "JavascriptGraphEdNode.h"
 
 DEFINE_LOG_CATEGORY(JavascriptGraphEditor)
 

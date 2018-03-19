@@ -129,10 +129,9 @@ void UJavascriptEditorGlobalDelegates::UnbindAll()
 void UJavascriptEditorGlobalDelegates::Unbind(FString Key)
 {
 	auto Handle = Handles[Key];
-
-	auto& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();
+	
 #define OP_REFLECT(x) else if (Key == #x) { FEditorDelegates::x.Remove(Handle); }
-#define OP_REFLECT_ASSETREGISTRY(x) else if (Key == #x) { AssetRegistry.x().Remove(Handle); }
+#define OP_REFLECT_ASSETREGISTRY(x) else if (Key == #x) { if (FModuleManager::Get().IsModuleLoaded(TEXT("AssetRegistry"))) { FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get().x().Remove(Handle); } }
 #define OP_REFLECT_EDITORENGINE(x) else if (Key == #x) { Cast<UEditorEngine>(GEngine)->x().Remove(Handle); }
 #define OP_REFLECT_SUPPORT(x) else if (Key == #x) { FEditorSupportDelegates::x.Remove(Handle); }
 #define OP_REFLECT_GAME(x) else if (Key == #x) { Handle = FGameDelegates::Get().Get##x().AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }

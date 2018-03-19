@@ -1,10 +1,9 @@
 #pragma once
 
 #include "JavascriptEditorLibrary.h"
-#if WITH_EDITOR
-#include "EditorModeManager.h"
-#endif
 #include "JavascriptEdModeLibrary.generated.h"
+
+class FEdMode;
 
 // Extended axis enum for more specialized usage
 USTRUCT(BlueprintType)

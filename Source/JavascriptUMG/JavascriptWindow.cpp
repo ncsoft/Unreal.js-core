@@ -31,7 +31,7 @@ TSharedRef<SWidget> UJavascriptWindow::RebuildWidget()
 {
 	auto Content = (GetChildrenCount() > 0) ? GetContentSlot()->Content : nullptr;
 
-	return SNew(SWindow)
+	MyWindow = SNew(SWindow)
 		.Type((EWindowType)Type)
 		.Style(&FCoreStyle::Get().GetWidgetStyle<FWindowStyle>("Window"))
 		.Title(Title)
@@ -58,6 +58,8 @@ TSharedRef<SWidget> UJavascriptWindow::RebuildWidget()
 			[
 				Content == nullptr ? SNullWidget::NullWidget : Content->TakeWidget()
 			];
+
+	return MyWindow.ToSharedRef();
 }
 
 void UJavascriptWindow::MoveWindowTo(FVector2D NewPosition)

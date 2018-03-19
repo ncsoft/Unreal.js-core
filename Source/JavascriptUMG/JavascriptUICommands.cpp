@@ -1,4 +1,5 @@
 #include "JavascriptUICommands.h"
+#include "JavascriptMenuLibrary.h"
 #include "Framework/Commands/Commands.h"
 #include "Modules/ModuleVersion.h"
 
@@ -45,19 +46,7 @@ void UJavascriptUICommands::Initialize()
 		}
 		else
 		{
-			FJavascriptUICommandInfo CommandInfo;
-
-			UI_COMMAND_Function(
-				BindingContext.Handle.Get(),
-				CommandInfo.Handle,
-				TEXT(""),
-				*info.Id,
-				*FString::Printf(TEXT("%s_Tooltip"), *info.Id),
-				TCHAR_TO_ANSI(*FString::Printf(TEXT(".%s"), *info.Id)),
-				*info.FriendlyName,
-				*info.Description,
-				EUserInterfaceActionType::Type(info.ActionType.GetValue()),
-				info.DefaultChord);
+			FJavascriptUICommandInfo CommandInfo = UJavascriptMenuLibrary::UI_COMMAND_Function(BindingContext, info);
 
 			CommandInfos.Add(CommandInfo);
 		}

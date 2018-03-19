@@ -9,8 +9,6 @@ void UJavascriptGlobalDelegates::BeginDestroy()
 }
 
 #define DO_REFLECT() \
-OP_REFLECT(OnPreObjectPropertyChanged)\
-OP_REFLECT(OnObjectPropertyChanged)\
 OP_REFLECT(PostLoadMapWithWorld)\
 OP_REFLECT(PostDemoPlay)\
 OP_REFLECT(PackageCreatedForLoad)
@@ -32,6 +30,8 @@ OP_REFLECT_FUNCTION(PostGarbageCollect)
 
 #if WITH_EDITOR
 #define DO_REFLECT_EDITOR_ONLY() \
+OP_REFLECT(OnPreObjectPropertyChanged)\
+OP_REFLECT(OnObjectPropertyChanged)\
 OP_REFLECT(OnObjectModified)\
 OP_REFLECT(OnAssetLoaded)\
 OP_REFLECT(OnObjectSaved)

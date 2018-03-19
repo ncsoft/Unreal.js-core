@@ -1,6 +1,8 @@
 #include "JavascriptEdModeLibrary.h"
 
 #if WITH_EDITOR
+#include "EditorModeManager.h"
+#include "EdMode.h"
 
 void UJavascriptEdModeLibrary::SetDefaultMode(FJavascriptEditorModeTools& Tools, FName DefaultID)
 {

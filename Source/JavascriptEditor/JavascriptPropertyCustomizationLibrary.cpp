@@ -36,11 +36,11 @@ UProperty* UJavascriptPropertyCustomizationLibrary::GetProperty(FJavascriptPrope
 {
 	return Handle->GetProperty();
 }
-void UJavascriptPropertyCustomizationLibrary::SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, FJavascriptFunction Function)
+void UJavascriptPropertyCustomizationLibrary::SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, UJavascriptPropertyCustomization* Custom)
 {
 	FSimpleDelegate Delegate;
-	Delegate.BindLambda([=] () {
-		((FJavascriptFunction*)&Function)->Execute();
+	Delegate.BindLambda([Custom]() {
+		Custom->OnPropertyValueChanged.Broadcast();
 	});
 	Handle->SetOnPropertyValueChanged(Delegate);
 }

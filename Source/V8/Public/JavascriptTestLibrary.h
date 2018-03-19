@@ -108,4 +108,7 @@ class V8_API UJavascriptTestLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void DestroyWorld(UWorld* World);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void DestroyUObject(UObject* Object);
 };

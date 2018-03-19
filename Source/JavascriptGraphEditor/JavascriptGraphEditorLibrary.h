@@ -11,6 +11,20 @@ class UEdGraphPin;
 class UEdGraphNode;
 class UJavascriptGraphEdNode;
 
+/** Enum used to define what container type a pin represents. */
+UENUM()
+namespace EJavascriptPinContainerType
+{
+	/** Ordered according to their severity */
+	enum Type
+	{
+		None = 0,
+		Array,
+		Set,
+		Map
+	};
+}
+
 USTRUCT(BlueprintType)
 struct FJavascriptEdGraphPin
 {
@@ -220,6 +234,9 @@ public:
 	UFUNCTION(BlueprintInternalUseOnly, Category = "Scripting | Javascript")
 	static FEdGraphPinType GetPinType(FJavascriptEdGraphPin A);
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static EJavascriptPinContainerType::Type GetPinContainerType(FJavascriptEdGraphPin A);
+
 	UFUNCTION(BlueprintInternalUseOnly, Category = "Scripting | Javascript")
 	static void SetPinType(FJavascriptEdGraphPin Pin, FEdGraphPinType PinType);
 	
@@ -228,6 +245,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FString GetPinName(FJavascriptEdGraphPin A);
+	
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void SetPinInfo(FJavascriptEdGraphPin A, FString InPinName, FString InPinToolTip);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FGuid GetPinGUID(FJavascriptEdGraphPin A);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool IsValid(FJavascriptEdGraphPin A);
@@ -303,4 +326,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptEdGraphPin GetDefaultObject() { return FJavascriptEdGraphPin(nullptr); };
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void ResizeNode(UEdGraphNode* Node, const FVector2D& NewSize);
 };

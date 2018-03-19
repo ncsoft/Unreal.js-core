@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Components/Widget.h"
 #include "JavascriptSearchBox.generated.h"
 
 class SSearchBox;

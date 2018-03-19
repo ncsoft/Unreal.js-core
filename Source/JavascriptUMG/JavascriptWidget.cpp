@@ -118,7 +118,15 @@ void UJavascriptWidget::OnListenForInputAction(FName ActionName, TEnumAsByte< EI
 	{
 		FInputActionBinding NewBinding(ActionName, EventType.GetValue());
 		NewBinding.bConsumeInput = bConsume;
-		NewBinding.ActionDelegate.GetDelegateForManualSet().BindUObject(this, &ThisClass::OnInputActionByName, ActionName);
+		if (EventType == IE_Pressed)
+		{
+			NewBinding.ActionDelegate.GetDelegateForManualSet().BindUObject(this, &ThisClass::OnInputActionByName, ActionName);
+		}
+		else
+		{
+			NewBinding.ActionDelegate.GetDelegateForManualSet().BindUObject(this, &ThisClass::OnReleaseInputActionByName, ActionName);
+		}
+
 		InputComponent->AddActionBinding(NewBinding);
 	}
 }
@@ -128,6 +136,14 @@ void UJavascriptWidget::OnInputActionByName_Implementation(FName ActionName)
 	if (OnInputActionEvent.IsBound())
 	{
 		OnInputActionEvent.Broadcast(ActionName);
+	}
+}
+
+void UJavascriptWidget::OnReleaseInputActionByName_Implementation(FName ActionName)
+{
+	if (OnReleaseActionEvent.IsBound())
+	{
+		OnReleaseActionEvent.Broadcast(ActionName);
 	}
 }
 

@@ -29,7 +29,10 @@ public:
 
 	void OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& Event)
 	{
-		OnObjectPropertyChanged_Friendly(InObject, Event.Property, Event.MemberProperty, (int32)Event.ChangeType);
+		if (Event.Property != nullptr)
+		{
+			OnObjectPropertyChanged_Friendly(InObject, Event.Property, Event.MemberProperty, (int32)Event.ChangeType);
+		}
 	}
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")

@@ -408,21 +408,17 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 		{
 			auto q = NewObject<UMapProperty>(Outer, Name);
 			FString Left, Right;
-			if (Type.Split(TEXT(":"), &Left, &Right))
+			if (Type.Split(TEXT("::"), &Left, &Right))
 			{
 				auto Key = FName(*Name.ToString().Append(TEXT("_Key")));
-				if (auto KeyProperty = CreateProperty(q, Key, Decorators, Left, false, false, false))
+				TArray<FString> Empty;
+				if (auto KeyProperty = CreateProperty(q, Key, Empty, Left, false, false, false))
 				{
 					q->KeyProp = KeyProperty;
-					q->KeyProp->SetPropertyFlags(CPF_HasGetValueTypeHash);
 					auto Value = FName(*Name.ToString().Append(TEXT("_Value")));
 					if (auto ValueProperty = CreateProperty(q, Value, Decorators, Right, bIsArray, bIsSubclass, false))
 					{
 						q->ValueProp = ValueProperty;
-						if (q->ValueProp && q->ValueProp->HasAnyPropertyFlags(CPF_ContainsInstancedReference))
-						{
-							q->ValueProp->SetPropertyFlags(CPF_ContainsInstancedReference);
-						}
 					}
 					else
 						q->MarkPendingKill();

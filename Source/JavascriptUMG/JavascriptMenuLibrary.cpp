@@ -1,5 +1,6 @@
 #include "JavascriptMenuLibrary.h"
 #include "SJavascriptBox.h"
+#include "Components/Widget.h"
 #include "Framework/Commands/GenericCommands.h"
 
 FJavascriptUICommandList UJavascriptMenuLibrary::CreateUICommandList()
@@ -180,19 +181,38 @@ FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascript
 	{
 		info.FriendlyName = info.Id;
 	}
+	//////////////////////////////////////////////////////////////////////////
+	// @NOTE: Commands/Commands.cpp <UI_COMMAND_Function>
+	FBindingContext* ThisBindingContext = This.Handle.Get();
+	TSharedPtr< FUICommandInfo >& OutCommand = Out.Handle;
+	const TCHAR* OutSubNamespace = TEXT("");
+	const TCHAR* OutCommandName = *info.Id;
+	const TCHAR* OutCommandNameUnderscoreTooltip = *FString::Printf(TEXT("%s_Tooltip"), *info.Id);
+	const ANSICHAR* DotOutCommandName = TCHAR_TO_ANSI(*FString::Printf(TEXT(".%s"), *info.Id));
+	const TCHAR* FriendlyName = *info.FriendlyName;
+	const TCHAR* InDescription = *info.Description;
+	const EUserInterfaceActionType::Type CommandType = EUserInterfaceActionType::Type(info.ActionType.GetValue());
+	const FInputChord& InDefaultChord = info.DefaultChord;
+	const FInputChord& InAlternateDefaultChord = FInputChord();
 
-	::UI_COMMAND_Function(
-		This.Handle.Get(),
-		Out.Handle,
-		TEXT(""),
-		*info.Id,
-		*FString::Printf(TEXT("%s_Tooltip"), *info.Id),
-		TCHAR_TO_ANSI(*FString::Printf(TEXT(".%s"), *info.Id)),
-		*info.FriendlyName,
-		*info.Description,
-		EUserInterfaceActionType::Type(info.ActionType.GetValue()),
-		info.DefaultChord);
+	static const FString UICommandsStr(TEXT("UICommands"));
+	const FString Namespace = OutSubNamespace && FCString::Strlen(OutSubNamespace) > 0 ? UICommandsStr + TEXT(".") + OutSubNamespace : UICommandsStr;
 
+	FString OrignContextName, ContextIdx;
+	ThisBindingContext->GetContextName().ToString().Split("@", &OrignContextName, &ContextIdx);
+
+	FUICommandInfo::MakeCommandInfo(
+		ThisBindingContext->AsShared(),
+		OutCommand,
+		OutCommandName,
+		FInternationalization::ForUseOnlyByLocMacroAndGraphNodeTextLiterals_CreateText(FriendlyName, *Namespace, OutCommandName),
+		FInternationalization::ForUseOnlyByLocMacroAndGraphNodeTextLiterals_CreateText(InDescription, *Namespace, OutCommandNameUnderscoreTooltip),
+		FSlateIcon(ThisBindingContext->GetStyleSetName(), ISlateStyle::Join(FName(*OrignContextName), DotOutCommandName)),
+		CommandType,
+		InDefaultChord,
+		InAlternateDefaultChord
+	);
+	//////////////////////////////////////////////////////////////////////////
 	return Out;
 }
 

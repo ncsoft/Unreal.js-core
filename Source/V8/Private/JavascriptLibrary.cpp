@@ -9,6 +9,10 @@
 #include "AI/Navigation//NavigationSystem.h"
 #include "HAL/PlatformApplicationMisc.h"
 #include "Modules/ModuleVersion.h"
+#include "FileHelper.h"
+#include "UObject/MetaData.h"
+#include "Engine/Engine.h"
+#include "V8PCH.h"
 
 struct FPrivateSocketHandle
 {
@@ -252,9 +256,13 @@ FString UJavascriptLibrary::ReadStringFromFile(UObject* Object, FString Filename
 	return Result;
 }
 
-bool UJavascriptLibrary::WriteStringToFile(UObject* Object, FString Filename, const FString& Data)
+bool UJavascriptLibrary::WriteStringToFile(UObject* Object, FString Filename, const FString& Data, EJavascriptEncodingOptions::Type EncodingOptions)
 {
-	return FFileHelper::SaveStringToFile(*Data, *Filename, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
+	if (EncodingOptions == EJavascriptEncodingOptions::Type::AutoDetect)
+	{
+		EncodingOptions = EJavascriptEncodingOptions::Type::ForceUTF8WithoutBOM;
+	}
+	return FFileHelper::SaveStringToFile(*Data, *Filename, (FFileHelper::EEncodingOptions)EncodingOptions);
 }
 
 FString UJavascriptLibrary::GetDir(UObject* Object, FString WhichDir)

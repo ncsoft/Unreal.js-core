@@ -14,6 +14,8 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 
 	bShowLabel = true;
 
+	Visibility = TAttribute<EVisibility>(this, &SJavascriptGraphPin::GetPinVisiblity);
+
 	GraphPinObj = InPin;
 	check(GraphPinObj != NULL);
 
@@ -114,17 +116,18 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 			.Padding(bIsInput ? FMargin(InArgs._SideToSideMargin, 0, 0, 0) : FMargin(0, 0, InArgs._SideToSideMargin, 0))
 			.VAlign(VAlign_Center)
 			[
-				SNew(SBox)
+				SNew(SBox) 
 				.Padding(0.0f)
-			.IsEnabled(this, &ThisClass::IsEditingEnabled)
-			[
-				SNew(SHorizontalBox)
-				.Visibility(this, &ThisClass::GetDefaultValueVisibility)
-				+ SHorizontalBox::Slot()
+				.IsEnabled(this, &ThisClass::IsEditingEnabled)
 				[
 					ValueWidget
+// 					SNew(SHorizontalBox)
+// 					.Visibility(this, &ThisClass::GetDefaultValueVisibility)
+// 					+ SHorizontalBox::Slot()
+// 					[
+// 						ValueWidget
+// 					]
 				]
-			]
 			];
 	}
 	else
@@ -135,15 +138,16 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 			[
 				SNew(SBox)
 				.Padding(0.0f)
-			.IsEnabled(this, &ThisClass::IsEditingEnabled)
-			[
-				SNew(SHorizontalBox)
-				.Visibility(this, &ThisClass::GetDefaultValueVisibility)
-				+ SHorizontalBox::Slot()
+				.IsEnabled(this, &ThisClass::IsEditingEnabled)
 				[
 					ValueWidget
+// 					SNew(SHorizontalBox)
+// 					.Visibility(this, &ThisClass::GetDefaultValueVisibility)
+// 					+ SHorizontalBox::Slot()
+// 					[
+// 						ValueWidget
+// 					]
 				]
-			]
 			];
 
 		LabelAndValue->AddSlot()
@@ -260,4 +264,22 @@ FSlateColor SJavascriptGraphPin::GetPinColor() const
 	}
 
 	return SGraphPin::GetPinColor();
+}
+
+void SJavascriptGraphPin::OnMouseLeave(const FPointerEvent& MouseEvent)
+{
+	if (OwnerNodePtr.IsValid())
+	{
+		SGraphPin::OnMouseLeave(MouseEvent);
+	}
+}
+
+EVisibility SJavascriptGraphPin::GetPinVisiblity() const
+{
+	// The pin becomes too small to use at low LOD, so disable the hit test.
+	if (UseLowDetailPinNames())
+	{
+		return EVisibility::HitTestInvisible;
+	}
+	return EVisibility::Visible;
 }

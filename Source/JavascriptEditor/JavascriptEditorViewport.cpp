@@ -2,6 +2,7 @@
 #include "SEditorViewport.h"
 #include "AdvancedPreviewScene.h"
 #include "Runtime/Engine/Public/Slate/SceneViewport.h"
+#include "EngineUtils.h"
 #include "Engine/Canvas.h"
 #include "OverlaySlot.h"
 #include "AssetViewerSettings.h"

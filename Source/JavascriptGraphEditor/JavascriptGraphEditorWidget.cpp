@@ -118,6 +118,12 @@ void UJavascriptGraphEditorWidget::JumpToPin(FJavascriptEdGraphPin JumpToMe)
 	Widget->JumpToPin(JumpToMe);
 }
 
+FVector2D UJavascriptGraphEditorWidget::GetPasteLocation()
+{
+	auto Widget = StaticCastSharedPtr<SGraphEditor>(GetCachedWidget());
+	return Widget->GetPasteLocation();
+}
+
 void UJavascriptGraphEditorWidget::HandleDropActors(const TArray< TWeakObjectPtr<class AActor> >& Actors, class UEdGraph* Graph, const FVector2D& Point)
 {
 	TArray<AActor*> Out;

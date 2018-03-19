@@ -7,6 +7,8 @@
 #include "JavascriptUMGLibrary.h"
 #include "JavascriptPropertyCustomizationLibrary.generated.h"
 
+class UJavascriptPropertyCustomization;
+
 USTRUCT(BlueprintType)
 struct FJavascriptDetailWidgetDecl
 {
@@ -137,7 +139,7 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static UProperty* GetProperty(FJavascriptPropertyHandle Handle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, FJavascriptFunction Function);
+	static void SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, UJavascriptPropertyCustomization* Custom);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptDetailWidgetDecl WholeRowContent(FJavascriptDetailWidgetRow Row);

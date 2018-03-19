@@ -1,6 +1,7 @@
 #include "JavascriptUMGLibrary.h"
 #include "JavascriptWidget.h"
 #include "NativeWidgetHost.h"
+#include "Styling/SlateStyleRegistry.h"
 
 FJavascriptSlateStyle UJavascriptUMGLibrary::CreateSlateStyle(FName InStyleSetName)
 {
