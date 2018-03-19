@@ -651,19 +651,6 @@ FJavascriptUICommandList UJavascriptEditorLibrary::GetLevelEditorActions()
 	return CommandList;
 }
 
-void UJavascriptEditorLibrary::SetCustomDetailViewWidget(FJavascriptSlateWidget UserWidget)
-{
-	FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
-	if (UserWidget.Widget.IsValid())
-	{
-		if (LevelEditor.OnCustomDetailViewWidget().IsBound())
-		{
-			LevelEditor.OnCustomDetailViewWidget().Unbind();
-		}
-		LevelEditor.OnCustomDetailViewWidget().BindLambda([UserWidget]() { return UserWidget.Widget; });
-	}
-}
-
 void UJavascriptEditorLibrary::AddExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender)
 {
 	if (Manager.Handle.IsValid() && Extender.Handle.IsValid())
