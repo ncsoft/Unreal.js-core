@@ -5,6 +5,30 @@
 #include "SGraphPin.h"
 #include "JavascriptGraphEdNode.generated.h"
 
+
+USTRUCT(BlueprintType)
+struct FJavascriptPinParams
+{
+	GENERATED_USTRUCT_BODY()
+
+	FJavascriptPinParams()
+		: ContainerType(EPinContainerType::None)
+		, bIsReference(false)
+		, bIsConst(false)
+		, Index(INDEX_NONE)
+	{
+	}
+
+	UPROPERTY()
+	EPinContainerType ContainerType;
+	UPROPERTY()
+	bool bIsReference;
+	UPROPERTY()
+	bool bIsConst;
+	UPROPERTY()
+	int32 Index;
+};
+
 UCLASS(MinimalAPI)
 class UJavascriptGraphEdNode : public UEdGraphNode
 {
@@ -32,15 +56,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	FJavascriptEdGraphPin CreatePin(
 		EEdGraphPinDirection Dir,
-		const FString& PinCategory,
-		const FString& PinSubCategory,
+		const FName PinCategory,
+		const FName PinSubCategory,
 		UObject* PinSubCategoryObject,
-		const FString& PinName,
-		EPinContainerType PinContainerType /* EPinContainerType::None */,
-		bool bIsReference,
-		bool bIsConst /*= false*/,
-		//int32 Index /*= INDEX_NONE*/
-		const FString& PinToolTip
+		const FName PinName,
+		const FString& PinToolTip,
+		const FJavascriptPinParams& InPinParams
 		);
 
 	UFUNCTION(BlueprintCallable)

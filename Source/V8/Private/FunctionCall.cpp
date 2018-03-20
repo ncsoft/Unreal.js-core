@@ -44,7 +44,7 @@ namespace v8
 			}
 		}
 
-		TryCatch try_catch;		
+		TryCatch try_catch(isolate);		
 
 		auto value = func->Call(This, argc, argv);
 

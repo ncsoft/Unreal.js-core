@@ -57,18 +57,21 @@ FText UJavascriptGraphEdNode::GetDescription() const
 
 FJavascriptEdGraphPin UJavascriptGraphEdNode::CreatePin(
 	EEdGraphPinDirection Dir,
-	const FString& PinCategory,
-	const FString& PinSubCategory,
+	const FName PinCategory,
+	const FName PinSubCategory,
 	UObject* PinSubCategoryObject,
-	const FString& PinName,
-	EPinContainerType PinContainerType /* EPinContainerType::None */,
-	bool bIsReference,
-	bool bIsConst /*= false*/,
-	//int32 Index /*= INDEX_NONE*/
-	const FString& PinToolTip
+	const FName PinName,
+	const FString& PinToolTip,
+	const FJavascriptPinParams& InPinParams
 	)
 {
-	UEdGraphPin* GraphPin = Super::CreatePin(Dir, PinCategory, PinSubCategory, PinSubCategoryObject, PinName, PinContainerType, bIsReference, bIsConst, INDEX_NONE);
+	FCreatePinParams PinParams;
+	PinParams.bIsConst = InPinParams.bIsConst;
+	PinParams.bIsReference = InPinParams.bIsReference;
+	PinParams.ContainerType = InPinParams.ContainerType;
+	PinParams.Index = InPinParams.Index;
+
+	UEdGraphPin* GraphPin = Super::CreatePin(Dir, PinCategory, PinSubCategory, PinSubCategoryObject, PinName, PinParams);
 	GraphPin->PinToolTip = PinToolTip;
 	return FJavascriptEdGraphPin{ GraphPin };
 }

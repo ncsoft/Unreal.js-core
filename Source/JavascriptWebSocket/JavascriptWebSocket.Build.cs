@@ -41,13 +41,13 @@ public class JavascriptWebSocket : ModuleRules
 
         if (IsUpdated() && (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Win32 || Target.Platform == UnrealTargetPlatform.Mac))
         {
-            Definitions.Add(string.Format("WITH_JSWEBSOCKET=1"));
+            PublicDefinitions.Add(string.Format("WITH_JSWEBSOCKET=1"));
             PublicDependencyModuleNames.Add("libWebSockets");
             AddEngineThirdPartyPrivateStaticDependencies(Target,"libWebSockets");
         }
         else
         {
-            Definitions.Add(string.Format("WITH_JSWEBSOCKET=0"));
+            PublicDefinitions.Add(string.Format("WITH_JSWEBSOCKET=0"));
         }
     }
 }

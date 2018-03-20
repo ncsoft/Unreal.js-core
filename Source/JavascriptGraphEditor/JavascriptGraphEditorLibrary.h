@@ -244,10 +244,10 @@ public:
 	static FJavascriptEdGraphPin FindPin(UEdGraphNode* Node, const FString& PinName, EEdGraphPinDirection Direction);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FString GetPinName(FJavascriptEdGraphPin A);
+	static FName GetPinName(FJavascriptEdGraphPin A);
 	
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void SetPinInfo(FJavascriptEdGraphPin A, FString InPinName, FString InPinToolTip);
+	static void SetPinInfo(FJavascriptEdGraphPin A, FName InPinName, FString InPinToolTip);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FGuid GetPinGUID(FJavascriptEdGraphPin A);

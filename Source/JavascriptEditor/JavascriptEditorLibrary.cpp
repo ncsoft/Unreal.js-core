@@ -430,9 +430,9 @@ void UJavascriptEditorLibrary::DrawWireDiamond(const FJavascriptPDI& PDI, const 
 {
 	::DrawWireDiamond(PDI.PDI, Transform.ToMatrixWithScale(), Size, InColor, DepthPriority);
 }
-void UJavascriptEditorLibrary::DrawPolygon(const FJavascriptPDI& PDI, const TArray<FVector>& Verts, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority)
+void UJavascriptEditorLibrary::DrawPolygon(const FJavascriptPDI& PDI, const TArray<FVector>& Verts, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority, EJavascriptRHIFeatureLevel::Type RHIFeatureLevel)
 {
-	FDynamicMeshBuilder MeshBuilder;
+	FDynamicMeshBuilder MeshBuilder((ERHIFeatureLevel::Type)RHIFeatureLevel);
 
 	FColor Color = InColor.ToFColor(false);
 
@@ -649,19 +649,6 @@ FJavascriptUICommandList UJavascriptEditorLibrary::GetLevelEditorActions()
 	FJavascriptUICommandList CommandList;
 	CommandList.Handle = LevelEditorActions;
 	return CommandList;
-}
-
-void UJavascriptEditorLibrary::SetCustomDetailViewWidget(FJavascriptSlateWidget UserWidget)
-{
-	FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
-	if (UserWidget.Widget.IsValid())
-	{
-		if (LevelEditor.OnCustomDetailViewWidget().IsBound())
-		{
-			LevelEditor.OnCustomDetailViewWidget().Unbind();
-		}
-		LevelEditor.OnCustomDetailViewWidget().BindLambda([UserWidget]() { return UserWidget.Widget; });
-	}
 }
 
 void UJavascriptEditorLibrary::AddExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender)

@@ -141,17 +141,17 @@ public class V8 : ModuleRules
 
             if (v8_version[0] >= 6)
             {
-                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_builtins_setup.lib"));
-                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_builtins_generators.lib"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_init.lib"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_initializers.lib"));
             }
 
             if (ShouldLink_libsampler)
             {
                 PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libsampler.lib"));
             }
-            
 
-            Definitions.Add(string.Format("WITH_V8=1"));
+
+            PublicDefinitions.Add(string.Format("WITH_V8=1"));
 
             return true;
         }
@@ -170,8 +170,8 @@ public class V8 : ModuleRules
 
             if (v8_version[0] >= 6)
             {
-                PublicAdditionalLibraries.Add("v8_builtins_setup");
-                PublicAdditionalLibraries.Add("v8_builtins_generators");                
+                PublicAdditionalLibraries.Add("v8_init");
+                PublicAdditionalLibraries.Add("v8_initializers");                
             }
 
             if (ShouldLink_libsampler)
@@ -179,7 +179,7 @@ public class V8 : ModuleRules
                 PublicAdditionalLibraries.Add("v8_libsampler");
             }
 
-            Definitions.Add(string.Format("WITH_V8=1"));
+            PublicDefinitions.Add(string.Format("WITH_V8=1"));
 
             return true;
         }
@@ -195,8 +195,8 @@ public class V8 : ModuleRules
 
             if (v8_version[0] >= 6)
             {
-                PublicAdditionalLibraries.Add("v8_builtins_setup");
-                PublicAdditionalLibraries.Add("v8_builtins_generators");                
+                PublicAdditionalLibraries.Add("v8_init");
+                PublicAdditionalLibraries.Add("v8_initializers");
             }
 
             if (ShouldLink_libsampler)
@@ -204,7 +204,7 @@ public class V8 : ModuleRules
                 PublicAdditionalLibraries.Add("v8_libsampler");
             }
 
-            Definitions.Add(string.Format("WITH_V8=1"));
+            PublicDefinitions.Add(string.Format("WITH_V8=1"));
 
             return true;
         }
@@ -220,8 +220,8 @@ public class V8 : ModuleRules
 
             if (v8_version[0] >= 6)
             {
-                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_builtins_setup.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_builtins_generators.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_init.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_initializers.a"));
             }
 
             if (ShouldLink_libsampler)
@@ -229,11 +229,11 @@ public class V8 : ModuleRules
                 PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libsampler.a"));
             }
 
-            Definitions.Add(string.Format("WITH_V8=1"));
+            PublicDefinitions.Add(string.Format("WITH_V8=1"));
 
             return true;
         }
-        Definitions.Add(string.Format("WITH_V8=0"));
+        PublicDefinitions.Add(string.Format("WITH_V8=0"));
         return false;
     }
 }

@@ -111,12 +111,12 @@ FJavascriptEdGraphPin UJavascriptGraphEditorLibrary::FindPin(UEdGraphNode* Node,
 	return FJavascriptEdGraphPin{ Node->FindPin(PinName, Direction) };
 }
 
-FString UJavascriptGraphEditorLibrary::GetPinName(FJavascriptEdGraphPin A)
+FName UJavascriptGraphEditorLibrary::GetPinName(FJavascriptEdGraphPin A)
 {
 	return A.GraphPin ? A.GraphPin->PinName : TEXT("");
 }
 
-void UJavascriptGraphEditorLibrary::SetPinInfo(FJavascriptEdGraphPin A, FString InPinName, FString InPinToolTip)
+void UJavascriptGraphEditorLibrary::SetPinInfo(FJavascriptEdGraphPin A, FName InPinName, FString InPinToolTip)
 {
 	if (A.GraphPin)
 	{

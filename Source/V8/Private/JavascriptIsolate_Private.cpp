@@ -33,6 +33,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #endif
 #include "JavascriptStats.h"
 #include "IV8.h"
+#include "ConsoleDelegate.h"
 
 THIRD_PARTY_INCLUDES_START
 #include <libplatform/libplatform.h>
@@ -426,7 +427,7 @@ public:
 			ExportEnum(*It);
 		}
 
-		ExportConsole(ObjectTemplate);
+		ExportConsole();
 
 		ExportMemory(ObjectTemplate);
 
@@ -986,71 +987,72 @@ public:
 		return Local<ObjectTemplate>::New(isolate_, GlobalTemplate);
 	}
 
-	void ExportConsole(Local<ObjectTemplate> global_templ)
+	void ExportConsole()
 	{
-		FIsolateHelper I(isolate_);
+		v8::debug::SetConsoleDelegate(isolate_, new UnrealConsoleDelegate(isolate_));
+		//FIsolateHelper I(isolate_);
 
-		Local<FunctionTemplate> Template = I.FunctionTemplate();
+		//Local<FunctionTemplate> Template = I.FunctionTemplate();
 
-		auto add_fn = [&](const char* name, FunctionCallback fn) {			
-			Template->PrototypeTemplate()->Set(I.Keyword(name), I.FunctionTemplate(fn));
-		};
+		//auto add_fn = [&](const char* name, FunctionCallback fn) {			
+		//	Template->PrototypeTemplate()->Set(I.Keyword(name), I.FunctionTemplate(fn));
+		//};
 
-		// console.log
-		add_fn("log", [](const FunctionCallbackInfo<Value>& info)
-		{
-			UE_LOG(Javascript, Log, TEXT("%s"), *StringFromArgs(info));
-			info.GetReturnValue().Set(info.Holder());
-		});
+		//// console.log
+		//add_fn("log", [](const FunctionCallbackInfo<Value>& info)
+		//{
+		//	UE_LOG(Javascript, Log, TEXT("%s"), *StringFromArgs(info));
+		//	info.GetReturnValue().Set(info.Holder());
+		//});
 
-		// console.warn
-		add_fn("warn", [](const FunctionCallbackInfo<Value>& info)
-		{
-			UE_LOG(Javascript, Warning, TEXT("%s"), *StringFromArgs(info));
-			info.GetReturnValue().Set(info.Holder());
-		});
+		//// console.warn
+		//add_fn("warn", [](const FunctionCallbackInfo<Value>& info)
+		//{
+		//	UE_LOG(Javascript, Warning, TEXT("%s"), *StringFromArgs(info));
+		//	info.GetReturnValue().Set(info.Holder());
+		//});
 
-		// console.info
-		add_fn("info", [](const FunctionCallbackInfo<Value>& info)
-		{
-			UE_LOG(Javascript, Display, TEXT("%s"), *StringFromArgs(info));
-			info.GetReturnValue().Set(info.Holder());
-		});
+		//// console.info
+		//add_fn("info", [](const FunctionCallbackInfo<Value>& info)
+		//{
+		//	UE_LOG(Javascript, Display, TEXT("%s"), *StringFromArgs(info));
+		//	info.GetReturnValue().Set(info.Holder());
+		//});
 
-		// console.error
-		add_fn("error", [](const FunctionCallbackInfo<Value>& info)
-		{
-			UE_LOG(Javascript, Error, TEXT("%s"), *StringFromArgs(info));
-			info.GetReturnValue().Set(info.Holder());
-		});
+		//// console.error
+		//add_fn("error", [](const FunctionCallbackInfo<Value>& info)
+		//{
+		//	UE_LOG(Javascript, Error, TEXT("%s"), *StringFromArgs(info));
+		//	info.GetReturnValue().Set(info.Holder());
+		//});
 
-		// console.assert
-		add_fn("assert", [](const FunctionCallbackInfo<Value>& info)
-		{
-			bool to_assert = info.Length() < 1 || info[0]->IsFalse();
-			if (to_assert)
-			{
-				auto stack_frame = StackTrace::CurrentStackTrace(info.GetIsolate(), 1, StackTrace::kOverview)->GetFrame(0);
-				auto filename = stack_frame->GetScriptName();
-				auto line_number = stack_frame->GetLineNumber();
+		//// console.assert
+		//add_fn("assert", [](const FunctionCallbackInfo<Value>& info)
+		//{
+		//	bool to_assert = info.Length() < 1 || info[0]->IsFalse();
+		//	if (to_assert)
+		//	{
+		//		auto stack_frame = StackTrace::CurrentStackTrace(info.GetIsolate(), 1, StackTrace::kOverview)->GetFrame(0);
+		//		auto filename = stack_frame->GetScriptName();
+		//		auto line_number = stack_frame->GetLineNumber();
 
-				UE_LOG(Javascript, Error, TEXT("Assertion:%s:%d %s"), *StringFromV8(filename), line_number, *StringFromArgs(info, 1));
-			}
+		//		UE_LOG(Javascript, Error, TEXT("Assertion:%s:%d %s"), *StringFromV8(filename), line_number, *StringFromArgs(info, 1));
+		//	}
 
-			info.GetReturnValue().Set(info.Holder());
-		});
+		//	info.GetReturnValue().Set(info.Holder());
+		//});
 
-		// console.void
-		add_fn("void", [](const FunctionCallbackInfo<Value>& info)
-		{
-			info.GetReturnValue().Set(info.Holder());
-		});
+		//// console.void
+		//add_fn("void", [](const FunctionCallbackInfo<Value>& info)
+		//{
+		//	info.GetReturnValue().Set(info.Holder());
+		//});
 
-		global_templ->Set(
-			I.Keyword("console"),
-			// Create an instance
-			Template->GetFunction()->NewInstance()
-			);
+		//global_templ->Set(
+		//	I.Keyword("console"),
+		//	// Create an instance
+		//	Template->GetFunction()->NewInstance(isolate_->GetCurrentContext()).ToLocalChecked()
+		//	);
 	}	
 
 	void ExportMisc(Local<ObjectTemplate> global_templ)
@@ -1307,7 +1309,7 @@ public:
 		global_templ->Set(
 			I.Keyword("memory"),
 			// Create an instance
-			Template->GetFunction()->NewInstance(),
+			Template->GetFunction()->NewInstance(isolate_->GetCurrentContext()).ToLocalChecked(),
 			// Do not modify!
 			ReadOnly);
 	}
@@ -2450,7 +2452,12 @@ public:
 		auto arg2 = I.External((void*)&Owner);
 		Handle<Value> args[] = { arg, arg2 };
 
-		return v8_struct->GetFunction()->NewInstance(2, args);
+		auto obj = v8_struct->GetFunction()->NewInstance(isolate_->GetCurrentContext(), 2, args);
+
+		if (obj.IsEmpty())
+			return Undefined(isolate_);
+
+		return obj.ToLocalChecked();
 	}
 
 	Local<Value> ForceExportObject(UObject* Object)
@@ -2470,7 +2477,7 @@ public:
 			auto arg = I.External(Object);
 			Handle<Value> args[] = { arg };
 
-			value = v8_class->GetFunction()->NewInstance(1, args);
+			value = v8_class->GetFunction()->NewInstance(isolate_->GetCurrentContext(), 1, args).ToLocalChecked();
 
 			return value;
 		}
@@ -2534,7 +2541,7 @@ public:
 				auto arg = I.External(Object);
 				Handle<Value> args[] = { arg };
 
-				value = v8_class->GetFunction()->NewInstance(1, args);
+				value = v8_class->GetFunction()->NewInstance(isolate_->GetCurrentContext(), 1, args).ToLocalChecked();
 			}
 
 			return value;

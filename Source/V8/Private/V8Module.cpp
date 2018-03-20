@@ -110,6 +110,12 @@ public:
 	{
 		return platform_->MonotonicallyIncreasingTime();
 	}
+
+	virtual double CurrentClockTimeMillis()
+	{
+		return platform_->CurrentClockTimeMillis();
+	}
+
 #if V8_MAJOR_VERSION > 5
 	v8::TracingController* GetTracingController() override
 	{
@@ -167,7 +173,7 @@ public:
 		const UJavascriptSettings& Settings = *GetDefault<UJavascriptSettings>();
 		Settings.Apply();
 
-		V8::InitializeICU();
+		V8::InitializeICUDefaultLocation(nullptr);
 		V8::InitializePlatform(&platform_);
 		V8::Initialize();
 

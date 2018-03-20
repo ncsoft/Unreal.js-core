@@ -345,12 +345,17 @@ struct FDelegateManager : IDelegateManager
 			if (!d->IsValid())
 			{
 				it.RemoveCurrent();
+				d.Reset();
 			}
 		}
 	}
 
 	void PurgeAllDelegates()
 	{
+		for (auto& d : Delegates)
+		{
+			d.Reset();
+		}
 		Delegates.Empty();
 	}
 
@@ -391,6 +396,17 @@ namespace v8
 	{
 		return new FDelegateManager(isolate);
 	}
+}
+
+void UJavascriptDelegate::BeginDestroy()
+{
+	const bool bIsClassDefaultObject = IsTemplate(RF_ClassDefaultObject);
+	if (!bIsClassDefaultObject)
+	{
+		JavascriptDelegate.Reset();
+	}
+
+	Super::BeginDestroy();
 }
 
 void UJavascriptDelegate::Fire()

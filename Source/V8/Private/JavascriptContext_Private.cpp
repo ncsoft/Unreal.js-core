@@ -518,10 +518,9 @@ static UProperty* DuplicateProperty(UObject* Outer, UProperty* Property, FName N
 	return SetupProperty(Clone());
 };
 
-void UJavascriptGeneratedFunction::Thunk(FFrame& Stack, RESULT_DECL)
+void UJavascriptGeneratedFunction::Thunk(UObject* Obj, FFrame& Stack, RESULT_DECL)
 {
 	auto Function = static_cast<UJavascriptGeneratedFunction*>(Stack.CurrentNativeFunction);
-
 	auto ProcessInternal = [&](FFrame& Stack, RESULT_DECL)
 	{
 		if (Function->JavascriptContext.IsValid())
@@ -531,7 +530,7 @@ void UJavascriptGeneratedFunction::Thunk(FFrame& Stack, RESULT_DECL)
 			Isolate::Scope isolate_scope(Context->isolate());
 			HandleScope handle_scope(Context->isolate());
 
-			bool bCallRet = Context->CallProxyFunction(Function->GetOuter(), this, Function, Stack.Locals);
+			bool bCallRet = Context->CallProxyFunction(Function->GetOuter(), Obj, Function, Stack.Locals);
 			if (!bCallRet)
 			{
 				return;
@@ -601,7 +600,7 @@ void UJavascriptGeneratedFunction::Thunk(FFrame& Stack, RESULT_DECL)
 			Frame = (uint8*)FMemory_Alloca(Function->PropertiesSize);
 			FMemory::Memzero(Frame, Function->PropertiesSize);
 		}
-		FFrame NewStack(this, Function, Frame, &Stack, Function->Children);
+		FFrame NewStack(Obj, Function, Frame, &Stack, Function->Children);
 		FOutParmRec** LastOut = &NewStack.OutParms;
 		UProperty* Property;
 
@@ -1138,7 +1137,7 @@ public:
 
 				FinalizeFunction(Function);
 
-				Function->SetNativeFunc((Native)&UJavascriptGeneratedFunction::Thunk);
+				Function->SetNativeFunc(&UJavascriptGeneratedFunction::Thunk);
 
 				Function->Next = Class->Children;
 				Class->Children = Function;
@@ -1533,7 +1532,7 @@ public:
 		global->Set(V8_KeywordString(isolate(), "require"), FunctionTemplate::New(isolate(), fn, self)->GetFunction());
 		global->Set(V8_KeywordString(isolate(), "purge_modules"), FunctionTemplate::New(isolate(), fn2, self)->GetFunction());
 
-		auto getter = [](Local<String> property, const PropertyCallbackInfo<Value>& info) {
+		AccessorNameGetterCallback getter = [](Local<Name> property, const PropertyCallbackInfo<Value>& info) {
 			auto isolate = info.GetIsolate();
 			HandleScope scope(isolate);
 
@@ -1552,7 +1551,7 @@ public:
 
 			info.GetReturnValue().Set(out);
 		};
-		global->SetAccessor(V8_KeywordString(isolate(), "modules"), getter, 0, self);
+		global->SetAccessor(context(), V8_KeywordString(isolate(), "modules"), getter, 0, self);
 	}
 
 	void ExposeMemory2()
@@ -1739,7 +1738,7 @@ public:
 	void RequestV8GarbageCollection()
 	{
 		// @todo: using 'ForTesting' function
-		isolate()->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
+		isolate()->RequestGarbageCollectionForTesting(Isolate::GarbageCollectionType::kMinorGarbageCollection);
 	}
 
 	// Should be guarded with proper handle scope
@@ -1748,7 +1747,7 @@ public:
 		Isolate::Scope isolate_scope(isolate());
 		Context::Scope context_scope(context());
 
-		TryCatch try_catch;
+		TryCatch try_catch(isolate());
 		try_catch.SetVerbose(true);
 
 		auto Path = Filename;
@@ -1791,17 +1790,17 @@ public:
 	void Expose(FString RootName, UObject* Object)
 	{
 		WKOs.Add(RootName, Object);
-
-		auto RootGetter = [](Local<String> property, const PropertyCallbackInfo<Value>& info) {
+		AccessorNameGetterCallback RootGetter = [](Local<Name> property, const PropertyCallbackInfo<Value>& info) {
 			auto isolate = info.GetIsolate();
 			info.GetReturnValue().Set(info.Data());
 		};
 
 		Isolate::Scope isolate_scope(isolate());
 		HandleScope handle_scope(isolate());
-		Context::Scope context_scope(context());
+		auto ctx = context();
+		Context::Scope context_scope(ctx);
 
-		context()->Global()->SetAccessor(V8_KeywordString(isolate(), RootName), RootGetter, 0, ExportObject(Object));
+		ctx->Global()->SetAccessor(ctx, V8_KeywordString(isolate(), RootName), RootGetter, 0, ExportObject(Object));
 	}
 
 	Local<Value> ExportObject(UObject* Object, bool bForce = false) override
@@ -2162,21 +2161,21 @@ inline void FJavascriptContextImplementation::AddReferencedObjects(UObject * InT
 		}
 		else
 		{
-			Collector.AddReferencedObject(It.Key(), InThis);
+			Collector.AddReferencedObject(Object, InThis);
 		}
 	}
 
 	// All structs
 	for (auto It = MemoryToObjectMap.CreateIterator(); It; ++It)
 	{
-		auto Struct = It.Key()->Struct;
-		if (Struct->IsPendingKill())
+		TSharedPtr<FStructMemoryInstance> StructScript = It.Key();
+		if (!StructScript.IsValid() || StructScript->Struct->IsPendingKill())
 		{
 			It.RemoveCurrent();
 		}
 		else
 		{
-			Collector.AddReferencedObject(Struct, InThis);
+			Collector.AddReferencedObject(StructScript->Struct, InThis);
 		}
 	}
 }

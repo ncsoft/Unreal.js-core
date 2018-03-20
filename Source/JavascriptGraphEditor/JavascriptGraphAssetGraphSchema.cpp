@@ -124,7 +124,7 @@ void UJavascriptGraphAssetGraphSchema::BreakPinLinks(UEdGraphPin& TargetPin, boo
 }
 
 // To make UBT happy
-void UJavascriptGraphAssetGraphSchema::BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPin* TargetPin)
+void UJavascriptGraphAssetGraphSchema::BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPin* TargetPin) const
 {
 	Super::BreakSinglePinLink(SourcePin, TargetPin);
 }

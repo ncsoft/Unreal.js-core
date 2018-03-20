@@ -122,6 +122,29 @@ namespace EJavascriptMessageSeverity
 }
 
 /**
+* The RHI's feature level indicates what level of support can be relied upon.
+* Note: these are named after graphics API's like ES2 but a feature level can be used with a different API (eg ERHIFeatureLevel::ES2 on D3D11)
+* As long as the graphics API supports all the features of the feature level (eg no ERHIFeatureLevel::SM5 on OpenGL ES2)
+*/
+
+UENUM()
+namespace EJavascriptRHIFeatureLevel
+{
+	enum Type
+	{
+		/** Feature level defined by the core capabilities of OpenGL ES2. */
+		ES2,
+		/** Feature level defined by the core capabilities of OpenGL ES3.1 & Metal/Vulkan. */
+		ES3_1,
+		/** Feature level defined by the capabilities of DX10 Shader Model 4. */
+		SM4,
+		/** Feature level defined by the capabilities of DX11 Shader Model 5. */
+		SM5,
+		Num
+	};
+}
+
+/**
  * 
  */
 UCLASS()
@@ -299,7 +322,7 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static void DrawWireDiamond(const FJavascriptPDI& PDI, const FTransform& Transform, float Size, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void DrawPolygon(const FJavascriptPDI& PDI, const TArray<FVector>& Verts, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority);
+	static void DrawPolygon(const FJavascriptPDI& PDI, const TArray<FVector>& Verts, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority, EJavascriptRHIFeatureLevel::Type RHIFeatureLevel);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void SetHitProxy(const FJavascriptPDI& PDI, const FName& Name);
@@ -376,9 +399,6 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptUICommandList GetLevelEditorActions();
-
-	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void SetCustomDetailViewWidget(FJavascriptSlateWidget UserWidget);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void AddExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender);

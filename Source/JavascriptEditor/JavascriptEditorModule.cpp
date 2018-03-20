@@ -185,11 +185,9 @@ void FJavascriptEditorModule::Unregister()
 	JavascriptContext->RequestV8GarbageCollection();
 
 	JavascriptContext->JavascriptContext.Reset();
-	
-	JavascriptContext->RemoveFromRoot();
-	Tick->RemoveFromRoot();		
 
-	CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);	
+	JavascriptContext->RemoveFromRoot();
+	Tick->RemoveFromRoot();
 }
 #endif
 

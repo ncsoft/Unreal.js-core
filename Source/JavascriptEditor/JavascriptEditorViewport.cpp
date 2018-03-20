@@ -715,13 +715,13 @@ void UJavascriptEditorViewport::DeprojectScreenToWorld(const FVector2D &ScreenPo
     {
         FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues( ViewportWidget->EditorViewportClient->Viewport, ViewportWidget->EditorViewportClient->GetScene(), ViewportWidget->EditorViewportClient->EngineShowFlags ));
         FSceneView* View = ViewportWidget->EditorViewportClient->CalcSceneView(&ViewFamily);
-        
+		
 #if ENGINE_MINOR_VERSION >= 14
 		const auto& InvViewProjMatrix = View->ViewMatrices.GetInvViewProjectionMatrix();
 #else
 		const auto& InvViewProjMatrix = View->ViewMatrices.GetInvViewProjMatrix();
 #endif
-        FSceneView::DeprojectScreenToWorld(ScreenPosition, View->ViewRect, InvViewProjMatrix, OutRayOrigin, OutRayDirection);
+        FSceneView::DeprojectScreenToWorld(ScreenPosition, View->UnscaledViewRect, InvViewProjMatrix, OutRayOrigin, OutRayDirection);
     }
 }
 
@@ -738,7 +738,7 @@ void UJavascriptEditorViewport::ProjectWorldToScreen(const FVector &WorldPositio
 		const auto& ViewProjMatrix = View->ViewMatrices.GetViewProjMatrix();
 #endif
         
-        FSceneView::ProjectWorldToScreen(WorldPosition, View->ViewRect, ViewProjMatrix, OutScreenPosition);
+        FSceneView::ProjectWorldToScreen(WorldPosition, View->UnscaledViewRect, ViewProjMatrix, OutScreenPosition);
     }
 }
 
