@@ -15,6 +15,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "Paths.h"
 #include "JavascriptIsolate_Private.h"
 #include "PropertyPortFlags.h"
+#include "ScriptMacros.h"
 
 #if WITH_EDITOR
 #include "TypingGenerator.h"
@@ -518,19 +519,19 @@ static UProperty* DuplicateProperty(UObject* Outer, UProperty* Property, FName N
 	return SetupProperty(Clone());
 };
 
-void UJavascriptGeneratedFunction::Thunk(UObject* Obj, FFrame& Stack, RESULT_DECL)
+void UJavascriptGeneratedFunction::Thunk(UObject* Context, FFrame& Stack, RESULT_DECL)
 {
 	auto Function = static_cast<UJavascriptGeneratedFunction*>(Stack.CurrentNativeFunction);
 	auto ProcessInternal = [&](FFrame& Stack, RESULT_DECL)
 	{
 		if (Function->JavascriptContext.IsValid())
 		{
-			auto Context = Function->JavascriptContext.Pin();
+			auto Ctx = Function->JavascriptContext.Pin();
 
-			Isolate::Scope isolate_scope(Context->isolate());
-			HandleScope handle_scope(Context->isolate());
+			Isolate::Scope isolate_scope(Ctx->isolate());
+			HandleScope handle_scope(Ctx->isolate());
 
-			bool bCallRet = Context->CallProxyFunction(Function->GetOuter(), Obj, Function, Stack.Locals);
+			bool bCallRet = Ctx->CallProxyFunction(Function->GetOuter(), P_THIS, Function, Stack.Locals);
 			if (!bCallRet)
 			{
 				return;
@@ -600,7 +601,7 @@ void UJavascriptGeneratedFunction::Thunk(UObject* Obj, FFrame& Stack, RESULT_DEC
 			Frame = (uint8*)FMemory_Alloca(Function->PropertiesSize);
 			FMemory::Memzero(Frame, Function->PropertiesSize);
 		}
-		FFrame NewStack(Obj, Function, Frame, &Stack, Function->Children);
+		FFrame NewStack(P_THIS, Function, Frame, &Stack, Function->Children);
 		FOutParmRec** LastOut = &NewStack.OutParms;
 		UProperty* Property;
 

@@ -292,7 +292,7 @@ public:
 	{
 		isolate_ = isolate;
 		isolate->SetData(0, this);
-
+		v8::debug::SetConsoleDelegate(isolate_, new UnrealConsoleDelegate(isolate_));
 		Delegates = IDelegateManager::Create(isolate);
 
 #if STATS
@@ -427,7 +427,7 @@ public:
 			ExportEnum(*It);
 		}
 
-		ExportConsole();
+		// ExportConsole();
 
 		ExportMemory(ObjectTemplate);
 
@@ -442,6 +442,7 @@ public:
 		Delegates = nullptr;
 
 		FTicker::GetCoreTicker().RemoveTicker(TickHandle);
+		v8::debug::SetConsoleDelegate(isolate_, nullptr);
 
 		isolate_->Dispose();
 	}	
@@ -989,7 +990,7 @@ public:
 
 	void ExportConsole()
 	{
-		v8::debug::SetConsoleDelegate(isolate_, new UnrealConsoleDelegate(isolate_));
+
 		//FIsolateHelper I(isolate_);
 
 		//Local<FunctionTemplate> Template = I.FunctionTemplate();
