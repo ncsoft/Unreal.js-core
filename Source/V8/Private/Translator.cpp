@@ -1,4 +1,5 @@
 #include "Translator.h"
+#include "Engine/UserDefinedStruct.h"
 
 namespace v8
 {
@@ -107,5 +108,34 @@ namespace v8
 		}
 
 		return FString::Join(ArgStrings, TEXT(" "));
+	}
+
+	FString PropertyNameToString(UProperty* Property)
+	{
+		auto Struct = Property->GetOwnerStruct();
+		auto displayName = Property->GetFName();
+		auto name = FName(displayName.GetComparisonIndex(), displayName.GetComparisonIndex(), displayName.GetNumber());
+		if (Struct)
+		{
+			if (auto s = Cast<UUserDefinedStruct>(Struct))
+			{
+				return s->PropertyNameToDisplayName(name);
+			}
+		}
+		return name.ToString();
+	}
+
+	bool MatchPropertyName(UProperty* Property, FName NameToMatch)
+	{
+		auto Struct = Property->GetOwnerStruct();
+		auto name = Property->GetFName();
+		if (Struct)
+		{
+			if (auto s = Cast<UUserDefinedStruct>(Struct))
+			{
+				return s->PropertyNameToDisplayName(name) == NameToMatch.ToString();
+			}
+		}
+		return name == NameToMatch;
 	}
 }

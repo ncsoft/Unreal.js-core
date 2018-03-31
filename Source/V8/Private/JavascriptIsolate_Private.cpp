@@ -21,7 +21,6 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "JavascriptGeneratedClass_Native.h"
 #include "StructMemoryInstance.h"
 #include "JavascriptMemoryObject.h"
-#include "Engine/UserDefinedStruct.h"
 #include "Ticker.h"
 #include "V8PCH.h"
 #include "UObjectIterator.h"
@@ -93,34 +92,6 @@ void* FArrayBufferAccessor::GetData()
 void FArrayBufferAccessor::Discard()
 {
 	GCurrentContents = v8::ArrayBuffer::Contents();
-}
-
-FString PropertyNameToString(UProperty* Property)
-{
-	auto Struct = Property->GetOwnerStruct();
-	auto name = Property->GetFName();
-	if (Struct)
-	{
-		if (auto s = Cast<UUserDefinedStruct>(Struct))
-		{
-			return s->PropertyNameToDisplayName(name);
-		}
-	}
-	return name.ToString();
-}
-
-bool MatchPropertyName(UProperty* Property, FName NameToMatch)
-{
-	auto Struct = Property->GetOwnerStruct();
-	auto name = Property->GetFName();
-	if (Struct)
-	{
-		if (auto s = Cast<UUserDefinedStruct>(Struct))
-		{
-			return s->PropertyNameToDisplayName(name) == NameToMatch.ToString();
-		}
-	}
-	return name == NameToMatch;
 }
 
 class FJavascriptIsolateImplementation : public FJavascriptIsolate
@@ -1606,7 +1577,7 @@ public:
 		FIsolateHelper I(isolate_);
 
 		// Property getter
-		auto Getter = [](Local<String> property, const PropertyCallbackInfo<Value>& info) {
+		auto Getter = [](Local<Name> property, const PropertyCallbackInfo<Value>& info) {
 			auto isolate = info.GetIsolate();
 
 			auto data = info.Data();
@@ -1617,7 +1588,7 @@ public:
 		};
 
 		// Property setter
-		auto Setter = [](Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& info) {
+		auto Setter = [](Local<Name> property, Local<Value> value, const PropertyCallbackInfo<void>& info) {
 			auto isolate = info.GetIsolate();
 
 			auto data = info.Data();

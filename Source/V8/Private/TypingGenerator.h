@@ -2,6 +2,7 @@
 
 #include "Config.h"
 #include "FileHelper.h"
+#include "Translator.h"
 
 struct TypingGeneratorBase
 {
@@ -163,7 +164,7 @@ struct TokenWriter
 		{
 			auto Prop = *It;
 			if (!first) push(", ");
-			push(FV8Config::Safeify(Prop->GetName()));
+			push(FV8Config::Safeify(PropertyNameToString(Prop)));
 			push(": ");
 			push(Prop);
 			first = false;
@@ -325,7 +326,7 @@ struct TypingGenerator : TypingGeneratorBase
 		for (TFieldIterator<UProperty> PropertyIt(source, EFieldIteratorFlags::ExcludeSuper); PropertyIt; ++PropertyIt)
 		{
 			auto Property = *PropertyIt;
-			auto PropertyName = FV8Config::Safeify(Property->GetName());
+			auto PropertyName = FV8Config::Safeify(PropertyNameToString(Property));
 
 			w.tooltip("\t", Property);
 
@@ -362,7 +363,7 @@ struct TypingGenerator : TypingGeneratorBase
 				}
 
 				auto Property = *ParamIt;
-				auto PropertyName = FV8Config::Safeify(Property->GetName());
+				auto PropertyName = FV8Config::Safeify(PropertyNameToString(Property));
 
 				w2.push(PropertyName);
 				if (is_optional)
@@ -399,7 +400,7 @@ struct TypingGenerator : TypingGeneratorBase
 					}
 					else if ((ParamIt->PropertyFlags & (CPF_ConstParm | CPF_OutParm)) == CPF_OutParm)
 					{
-						w2.push(ParamIt->GetName());
+						w2.push(PropertyNameToString(*ParamIt));
 						w2.push(": ");
 						w2.push(*ParamIt);
 
