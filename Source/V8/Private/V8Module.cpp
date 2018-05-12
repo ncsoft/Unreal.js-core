@@ -111,10 +111,12 @@ public:
 		return platform_->MonotonicallyIncreasingTime();
 	}
 
+#if V8_MAJOR_VERSION > 5 && V8_MINOR_VERSION > 3
 	virtual double CurrentClockTimeMillis()
 	{
 		return platform_->CurrentClockTimeMillis();
 	}
+#endif
 
 #if V8_MAJOR_VERSION > 5
 	v8::TracingController* GetTracingController() override
