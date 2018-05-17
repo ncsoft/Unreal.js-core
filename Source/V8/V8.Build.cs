@@ -246,13 +246,13 @@ public class V8 : ModuleRules
             {
                 if (v8_version[1] >= 4)
                 {
-                    PublicAdditionalLibraries.Add("v8_init.a");
-                    PublicAdditionalLibraries.Add("v8_initializers.a");
+                    PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"v8_init.a"));
+                    PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"v8_initializers.a"));
                 }
                 else
                 {
-                    PublicAdditionalLibraries.Add("v8_builtins_setup.a");
-                    PublicAdditionalLibraries.Add("v8_builtins_generators.a");
+                    PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"v8_builtins_setup.a"));
+                    PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath,"v8_builtins_generators.a"));
                 }
             }
 
