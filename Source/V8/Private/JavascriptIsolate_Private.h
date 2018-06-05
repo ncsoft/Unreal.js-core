@@ -38,7 +38,7 @@ public:
 
 	v8::Isolate* isolate_;
 
-	static FJavascriptIsolate* Create();
+	static FJavascriptIsolate* Create(bool bIsEditor);
 	static v8::Local<v8::Value> ReadProperty(v8::Isolate* isolate, UProperty* Property, uint8* Buffer, const IPropertyOwner& Owner);
 	static void WriteProperty(v8::Isolate* isolate, UProperty* Property, uint8* Buffer, v8::Handle<v8::Value> Value);
 	static v8::Local<v8::Value> ExportStructInstance(v8::Isolate* isolate, UScriptStruct* Struct, uint8* Buffer, const IPropertyOwner& Owner);

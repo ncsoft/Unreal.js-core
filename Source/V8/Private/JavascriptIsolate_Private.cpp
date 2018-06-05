@@ -111,6 +111,7 @@ public:
 
 	FTickerDelegate TickDelegate;
 	FDelegateHandle TickHandle;
+	bool bIsEditor;
 
 	struct FObjectPropertyAccessors
 	{
@@ -347,8 +348,9 @@ public:
 	}
 #endif
 
-	FJavascriptIsolateImplementation()
+	FJavascriptIsolateImplementation(bool bIsEditorIsolate)
 	{
+		bIsEditor = bIsEditorIsolate;
 		Isolate::CreateParams params;
 
 		// Set our array buffer allocator instance
@@ -688,7 +690,7 @@ public:
 		for (TFieldIterator<UProperty> PropertyIt(Struct, EFieldIteratorFlags::IncludeSuper); PropertyIt && len; ++PropertyIt)
 		{
 			auto Property = *PropertyIt;
-			auto PropertyName = PropertyNameToString(Property);
+			auto PropertyName = PropertyNameToString(Property, !bIsEditor);
 
 			auto name = I.Keyword(PropertyName);
 			auto value = v8_obj->Get(name);
@@ -1599,7 +1601,7 @@ public:
 		};
 
 		Template->PrototypeTemplate()->SetAccessor(
-			I.Keyword(PropertyNameToString(PropertyToExport)),
+			I.Keyword(PropertyNameToString(PropertyToExport, !bIsEditor)),
 			Getter, 
 			Setter, 
 			I.External(PropertyToExport),
@@ -1919,97 +1921,193 @@ public:
 	{
 		FIsolateHelper I(isolate_);
 		
-		auto fn = [](const FunctionCallbackInfo<Value>& info) {
-			auto Class = reinterpret_cast<UClass*>((Local<External>::Cast(info.Data()))->Value());
+		if (bIsEditor)
+		{
+			auto fn = [](const FunctionCallbackInfo<Value>& info) {
+				auto Class = reinterpret_cast<UClass*>((Local<External>::Cast(info.Data()))->Value());
 
-			auto isolate = info.GetIsolate();
-			FIsolateHelper I(isolate);
+				auto isolate = info.GetIsolate();
+				FIsolateHelper I(isolate);
 
-			auto self = info.This();
-			auto out = Object::New(isolate);
+				auto self = info.This();
+				auto out = Object::New(isolate);
 
-			auto Object_toJSON = [&](Local<Value> value) -> Local<Value>
-			{
-				auto Object = UObjectFromV8(value);
-				if (Object == nullptr)
+				auto Object_toJSON = [&](Local<Value> value) -> Local<Value>
 				{
-					return Null(isolate);
-				}
-				else
-				{
-					return V8_String(isolate, Object->GetPathName());
-				}
-			};
-
-			for (TFieldIterator<UProperty> PropertyIt(Class, EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
-			{
-				auto Property = *PropertyIt;
-
-				if (FV8Config::CanExportProperty(Class, Property))
-				{
-					auto PropertyName = PropertyNameToString(Property);
-
-					auto name = I.Keyword(PropertyName);
-					auto value = PropertyAccessor::Get(isolate, self, Property);
-					if (auto p = Cast<UClassProperty>(Property))
+					auto Object = UObjectFromV8(value);
+					if (Object == nullptr)
 					{
-						auto Class = UClassFromV8(isolate, value);
+						return Null(isolate);
+					}
+					else
+					{
+						return V8_String(isolate, Object->GetPathName());
+					}
+				};
 
-						if (Class)
+				for (TFieldIterator<UProperty> PropertyIt(Class, EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
+				{
+					auto Property = *PropertyIt;
+
+					if (FV8Config::CanExportProperty(Class, Property))
+					{
+						auto PropertyName = PropertyNameToString(Property, false);
+
+						auto name = I.Keyword(PropertyName);
+						auto value = PropertyAccessor::Get(isolate, self, Property);
+						if (auto p = Cast<UClassProperty>(Property))
 						{
-							auto BPGC = Cast<UBlueprintGeneratedClass>(Class);
-							if (BPGC)
+							auto Class = UClassFromV8(isolate, value);
+
+							if (Class)
 							{
-								auto BP = Cast<UBlueprint>(BPGC->ClassGeneratedBy);
-								value = I.String(BP->GetPathName());
+								auto BPGC = Cast<UBlueprintGeneratedClass>(Class);
+								if (BPGC)
+								{
+									auto BP = Cast<UBlueprint>(BPGC->ClassGeneratedBy);
+									value = I.String(BP->GetPathName());
+								}
+								else
+								{
+									value = I.String(Class->GetPathName());
+								}
 							}
 							else
 							{
-								value = I.String(Class->GetPathName());
+								value = I.Keyword("null");
 							}
-						}
-						else
-						{
-							value = I.Keyword("null");
-						}
 
-						out->Set(name, value);
-					}
-					else if (auto p = Cast<UObjectPropertyBase>(Property))
-					{
-						out->Set(name, Object_toJSON(value));						
-					}
-					else if (auto p = Cast<UArrayProperty>(Property))
-					{
-						if (auto q = Cast<UObjectPropertyBase>(p->Inner))
+							out->Set(name, value);
+						}
+						else if (auto p = Cast<UObjectPropertyBase>(Property))
 						{
-							auto arr = Handle<Array>::Cast(value);
-							auto len = arr->Length();
-							
-							auto out_arr = Array::New(isolate, len);
-							out->Set(name, out_arr);
-
-							for (decltype(len) Index = 0; Index < len; ++Index)
+							out->Set(name, Object_toJSON(value));
+						}
+						else if (auto p = Cast<UArrayProperty>(Property))
+						{
+							if (auto q = Cast<UObjectPropertyBase>(p->Inner))
 							{
-								out_arr->Set(Index, Object_toJSON(arr->Get(Index)));								
-							}															
+								auto arr = Handle<Array>::Cast(value);
+								auto len = arr->Length();
+
+								auto out_arr = Array::New(isolate, len);
+								out->Set(name, out_arr);
+
+								for (decltype(len) Index = 0; Index < len; ++Index)
+								{
+									out_arr->Set(Index, Object_toJSON(arr->Get(Index)));
+								}
+							}
+							else
+							{
+								out->Set(name, value);
+							}
 						}
 						else
 						{
 							out->Set(name, value);
-						}						
+						}
+					}
+				}
+
+				info.GetReturnValue().Set(out);
+			};
+			Template->PrototypeTemplate()->Set(I.Keyword("toJSON"), I.FunctionTemplate(fn, ClassToExport));
+		}
+		else
+		{
+			auto fn = [](const FunctionCallbackInfo<Value>& info) {
+				auto Class = reinterpret_cast<UClass*>((Local<External>::Cast(info.Data()))->Value());
+
+				auto isolate = info.GetIsolate();
+				FIsolateHelper I(isolate);
+
+				auto self = info.This();
+				auto out = Object::New(isolate);
+
+				auto Object_toJSON = [&](Local<Value> value) -> Local<Value>
+				{
+					auto Object = UObjectFromV8(value);
+					if (Object == nullptr)
+					{
+						return Null(isolate);
 					}
 					else
 					{
-						out->Set(name, value);
+						return V8_String(isolate, Object->GetPathName());
+					}
+				};
+
+				for (TFieldIterator<UProperty> PropertyIt(Class, EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
+				{
+					auto Property = *PropertyIt;
+
+					if (FV8Config::CanExportProperty(Class, Property))
+					{
+						auto PropertyName = PropertyNameToString(Property, true);
+
+						auto name = I.Keyword(PropertyName);
+						auto value = PropertyAccessor::Get(isolate, self, Property);
+						if (auto p = Cast<UClassProperty>(Property))
+						{
+							auto Class = UClassFromV8(isolate, value);
+
+							if (Class)
+							{
+								auto BPGC = Cast<UBlueprintGeneratedClass>(Class);
+								if (BPGC)
+								{
+									auto BP = Cast<UBlueprint>(BPGC->ClassGeneratedBy);
+									value = I.String(BP->GetPathName());
+								}
+								else
+								{
+									value = I.String(Class->GetPathName());
+								}
+							}
+							else
+							{
+								value = I.Keyword("null");
+							}
+
+							out->Set(name, value);
+						}
+						else if (auto p = Cast<UObjectPropertyBase>(Property))
+						{
+							out->Set(name, Object_toJSON(value));
+						}
+						else if (auto p = Cast<UArrayProperty>(Property))
+						{
+							if (auto q = Cast<UObjectPropertyBase>(p->Inner))
+							{
+								auto arr = Handle<Array>::Cast(value);
+								auto len = arr->Length();
+
+								auto out_arr = Array::New(isolate, len);
+								out->Set(name, out_arr);
+
+								for (decltype(len) Index = 0; Index < len; ++Index)
+								{
+									out_arr->Set(Index, Object_toJSON(arr->Get(Index)));
+								}
+							}
+							else
+							{
+								out->Set(name, value);
+							}
+						}
+						else
+						{
+							out->Set(name, value);
+						}
 					}
 				}
-			}
 
-			info.GetReturnValue().Set(out);
-		};
+				info.GetReturnValue().Set(out);
+			};
+			Template->PrototypeTemplate()->Set(I.Keyword("toJSON"), I.FunctionTemplate(fn, ClassToExport));
+		}
 
-		Template->PrototypeTemplate()->Set(I.Keyword("toJSON"), I.FunctionTemplate(fn, ClassToExport));		
 	}
 
 	template <typename PropertyAccessor>
@@ -2624,9 +2722,9 @@ public:
 	}
 };
 
-FJavascriptIsolate* FJavascriptIsolate::Create()
+FJavascriptIsolate* FJavascriptIsolate::Create(bool bIsEditor)
 {
-	return new FJavascriptIsolateImplementation();
+	return new FJavascriptIsolateImplementation(bIsEditor);
 }
 
 Local<Value> FJavascriptIsolate::ReadProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, const IPropertyOwner& Owner)

@@ -110,11 +110,11 @@ namespace v8
 		return FString::Join(ArgStrings, TEXT(" "));
 	}
 
-	FString PropertyNameToString(UProperty* Property)
+	FString PropertyNameToString(UProperty* Property, bool bConvertComparisionIndex)
 	{
 		auto Struct = Property->GetOwnerStruct();
 		auto displayName = Property->GetFName();
-		auto name = FName(displayName.GetComparisonIndex(), displayName.GetComparisonIndex(), displayName.GetNumber());
+		auto name = bConvertComparisionIndex ? FName(displayName.GetComparisonIndex(), displayName.GetComparisonIndex(), displayName.GetNumber()) : displayName;
 		if (Struct)
 		{
 			if (auto s = Cast<UUserDefinedStruct>(Struct))

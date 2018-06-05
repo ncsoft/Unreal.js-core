@@ -37,6 +37,6 @@ namespace v8
 	UObject* UObjectFromV8(Local<Value> Value);
 	uint8* RawMemoryFromV8(Local<Value> Value);
 	FString StringFromArgs(const FunctionCallbackInfo<v8::Value>& args, int StartIndex = 0);
-	FString PropertyNameToString(UProperty* Property);
+	FString PropertyNameToString(UProperty* Property, bool bConvertComparisionIndex = true);
 	bool MatchPropertyName(UProperty* Property, FName NameToMatch);
 }

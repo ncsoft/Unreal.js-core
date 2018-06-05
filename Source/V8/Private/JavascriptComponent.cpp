@@ -27,6 +27,7 @@ void UJavascriptComponent::OnRegister()
 		if (GetWorld() && ((GetWorld()->IsGameWorld() && !GetWorld()->IsPreviewWorld()) || bActiveWithinEditor))
 		{
 			auto Isolate = NewObject<UJavascriptIsolate>();
+			Isolate->Init(false);
 			auto Context = Isolate->CreateContext();
 
 			JavascriptContext = Context;

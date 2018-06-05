@@ -100,6 +100,9 @@ public:
 	TSharedPtr<FJavascriptIsolate> JavascriptIsolate;
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	void Init(bool bIsEditor);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	UJavascriptContext* CreateContext();
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")

@@ -16,10 +16,14 @@ DEFINE_LOG_CATEGORY(Javascript);
 UJavascriptIsolate::UJavascriptIsolate(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
+}
+
+void UJavascriptIsolate::Init(bool bIsEditor)
+{
 	const bool bIsClassDefaultObject = IsTemplate(RF_ClassDefaultObject);
 	if (!bIsClassDefaultObject)
 	{
-		JavascriptIsolate = TSharedPtr<FJavascriptIsolate>(FJavascriptIsolate::Create());
+		JavascriptIsolate = TSharedPtr<FJavascriptIsolate>(FJavascriptIsolate::Create(bIsEditor));
 	}
 }
 
