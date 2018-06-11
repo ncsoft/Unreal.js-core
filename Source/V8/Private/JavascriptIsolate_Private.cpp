@@ -610,10 +610,24 @@ public:
 
 			return arr;
 		}
+		else if (auto p = Cast<USoftObjectProperty>(Property))
+		{
+			// string only
+// 			auto* Data = p->GetObjectPropertyValue_InContainer(Buffer);
+// 			if (Data)
+// 			{
+// 				return ExportObject(Data);
+// 			}
+// 			else
+// 			{
+				auto Value = p->GetPropertyValue_InContainer(Buffer);
+				return V8_String(isolate_, Value.GetAssetName());
+// 			}
+		}
 		else if (auto p = Cast<UObjectPropertyBase>(Property))
 		{
 			return ExportObject(p->GetObjectPropertyValue_InContainer(Buffer));
-		}				
+		}	
 		else if (auto p = Cast<UByteProperty>(Property))
 		{
 			auto Value = p->GetPropertyValue_InContainer(Buffer);
@@ -1573,6 +1587,21 @@ public:
 		Template->Set(function_name, function);
 	}
 	
+	virtual void PublicExportClass(UClass* ClassToExport) override
+	{
+		// Clear some template maps
+		OnGarbageCollectedByV8(GetContext(), ClassToExport);
+
+		ExportClass(ClassToExport);
+	}
+
+	virtual void PublicExportStruct(UScriptStruct* StructToExport) override
+	{
+		ScriptStructToFunctionTemplateMap.Remove(StructToExport);
+
+		ExportStruct(StructToExport);
+	}
+
 	template <typename PropertyAccessors>
 	void ExportProperty(Handle<FunctionTemplate> Template, UProperty* PropertyToExport, int32 PropertyIndex) 
 	{

@@ -549,6 +549,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool IsPendingKill(AActor* InActor);
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FBox GetWorldBounds(UWorld* InWorld);
+
 	UFUNCTION(BlueprintCallable, CustomThunk, Category = "Scripting | Javascript", meta = (CustomStructureParam = "CustomStruct"))
 	static void CallJS(FJavascriptFunction Function, const FJavascriptStubStruct& CustomStruct);
 

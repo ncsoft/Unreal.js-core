@@ -149,6 +149,11 @@ struct TokenWriter
 			generator.Export(p->PropertyClass);
 			push(FV8Config::Safeify(p->PropertyClass->GetName()));
 		}
+		else if (auto p = Cast<USoftObjectProperty>(Property))
+		{
+			generator.Export(p->PropertyClass);
+			push(FV8Config::Safeify(p->PropertyClass->GetName()));
+		}
 		else
 		{
 			push("any");

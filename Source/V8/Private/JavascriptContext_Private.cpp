@@ -19,6 +19,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #if WITH_EDITOR
 #include "TypingGenerator.h"
+#include "Kismet2/KismetReinstanceUtilities.h"
 #endif
 
 #include "Helpers.h"
@@ -948,6 +949,7 @@ public:
 					if (proxy.IsEmpty() || !proxy->IsObject())
 					{
 						I.Throw(TEXT("Invalid proxy : construct class"));
+						//@todo : assertion
 						return;
 					}
 
@@ -1240,10 +1242,72 @@ public:
 #endif
 		};
 
+		auto fn1 = [](const FunctionCallbackInfo<Value>& info) {
+#if WITH_EDITOR
+			auto Context = reinterpret_cast<FJavascriptContextImplementation*>((Local<External>::Cast(info.Data()))->Value());
+
+			auto isolate = info.GetIsolate();
+
+			FIsolateHelper I(isolate);
+
+			HandleScope scope(isolate);
+
+			auto Opts = info[0]->ToObject();
+			auto Class = (UBlueprintGeneratedClass*)UClassFromV8(isolate, Opts->Get(I.Keyword("SelfClass")));
+
+			// Recreate the CDO after rebind properties.
+			TMap<UClass*, UClass*> OldToNewMap;
+			FBlueprintCompileReinstancer::MoveCDOToNewClass(Class, OldToNewMap, true);
+			Class->ClassDefaultObject = NULL;
+
+			Class->Children = nullptr;
+			auto PropertyDecls = Opts->Get(I.Keyword("Properties"));
+			if (!PropertyDecls.IsEmpty() && PropertyDecls->IsArray())
+			{
+				auto arr = Handle<Array>::Cast(PropertyDecls);
+				auto len = arr->Length();
+
+				for (decltype(len) Index = 0; Index < len; ++Index)
+				{
+					auto PropertyDecl = arr->Get(len - Index - 1);
+					if (PropertyDecl->IsObject())
+					{
+						auto Property = CreatePropertyFromDecl(I, Class, PropertyDecl);
+
+						if (Property)
+						{
+							Class->AddCppProperty(Property);
+
+							if (Property->HasAnyPropertyFlags(CPF_Net))
+							{
+								Class->NumReplicatedProperties++;
+							}
+						}
+					}
+				}
+			}
+
+			Class->Bind();
+			Class->StaticLink(true);
+
+			// @note: caching target class's proxy function and adjust to reexported class.
+			auto prev_v8_template = Context->ExportObject(Class);
+			auto ProxyFunctions = prev_v8_template->ToObject()->Get(I.Keyword("proxy"));
+
+			Context->Environment->PublicExportClass(Class);
+
+			auto aftr_v8_template = Context->ExportObject(Class);
+			aftr_v8_template->ToObject()->Set(I.Keyword("proxy"), ProxyFunctions);
+
+			Class->GetDefaultObject(true);
+#endif
+		};
+
 		auto global = context()->Global();
 		auto self = External::New(isolate(), this);
 
 		global->Set(V8_KeywordString(isolate(), "CreateClass"), FunctionTemplate::New(isolate(), fn, self)->GetFunction());
+		global->Set(V8_KeywordString(isolate(), "RebindClassProperties"), FunctionTemplate::New(isolate(), fn1, self)->GetFunction());
 	}
 
 	void ExportUnrealEngineStructs()
@@ -1312,10 +1376,60 @@ public:
 			info.GetReturnValue().Set(FinalClass);
 		};
 
+		auto fn1 = [](const FunctionCallbackInfo<Value>& info) {
+#if WITH_EDITOR
+			auto Context = reinterpret_cast<FJavascriptContextImplementation*>((Local<External>::Cast(info.Data()))->Value());
+
+			auto isolate = info.GetIsolate();
+
+			FIsolateHelper I(isolate);
+
+			HandleScope scope(isolate);
+
+			auto Opts = info[0]->ToObject();
+			auto Struct = (UScriptStruct*)UClassFromV8(isolate, Opts->Get(I.Keyword("SelfStruct")));
+
+			Struct->Children = nullptr;
+			auto PropertyDecls = Opts->Get(I.Keyword("Properties"));
+			if (!PropertyDecls.IsEmpty() && PropertyDecls->IsArray())
+			{
+				auto arr = Handle<Array>::Cast(PropertyDecls);
+				auto len = arr->Length();
+
+				for (decltype(len) Index = 0; Index < len; ++Index)
+				{
+					auto PropertyDecl = arr->Get(len - Index - 1);
+					if (PropertyDecl->IsObject())
+					{
+						auto Property = CreatePropertyFromDecl(I, Struct, PropertyDecl);
+
+						if (Property)
+						{
+							Struct->AddCppProperty(Property);
+						}
+					}
+				}
+			}
+
+			Struct->Bind();
+			Struct->StaticLink(true);
+
+			// @note: caching target class's proxy function and adjust to reexported class.
+			auto prev_v8_template = Context->ExportObject(Struct);
+			auto ProxyFunctions = prev_v8_template->ToObject()->Get(I.Keyword("proxy"));
+
+			Context->Environment->PublicExportStruct(Struct);
+
+			auto aftr_v8_template = Context->ExportObject(Struct);
+			aftr_v8_template->ToObject()->Set(I.Keyword("proxy"), ProxyFunctions);
+#endif
+		};
+
 		auto global = context()->Global();
 		auto self = External::New(isolate(), this);
 
 		global->Set(V8_KeywordString(isolate(), "CreateStruct"), FunctionTemplate::New(isolate(), fn, self)->GetFunction());
+		global->Set(V8_KeywordString(isolate(), "RebindStructProperties"), FunctionTemplate::New(isolate(), fn1, self)->GetFunction());
 	}
 
 	void ExposeRequire()
@@ -1739,7 +1853,7 @@ public:
 	void RequestV8GarbageCollection()
 	{
 		// @todo: using 'ForTesting' function
-		isolate()->RequestGarbageCollectionForTesting(Isolate::GarbageCollectionType::kMinorGarbageCollection);
+		isolate()->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
 	}
 
 	// Should be guarded with proper handle scope

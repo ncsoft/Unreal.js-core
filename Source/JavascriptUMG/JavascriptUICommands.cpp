@@ -3,7 +3,7 @@
 #include "Framework/Commands/Commands.h"
 #include "Modules/ModuleVersion.h"
 
-PRAGMA_DISABLE_OPTIMIZATION
+//PRAGMA_DISABLE_OPTIMIZATION
 
 UJavascriptUICommands::UJavascriptUICommands(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer), bRegistered(false)
@@ -142,4 +142,4 @@ FJavascriptUICommandInfo UJavascriptUICommands::GetAction(FString Id)
 	return FJavascriptUICommandInfo();
 }
 
-PRAGMA_ENABLE_OPTIMIZATION
+//PRAGMA_ENABLE_OPTIMIZATION

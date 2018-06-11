@@ -14,6 +14,7 @@ UJavascriptComponent::UJavascriptComponent(const FObjectInitializer& ObjectIniti
 : Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.TickInterval = 0.03f;
 	bTickInEditor = false;
 	bAutoActivate = true;
 	bWantsInitializeComponent = true;

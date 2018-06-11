@@ -49,6 +49,9 @@ class JAVASCRIPTEDITOR_API UPropertyEditor : public UWidget
 	bool bHideSelectionTip;
 
 	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
+	bool bReadOnly;
+
+	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
 	EPropertyEditorNameAreaSettings NameAreaSettings;
 	
 	TArray<FWeakObjectPtr> ObjectsToInspect;

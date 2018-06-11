@@ -50,5 +50,7 @@ public:
 	virtual v8::Local<v8::ObjectTemplate> GetGlobalTemplate() = 0;
 	virtual void AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector) = 0;
 	virtual v8::Local<v8::Value> ExportStructInstance(UScriptStruct* Struct, uint8* Buffer, const IPropertyOwner& Owner) = 0;
+	virtual void PublicExportClass(UClass* ClassToExport) = 0;
+	virtual void PublicExportStruct(UScriptStruct* StructToExport) = 0;
 	virtual ~FJavascriptIsolate() {}	
 };

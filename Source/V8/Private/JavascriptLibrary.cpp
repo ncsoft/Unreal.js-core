@@ -785,3 +785,13 @@ bool UJavascriptLibrary::IsPendingKill(AActor* InActor)
 		return InActor->IsPendingKill();
 	return true;
 }
+
+FBox UJavascriptLibrary::GetWorldBounds(UWorld* InWorld)
+{
+	auto* NavSys = InWorld->GetNavigationSystem();
+	if (NavSys)
+	{
+		return NavSys->GetWorldBounds();
+	}
+	return FBox();
+}

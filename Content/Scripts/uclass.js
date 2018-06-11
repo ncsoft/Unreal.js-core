@@ -71,7 +71,7 @@
 
         let RE_class = /\s*class\s+(\w+)(\s+\/\*([^\*]*)\*\/)?(\s+extends\s+([^\s\{]+))?/
         let RE_func = /(\w+)\s*\(([^.)]*)\)\s*(\/\*([^\*]*)\*\/)?.*/
-        function register(target, template) {
+        function register(target, template, includeProperty=true) {
             target = target || {}
             let bindings = []
 
@@ -212,7 +212,7 @@
                     Functions: proxy,
                     StructFlags: classFlags,
                     Outer: thePackage,
-                    Properties: properties
+                    Properties: includeProperty ? properties : []
                 });
             }
             else {
@@ -221,7 +221,7 @@
                     Functions: proxy,
                     ClassFlags: classFlags,
                     Outer: thePackage,
-                    Properties: properties
+                    Properties: includeProperty ? properties : []
                 });
             }
 
