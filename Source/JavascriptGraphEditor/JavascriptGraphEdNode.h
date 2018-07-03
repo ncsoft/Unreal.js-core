@@ -64,10 +64,10 @@ public:
 		const FJavascriptPinParams& InPinParams
 		);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void UpdateSlate();
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	FVector2D GetDesiredSize();
 
 public:
