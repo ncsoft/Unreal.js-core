@@ -1,29 +1,12 @@
 using UnrealBuildTool;
+using System.IO;
+using System;
 
 public class JavascriptWebSocket : ModuleRules
 {
-    public static bool IsUpdated(bool bIgnorePatchVersion = false)
+    protected string ThirdPartyPath
     {
-        string[] VersionHeader = Utils.ReadAllText("../Source/Runtime/Launch/Resources/Version.h").Replace("\r\n", "\n").Replace("\t", " ").Split('\n');
-        string EngineVersionMajor = "4";
-        string EngineVersionMinor = "0";
-        //string EngineVersionPatch = "0";
-        foreach (string Line in VersionHeader)
-        {
-            if (Line.StartsWith("#define ENGINE_MAJOR_VERSION "))
-            {
-                EngineVersionMajor = Line.Split(' ')[2];
-            }
-            else if (Line.StartsWith("#define ENGINE_MINOR_VERSION "))
-            {
-                EngineVersionMinor = Line.Split(' ')[2];
-            }
-            /*else if (Line.StartsWith("#define ENGINE_PATCH_VERSION ") && !bIgnorePatchVersion)
-            {
-                EngineVersionPatch = Line.Split(' ')[2];
-            }*/
-        }
-        return System.Int32.Parse(EngineVersionMajor) == 4 && System.Int32.Parse(EngineVersionMinor) >= 14;
+        get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "..", "..", "ThirdParty")); }
     }
 
     public JavascriptWebSocket(ReadOnlyTargetRules Target) : base(Target)
@@ -39,15 +22,46 @@ public class JavascriptWebSocket : ModuleRules
             "Networking"
         });
 
-        if (IsUpdated() && (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Win32 || Target.Platform == UnrealTargetPlatform.Mac))
+        bool bPlatformSupportsLibWebsockets =
+            Target.Platform == UnrealTargetPlatform.Win32 ||
+            Target.Platform == UnrealTargetPlatform.Win64 ||
+            Target.Platform == UnrealTargetPlatform.Android ||
+            Target.Platform == UnrealTargetPlatform.Mac ||
+            Target.IsInPlatformGroup(UnrealPlatformGroup.Unix) ||
+            Target.Platform == UnrealTargetPlatform.IOS ||
+            Target.Platform == UnrealTargetPlatform.PS4 ||
+            Target.Platform == UnrealTargetPlatform.Switch;
+
+        bool bUsePlatformSSL = Target.Platform == UnrealTargetPlatform.Switch;
+
+        bool bPlatformSupportsXboxWebsockets = Target.Platform == UnrealTargetPlatform.XboxOne;
+
+        bool bShouldUseModule =
+                bPlatformSupportsLibWebsockets ||
+                bPlatformSupportsXboxWebsockets;
+
+        if (bShouldUseModule)
         {
-            PublicDefinitions.Add(string.Format("WITH_JSWEBSOCKET=1"));
-            PublicDependencyModuleNames.Add("libWebSockets");
-            AddEngineThirdPartyPrivateStaticDependencies(Target,"libWebSockets");
+            PublicDefinitions.Add("WITH_JSWEBSOCKET=1");
+            if (bPlatformSupportsLibWebsockets)
+            {
+                if (bUsePlatformSSL)
+                {
+                    PrivateDefinitions.Add("WITH_SSL=0");
+                    AddEngineThirdPartyPrivateStaticDependencies(Target, "libWebSockets");
+                }
+                else
+                {
+                    AddEngineThirdPartyPrivateStaticDependencies(Target, "OpenSSL", "libWebSockets", "zlib");
+                    PrivateDependencyModuleNames.Add("SSL");
+                }
+            }
         }
         else
         {
-            PublicDefinitions.Add(string.Format("WITH_JSWEBSOCKET=0"));
+            PublicDefinitions.Add("WITH_JSWEBSOCKET=0");
         }
     }
+
+
 }

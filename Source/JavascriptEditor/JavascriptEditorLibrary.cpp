@@ -36,6 +36,7 @@
 #include "JavascriptUICommands.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
+#include "NavigationSystem.h"
 
 #include "Developer/MessageLog/Public/MessageLogModule.h"
 #include "Developer/MessageLog/Public/IMessageLogListing.h"
@@ -752,7 +753,6 @@ FString UJavascriptEditorLibrary::ExportNavigation(UWorld* InWorld, FString Name
 		//InWorld->LoadSecondaryLevels(true, NULL);
 	}
 
-	UNavigationSystem::InitializeForWorld(InWorld, FNavigationSystemRunMode::EditorMode);
 	FWorldContext &WorldContext = GEditor->GetEditorWorldContext(true);
 	WorldContext.SetCurrentWorld(InWorld);
 	GWorld = InWorld;
@@ -760,10 +760,11 @@ FString UJavascriptEditorLibrary::ExportNavigation(UWorld* InWorld, FString Name
 //	UGameplayStatics::LoadStreamLevel(InWorld, FName(TEXT("BackgroundMountains")), true, true, FLatentActionInfo());
 // 	UWorld::InitializationValues().ShouldSimulatePhysics(false).EnableTraceCollision(true).CreateNavigation(InWorldType == EWorldType::Editor).CreateAISystem(InWorldType == EWorldType::Editor);
 // 	UNavigationSystem::InitializeForWorld(InWorld, FNavigationSystemRunMode::GameMode);
-	if (InWorld->GetNavigationSystem())
+	if (UNavigationSystemV1* Nav = Cast<UNavigationSystemV1>(InWorld->GetNavigationSystem()))
 	{
-		InWorld->GetNavigationSystem()->Build();
-		if (const ANavigationData* NavData = InWorld->GetNavigationSystem()->GetMainNavData(FNavigationSystem::ECreateIfEmpty::Create))
+		Nav->InitializeForWorld(*InWorld, FNavigationSystemRunMode::EditorMode);
+		Nav->Build();
+		if (const ANavigationData* NavData = Nav->GetDefaultNavDataInstance(FNavigationSystem::ECreateIfEmpty::Create))
 		{
 			if (const FNavDataGenerator* Generator = NavData->GetGenerator())
 			{
@@ -805,11 +806,11 @@ void UJavascriptEditorLibrary::RemoveLevelInstance(UWorld* World)
 {
 	// Clean up existing world and remove it from root set so it can be garbage collected.
 	World->bIsLevelStreamingFrozen = false;
-	World->bShouldForceUnloadStreamingLevels = true;
-	World->bShouldForceVisibleStreamingLevels = false;
-	for (ULevelStreaming* StreamingLevel : World->StreamingLevels)
+	World->SetShouldForceUnloadStreamingLevels(true);
+	World->SetShouldForceVisibleStreamingLevels(false);
+	for (ULevelStreaming* StreamingLevel : World->GetStreamingLevels())
 	{
-		StreamingLevel->bIsRequestingUnloadAndRemoval = true;
+		StreamingLevel->SetIsRequestingUnloadAndRemoval(true);
 	}
 	World->RefreshStreamingLevels();
 }

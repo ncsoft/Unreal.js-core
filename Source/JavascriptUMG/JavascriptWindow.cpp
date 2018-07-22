@@ -1,6 +1,6 @@
 #include "JavascriptWindow.h"
 #include "SWindow.h"
-#include "Modules/ModuleVersion.h"
+#include "Launch/Resources/Version.h"
 
 UJavascriptWindow::UJavascriptWindow(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)

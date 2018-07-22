@@ -1,7 +1,7 @@
 #pragma once
 
 #include "STreeView.h"
-#include "TableViewBase.h"
+#include "ListViewBase.h"
 #include "JavascriptTreeView.generated.h"
 
 class UJavascriptContext;
@@ -25,7 +25,7 @@ struct FJavascriptColumn
 * Allows thousands of items to be displayed in a list.  Generates widgets dynamically for each item.
 */
 UCLASS(Experimental)
-class JAVASCRIPTUMG_API UJavascriptTreeView : public UTableViewBase
+class JAVASCRIPTUMG_API UJavascriptTreeView : public UListViewBase
 {
 	GENERATED_UCLASS_BODY()
 
@@ -95,12 +95,6 @@ public:
 	void OnSelectionChanged(UObject* Object, ESelectInfo::Type Type);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
-	void GetSelectedItems(TArray<UObject*>& OutItems);
-
-	UFUNCTION(BlueprintCallable, Category = "Javascript")
-	void SetSelection(UObject* SoleSelectedItem);
-
-	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	void SetItemExpansion(UObject* InItem, bool InShouldExpandItem);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
@@ -109,13 +103,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	bool IsItemExpanded(UObject* InItem);
 
+	UFUNCTION(BlueprintNativeEvent, Category = "Behavior")
+	void SetSelection(UObject* SoleSelectedItem);
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Behavior")
+	bool GetSelectedItems(TArray<UObject*>& OutItems);
+
 	TSharedRef<ITableRow> HandleOnGenerateRow(UObject* Item, const TSharedRef< STableViewBase >& OwnerTable);
 
 	void HandleOnGetChildren(UObject* Item, TArray<UObject*>& OutChildItems);
 	void HandleOnExpansionChanged(UObject* Item, bool bExpanded);
 
 	// UWidget interface
-	virtual TSharedRef<SWidget> RebuildWidget() override;
+	virtual TSharedRef<STableViewBase> RebuildListWidget() override;
 	// End of UWidget interface
 
 	// UObject interface
@@ -137,4 +137,12 @@ public:
 	static void AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector);
 
 	TMultiMap<UObject*, TWeakPtr<SWidget>> CachedRows;
+
+	/** SListView construction helper - useful if using a custom STreeView subclass */
+	template <template<typename> class ListViewT = SListView>
+	TSharedRef<ListViewT<UObject*>> ConstructListView()
+	{
+		MyListView = ITypedUMGListView<UObject*>::ConstructListView<ListViewT>(this, ListItems, SelectionMode, bClearSelectionOnClick, ConsumeMouseWheel);
+		return StaticCastSharedRef<ListViewT<UObject*>>(MyListView.ToSharedRef());
+	}
 };

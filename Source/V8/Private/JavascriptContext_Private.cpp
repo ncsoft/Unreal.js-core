@@ -283,7 +283,7 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 			{
 				if (Left.Compare(Keyword.Keyword, ESearchCase::IgnoreCase) == 0)
 				{
-					NewProperty->SetPropertyFlags(Keyword.Flags);
+					NewProperty->SetPropertyFlags(static_cast<EPropertyFlags>(Keyword.Flags));
 
 					if (Keyword.Flags & CPF_RepNotify)
 					{

@@ -57,59 +57,41 @@ TSharedPtr<SHeaderRow> UJavascriptTreeView::GetHeaderRowWidget()
 	return HeaderRowWidget;
 }
 
-TSharedRef<SWidget> UJavascriptTreeView::RebuildWidget()
+TSharedRef<STableViewBase> UJavascriptTreeView::RebuildListWidget()
 {
-	TSharedRef<SScrollBar> ExternalScrollbar = SNew(SScrollBar).Style(&ScrollBarStyle);
-	return StaticCastSharedRef<SWidget>
-	(
-		SNew(SHorizontalBox)
-		+SHorizontalBox::Slot()
-		.FillWidth(1)
-		[
-			SAssignNew(MyTreeView, STreeView< UObject* >)
-			.SelectionMode(SelectionMode)
-			.TreeItemsSource(&Items)
-			.OnGenerateRow(BIND_UOBJECT_DELEGATE(STreeView< UObject* >::FOnGenerateRow, HandleOnGenerateRow))
-			.OnGetChildren(BIND_UOBJECT_DELEGATE(STreeView< UObject* >::FOnGetChildren, HandleOnGetChildren))
-			.OnExpansionChanged(BIND_UOBJECT_DELEGATE(STreeView< UObject* >::FOnExpansionChanged, HandleOnExpansionChanged))
-			.OnContextMenuOpening_Lambda([this]() {
-			if (OnContextMenuOpening.IsBound())
+	return SAssignNew(MyTreeView, STreeView< UObject* >)
+		.SelectionMode(SelectionMode)
+		.TreeItemsSource(&Items)
+		.OnGenerateRow(BIND_UOBJECT_DELEGATE(STreeView< UObject* >::FOnGenerateRow, HandleOnGenerateRow))
+		.OnGetChildren(BIND_UOBJECT_DELEGATE(STreeView< UObject* >::FOnGetChildren, HandleOnGetChildren))
+		.OnExpansionChanged(BIND_UOBJECT_DELEGATE(STreeView< UObject* >::FOnExpansionChanged, HandleOnExpansionChanged))
+		.OnContextMenuOpening_Lambda([this]() {
+		if (OnContextMenuOpening.IsBound())
+			{
+				auto Widget = OnContextMenuOpening.Execute(this);
+				if (Widget)
 				{
-					auto Widget = OnContextMenuOpening.Execute(this);
-					if (Widget)
-					{
-						return Widget->TakeWidget();
-					}
+					return Widget->TakeWidget();
 				}
-				return SNullWidget::NullWidget;
-			})
-					.OnSelectionChanged_Lambda([this](UObject* Object, ESelectInfo::Type SelectInfo) {
-				OnSelectionChanged(Object, SelectInfo);
-			})
-				.OnMouseButtonDoubleClick_Lambda([this](UObject* Object) {
-				OnDoubleClick(Object);
-			})
-			.HeaderRow(GetHeaderRowWidget())
-			.ExternalScrollbar(ExternalScrollbar)
-			//.OnContextMenuOpening(this, &SSocketManager::OnContextMenuOpening)
-			//.OnItemScrolledIntoView(this, &SSocketManager::OnItemScrolledIntoView)
-			//	.HeaderRow
-			//	(
-			//		SNew(SHeaderRow)
-			//		.Visibility(EVisibility::Collapsed)
-			//		+ SHeaderRow::Column(TEXT("Socket"))
-			//	);
-		]
-		+SHorizontalBox::Slot()
-		.AutoWidth()
-		[
-			SNew(SBox)
-			.WidthOverride(FOptionalSize(16))
-		[
-			ExternalScrollbar
-		]
-		]
-	);
+			}
+			return SNullWidget::NullWidget;
+		})
+				.OnSelectionChanged_Lambda([this](UObject* Object, ESelectInfo::Type SelectInfo) {
+			OnSelectionChanged(Object, SelectInfo);
+		})
+			.OnMouseButtonDoubleClick_Lambda([this](UObject* Object) {
+			OnDoubleClick(Object);
+		})
+		.HeaderRow(GetHeaderRowWidget())
+		.ExternalScrollbar(SNew(SScrollBar).Style(&ScrollBarStyle));
+		//.OnContextMenuOpening(this, &SSocketManager::OnContextMenuOpening)
+		//.OnItemScrolledIntoView(this, &SSocketManager::OnItemScrolledIntoView)
+		//	.HeaderRow
+		//	(
+		//		SNew(SHeaderRow)
+		//		.Visibility(EVisibility::Collapsed)
+		//		+ SHeaderRow::Column(TEXT("Socket"))
+		//	);
 }
 
 void UJavascriptTreeView::ProcessEvent(UFunction* Function, void* Parms)
@@ -263,12 +245,21 @@ void UJavascriptTreeView::HandleOnExpansionChanged(UObject* Item, bool bExpanded
 	}
 }
 
-void UJavascriptTreeView::GetSelectedItems(TArray<UObject*>& OutItems)
+void UJavascriptTreeView::SetSelection_Implementation(UObject* SoleSelectedItem)
 {
 	if (MyTreeView.IsValid())
 	{
-		OutItems = MyTreeView->GetSelectedItems();
+		MyTreeView->SetSelection(SoleSelectedItem);
 	}
+}
+
+bool UJavascriptTreeView::GetSelectedItems_Implementation(TArray<UObject*>& OutItems)
+{
+	if (MyTreeView.IsValid())
+	{
+		return MyTreeView->GetSelectedItems(OutItems) > 0;
+	}
+	return false;
 }
 
 void UJavascriptTreeView::SetItemExpansion(UObject* InItem, bool InShouldExpandItem)
@@ -286,15 +277,6 @@ void UJavascriptTreeView::SetSingleExpandedItem(UObject* InItem)
 		MyTreeView->SetSingleExpandedItem(InItem);
 	}
 }
-
-void UJavascriptTreeView::SetSelection(UObject* SoleSelectedItem)
-{
-	if (MyTreeView.IsValid())
-	{
-		MyTreeView->SetSelection(SoleSelectedItem);
-	}
-}
-
 
 bool UJavascriptTreeView::IsItemExpanded(UObject* InItem)
 {

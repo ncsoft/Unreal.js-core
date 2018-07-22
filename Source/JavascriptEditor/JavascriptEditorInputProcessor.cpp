@@ -64,10 +64,6 @@ void UJavascriptEditorInputProcessor::Activate(bool bActivate)
 		{
 			FSlateApplication::Get().UnregisterInputPreProcessor(InputProcessor);
 		}
-		else
-		{
-			FSlateApplication::Get().UnregisterAllInputPreProcessors();
-		}
 	}
 }
 

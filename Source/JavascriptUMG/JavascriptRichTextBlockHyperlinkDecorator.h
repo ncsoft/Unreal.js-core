@@ -8,9 +8,6 @@ class UJavascriptContext;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FJavascriptHyperlinkSignature, UJavascriptRichTextBlockHyperlinkDecorator*, Self);
 
-/**
-* Allows thousands of items to be displayed in a Tile.  Generates widgets dynamically for each item.
-*/
 UCLASS(Experimental)
 class JAVASCRIPTUMG_API UJavascriptRichTextBlockHyperlinkDecorator : public URichTextBlockDecorator
 {
@@ -23,7 +20,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Scripting | Javascript")
 	FJavascriptHyperlinkSignature OnClick;
 
-	virtual TSharedRef<ITextDecorator> CreateDecorator(const FSlateFontInfo& DefaultFont, const FLinearColor& DefaultColor) override;
+	virtual TSharedPtr<ITextDecorator> CreateDecorator(URichTextBlock* InOwner) override;
 
 	void HandleClick(const FSlateHyperlinkRun::FMetadata& Metadata);
 

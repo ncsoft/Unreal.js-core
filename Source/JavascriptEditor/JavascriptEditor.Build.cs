@@ -33,26 +33,19 @@ public class JavascriptEditor : ModuleRules
 					"Slate",                    
                     "Landscape",
                     "JavascriptUMG",
-                    "RawMesh"
+                    "RawMesh",
+                    "NavigationSystem"
 				}
             );	// @todo Mac: for some reason CoreUObject and Engine are needed to link in debug on Mac
 
         if (Target.bBuildEditor == true)
         {
             PublicDependencyModuleNames.AddRange(
-                    new string[]
-                    {
-                        "AssetRegistry",
-                    }
-                );
-            PrivateIncludePaths.AddRange(
-                    new string[] {
-				        "Editor/Kismet/Private",
-					    "Editor/GameplayAbilitiesEditor/Private",
-                        "Editor/LandscapeEditor/Private",
-                        "Developer/AssetTools/Private"
-                    }
-                );
+                new string[]
+                {
+                    "AssetRegistry",
+                }
+            );
 
             if (IsVREditorNeeded())
             {

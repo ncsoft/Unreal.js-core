@@ -38,18 +38,12 @@ public class V8 : ModuleRules
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PrivateIncludePaths.AddRange(new string[]
         {
-            Path.Combine(ThirdPartyPath, "v8", "include"),
-            Path.Combine("V8", "Private")
-        });
-
-        PublicIncludePaths.AddRange(new string[]
-        {
-            Path.Combine("V8", "Public")
+            Path.Combine(ThirdPartyPath, "v8", "include")
         });
 
         PublicDependencyModuleNames.AddRange(new string[] 
         { 
-            "Core", "CoreUObject", "Engine", "Sockets", "ApplicationCore"
+            "Core", "CoreUObject", "Engine", "Sockets", "ApplicationCore", "NavigationSystem"
         });
 
         if (Target.bBuildEditor)
@@ -60,12 +54,8 @@ public class V8 : ModuleRules
             });
         }
 
-        PrivateDependencyModuleNames.AddRange(new string[] 
-        { 
-            "libWebSockets"
-        });
-
-        HackWebSocketIncludeDir(Target);
+        AddEngineThirdPartyPrivateStaticDependencies(Target, "libWebSockets", "zlib");
+        HackWebSocketIncludeDir(Path.Combine(Directory.GetCurrentDirectory(), "ThirdParty", "libWebSockets", "libWebSockets"), Target);
 
         if (Target.bBuildEditor)
         {
@@ -80,16 +70,15 @@ public class V8 : ModuleRules
         LoadV8(Target);
     }
 
-    private void HackWebSocketIncludeDir(ReadOnlyTargetRules Target)
+    private void HackWebSocketIncludeDir(String WebsocketPath, ReadOnlyTargetRules Target)
     {
-        string WebsocketPath = Path.Combine(Target.UEThirdPartySourceDirectory, "libWebSockets", "libwebsockets");
         string PlatformSubdir = (Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32") ? "Win32" :
         	Target.Platform.ToString();
         
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Win32 ||
 			(Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32"))
         {
-            PlatformSubdir = Path.Combine(PlatformSubdir, Target.WindowsPlatform.GetVisualStudioCompilerVersionName());
+            PlatformSubdir = Path.Combine(PlatformSubdir, "VS" + Target.WindowsPlatform.GetVisualStudioCompilerVersionName());
 		}        
 
         PrivateIncludePaths.Add(Path.Combine(WebsocketPath, "include"));

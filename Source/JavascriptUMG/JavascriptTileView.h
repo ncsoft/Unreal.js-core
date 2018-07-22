@@ -29,9 +29,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Javascript")
 	void OnSelectionChanged(UObject* Object,ESelectInfo::Type Type);	
 
-	// UWidget interface
-	virtual TSharedRef<SWidget> RebuildWidget() override;
-	// End of UWidget interface
+	virtual TSharedRef<STableViewBase> RebuildListWidget() override;
 
 	// UObject interface
 	virtual void ProcessEvent(UFunction* Function, void* Parms) override;

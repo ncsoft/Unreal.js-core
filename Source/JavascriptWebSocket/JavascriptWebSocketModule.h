@@ -20,20 +20,12 @@ class FJavascriptWebSocketServer;
 #	define THIRD_PARTY_INCLUDES_END
 #endif
 
-THIRD_PARTY_INCLUDES_START
-
+// Work around a conflict between a UI namespace defined by engine code and a typedef in OpenSSL
 #define UI UI_ST
-#ifndef LWS_INCLUDED
+THIRD_PARTY_INCLUDES_START
 #include "libwebsockets.h"
-#define LWS_INCLUDED
-#ifndef LWS_EXTERN
-#define LWS_EXTERN extern
-#endif
-//#include "private-libwebsockets.h"
-#endif
-#undef UI
-
 THIRD_PARTY_INCLUDES_END
+#undef UI
 
 #if PLATFORM_WINDOWS
 #include "HideWindowsPlatformTypes.h"

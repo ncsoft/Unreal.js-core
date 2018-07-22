@@ -8,13 +8,8 @@ namespace UnrealBuildTool.Rules
             : base(Target)
 		{
             PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-            PrivateIncludePaths.AddRange(
-				new string[] {
-                    "JavascriptGraphEditor/Private",
-				}
-				);
 
-			PublicDependencyModuleNames.AddRange(
+            PublicDependencyModuleNames.AddRange(
 				new string[]
 				{
 					"Core",
