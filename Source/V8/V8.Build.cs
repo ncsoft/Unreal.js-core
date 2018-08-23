@@ -43,7 +43,7 @@ public class V8 : ModuleRules
 
         PublicDependencyModuleNames.AddRange(new string[] 
         { 
-            "Core", "CoreUObject", "Engine", "Sockets", "ApplicationCore", "NavigationSystem"
+            "Core", "CoreUObject", "Engine", "Sockets", "ApplicationCore", "NavigationSystem", "OpenSSL"
         });
 
         if (Target.bBuildEditor)
@@ -53,8 +53,7 @@ public class V8 : ModuleRules
                 "DirectoryWatcher"
             });
         }
-
-        AddEngineThirdPartyPrivateStaticDependencies(Target, "libWebSockets", "zlib");
+        
         HackWebSocketIncludeDir(Path.Combine(Directory.GetCurrentDirectory(), "ThirdParty", "libWebSockets", "libWebSockets"), Target);
 
         if (Target.bBuildEditor)
@@ -64,6 +63,8 @@ public class V8 : ModuleRules
                 "UnrealEd"
             });
         }
+
+        PrivateDependencyModuleNames.Add("libWebSockets");
 
         bEnableExceptions = true;
 
@@ -80,17 +81,13 @@ public class V8 : ModuleRules
         {
             PlatformSubdir = Path.Combine(PlatformSubdir, "VS" + Target.WindowsPlatform.GetVisualStudioCompilerVersionName());
 		}        
+		else if (Target.Platform == UnrealTargetPlatform.Linux)
+        {
+            PlatformSubdir = Path.Combine(PlatformSubdir, Target.Architecture);
+        }
 
         PrivateIncludePaths.Add(Path.Combine(WebsocketPath, "include"));
         PrivateIncludePaths.Add(Path.Combine(WebsocketPath, "include", PlatformSubdir));
-		if (Target.Platform == UnrealTargetPlatform.Linux)
-        {
-			string platform = "/Linux/" + Target.Architecture;
-			string IncludePath = WebsocketPath + "/include" + platform;
-			
-            PrivateIncludePaths.Add(WebsocketPath + "include/");
-			PrivateIncludePaths.Add(IncludePath);
-        }
     }
 
     private bool LoadV8(ReadOnlyTargetRules Target)

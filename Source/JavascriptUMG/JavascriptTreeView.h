@@ -137,12 +137,4 @@ public:
 	static void AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector);
 
 	TMultiMap<UObject*, TWeakPtr<SWidget>> CachedRows;
-
-	/** SListView construction helper - useful if using a custom STreeView subclass */
-	template <template<typename> class ListViewT = SListView>
-	TSharedRef<ListViewT<UObject*>> ConstructListView()
-	{
-		MyListView = ITypedUMGListView<UObject*>::ConstructListView<ListViewT>(this, ListItems, SelectionMode, bClearSelectionOnClick, ConsumeMouseWheel);
-		return StaticCastSharedRef<ListViewT<UObject*>>(MyListView.ToSharedRef());
-	}
 };
