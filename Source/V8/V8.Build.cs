@@ -64,8 +64,6 @@ public class V8 : ModuleRules
             });
         }
 
-        PrivateDependencyModuleNames.Add("libWebSockets");
-
         bEnableExceptions = true;
 
         LoadV8(Target);
@@ -88,6 +86,7 @@ public class V8 : ModuleRules
 
         PrivateIncludePaths.Add(Path.Combine(WebsocketPath, "include"));
         PrivateIncludePaths.Add(Path.Combine(WebsocketPath, "include", PlatformSubdir));
+        AddEngineThirdPartyPrivateStaticDependencies(Target, "libWebSockets", "zlib");
     }
 
     private bool LoadV8(ReadOnlyTargetRules Target)
