@@ -73,20 +73,29 @@ public class V8 : ModuleRules
     {
         string PlatformSubdir = (Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32") ? "Win32" :
         	Target.Platform.ToString();
-        
+
+        bool bHasZlib = false;
+
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Win32 ||
 			(Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32"))
         {
             PlatformSubdir = Path.Combine(PlatformSubdir, "VS" + Target.WindowsPlatform.GetVisualStudioCompilerVersionName());
-		}        
+            bHasZlib = true;
+
+        }        
 		else if (Target.Platform == UnrealTargetPlatform.Linux)
         {
             PlatformSubdir = Path.Combine(PlatformSubdir, Target.Architecture);
         }
 
+        PrivateDependencyModuleNames.Add("libWebSockets");
+
+        if (bHasZlib)
+        {
+            PrivateDependencyModuleNames.Add("zlib");
+        }
         PrivateIncludePaths.Add(Path.Combine(WebsocketPath, "include"));
         PrivateIncludePaths.Add(Path.Combine(WebsocketPath, "include", PlatformSubdir));
-        AddEngineThirdPartyPrivateStaticDependencies(Target, "libWebSockets", "zlib");
     }
 
     private bool LoadV8(ReadOnlyTargetRules Target)
