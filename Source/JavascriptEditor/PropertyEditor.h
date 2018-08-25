@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Widget.h"
+#include "Components/Widget.h"
 #include "Editor/PropertyEditor/Public/PropertyEditorModule.h"
 #include "PropertyEditor.generated.h"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SubclassOf.h"
+#include "Templates/SubclassOf.h"
 #include "Components/ActorComponent.h"
 #include "JavascriptContext.h"
 #include "JavascriptComponent.generated.h"

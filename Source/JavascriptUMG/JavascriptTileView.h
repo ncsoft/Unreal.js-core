@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TileView.h"
+#include "Components/TileView.h"
 #include "JavascriptTileView.generated.h"
 
 class UJavascriptContext;

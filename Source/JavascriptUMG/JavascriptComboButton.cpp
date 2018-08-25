@@ -1,5 +1,5 @@
 #include "JavascriptComboButton.h"
-#include "SComboButton.h"
+#include "Widgets/Input/SComboButton.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 

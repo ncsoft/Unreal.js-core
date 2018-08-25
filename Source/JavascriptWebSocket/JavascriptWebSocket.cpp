@@ -4,7 +4,7 @@
 #include "JavascriptWebSocketServer.h"
 
 #if WITH_JSWEBSOCKET
-#include "IPv4Endpoint.h"
+#include "Interfaces/IPv4/IPv4Endpoint.h"
 #endif
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "JavascriptUMGLibrary.h"
+#include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "JavascriptGraphEditorLibrary.h"
 #include "JavascriptGraphAssetGraphSchema.generated.h"
 

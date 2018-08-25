@@ -2,7 +2,7 @@
 #include "JavascriptConsoleModule.h"
 #include "SJavascriptLog.h"
 #include "SlateOptMacros.h"
-#include "SSpacer.h"
+#include "Widgets/Layout/SSpacer.h"
 #include "EditorStyleSet.h"
 
 namespace JavascriptConsoleDefs

@@ -3,7 +3,7 @@
 #include "Engine/Engine.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
-#include "ModuleManager.h"
+#include "Modules/ModuleManager.h"
 
 // Interfaces
 #include "IJavascriptWebSocketModule.h"
@@ -12,7 +12,7 @@ class FJavascriptWebSocket;
 class FJavascriptWebSocketServer;
 
 #if PLATFORM_WINDOWS
-#include "AllowWindowsPlatformTypes.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
 #endif
 
 #ifndef THIRD_PARTY_INCLUDES_START
@@ -28,7 +28,7 @@ THIRD_PARTY_INCLUDES_END
 #undef UI
 
 #if PLATFORM_WINDOWS
-#include "HideWindowsPlatformTypes.h"
+#include "Windows/HideWindowsPlatformTypes.h"
 #endif
 
 typedef struct lws_context WebSocketInternalContext;

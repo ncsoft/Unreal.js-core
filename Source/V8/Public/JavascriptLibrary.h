@@ -5,7 +5,7 @@
 #include "JavascriptIsolate.h"
 #include "Engine/StreamableManager.h"
 #include "IPAddress.h"
-#include "RecastNavMesh.h"
+#include "NavMesh/RecastNavMesh.h"
 #include "JavascriptLibrary.generated.h"
 
 USTRUCT(BlueprintType)

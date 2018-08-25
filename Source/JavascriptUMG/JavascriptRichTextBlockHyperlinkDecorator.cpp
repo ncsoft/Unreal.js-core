@@ -1,5 +1,5 @@
 #include "JavascriptRichTextBlockHyperlinkDecorator.h"
-#include "SRichTextBlock.h"
+#include "Widgets/Text/SRichTextBlock.h"
 
 TSharedPtr<ITextDecorator> UJavascriptRichTextBlockHyperlinkDecorator::CreateDecorator(URichTextBlock* InOwner)
 {

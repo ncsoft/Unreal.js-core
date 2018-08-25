@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SNotificationList.h"
-#include "NotificationManager.h"
+#include "Widgets/Notifications/SNotificationList.h"
+#include "Framework/Notifications/NotificationManager.h"
 #include "JavascriptNotification.generated.h"
 
 /** Current state of the check box */

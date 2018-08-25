@@ -1,6 +1,6 @@
 #include "JavascriptMultiLineEditableTextBox.h"
-#include "SMultiLineEditableTextBox.h"
-#include "BaseTextLayoutMarshaller.h"
+#include "Widgets/Input/SMultiLineEditableTextBox.h"
+#include "Framework/Text/BaseTextLayoutMarshaller.h"
 
 struct FJavascriptTextLayoutMarshaller : FBaseTextLayoutMarshaller
 {

@@ -4,7 +4,7 @@
 #include "DetailWidgetRow.h"
 #include "IDetailPropertyRow.h"
 #include "JavascriptIsolate.h"
-#include "JavascriptUMGLibrary.h"
+#include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "JavascriptPropertyCustomizationLibrary.generated.h"
 
 class UJavascriptPropertyCustomization;

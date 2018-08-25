@@ -1,6 +1,6 @@
 #pragma once
-#include "SCompoundWidget.h"
-#include "CurveSequence.h"
+#include "Widgets/SCompoundWidget.h"
+#include "Animation/CurveSequence.h"
 
 namespace EJavascriptConsoleStyle
 {

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SlateTextRun.h"
-#include "IRun.h"
+#include "Framework/Text/SlateTextRun.h"
+#include "Framework/Text/IRun.h"
 #include "JavascriptTextModel.generated.h"
 
 USTRUCT(BlueprintType)

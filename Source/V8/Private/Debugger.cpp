@@ -12,11 +12,11 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "Misc/DefaultValueHelper.h"
 
 #if PLATFORM_WINDOWS
-#include "AllowWindowsPlatformTypes.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
 #endif
 #include <thread>
 #if PLATFORM_WINDOWS
-#include "HideWindowsPlatformTypes.h"
+#include "Windows/HideWindowsPlatformTypes.h"
 #endif
 
 #define DEBUG_V8_DEBUGGER 0

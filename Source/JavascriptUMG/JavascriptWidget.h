@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UserWidget.h"
+#include "Blueprint/UserWidget.h"
 #include "Components/PanelSlot.h"
 #include "JavascriptWidget.generated.h"
 

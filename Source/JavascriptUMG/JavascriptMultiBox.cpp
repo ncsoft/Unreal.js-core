@@ -2,8 +2,8 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptMultiBox.h"
 #include "SJavascriptBox.h"
-#include "SBox.h"
-#include "SSpacer.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/Layout/SSpacer.h"
 
 static SBox* Target;
 void UJavascriptMultiBox::Setup(TSharedRef<SBox> Box)

@@ -16,9 +16,9 @@ namespace UnrealBuildTool.Rules
 					"CoreUObject",
                     "Engine",
                     "UnrealEd",
-                    "UMG"
-				}
-				);
+                    "UMG",
+                }
+            );
 
 			PrivateDependencyModuleNames.AddRange(
 				new string[]
@@ -28,10 +28,10 @@ namespace UnrealBuildTool.Rules
                     "SlateCore",
                     "GraphEditor",
                     "EditorStyle",
-                    "JavascriptUMG",
                     "KismetWidgets",
+                    "JavascriptUMG"
                 }
-				);
+            );
 		}
 	}
 }

@@ -1,6 +1,6 @@
 #pragma once
-#include "ModuleInterface.h"
-#include "SEditableTextBox.h"
+#include "Modules/ModuleInterface.h"
+#include "Widgets/Input/SEditableTextBox.h"
 
 /** Style of the debug console */
 namespace EJavascriptConsoleStyle

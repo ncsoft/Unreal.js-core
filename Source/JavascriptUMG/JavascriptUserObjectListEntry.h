@@ -1,7 +1,7 @@
 #pragma once
 
-#include "IUserObjectListEntry.h"
-#include "UserWidget.h"
+#include "Blueprint/IUserObjectListEntry.h"
+#include "Blueprint/UserWidget.h"
 #include "JavascriptUserObjectListEntry.generated.h"
 
 UCLASS()

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "RichTextBlockDecorator.h"
-#include "SlateHyperlinkRun.h"
+#include "Components/RichTextBlockDecorator.h"
+#include "Framework/Text/SlateHyperlinkRun.h"
 #include "JavascriptRichTextBlockHyperlinkDecorator.generated.h"
 
 class UJavascriptContext;

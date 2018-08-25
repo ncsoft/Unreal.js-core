@@ -9,7 +9,7 @@
 #include "NavigationSystem.h"
 #include "HAL/PlatformApplicationMisc.h"
 #include "Launch/Resources/Version.h"
-#include "FileHelper.h"
+#include "Misc/FileHelper.h"
 #include "UObject/MetaData.h"
 #include "Engine/Engine.h"
 #include "V8PCH.h"
