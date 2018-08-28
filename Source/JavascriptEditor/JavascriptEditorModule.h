@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Modules/ModuleManager.h"
 #include "Modules/ModuleInterface.h"
 
 struct IEditorExtension
