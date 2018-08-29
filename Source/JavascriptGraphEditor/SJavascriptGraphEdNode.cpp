@@ -5,7 +5,9 @@
 #include "JavascriptGraphAssetGraphSchema.h"
 #include "SlateOptMacros.h"
 #include "Widgets/Layout/SBox.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Widgets/SBoxPanel.h"
+#include "Widgets/SWindow.h"
 #include "SCommentBubble.h"
 
 void SJavascriptGraphEdNode::Construct(const FArguments& InArgs, UJavascriptGraphEdNode* InNode)

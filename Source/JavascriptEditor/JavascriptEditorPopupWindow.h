@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Components/Widget.h"
+#include "Framework/Application/IMenu.h"
 #include "JavascriptEditorPopupWindow.generated.h"
 
 /**
