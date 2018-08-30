@@ -28,8 +28,6 @@ public class JavascriptWebSocket : ModuleRules
         {
             PublicDefinitions.Add("WITH_JSWEBSOCKET=1");
             HackWebSocketIncludeDir(Path.Combine(Directory.GetCurrentDirectory(), "ThirdParty", "libWebSockets", "libWebSockets"), Target);
-            AddEngineThirdPartyPrivateStaticDependencies(Target, "OpenSSL", "libWebSockets", "zlib");
-            PrivateDependencyModuleNames.Add("SSL");
         }
         else
         {
@@ -37,21 +35,33 @@ public class JavascriptWebSocket : ModuleRules
         }
     }
 
-    private void HackWebSocketIncludeDir(string WebsocketPath, ReadOnlyTargetRules Target)
+    private void HackWebSocketIncludeDir(String WebsocketPath, ReadOnlyTargetRules Target)
     {
         string PlatformSubdir = (Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32") ? "Win32" :
-            Target.Platform.ToString();
+        	Target.Platform.ToString();
+
+        bool bHasZlib = false;
 
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Win32 ||
-            (Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32"))
+			(Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32"))
         {
             PlatformSubdir = Path.Combine(PlatformSubdir, "VS" + Target.WindowsPlatform.GetVisualStudioCompilerVersionName());
-        }
-        else if (Target.Platform == UnrealTargetPlatform.Linux)
+            bHasZlib = true;
+
+        }        
+		else if (Target.Platform == UnrealTargetPlatform.Linux)
         {
             PlatformSubdir = Path.Combine(PlatformSubdir, Target.Architecture);
+        }
+
+        PrivateDependencyModuleNames.Add("libWebSockets");
+
+        if (bHasZlib)
+        {
+            PrivateDependencyModuleNames.Add("zlib");
         }
         PrivateIncludePaths.Add(Path.Combine(WebsocketPath, "include"));
         PrivateIncludePaths.Add(Path.Combine(WebsocketPath, "include", PlatformSubdir));
     }
+
 }
