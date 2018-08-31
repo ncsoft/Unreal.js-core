@@ -1,5 +1,5 @@
 #include "JavascriptSearchBox.h"
-#include "SSearchBox.h"
+#include "Widgets/Input/SSearchBox.h"
 
 UJavascriptSearchBox::UJavascriptSearchBox(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)

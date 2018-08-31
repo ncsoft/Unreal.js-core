@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MultiLineEditableTextBox.h"
+#include "Components/MultiLineEditableTextBox.h"
 #include "JavascriptMultiLineEditableTextBox.generated.h"
 
 USTRUCT(BlueprintType)

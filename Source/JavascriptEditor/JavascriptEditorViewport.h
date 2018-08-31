@@ -1,7 +1,7 @@
 #pragma once
 
 #include "JavascriptEditorLibrary.h"
-#include "PanelWidget.h"
+#include "Components/PanelWidget.h"
 #include "JavascriptEditorViewport.generated.h"
 
 class SAutoRefreshEditorViewport;

@@ -4,7 +4,7 @@
 #include "IAssetRegistry.h"
 #include "Editor/UnrealEdTypes.h"
 #endif
-#include "ScriptMacros.h"
+#include "UObject/ScriptMacros.h"
 #include "JavascriptEditorGlobalDelegates.generated.h"
 
 USTRUCT(BlueprintType)

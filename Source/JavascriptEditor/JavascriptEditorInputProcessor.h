@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Input/Events.h"
+#include "Framework/Application/IInputProcessor.h"
 #include "JavascriptEditorInputProcessor.generated.h"
 
 /**

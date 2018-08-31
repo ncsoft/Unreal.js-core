@@ -3,7 +3,7 @@
 #include "Engine/Engine.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
-#include "ModuleManager.h"
+#include "Modules/ModuleManager.h"
 
 // Interfaces
 #include "IJavascriptWebSocketModule.h"
@@ -12,7 +12,7 @@ class FJavascriptWebSocket;
 class FJavascriptWebSocketServer;
 
 #if PLATFORM_WINDOWS
-#include "AllowWindowsPlatformTypes.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
 #endif
 
 #ifndef THIRD_PARTY_INCLUDES_START
@@ -20,23 +20,15 @@ class FJavascriptWebSocketServer;
 #	define THIRD_PARTY_INCLUDES_END
 #endif
 
-THIRD_PARTY_INCLUDES_START
-
+// Work around a conflict between a UI namespace defined by engine code and a typedef in OpenSSL
 #define UI UI_ST
-#ifndef LWS_INCLUDED
+THIRD_PARTY_INCLUDES_START
 #include "libwebsockets.h"
-#define LWS_INCLUDED
-#ifndef LWS_EXTERN
-#define LWS_EXTERN extern
-#endif
-//#include "private-libwebsockets.h"
-#endif
+THIRD_PARTY_INCLUDES_END
 #undef UI
 
-THIRD_PARTY_INCLUDES_END
-
 #if PLATFORM_WINDOWS
-#include "HideWindowsPlatformTypes.h"
+#include "Windows/HideWindowsPlatformTypes.h"
 #endif
 
 typedef struct lws_context WebSocketInternalContext;

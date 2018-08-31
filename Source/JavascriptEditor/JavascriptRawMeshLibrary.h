@@ -1,6 +1,8 @@
 #pragma once
 
 #include "RawMesh.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
+#include "Engine/StaticMesh.h"
 #include "JavascriptRawMeshLibrary.generated.h"
 
 USTRUCT(BlueprintType)

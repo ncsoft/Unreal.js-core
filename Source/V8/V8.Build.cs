@@ -38,18 +38,12 @@ public class V8 : ModuleRules
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PrivateIncludePaths.AddRange(new string[]
         {
-            Path.Combine(ThirdPartyPath, "v8", "include"),
-            Path.Combine("V8", "Private")
-        });
-
-        PublicIncludePaths.AddRange(new string[]
-        {
-            Path.Combine("V8", "Public")
+            Path.Combine(ThirdPartyPath, "v8", "include")
         });
 
         PublicDependencyModuleNames.AddRange(new string[] 
         { 
-            "Core", "CoreUObject", "Engine", "Sockets", "ApplicationCore"
+            "Core", "CoreUObject", "Engine", "Sockets", "ApplicationCore", "NavigationSystem", "OpenSSL"
         });
 
         if (Target.bBuildEditor)
@@ -59,13 +53,8 @@ public class V8 : ModuleRules
                 "DirectoryWatcher"
             });
         }
-
-        PrivateDependencyModuleNames.AddRange(new string[] 
-        { 
-            "libWebSockets"
-        });
-
-        HackWebSocketIncludeDir(Target);
+        
+        HackWebSocketIncludeDir(Path.Combine(Directory.GetCurrentDirectory(), "ThirdParty", "libWebSockets", "libWebSockets"), Target);
 
         if (Target.bBuildEditor)
         {
@@ -80,28 +69,33 @@ public class V8 : ModuleRules
         LoadV8(Target);
     }
 
-    private void HackWebSocketIncludeDir(ReadOnlyTargetRules Target)
+    private void HackWebSocketIncludeDir(String WebsocketPath, ReadOnlyTargetRules Target)
     {
-        string WebsocketPath = Path.Combine(Target.UEThirdPartySourceDirectory, "libWebSockets", "libwebsockets");
         string PlatformSubdir = (Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32") ? "Win32" :
         	Target.Platform.ToString();
-        
+
+        bool bHasZlib = false;
+
         if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Win32 ||
 			(Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32"))
         {
-            PlatformSubdir = Path.Combine(PlatformSubdir, Target.WindowsPlatform.GetVisualStudioCompilerVersionName());
-		}        
+            PlatformSubdir = Path.Combine(PlatformSubdir, "VS" + Target.WindowsPlatform.GetVisualStudioCompilerVersionName());
+            bHasZlib = true;
 
+        }        
+		else if (Target.Platform == UnrealTargetPlatform.Linux)
+        {
+            PlatformSubdir = Path.Combine(PlatformSubdir, Target.Architecture);
+        }
+
+        PrivateDependencyModuleNames.Add("libWebSockets");
+
+        if (bHasZlib)
+        {
+            PrivateDependencyModuleNames.Add("zlib");
+        }
         PrivateIncludePaths.Add(Path.Combine(WebsocketPath, "include"));
         PrivateIncludePaths.Add(Path.Combine(WebsocketPath, "include", PlatformSubdir));
-		if (Target.Platform == UnrealTargetPlatform.Linux)
-        {
-			string platform = "/Linux/" + Target.Architecture;
-			string IncludePath = WebsocketPath + "/include" + platform;
-			
-            PrivateIncludePaths.Add(WebsocketPath + "include/");
-			PrivateIncludePaths.Add(IncludePath);
-        }
     }
 
     private bool LoadV8(ReadOnlyTargetRules Target)

@@ -2,8 +2,8 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptEditorTab.h"
 #if WITH_EDITOR
-#include "Button.h"
-#include "SSpacer.h"
+#include "Components/Button.h"
+#include "Widgets/Layout/SSpacer.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
 #endif

@@ -2,12 +2,12 @@
 
 #include "JavascriptEditorGlobalDelegates.h"
 #include "LandscapeProxy.h"
-#include "JavascriptMenuLibrary.h"
-#include "JavascriptUMGLibrary.h"
+#include "JavascriptUMG/JavascriptMenuLibrary.h"
+#include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "JavascriptInputEventStateLibrary.h"
 #include "Editor/Transactor.h"
 #include "Engine/Brush.h"
-#include "WorkspaceItem.h"
+#include "Framework/Docking/WorkspaceItem.h"
 #include "JavascriptEditorLibrary.generated.h"
 
 UENUM()

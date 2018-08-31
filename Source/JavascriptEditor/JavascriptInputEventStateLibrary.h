@@ -1,7 +1,7 @@
 #pragma once
 #include "EditorViewportClient.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "ScriptMacros.h"
+#include "UObject/ScriptMacros.h"
 #include "JavascriptInputEventStateLibrary.generated.h"
 
 USTRUCT(BlueprintType)

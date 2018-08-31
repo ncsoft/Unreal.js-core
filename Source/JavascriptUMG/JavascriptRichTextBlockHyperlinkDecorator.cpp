@@ -1,7 +1,7 @@
 #include "JavascriptRichTextBlockHyperlinkDecorator.h"
-#include "SRichTextBlock.h"
+#include "Widgets/Text/SRichTextBlock.h"
 
-TSharedRef<ITextDecorator> UJavascriptRichTextBlockHyperlinkDecorator::CreateDecorator(const FSlateFontInfo& DefaultFont, const FLinearColor& DefaultColor)
+TSharedPtr<ITextDecorator> UJavascriptRichTextBlockHyperlinkDecorator::CreateDecorator(URichTextBlock* InOwner)
 {
 	return SRichTextBlock::HyperlinkDecorator(HyperlinkId, FSlateHyperlinkRun::FOnClick::CreateLambda([this](const FSlateHyperlinkRun::FMetadata& metadata) {
 		Current = &metadata;

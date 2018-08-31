@@ -3,7 +3,7 @@
 #include "JavascriptGraphEdGraph.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "GraphEditor.h"
-#include "SBox.h"
+#include "Widgets/Layout/SBox.h"
 
 UJavascriptGraphEditorWidget::UJavascriptGraphEditorWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

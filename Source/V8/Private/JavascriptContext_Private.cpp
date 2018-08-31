@@ -4,18 +4,18 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
 #include "JavascriptComponent.h"
-#include "FileManager.h"
+#include "HAL/FileManager.h"
 #include "Config.h"
 #include "Translator.h"
 #include "Exception.h"
 #include "IV8.h"
 #include "V8PCH.h"
 #include "Engine/Blueprint.h"
-#include "FileHelper.h"
-#include "Paths.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 #include "JavascriptIsolate_Private.h"
-#include "PropertyPortFlags.h"
-#include "ScriptMacros.h"
+#include "UObject/PropertyPortFlags.h"
+#include "UObject/ScriptMacros.h"
 
 #if WITH_EDITOR
 #include "TypingGenerator.h"
@@ -283,7 +283,7 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 			{
 				if (Left.Compare(Keyword.Keyword, ESearchCase::IgnoreCase) == 0)
 				{
-					NewProperty->SetPropertyFlags(Keyword.Flags);
+					NewProperty->SetPropertyFlags(static_cast<EPropertyFlags>(Keyword.Flags));
 
 					if (Keyword.Flags & CPF_RepNotify)
 					{

@@ -1,6 +1,6 @@
 #include "DirectoryWatcher.h"
-#include "ModuleManager.h"
-#include "FileManager.h"
+#include "Modules/ModuleManager.h"
+#include "HAL/FileManager.h"
 #if V8_ENABLE_DIRECTORY_WATCHER
 #include "DirectoryWatcherModule.h"
 #include "IDirectoryWatcher.h"

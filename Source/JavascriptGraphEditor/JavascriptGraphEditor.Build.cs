@@ -8,22 +8,17 @@ namespace UnrealBuildTool.Rules
             : base(Target)
 		{
             PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-            PrivateIncludePaths.AddRange(
-				new string[] {
-                    "JavascriptGraphEditor/Private",
-				}
-				);
 
-			PublicDependencyModuleNames.AddRange(
+            PublicDependencyModuleNames.AddRange(
 				new string[]
 				{
 					"Core",
 					"CoreUObject",
                     "Engine",
                     "UnrealEd",
-                    "UMG"
-				}
-				);
+                    "UMG",
+                }
+            );
 
 			PrivateDependencyModuleNames.AddRange(
 				new string[]
@@ -33,10 +28,10 @@ namespace UnrealBuildTool.Rules
                     "SlateCore",
                     "GraphEditor",
                     "EditorStyle",
-                    "JavascriptUMG",
                     "KismetWidgets",
+                    "JavascriptUMG"
                 }
-				);
+            );
 		}
 	}
 }

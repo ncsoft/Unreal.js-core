@@ -7,7 +7,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "EditorModeManager.h"
 #include "EdMode.h"
 #include "Engine/Canvas.h"
-#include "SJavascriptBox.h"
+#include "JavascriptUMG/SJavascriptBox.h"
 #include "Toolkits/ToolkitManager.h"
 
 /** Util to find named canvas in transient package, and create if not found */

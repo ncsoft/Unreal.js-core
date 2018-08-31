@@ -1,6 +1,6 @@
 #include "JavascriptEditorInputProcessor.h"
 #include "Framework/Application/IInputProcessor.h"
-#include "SlateApplication.h"
+#include "Framework/Application/SlateApplication.h"
 
 #if WITH_EDITOR
 class FMyInputProcessor : public IInputProcessor
@@ -63,10 +63,6 @@ void UJavascriptEditorInputProcessor::Activate(bool bActivate)
 		if (InputProcessor.IsValid())
 		{
 			FSlateApplication::Get().UnregisterInputPreProcessor(InputProcessor);
-		}
-		else
-		{
-			FSlateApplication::Get().UnregisterAllInputPreProcessors();
 		}
 	}
 }

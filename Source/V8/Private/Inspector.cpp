@@ -12,7 +12,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 static const int32 CONTEXT_GROUP_ID = 1;
 
 #if PLATFORM_WINDOWS
-#include "AllowWindowsPlatformTypes.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
 #endif
 #define UI UI_ST
 THIRD_PARTY_INCLUDES_START
@@ -20,7 +20,7 @@ THIRD_PARTY_INCLUDES_START
 THIRD_PARTY_INCLUDES_END
 #undef UI
 #if PLATFORM_WINDOWS
-#include "HideWindowsPlatformTypes.h"
+#include "Windows/HideWindowsPlatformTypes.h"
 #endif
 
 THIRD_PARTY_INCLUDES_START

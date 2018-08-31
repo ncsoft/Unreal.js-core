@@ -4,7 +4,7 @@
 #include "AssetTypeActions_Base.h"
 #include "JavascriptAssetEditorToolkit.h"
 #include "JavascriptUIExtender.h"
-#include "MessageDialog.h"
+#include "Misc/MessageDialog.h"
 #endif
 
 UJavascriptAssetTypeActions::UJavascriptAssetTypeActions(const FObjectInitializer& ObjectInitializer)

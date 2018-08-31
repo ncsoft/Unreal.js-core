@@ -4,9 +4,9 @@
 #include "Runtime/Engine/Public/Slate/SceneViewport.h"
 #include "EngineUtils.h"
 #include "Engine/Canvas.h"
-#include "OverlaySlot.h"
+#include "Components/OverlaySlot.h"
 #include "AssetViewerSettings.h"
-#include "Modules/ModuleVersion.h"
+#include "Launch/Resources/Version.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptEditor"
 

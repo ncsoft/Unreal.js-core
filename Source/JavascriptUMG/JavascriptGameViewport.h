@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Camera/CameraTypes.h"
-#include "ContentWidget.h"
+#include "Components/ContentWidget.h"
 #include "JavascriptInGameScene.h"
 #include "SceneManagement.h"
 #include "JavascriptGameViewport.generated.h"

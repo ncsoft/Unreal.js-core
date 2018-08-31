@@ -6,7 +6,7 @@
 #include "JSWebSocket.h"
 
 #if PLATFORM_WINDOWS
-#include "AllowWindowsPlatformTypes.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
 #endif
 
 #ifndef THIRD_PARTY_INCLUDES_START
@@ -14,19 +14,15 @@
 #	define THIRD_PARTY_INCLUDES_END
 #endif
 
+// Work around a conflict between a UI namespace defined by engine code and a typedef in OpenSSL
+#define UI UI_ST
 THIRD_PARTY_INCLUDES_START
-
-#ifndef LWS_INCLUDED
 #include "libwebsockets.h"
-#define LWS_INCLUDED
-#define LWS_EXTERN extern
-#include "private-libwebsockets.h"
-#endif
-
 THIRD_PARTY_INCLUDES_END
+#undef UI
 
 #if PLATFORM_WINDOWS
-#include "HideWindowsPlatformTypes.h"
+#include "Windows/HideWindowsPlatformTypes.h"
 #endif
 
 // a object of this type is associated by libwebsocket to every connected session. 
@@ -69,6 +65,7 @@ bool FJavascriptWebSocketServer::Init(uint32 Port, FJavascriptWebSocketClientCon
 	memset(&Info, 0, sizeof(lws_context_creation_info));
 	// look up libwebsockets.h for details. 
 	Info.port = Port;
+	ServerPort = Port;
 	// we listen on all available interfaces. 
 	Info.iface = NULL;
 	Info.protocols = &Protocols[0];
@@ -84,18 +81,25 @@ bool FJavascriptWebSocketServer::Init(uint32 Port, FJavascriptWebSocketClientCon
 
 	if (Context == NULL) 
 	{
-		return false; // couldn't create a server. 
+		ServerPort = 0;
+		delete Protocols;
+		Protocols = NULL;
+		IsAlive = false;
+		return false; // couldn't create a server.
 	}
-
 	ConnectedCallBack = CallBack; 	
+	IsAlive = true;
 
 	return true; 
 }
 
 bool FJavascriptWebSocketServer::Tick()
 {
-	lws_service(Context, 0);
-	lws_callback_on_writable_all_protocol(Context, &Protocols[0]);
+	if (IsAlive)
+	{
+		lws_service(Context, 0);
+		lws_callback_on_writable_all_protocol(Context, &Protocols[0]);
+	}
 	return true;
 }
 
@@ -112,6 +116,8 @@ FJavascriptWebSocketServer::~FJavascriptWebSocketServer()
 
 	 delete Protocols; 
 	 Protocols = NULL; 
+
+	 IsAlive = false;
 }
 
 FString FJavascriptWebSocketServer::Info()
@@ -122,7 +128,13 @@ FString FJavascriptWebSocketServer::Info()
 // callback. 
 int FJavascriptWebSocketServer::unreal_networking_server(lws *InWsi, lws_callback_reasons Reason, void* User, void *In, size_t Len) 
 {
+	struct lws_context *Context = lws_get_context(InWsi);
 	PerSessionDataServer* BufferInfo = (PerSessionDataServer*)User;	
+	FJavascriptWebSocketServer* Server = (FJavascriptWebSocketServer*)lws_context_user(Context);
+	if (!Server->IsAlive)
+	{
+		return 0;
+	}
 
 	switch (Reason)
 	{

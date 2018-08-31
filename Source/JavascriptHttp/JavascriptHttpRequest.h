@@ -1,11 +1,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ObjectMacros.h"
-#include "Object.h"
-#include "ScriptMacros.h"
-#include "IHttpRequest.h"
-#include "IHttpResponse.h"
+#include "UObject/ObjectMacros.h"
+#include "UObject/Object.h"
+#include "UObject/ScriptMacros.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
 #include "HttpModule.h"
 
 #include "JavascriptHttpRequest.generated.h"

@@ -5,7 +5,7 @@
 #include "Components/LineBatchComponent.h"
 #include "Components/MeshComponent.h"
 #include "AudioDevice.h"
-#include "ConfigCacheIni.h"
+#include "Misc/ConfigCacheIni.h"
 #include "../../Launch/Resources/Version.h"
 
 FJavascriptInGameScene::FJavascriptInGameScene(FJavascriptInGameScene::ConstructionValues CVS)

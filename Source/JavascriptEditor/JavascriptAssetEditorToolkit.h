@@ -1,7 +1,7 @@
 #pragma once
 
 #if WITH_EDITOR
-#include "AssetEditorToolkit.h"
+#include "Toolkits/AssetEditorToolkit.h"
 #endif
 
 #include "JavascriptEditorModule.h"

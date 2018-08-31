@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ModuleInterface.h"
+#include "Modules/ModuleInterface.h"
 
 /**
 * Interface for the JavascriptWebSocket Module.

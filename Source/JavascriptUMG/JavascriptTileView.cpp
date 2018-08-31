@@ -6,13 +6,12 @@ UJavascriptTileView::UJavascriptTileView(const FObjectInitializer& ObjectInitial
 {	
 }
 
-TSharedRef<SWidget> UJavascriptTileView::RebuildWidget()
+TSharedRef<STableViewBase> UJavascriptTileView::RebuildListWidget()
 {
 	MyTileView = SNew(STileView< UObject* >)
 		.SelectionMode(SelectionMode)
-		.ListItemsSource(&Items)
-		.ItemHeight(ItemHeight)
-		.OnGenerateTile(BIND_UOBJECT_DELEGATE(STileView< UObject* >::FOnGenerateRow, HandleOnGenerateTile))
+		.ListItemsSource(&ListItems)
+		.ItemHeight(EntryHeight)
 		.OnSelectionChanged_Lambda([this](UObject* Object, ESelectInfo::Type SelectInfo){
 			OnSelectionChanged(Object, SelectInfo);
 		})

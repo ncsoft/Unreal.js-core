@@ -1,10 +1,10 @@
 #include "SJavascriptGraphEdNodePin.h"
 #include "SLevelOfDetailBranchNode.h"
 #include "JavascriptGraphAssetGraphSchema.h"
-#include "SWrapBox.h"
-#include "SImage.h"
-#include "SButton.h"
-#include "SBoxPanel.h"
+#include "Widgets/Layout/SWrapBox.h"
+#include "Widgets/Images/SImage.h"
+#include "Widgets/Input/SButton.h"
+#include "Widgets/SBoxPanel.h"
 
 void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin)
 {

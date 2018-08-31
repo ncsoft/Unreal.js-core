@@ -1,6 +1,6 @@
 #include "JavascriptEditorToolbar.h"
-#include "SJavascriptBox.h"
-#include "SSpacer.h"
+#include "JavascriptUMG/SJavascriptBox.h"
+#include "Widgets/Layout/SSpacer.h"
 
 #if WITH_EDITOR	
 void UJavascriptEditorToolbar::Setup(TSharedRef<SBox> Box)

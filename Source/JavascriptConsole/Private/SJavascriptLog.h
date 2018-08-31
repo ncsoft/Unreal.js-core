@@ -1,9 +1,10 @@
 #pragma once
-#include "SMultiLineEditableTextBox.h"
-#include "TextFilterExpressionEvaluator.h"
-#include "SMenuAnchor.h"
-#include "SListView.h"
-#include "STextComboBox.h"
+#include "Misc/TextFilterExpressionEvaluator.h"
+#include "Widgets/Views/SListView.h"
+#include "Widgets/Input/SMultiLineEditableTextBox.h"
+#include "Widgets/Input/SMenuAnchor.h"
+#include "Widgets/Input/SSearchBox.h"
+#include "Widgets/Input/STextComboBox.h"
 
 class FJavascriptLogTextLayoutMarshaller;
 

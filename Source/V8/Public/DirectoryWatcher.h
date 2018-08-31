@@ -10,10 +10,10 @@
 #include "IDirectoryWatcher.h"
 #endif
 #include "CoreMinimal.h"
-#include "ObjectMacros.h"
-#include "Object.h"
-#include "UObjectGlobals.h"
-#include "ScriptMacros.h"
+#include "UObject/ObjectMacros.h"
+#include "UObject/Object.h"
+#include "UObject/UObjectGlobals.h"
+#include "UObject/ScriptMacros.h"
 #include "DirectoryWatcher.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDirectoryWatcherCallback);

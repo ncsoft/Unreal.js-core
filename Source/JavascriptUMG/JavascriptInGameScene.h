@@ -1,5 +1,5 @@
 #pragma once
-#include "GCObject.h"
+#include "UObject/GCObject.h"
 #include "SceneInterface.h"
 #include "Engine/World.h"
 

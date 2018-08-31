@@ -268,7 +268,7 @@ public:
 
 			if (Context->ContextId == TargetContext || (!TargetContext.IsValid() && Context->IsDebugContext()))
 			{
-				FString Result = Context->RunScript(FString::Printf(SourceCode, *FString(Input).ReplaceCharWithEscapedChar()), false);
+				FString Result = Context->RunScript(FString::Printf(TEXT("%s"), SourceCode, *FString(Input).ReplaceCharWithEscapedChar()), false);
 				Result.ParseIntoArray(OutArray, TEXT(","));
 			}
 		}

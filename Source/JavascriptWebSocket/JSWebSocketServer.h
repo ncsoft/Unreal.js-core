@@ -23,6 +23,8 @@ public:
 	FString Info(); 
 
 	int unreal_networking_server(lws *Wsi, lws_callback_reasons Reason, void* User, void *In, size_t Len);
+	uint32 ServerPort;
+	bool IsAlive;
 
 private: 
 
