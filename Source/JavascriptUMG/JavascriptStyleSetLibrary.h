@@ -37,6 +37,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	static FComboButtonStyle GetComboButtonStyle(const FJavascriptStyleSet& Handle, const FName& StyleName);
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	static FProgressBarStyle GetProgressBarStyle(const FJavascriptStyleSet& Handle, const FName& StyleName);
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	static FMargin GetMargin(const FJavascriptStyleSet& Handle, const FName& StyleName);
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	static FSlateColor GetSlateColor(const FJavascriptStyleSet& Handle, const FName& StyleName);
@@ -79,4 +81,7 @@ public:
 
 	UPROPERTY()	
 	FComboButtonStyle ComboButtonStyle;
+
+	UPROPERTY()
+	FProgressBarStyle ProgressBarStyle;
 };

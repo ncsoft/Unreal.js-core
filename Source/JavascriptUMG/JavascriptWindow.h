@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Components//ContentWidget.h"
+#include "Styling/SlateTypes.h"
 #include "JavascriptWindow.generated.h"
 
 class SWindow;
@@ -183,7 +184,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	void SetOpacity(const float InOpacity);
 
+	TSharedPtr<SWindow> GetSlatePtr()
+	{
+		return WeakWindow.Pin();
+	}
 
 protected:
-	TSharedPtr<SWindow> MyWindow;
+	TWeakPtr<SWindow> WeakWindow;
 };

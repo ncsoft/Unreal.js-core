@@ -1,5 +1,6 @@
 #include "JavascriptMenuLibrary.h"
 #include "SJavascriptBox.h"
+#include "JavascriptToolbarButtonContext.h"
 #include "Components/Widget.h"
 #include "Framework/Commands/GenericCommands.h"
 
@@ -92,6 +93,24 @@ void UJavascriptMenuLibrary::AddToolBarButton(FJavascriptMenuBuilder& Builder, F
 	}
 }
 
+void UJavascriptMenuLibrary::AddToolBarButtonByContext(FJavascriptMenuBuilder& Builder, UJavascriptToolbarButtonContext* Context, UObject* EditingObject)
+{
+	if (Builder.ToolBar)
+	{
+		FUIAction DefaultAction;
+		DefaultAction.ExecuteAction = FExecuteAction::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnExecuteAction, EditingObject);
+		DefaultAction.CanExecuteAction = FCanExecuteAction::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnCanExecuteAction, EditingObject);
+		DefaultAction.IsActionVisibleDelegate = FCanExecuteAction::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnIsActionButtonVisible, EditingObject);
+		Builder.ToolBar->AddToolBarButton(
+			DefaultAction, 
+			NAME_None,
+			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnGetLabel)),
+			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnGetTooltip)),
+			TAttribute< FSlateIcon >::Create(TAttribute< FSlateIcon >::FGetter::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnGetSlateIcon))
+		);
+	}
+}
+
 void UJavascriptMenuLibrary::AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptComboButtonContext* Object)
 {
 	if (Builder.ToolBar)
@@ -173,7 +192,7 @@ void UJavascriptMenuLibrary::Destroy(FJavascriptBindingContext Context)
 	Context.Destroy();
 }
 
-FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascriptBindingContext This, FJavascriptUICommand info)
+FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascriptBindingContext This, FJavascriptUICommand info, const FString& InTextSubNamespace)
 {
 	FJavascriptUICommandInfo Out;
 
@@ -185,10 +204,10 @@ FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascript
 	// @NOTE: Commands/Commands.cpp <UI_COMMAND_Function>
 	FBindingContext* ThisBindingContext = This.Handle.Get();
 	TSharedPtr< FUICommandInfo >& OutCommand = Out.Handle;
-	const TCHAR* OutSubNamespace = TEXT("");
+	const TCHAR* OutSubNamespace = *InTextSubNamespace;
 	const TCHAR* OutCommandName = *info.Id;
-	const TCHAR* OutCommandNameUnderscoreTooltip = *FString::Printf(TEXT("%s_Tooltip"), *info.Id);
-	const ANSICHAR* DotOutCommandName = TCHAR_TO_ANSI(*FString::Printf(TEXT(".%s"), *info.Id));
+	const FString OutCommandNameUnderscoreTooltip = FString::Printf(TEXT("%s_Tooltip"), *info.Id);
+	const FString DotOutCommandName = FString::Printf(TEXT(".%s"), *info.Id);
 	const TCHAR* FriendlyName = *info.FriendlyName;
 	const TCHAR* InDescription = *info.Description;
 	const EUserInterfaceActionType::Type CommandType = EUserInterfaceActionType::Type(info.ActionType.GetValue());
@@ -206,8 +225,8 @@ FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascript
 		OutCommand,
 		OutCommandName,
 		FInternationalization::ForUseOnlyByLocMacroAndGraphNodeTextLiterals_CreateText(FriendlyName, *Namespace, OutCommandName),
-		FInternationalization::ForUseOnlyByLocMacroAndGraphNodeTextLiterals_CreateText(InDescription, *Namespace, OutCommandNameUnderscoreTooltip),
-		FSlateIcon(ThisBindingContext->GetStyleSetName(), ISlateStyle::Join(FName(*OrignContextName), DotOutCommandName)),
+		FInternationalization::ForUseOnlyByLocMacroAndGraphNodeTextLiterals_CreateText(InDescription, *Namespace, *OutCommandNameUnderscoreTooltip),
+		FSlateIcon(ThisBindingContext->GetStyleSetName(), ISlateStyle::Join(FName(*OrignContextName), TCHAR_TO_ANSI(*DotOutCommandName))),
 		CommandType,
 		InDefaultChord,
 		InAlternateDefaultChord

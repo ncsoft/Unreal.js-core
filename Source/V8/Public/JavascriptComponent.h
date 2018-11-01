@@ -49,7 +49,10 @@ public:
 	bool bActiveWithinEditor;
 
 	UPROPERTY(transient)
-	UJavascriptContext* JavascriptContext;	
+	UJavascriptContext* JavascriptContext;
+
+	UPROPERTY(transient)
+	UJavascriptIsolate* JavascriptIsolate;
 
 	UPROPERTY()
 	FJavascriptTickSignature OnTick;

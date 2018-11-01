@@ -217,6 +217,34 @@ struct FJavscriptProperty
 	FString Name;
 };
 
+USTRUCT(BlueprintType)
+struct FJavascriptText
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString String;
+
+	UPROPERTY()
+	FString Namespace;
+
+	UPROPERTY()
+	FString Key;
+
+	UPROPERTY()
+	FName TableId;
+
+	FText Handle;
+};
+
+// copy from STextPropertyEditableTextBox.h
+enum class ETextPropertyEditAction : uint8
+{
+	EditedNamespace,
+	EditedKey,
+	EditedSource,
+};
+
 UCLASS()
 class V8_API UJavascriptLibrary : public UBlueprintFunctionLibrary
 {
@@ -556,6 +584,12 @@ public:
 	UFUNCTION(BlueprintCallable, CustomThunk, Category = "Scripting | Javascript", meta = (CustomStructureParam = "CustomStruct"))
 	static void CallJS(FJavascriptFunction Function, const FJavascriptStubStruct& CustomStruct);
 
+#if USE_STABLE_LOCALIZATION_KEYS
+	// copy from STextPropertyEditableTextBox.cpp
+	static void IssueStableTextId(UPackage* InPackage, const ETextPropertyEditAction InEditAction, const FString& InTextSource, const FString& InProposedNamespace, const FString& InProposedKey, FString& OutStableNamespace, FString& OutStableKey);
+#endif // USE_STABLE_LOCALIZATION_KEYS
+	static FText UpdateLocalizationText(const FJavascriptText& JText, const struct IPropertyOwner& Owner);
+
 	DECLARE_FUNCTION(execCallJS)
 	{
 		PARAM_PASSED_BY_VAL(Function, UStructProperty, FJavascriptFunction);
@@ -574,4 +608,7 @@ public:
 
 		P_FINISH;
 	}
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool RemoveDisplayString(FJavascriptText& JavascriptText);
 };

@@ -1,5 +1,7 @@
 #include "JavascriptProcess.h"
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 UJavascriptProcess::UJavascriptProcess(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {	
@@ -114,6 +116,23 @@ bool UJavascriptProcess::WriteToPipe(const FString& Message, FString& OutWritten
 	return FPlatformProcess::WritePipe(WritePipe, Message, &OutWritten);
 }
 
+void UJavascriptProcess::SimulateKeypress(int32 KeyEvent)
+{
+#if PLATFORM_WINDOWS
+	INPUT input;
+	WORD vkey = KeyEvent;
+	input.type = INPUT_KEYBOARD;
+	input.ki.time = 0;
+	input.ki.dwExtraInfo = 0;
+	input.ki.wVk = vkey;
+	input.ki.dwFlags = KEYEVENTF_UNICODE;
+	SendInput(1, &input, sizeof(INPUT));
+
+	input.ki.dwFlags = KEYEVENTF_UNICODE | KEYEVENTF_KEYUP;
+	SendInput(1, &input, sizeof(INPUT));
+#endif
+}
+
 void UJavascriptProcess::Wait()
 {
 	return FPlatformProcess::WaitForProc(ProcessHandle);
@@ -170,3 +189,5 @@ FString UJavascriptProcess::GetString(const FString& Key, bool bFlag)
 	if (Key == TEXT("ModulesDirectory")) return FPlatformProcess::GetModulesDirectory();
 	return FString();
 }
+
+PRAGMA_ENABLE_OPTIMIZATION

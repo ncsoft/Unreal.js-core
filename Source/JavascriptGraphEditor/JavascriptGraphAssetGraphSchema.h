@@ -129,6 +129,8 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnMouseEvent, UJavascriptGraphEdNode*, Instance, const FGeometry&, MyGeometry);
 	
 	DECLARE_DYNAMIC_DELEGATE_FourParams(FOnMouseEventAdvanced, UJavascriptGraphEdNode*, Instance, FVector2D, Delta, bool, bUserIsDragging, int32, MouseZone);
+
+	DECLARE_DYNAMIC_DELEGATE_RetVal(bool, FOnShouldAlwaysPurgeOnModification);
 	
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetPinColor OnGetPinColor;
@@ -262,6 +264,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnEdNodeAction OnAddPinByAddButton;
 
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnShouldAlwaysPurgeOnModification OnShouldAlwaysPurgeOnModification;
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void BreakPinLinks(FJavascriptEdGraphPin TargetPin, bool bSendsNodeNotifcation);
 
@@ -282,6 +287,7 @@ public:
 
 	virtual bool TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) const override;
 	virtual bool CreateAutomaticConversionNodeAndConnections(UEdGraphPin* PinA, UEdGraphPin* PinB) const override;
+	virtual bool ShouldAlwaysPurgeOnModification() const override;
 	//~ End EdGraphSchema Interface
 };
 

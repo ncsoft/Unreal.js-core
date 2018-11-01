@@ -154,6 +154,16 @@ bool UJavascriptGraphAssetGraphSchema::CreateAutomaticConversionNodeAndConnectio
 	return false;
 }
 
+bool UJavascriptGraphAssetGraphSchema::ShouldAlwaysPurgeOnModification() const
+{
+	if (OnShouldAlwaysPurgeOnModification.IsBound())
+	{
+		return OnShouldAlwaysPurgeOnModification.Execute();
+	}
+	
+	return Super::ShouldAlwaysPurgeOnModification();
+}
+
 bool UJavascriptGraphEditorLibrary::CanUserDeleteNode(UEdGraphNode* Node)
 {
 	return Node && Node->CanUserDeleteNode();

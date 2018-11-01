@@ -12,6 +12,47 @@
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
+class FJavascriptPreviewScene : public FAdvancedPreviewScene
+{
+public:
+	FJavascriptPreviewScene(ConstructionValues CVS, float InFloorOffset = 0.0f)
+		: FAdvancedPreviewScene(CVS, InFloorOffset)
+	{
+	}
+	~FJavascriptPreviewScene()
+	{
+	}
+
+	class UDirectionalLightComponent* GetDefaultDirectionalLightComponent()
+	{
+		return DirectionalLight;
+	}
+
+	class USkyLightComponent* GetDefaultSkyLightComponent()
+	{
+		return SkyLight;
+	}
+
+	class UStaticMeshComponent* GetDefaultSkySphereComponent()
+	{
+		return SkyComponent;
+	}
+
+	class USphereReflectionCaptureComponent* GetDefaultSphereReflectionComponent()
+	{
+		return SphereReflectionComponent;
+	}
+
+	class UMaterialInstanceConstant* GetDefaultInstancedSkyMaterial()
+	{
+		return InstancedSkyMaterial;
+	}
+
+	class UPostProcessComponent* GetDefaultPostProcessComponent()
+	{
+		return PostProcessComponent;
+	}
+};
 
 class FCanvasOwner : public FGCObject
 {
@@ -318,6 +359,16 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 		EditorViewportClient->SetViewRotation(ViewRotation);
 	}
 
+	FVector GetViewLocation()
+	{
+		return EditorViewportClient->GetViewLocation();
+	}
+
+	FRotator GetViewRotation()
+	{
+		return EditorViewportClient->GetViewRotation();
+	}
+
 	void SetViewFOV(float InViewFOV)
 	{
 		EditorViewportClient->ViewFOV = InViewFOV;
@@ -430,6 +481,36 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 		return const_cast<UStaticMeshComponent*>(PreviewScene.GetFloorMeshComponent());
 	}
 
+	class UDirectionalLightComponent* GetDefaultDirectionalLightComponent()
+	{
+		return PreviewScene.GetDefaultDirectionalLightComponent();
+	}
+
+	class USkyLightComponent* GetDefaultSkyLightComponent()
+	{
+		return PreviewScene.GetDefaultSkyLightComponent();
+	}
+
+	class UStaticMeshComponent* GetDefaultSkySphereComponent()
+	{
+		return PreviewScene.GetDefaultSkySphereComponent();
+	}
+
+	class USphereReflectionCaptureComponent* GetDefaultSphereReflectionComponent()
+	{
+		return PreviewScene.GetDefaultSphereReflectionComponent();
+	}
+
+	class UMaterialInstanceConstant* GetDefaultInstancedSkyMaterial()
+	{
+		return PreviewScene.GetDefaultInstancedSkyMaterial();
+	}
+
+	class UPostProcessComponent* GetDefaultPostProcessComponent()
+	{
+		return PreviewScene.GetDefaultPostProcessComponent();
+	}
+
 	UStaticMeshComponent* GetSkyComponent()
 	{
 		for (TObjectIterator<UStaticMeshComponent> Itr; Itr; ++Itr)
@@ -459,7 +540,7 @@ public:
 	TSharedPtr<FJavascriptEditorViewportClient> EditorViewportClient;
 	
 	/** preview scene */
-	FAdvancedPreviewScene PreviewScene;
+	FJavascriptPreviewScene PreviewScene;
 
 private:
 	TWeakObjectPtr<UJavascriptEditorViewport> Widget;
@@ -596,6 +677,26 @@ void UJavascriptEditorViewport::SetViewRotation(const FRotator& ViewRotation)
 	{
 		ViewportWidget->SetViewRotation(ViewRotation);
 	}
+}
+
+FVector UJavascriptEditorViewport::GetViewLocation()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetViewLocation();
+	}
+
+	return FVector::ZeroVector;
+}
+
+FRotator UJavascriptEditorViewport::GetViewRotation()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetViewRotation();
+	}
+
+	return FRotator::ZeroRotator;
 }
 
 void UJavascriptEditorViewport::SetViewFOV(float InViewFOV)
@@ -811,6 +912,66 @@ UStaticMeshComponent* UJavascriptEditorViewport::GetSkyComponent()
 	if (ViewportWidget.IsValid())
 	{
 		return ViewportWidget->GetSkyComponent();
+	}
+
+	return nullptr;
+}
+
+class UDirectionalLightComponent* UJavascriptEditorViewport::GetDefaultDirectionalLightComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetDefaultDirectionalLightComponent();
+	}
+
+	return nullptr;
+}
+
+class USkyLightComponent* UJavascriptEditorViewport::GetDefaultSkyLightComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetDefaultSkyLightComponent();
+	}
+
+	return nullptr;
+}
+
+class UStaticMeshComponent* UJavascriptEditorViewport::GetDefaultSkySphereComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetDefaultSkySphereComponent();
+	}
+
+	return nullptr;
+}
+
+class USphereReflectionCaptureComponent* UJavascriptEditorViewport::GetDefaultSphereReflectionComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetDefaultSphereReflectionComponent();
+	}
+
+	return nullptr;
+}
+
+class UMaterialInstanceConstant* UJavascriptEditorViewport::GetDefaultInstancedSkyMaterial()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetDefaultInstancedSkyMaterial();
+	}
+
+	return nullptr;
+}
+
+class UPostProcessComponent* UJavascriptEditorViewport::GetDefaultPostProcessComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetDefaultPostProcessComponent();
 	}
 
 	return nullptr;

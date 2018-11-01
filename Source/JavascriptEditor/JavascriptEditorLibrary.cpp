@@ -16,6 +16,9 @@
 #include "Editor/PropertyEditor/Public/PropertyEditorModule.h"
 #include "Toolkits/AssetEditorToolkit.h"
 #include "LevelEditor.h"
+#include "Editor/AnimationBlueprintEditor/Private/AnimationBlueprintEditorModule.h"
+#include "IAnimationEditorModule.h"
+#include "BlueprintEditorModule.h"
 #include "Landscape.h"
 #include "LandscapeDataAccess.h"
 #include "LandscapeEdit.h"
@@ -36,10 +39,19 @@
 #include "JavascriptUMG/JavascriptUICommands.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
+#include "Engine/SimpleConstructionScript.h"
+#include "Engine/SCS_Node.h"
+#include "Kismet2/BlueprintEditorUtils.h"
 #include "NavigationSystem.h"
 
 #include "Developer/MessageLog/Public/MessageLogModule.h"
 #include "Developer/MessageLog/Public/IMessageLogListing.h"
+
+#include "Kismet2/KismetEditorUtilities.h"
+#include "Animation/AnimSequence.h"
+#include "Animation/AnimTypes.h"
+#include "Animation/AnimNotifies/AnimNotifyState.h"
+#include "Animation/AnimNotifies/AnimNotify.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -621,6 +633,9 @@ void UJavascriptEditorLibrary::CreatePropertyEditorToolkit(TArray<UObject*> Obje
 
 static FName NAME_LevelEditor("LevelEditor");
 static FName NAME_MaterialEditor("MaterialEditor");
+static FName NAME_AnimationBlueprintEditor("AnimationBlueprintEditor");
+static FName NAME_AnimationEditor("AnimationEditor");
+static FName NAME_BlueprintEditor("Kismet");
 
 FJavascriptExtensibilityManager UJavascriptEditorLibrary::GetMenuExtensibilityManager(FName What)
 {
@@ -628,6 +643,21 @@ FJavascriptExtensibilityManager UJavascriptEditorLibrary::GetMenuExtensibilityMa
 	{
 		FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
 		return {LevelEditor.GetMenuExtensibilityManager()};
+	}
+	else if (What == NAME_BlueprintEditor)
+	{
+		FBlueprintEditorModule& BlueprintEditor = FModuleManager::LoadModuleChecked<FBlueprintEditorModule>(NAME_BlueprintEditor);
+		return { BlueprintEditor.GetMenuExtensibilityManager() };
+	}
+	else if (What == NAME_AnimationBlueprintEditor)
+	{
+		FAnimationBlueprintEditorModule& AnimationEditor = FModuleManager::LoadModuleChecked<FAnimationBlueprintEditorModule>(NAME_AnimationBlueprintEditor);
+		return { AnimationEditor.GetMenuExtensibilityManager() };
+	}
+	else if (What == NAME_AnimationEditor)
+	{
+		IAnimationEditorModule& AnimationEditor = FModuleManager::LoadModuleChecked<IAnimationEditorModule>(NAME_AnimationEditor);
+		return { AnimationEditor.GetMenuExtensibilityManager() };
 	}
 	return FJavascriptExtensibilityManager();
 }
@@ -638,6 +668,21 @@ FJavascriptExtensibilityManager UJavascriptEditorLibrary::GetToolBarExtensibilit
 	{
 		FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
 		return{ LevelEditor.GetToolBarExtensibilityManager() };
+	}
+	else if (What == NAME_BlueprintEditor)
+	{
+		FBlueprintEditorModule& BlueprintEditor = FModuleManager::LoadModuleChecked<FBlueprintEditorModule>(NAME_BlueprintEditor);
+		return { BlueprintEditor.GetMenuExtensibilityManager() };
+	}
+	else if (What == NAME_AnimationBlueprintEditor)
+	{
+		FAnimationBlueprintEditorModule& AnimationEditor = FModuleManager::LoadModuleChecked<FAnimationBlueprintEditorModule>(NAME_AnimationBlueprintEditor);
+		return { AnimationEditor.GetToolBarExtensibilityManager() };
+	}
+	else if (What == NAME_AnimationEditor)
+	{
+		IAnimationEditorModule& AnimationEditor = FModuleManager::LoadModuleChecked<IAnimationEditorModule>(NAME_AnimationEditor);
+		return { AnimationEditor.GetToolBarExtensibilityManager() };
 	}
 	return FJavascriptExtensibilityManager();
 }
@@ -665,6 +710,35 @@ void UJavascriptEditorLibrary::RemoveExtender(FJavascriptExtensibilityManager Ma
 	if (Manager.Handle.IsValid() && Extender.Handle.IsValid())
 	{
 		Manager->RemoveExtender(Extender.Handle);
+	}
+}
+
+void UJavascriptEditorLibrary::AddLazyExtender(FJavascriptExtensibilityManager Manager, UJavascriptLazyExtenderDelegates* Delegates)
+{
+	if (Manager.Handle.IsValid())
+	{
+		Delegates->AddToRoot();
+		Manager->GetExtenderDelegates().Add(FAssetEditorExtender::CreateLambda([=](const TSharedRef<FUICommandList> CommandList, const TArray<UObject*> EditingObjects)
+		{
+			//@hack: instead of returnless javascript.call
+			auto Extender = Delegates->GetExtender.Execute({ CommandList }, EditingObjects).Handle.ToSharedRef();
+			return Extender;
+		}));
+		Manager.LazyExtenders.Add(Delegates);
+	}
+}
+
+void UJavascriptEditorLibrary::RemoveAllLazyExtender(FJavascriptExtensibilityManager Manager)
+{
+	if (Manager.Handle.IsValid())
+	{
+		//@todo : remove from lazyextenders
+		for (auto* Delegates : Manager.LazyExtenders)
+		{
+			Delegates->RemoveFromRoot();
+		}
+		Manager.LazyExtenders.Empty();
+		Manager->GetExtenderDelegates().Empty();
 	}
 }
 
@@ -863,6 +937,335 @@ void UJavascriptEditorLibrary::AddLogListingMessage(const FName& InLogName, EJav
 UEditorEngine* UJavascriptEditorLibrary::GetEngine()
 {
 	return Cast<UEditorEngine>(GEngine);
+}
+
+UClass* UJavascriptEditorLibrary::GetParentClassOfBlueprint(UBlueprint* Blueprint)
+{
+	return Cast<UClass>(Blueprint->ParentClass);
+}
+
+USCS_Node* FindSCSNode(const TArray<USCS_Node*>& Nodes, UActorComponent* Component)
+{
+	for (auto* Node : Nodes)
+	{
+		if (Node->ComponentTemplate == Component)
+			return Node;
+
+		auto* Ret = FindSCSNode(Node->ChildNodes, Component);
+		if (Ret)
+			return Ret;
+	}
+	return nullptr;
+}
+
+void UJavascriptEditorLibrary::AddComponentsToBlueprint(UBlueprint* Blueprint, const TArray<UActorComponent*>& Components, bool bHarvesting, UActorComponent* OptionalNewRootComponent, bool bKeepMobility)
+{
+	auto* OptionalNewRootNode = FindSCSNode(Blueprint->SimpleConstructionScript->GetRootNodes(), OptionalNewRootComponent);
+	FKismetEditorUtilities::AddComponentsToBlueprint(Blueprint, Components, bHarvesting, OptionalNewRootNode, bKeepMobility);
+	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+}
+
+void UJavascriptEditorLibrary::RemoveComponentFromBlueprint(UBlueprint* Blueprint, UActorComponent* RemoveComponent, bool bPromoteChildren)
+{
+	auto* RemoveNode = FindSCSNode(Blueprint->SimpleConstructionScript->GetRootNodes(), RemoveComponent);
+	if (RemoveNode)
+	{
+		FBlueprintEditorUtils::RemoveVariableNodes(Blueprint, RemoveNode->GetVariableName());
+		if (bPromoteChildren)
+			Blueprint->SimpleConstructionScript->RemoveNodeAndPromoteChildren(RemoveNode);
+		else
+			Blueprint->SimpleConstructionScript->RemoveNode(RemoveNode);
+
+		// Clear the delegate
+		RemoveNode->SetOnNameChanged(FSCSNodeNameChanged());
+		FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+	}
+}
+
+void UJavascriptEditorLibrary::CompileBlueprint(UBlueprint* Blueprint)
+{
+	//FBlueprintEditorUtils::MarkBlueprintAsModified(Blueprint);
+	FKismetEditorUtilities::CompileBlueprint(Blueprint);
+ 	//Blueprint->Modify();
+ 	//Blueprint->PostEditChange();
+}
+
+bool UJavascriptEditorLibrary::OpenEditorForAsset(UObject* Asset)
+{
+	return FAssetEditorManager::Get().OpenEditorForAsset(Asset);
+}
+
+void UJavascriptEditorLibrary::OpenEditorForAssetByPath(const FString& AssetPathName, const FString& ObjectName)
+{
+	// An asset needs loading
+	UPackage* Package = LoadPackage(NULL, *AssetPathName, LOAD_NoRedirects);
+	if (Package)
+	{
+		Package->FullyLoad();
+
+		UObject* Object = FindObject<UObject>(Package, *ObjectName);
+		if (Object != NULL)
+		{
+			FAssetEditorManager::Get().OpenEditorForAsset(Object);
+		}
+	}
+}
+
+TArray<FAssetData> UJavascriptEditorLibrary::GetAssetsByType(const TArray<FString>& Types, bool bRecursiveClasses)
+{
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+	
+	FARFilter Filter;
+	for (auto& Type : Types)
+	{
+		Filter.ClassNames.Add(FName(*Type));
+	}
+	Filter.bRecursiveClasses = bRecursiveClasses;
+	TArray<FAssetData> AssetList;
+	AssetRegistryModule.Get().GetAssets(Filter, /*out*/AssetList);
+
+	return AssetList;
+}
+
+FAnimNotifyEvent& CreateNewNotify(UAnimSequenceBase* Sequence, FString NewNotifyName, UClass* NotifyClass, int32 TrackIndex, float StartTime)
+{
+	// Insert a new notify record and spawn the new notify object
+	int32 NewNotifyIndex = Sequence->Notifies.Add(FAnimNotifyEvent());
+	FAnimNotifyEvent& NewEvent = Sequence->Notifies[NewNotifyIndex];
+	NewEvent.NotifyName = FName(*NewNotifyName);
+
+	NewEvent.Link(Sequence, StartTime);
+	NewEvent.TriggerTimeOffset = GetTriggerTimeOffsetForType(Sequence->CalculateOffsetForNotify(StartTime));
+	NewEvent.TrackIndex = TrackIndex;
+
+	if (NotifyClass)
+	{
+		class UObject* AnimNotifyClass = NewObject<UObject>(Sequence, NotifyClass, NAME_None, RF_Transactional);
+		NewEvent.NotifyStateClass = Cast<UAnimNotifyState>(AnimNotifyClass);
+		NewEvent.Notify = Cast<UAnimNotify>(AnimNotifyClass);
+
+		// Set default duration to 1 frame for AnimNotifyState.
+		if (NewEvent.NotifyStateClass)
+		{
+			NewEvent.NotifyName = FName(*NewEvent.NotifyStateClass->GetNotifyName());
+			NewEvent.SetDuration(1 / 30.f);
+			NewEvent.EndLink.Link(Sequence, NewEvent.EndLink.GetTime());
+		}
+		else
+		{
+			NewEvent.NotifyName = FName(*NewEvent.Notify->GetNotifyName());
+		}
+	}
+	else
+	{
+		NewEvent.Notify = NULL;
+		NewEvent.NotifyStateClass = NULL;
+	}
+
+	if (NewEvent.Notify)
+	{
+		NewEvent.Notify->OnAnimNotifyCreatedInEditor(NewEvent);
+	}
+	else if (NewEvent.NotifyStateClass)
+	{
+		NewEvent.NotifyStateClass->OnAnimNotifyCreatedInEditor(NewEvent);
+	}
+
+	Sequence->MarkPackageDirty();
+
+	return NewEvent;
+}
+
+int32 UJavascriptEditorLibrary::ReplaceAnimNotifyClass(UAnimSequenceBase* Sequence, FString NotifyName, FString NewNotifyName, UObject* NewNotifyClassTemplate)
+{
+	UClass* NewNotifyClass = NewNotifyClassTemplate->GetClass();
+	Sequence->Modify(true);
+
+	TArray<int32> Replaces;
+	for (auto i = 0; i < Sequence->Notifies.Num(); i++)
+	{
+		if (FName(*NotifyName) == Sequence->Notifies[i].NotifyName)
+			Replaces.Insert(i, 0);
+	}
+
+	///@note : notifies.add�� ���ÿ� ����ǹǷ� replaces�� index�� �������� ���� �Ѵ�. 3->2->1������ �ְ� push_back���� �߰��ǵ���.
+	for (auto Index : Replaces)
+	{
+		auto* OldEvent = &Sequence->Notifies[Index];
+		if (OldEvent)
+		{
+			float BeginTime = OldEvent->GetTime();
+			float Length = OldEvent->GetDuration();
+			int32 TargetTrackIndex = OldEvent->TrackIndex;
+			float TriggerTimeOffset = OldEvent->TriggerTimeOffset;
+			float EndTriggerTimeOffset = OldEvent->EndTriggerTimeOffset;
+			int32 SlotIndex = OldEvent->GetSlotIndex();
+			int32 EndSlotIndex = OldEvent->EndLink.GetSlotIndex();
+			int32 SegmentIndex = OldEvent->GetSegmentIndex();
+			int32 EndSegmentIndex = OldEvent->GetSegmentIndex();
+			EAnimLinkMethod::Type LinkMethod = OldEvent->GetLinkMethod();
+			EAnimLinkMethod::Type EndLinkMethod = OldEvent->EndLink.GetLinkMethod();
+
+			// Delete old one before creating new one to avoid potential array re-allocation when array temporarily increases by 1 in size
+			for (int32 i = 0; i < Sequence->Notifies.Num(); ++i)
+			{
+				if (OldEvent == &(Sequence->Notifies[i]))
+				{
+					Sequence->Notifies.RemoveAt(i);
+					Sequence->MarkPackageDirty();
+					break;
+				}
+			}
+
+			FAnimNotifyEvent& NewEvent = CreateNewNotify(Sequence, NewNotifyName, NewNotifyClass, TargetTrackIndex, BeginTime);
+
+			NewEvent.TriggerTimeOffset = TriggerTimeOffset;
+			NewEvent.ChangeSlotIndex(SlotIndex);
+			NewEvent.SetSegmentIndex(SegmentIndex);
+			NewEvent.ChangeLinkMethod(LinkMethod);
+
+			// For Anim Notify States, handle the end time and link
+			if (NewEvent.NotifyStateClass != nullptr)
+			{
+				NewEvent.SetDuration(Length);
+				NewEvent.EndTriggerTimeOffset = EndTriggerTimeOffset;
+				NewEvent.EndLink.ChangeSlotIndex(EndSlotIndex);
+				NewEvent.EndLink.SetSegmentIndex(EndSegmentIndex);
+				NewEvent.EndLink.ChangeLinkMethod(EndLinkMethod);
+			}
+
+			NewEvent.Update();
+		}
+	}
+
+	return Replaces.Num();
+}
+
+#include "Blueprint/AsyncTaskDownloadImage.h"
+#include "Modules/ModuleManager.h"
+#include "Engine/Texture2D.h"
+#include "Engine/Texture2DDynamic.h"
+#include "IImageWrapper.h"
+#include "IImageWrapperModule.h"
+#include "Misc/FileHelper.h"
+
+//----------------------------------------------------------------------//
+// UAsyncTaskDownloadImage
+//----------------------------------------------------------------------//
+
+#if !UE_SERVER
+
+static void WriteRawToTexture_RenderThread(FTexture2DDynamicResource* TextureResource, const TArray<uint8>& RawData, bool bUseSRGB = true)
+{
+	check(IsInRenderingThread());
+
+	FTexture2DRHIParamRef TextureRHI = TextureResource->GetTexture2DRHI();
+
+	int32 Width = TextureRHI->GetSizeX();
+	int32 Height = TextureRHI->GetSizeY();
+
+	uint32 DestStride = 0;
+	uint8* DestData = reinterpret_cast<uint8*>(RHILockTexture2D(TextureRHI, 0, RLM_WriteOnly, DestStride, false, false));
+
+	for (int32 y = 0; y < Height; y++)
+	{
+		uint8* DestPtr = &DestData[(Height - 1 - y) * DestStride];
+
+		const FColor* SrcPtr = &((FColor*)(RawData.GetData()))[(Height - 1 - y) * Width];
+		for (int32 x = 0; x < Width; x++)
+		{
+			*DestPtr++ = SrcPtr->B;
+			*DestPtr++ = SrcPtr->G;
+			*DestPtr++ = SrcPtr->R;
+			*DestPtr++ = SrcPtr->A;
+			SrcPtr++;
+		}
+	}
+
+	RHIUnlockTexture2D(TextureRHI, 0, false, false);
+}
+
+#endif
+
+bool UJavascriptEditorLibrary::LoadImageFromDiskAsync(const FString& ImagePath, UAsyncTaskDownloadImage* Callback)
+{
+	IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(TEXT("ImageWrapper"));
+
+	if (!FPaths::FileExists(ImagePath))
+	{
+		///@log error
+		Callback->OnFail.Broadcast(nullptr);
+		return false;
+	}
+
+	TArray<uint8> FileData;
+	if (!FFileHelper::LoadFileToArray(FileData, *ImagePath))
+	{
+		///@log error
+		Callback->OnFail.Broadcast(nullptr);
+		return false;
+	}
+
+	EImageFormat ImageFormat = ImageWrapperModule.DetectImageFormat(FileData.GetData(), FileData.Num());
+	TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(ImageFormat);
+
+	if (ImageWrapper.IsValid() && ImageWrapper->SetCompressed(FileData.GetData(), FileData.Num()))
+	{
+		const TArray<uint8>* RawData = nullptr;
+		if (ImageWrapper->GetRaw(ERGBFormat::BGRA, 8, RawData))
+		{
+			if (UTexture2DDynamic* Texture = UTexture2DDynamic::Create(ImageWrapper->GetWidth(), ImageWrapper->GetHeight()))
+			{
+				Texture->SRGB = true;
+				Texture->UpdateResource();
+
+				ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+					FWriteRawDataToTexture,
+					FTexture2DDynamicResource*, TextureResource, static_cast<FTexture2DDynamicResource*>(Texture->Resource),
+					TArray<uint8>, RawData, *RawData,
+					{
+						WriteRawToTexture_RenderThread(TextureResource, RawData);
+					});
+
+				Callback->OnSuccess.Broadcast(Texture);
+				return true;
+			}
+		}
+
+	}
+	
+	Callback->OnFail.Broadcast(nullptr);	
+	return false;
+}
+
+#include "IDesktopPlatform.h"
+#include "DesktopPlatformModule.h"
+#include "EditorDirectories.h"
+bool UJavascriptEditorLibrary::OpenFileDialog(const UJavascriptWindow* SubWindow, const FString& DialogTitle, const FString& DefaultPath, const FString& DefaultFile, const FString& FileTypes, int32 Flags, TArray<FString>& OutFilenames)
+{
+	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
+	if (DesktopPlatform)
+	{
+		const void* ParentWindowWindowHandle = nullptr;
+		if (SubWindow)
+			ParentWindowWindowHandle = nullptr;
+		else			
+			ParentWindowWindowHandle = FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr);
+		
+		int OutFilterIndex = 0;
+		return DesktopPlatform->OpenFileDialog(
+			ParentWindowWindowHandle,
+			DialogTitle,
+			FEditorDirectories::Get().GetLastDirectory(ELastDirectory::GENERIC_IMPORT),
+			TEXT(""),
+			FileTypes,
+			EFileDialogFlags::Type(Flags),
+			OutFilenames,
+			OutFilterIndex
+		);
+	}
+
+	return false;
 }
 
 #endif

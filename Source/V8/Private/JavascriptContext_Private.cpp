@@ -16,6 +16,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "JavascriptIsolate_Private.h"
 #include "UObject/PropertyPortFlags.h"
 #include "UObject/ScriptMacros.h"
+#include "UObject/TextProperty.h"
 
 #if WITH_EDITOR
 #include "TypingGenerator.h"
@@ -348,6 +349,11 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 			else if (Type == FString("float"))
 			{
 				auto q = NewObject<UFloatProperty>(Outer, Name);
+				return q;
+			}
+			else if (Type == FString("text"))
+			{
+				auto q = NewObject<UTextProperty>(Outer, Name);
 				return q;
 			}
 			else
@@ -885,11 +891,12 @@ public:
 			auto Opts = info[1]->ToObject();
 			auto Outer = UObjectFromV8(Opts->Get(I.Keyword("Outer")));
 			auto ParentClass = UClassFromV8(isolate, Opts->Get(I.Keyword("Parent")));
+			auto NonNative = Opts->Get(I.Keyword("NonNative"))->BooleanValue();
 			Outer = Outer ? Outer : GetTransientPackage();
 			ParentClass = ParentClass ? ParentClass : UObject::StaticClass();
 
 			UBlueprintGeneratedClass* Class = nullptr;
-			if (Cast<UBlueprintGeneratedClass>(ParentClass))
+			if (NonNative || Cast<UBlueprintGeneratedClass>(ParentClass))
 			{
 				auto Klass = NewObject<UJavascriptGeneratedClass>(Outer, *Name, RF_Public);
 				Klass->JavascriptContext = Context->AsShared();
@@ -1294,12 +1301,30 @@ public:
 			auto prev_v8_template = Context->ExportObject(Class);
 			auto ProxyFunctions = prev_v8_template->ToObject()->Get(I.Keyword("proxy"));
 
+			auto Functions = Opts->Get(I.Keyword("Functions"));
+			TMap<FString, Handle<Value>> Others;
+			if (!Functions.IsEmpty() && Functions->IsObject())
+			{
+				auto FuncMap = Functions->ToObject();
+				auto Function0 = FuncMap->Get(I.Keyword("ctor"));
+				auto Function1 = FuncMap->Get(I.Keyword("prector"));
+
+				auto ProxyFuncMap = ProxyFunctions->ToObject();
+				ProxyFuncMap->Set(I.Keyword("ctor"), Function0);
+				ProxyFuncMap->Set(I.Keyword("prector"), Function1);
+			}
+
 			Context->Environment->PublicExportClass(Class);
 
 			auto aftr_v8_template = Context->ExportObject(Class);
 			aftr_v8_template->ToObject()->Set(I.Keyword("proxy"), ProxyFunctions);
 
 			Class->GetDefaultObject(true);
+
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 12
+			// Assemble reference token stream for garbage collection/ RTGC.
+			Class->AssembleReferenceTokenStream(true);
+#endif
 #endif
 		};
 

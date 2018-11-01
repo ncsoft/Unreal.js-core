@@ -591,6 +591,21 @@ FVector2D SJavascriptGraphEdNode::ComputeDesiredSize(float LayoutScaleMultiplier
 	return InDesiredSize;
 }
 
+FVector2D SJavascriptGraphEdNode::GetDesiredSizeForMarquee() const
+{
+	auto GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphNode);
+
+	if (GraphEdNode->bTitleSelectionOnly) 
+	{
+		FVector2D SelectionSize = FVector2D(SGraphNode::GetDesiredSizeForMarquee());
+		SelectionSize.Y = GraphEdNode->TitleHeight;
+
+		return SelectionSize;
+	}
+	
+	return SGraphNode::GetDesiredSizeForMarquee();
+}
+
 void SJavascriptGraphEdNode::PositionBetweenTwoNodesWithOffset(const FGeometry& StartGeom, const FGeometry& EndGeom, int32 NodeIndex, int32 MaxNodes) const
 {
 	// Get a reasonable seed point (halfway between the boxes)

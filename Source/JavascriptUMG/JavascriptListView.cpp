@@ -69,3 +69,18 @@ void UJavascriptListView::SetSelection_Implementation(UObject* SoleSelectedItem)
 		MyListView->SetSelection(SoleSelectedItem);
 	}
 }
+
+TSharedRef<ITableRow> UJavascriptListView::CreateItemRow(UWidget* Widget, const TSharedRef<STableViewBase>& OwnerTable)
+{
+	auto GeneratedWidget = Widget->TakeWidget();
+	CachedRows.Add(Widget, GeneratedWidget);
+	return SNew(STableRow<UObject*>, OwnerTable)[GeneratedWidget];
+}
+
+TSharedRef<ITableRow> UJavascriptListView::CreateDefaultRow(UObject* Item, const TSharedRef<STableViewBase>& OwnerTable)
+{
+	return SNew(STableRow<UObject*>, OwnerTable)
+		[
+			SNew(STextBlock).Text(Item ? FText::FromString(Item->GetName()) : FText::FromName(FName()))
+		];
+}

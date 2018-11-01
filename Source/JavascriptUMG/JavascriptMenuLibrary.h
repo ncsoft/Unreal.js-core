@@ -204,6 +204,9 @@ public:
 	static void AddToolBarButton(FJavascriptMenuBuilder& Builder, FJavascriptUICommandInfo CommandInfo);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddToolBarButtonByContext(FJavascriptMenuBuilder& Builder, UJavascriptToolbarButtonContext* Context, UObject* EditingObject);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptComboButtonContext* Object);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -228,7 +231,7 @@ public:
 	static void Destroy(FJavascriptBindingContext Context);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FJavascriptUICommandInfo UI_COMMAND_Function(FJavascriptBindingContext This, FJavascriptUICommand Command);
+	static FJavascriptUICommandInfo UI_COMMAND_Function(FJavascriptBindingContext This, FJavascriptUICommand Command, const FString& InTextSubNamespace);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptUICommandList CreateUICommandList();

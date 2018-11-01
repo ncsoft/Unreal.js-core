@@ -211,7 +211,7 @@ class UJavascriptGraphEditorLibrary : public UBlueprintFunctionLibrary
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FJavascriptNodeCreator NodeCreator(UJavascriptGraphEdGraph* Graph);
+	static FJavascriptNodeCreator NodeCreator(UJavascriptGraphEdGraph* Graph, bool bSelectNewNode = true);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void Finalize(FJavascriptNodeCreator& Creator);
@@ -329,4 +329,22 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void ResizeNode(UEdGraphNode* Node, const FVector2D& NewSize);
+};
+
+USTRUCT(BlueprintType)
+struct FJavascriptTextProperty
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString Key;
+
+	UPROPERTY()
+	FString Namespace;
+
+	UPROPERTY()
+	FString Value;
+
+	UPROPERTY()
+	FName TableId;
 };

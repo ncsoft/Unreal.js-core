@@ -68,6 +68,9 @@ public:
 	bool WriteToPipe(const FString& Message, FString& OutWritten);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
+	static void SimulateKeypress(int32 KeyEvent);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
 	static void LaunchURL(const FString& URL, const FString& Parms, FString& Error);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")

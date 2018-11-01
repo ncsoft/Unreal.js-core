@@ -25,7 +25,10 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "V8PCH.h"
 #include "UObject/UObjectIterator.h"
 #include "UObject/TextProperty.h"
+#include "JavascriptLibrary.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Internationalization/TextNamespaceUtil.h"
+#include "Internationalization/StringTableRegistry.h"
 
 #if WITH_EDITOR
 #include "ScopedTransaction.h"
@@ -120,7 +123,7 @@ public:
 			return UObjectFromV8(self);
 		}
 
-		static Local<Value> Get(Isolate* isolate, Local<Object> self, UProperty* Property)
+		static Local<Value> Get(Isolate* isolate, Local<Object> self, UProperty* Property, const FPropertyAccessorFlags& Flags = FPropertyAccessorFlags())
 		{
 			auto Object = UObjectFromV8(self);
 
@@ -140,7 +143,7 @@ public:
 				}
 				else
 				{
-					return ReadProperty(isolate, Property, (uint8*)Object, FObjectPropertyOwner(Object));
+					return ReadProperty(isolate, Property, (uint8*)Object, FObjectPropertyOwner(Object), Flags);
 				}
 			}
 			else
@@ -150,7 +153,7 @@ public:
 		}
 
 		//@TODO : Property-type 'routing' is not necessary!
-		static void Set(Isolate* isolate, Local<Object> self, UProperty* Property, Local<Value> value)
+		static void Set(Isolate* isolate, Local<Object> self, UProperty* Property, Local<Value> value, const FPropertyAccessorFlags& Flags = FPropertyAccessorFlags())
 		{
 			FIsolateHelper I(isolate);
 
@@ -218,7 +221,7 @@ public:
 				}
 				else
 				{
-					WriteProperty(isolate, Property, (uint8*)Object, value);
+					WriteProperty(isolate, Property, (uint8*)Object, value, FObjectPropertyOwner(Object), Flags);
 				}				
 			}
 		}
@@ -231,12 +234,12 @@ public:
 			return FStructMemoryInstance::FromV8(self)->GetMemory();
 		}
 
-		static Local<Value> Get(Isolate* isolate, Local<Object> self, UProperty* Property)
+		static Local<Value> Get(Isolate* isolate, Local<Object> self, UProperty* Property, const FPropertyAccessorFlags& Flags = FPropertyAccessorFlags())
 		{
 			auto Instance = FStructMemoryInstance::FromV8(self);
 			if (Instance)
 			{
-				return ReadProperty(isolate, Property, Instance->GetMemory(), FStructMemoryPropertyOwner(Instance));
+				return ReadProperty(isolate, Property, Instance->GetMemory(), FStructMemoryPropertyOwner(Instance), Flags);
 			}
 			else
 			{
@@ -244,14 +247,14 @@ public:
 			}
 		}
 
-		static void Set(Isolate* isolate, Local<Object> self, UProperty* Property, Local<Value> value)
+		static void Set(Isolate* isolate, Local<Object> self, UProperty* Property, Local<Value> value, const FPropertyAccessorFlags& Flags = FPropertyAccessorFlags())
 		{
 			FIsolateHelper I(isolate);
 
 			auto Instance = FStructMemoryInstance::FromV8(self);
 			if (Instance)
 			{
-				WriteProperty(isolate, Property, Instance->GetMemory(), value);
+				WriteProperty(isolate, Property, Instance->GetMemory(), value, FStructMemoryPropertyOwner(Instance), Flags);
 			}
 			else
 			{
@@ -517,7 +520,7 @@ public:
 		}
 	}	
 
-	Local<Value> InternalReadProperty(UProperty* Property, uint8* Buffer, const IPropertyOwner& Owner)
+	Local<Value> InternalReadProperty(UProperty* Property, uint8* Buffer, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags)
 	{
 		FIsolateHelper I(isolate_);
 
@@ -552,7 +555,28 @@ public:
 		else if (auto p = Cast<UTextProperty>(Property))
 		{
 			const FText& Data = p->GetPropertyValue_InContainer(Buffer);
-			return V8_String(isolate_, Data.ToString());
+			if (!Flags.Alternative)
+			{
+				return V8_String(isolate_, Data.ToString());
+			}
+			else
+			{
+				// Wraps the FText to FJavascriptText for supports to js.
+				FString Namespace;
+				FString Key;
+				FName TableId;
+				if (Data.IsFromStringTable())
+				{
+					FStringTableRegistry::Get().FindTableIdAndKey(Data, TableId, Key);
+				}
+				auto DisplayString = FTextInspector::GetSharedDisplayString(Data);
+				FTextLocalizationManager::Get().FindNamespaceAndKeyFromDisplayString(DisplayString, Namespace, Key);
+				FJavascriptText wrapper = { Data.ToString(), TextNamespaceUtil::StripPackageNamespace(Namespace), Key, TableId, Data };
+				auto Memory = FStructMemoryInstance::Create(FJavascriptText::StaticStruct(), FNoPropertyOwner(), (void*)&wrapper);
+				// set FJavascriptText's lifetime to Owner's;
+				GetSelf(isolate_)->RegisterScriptStructInstance(Memory, v8::External::New(isolate_, Owner.GetOwnerInstancePtr()));
+				return ExportStructInstance(FJavascriptText::StaticStruct(), (uint8*)Memory->GetMemory(), FNoPropertyOwner());
+			}
 		}		
 		else if (auto p = Cast<UClassProperty>(Property))
 		{			
@@ -596,7 +620,7 @@ public:
 				{
 					Inner->InitializeValue(ElementBuffer);
 					Inner->CopyCompleteValueFromScriptVM(ElementBuffer, helper.GetRawPtr(Index));
-					if (arr->Set(context, Index, ReadProperty(isolate_, Inner, ElementBuffer, FNoPropertyOwner())).FromMaybe(true)) {} // V8_WARN_UNUSED_RESULT;
+					if (arr->Set(context, Index, ReadProperty(isolate_, Inner, ElementBuffer, FNoPropertyOwner(), Flags)).FromMaybe(true)) {} // V8_WARN_UNUSED_RESULT;
 					Inner->DestroyValue(ElementBuffer);
 				}				
 			}
@@ -604,7 +628,7 @@ public:
 			{
 				for (decltype(len) Index = 0; Index < len; ++Index)
 				{
-					if (arr->Set(context, Index, ReadProperty(isolate_, Inner, helper.GetRawPtr(Index), Owner)).FromMaybe(true)) {} // V8_WARN_UNUSED_RESULT;
+					if (arr->Set(context, Index, ReadProperty(isolate_, Inner, helper.GetRawPtr(Index), Owner, Flags)).FromMaybe(true)) {} // V8_WARN_UNUSED_RESULT;
 				}
 			}
 
@@ -621,7 +645,7 @@ public:
 // 			else
 // 			{
 				auto Value = p->GetPropertyValue_InContainer(Buffer);
-				return V8_String(isolate_, Value.GetAssetName());
+				return V8_String(isolate_, Value.ToString());
 // 			}
 		}
 		else if (auto p = Cast<UObjectPropertyBase>(Property))
@@ -657,7 +681,7 @@ public:
 			{
 				auto PairPtr = SetHelper.GetElementPtr(Index);
 
-				Out->Set(Index, InternalReadProperty(p->ElementProp, SetHelper.GetElementPtr(Index), Owner));
+				Out->Set(Index, InternalReadProperty(p->ElementProp, SetHelper.GetElementPtr(Index), Owner, Flags));
 			}
 
 			return Out;
@@ -673,8 +697,8 @@ public:
 			{
 				uint8* PairPtr = MapHelper.GetPairPtr(Index);
 
-				auto Key = InternalReadProperty(p->KeyProp, PairPtr + p->MapLayout.KeyOffset, Owner);
-				auto Value = InternalReadProperty(p->ValueProp, PairPtr, Owner);
+				auto Key = InternalReadProperty(p->KeyProp, PairPtr + p->MapLayout.KeyOffset, Owner, Flags);
+				auto Value = InternalReadProperty(p->ValueProp, PairPtr, Owner, Flags);
 
 				Out->Set(Key, Value);
 			}
@@ -712,12 +736,12 @@ public:
 			if (!value.IsEmpty() && !value->IsUndefined())
 			{
 				len--;
-				InternalWriteProperty(Property, struct_buffer, value);
+				InternalWriteProperty(Property, struct_buffer, value, FNoPropertyOwner(), FPropertyAccessorFlags());
 			}
 		}
 	}	
 
-	void InternalWriteProperty(UProperty* Property, uint8* Buffer, Handle<Value> Value)
+	void InternalWriteProperty(UProperty* Property, uint8* Buffer, Handle<Value> Value, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags)
 	{
 		FIsolateHelper I(isolate_);
 
@@ -751,7 +775,31 @@ public:
 		}		
 		else if (auto p = Cast<UTextProperty>(Property))
 		{
-			p->SetPropertyValue_InContainer(Buffer, FText::FromString(StringFromV8(Value)));
+			if (!Flags.Alternative)
+			{
+				p->SetPropertyValue_InContainer(Buffer, FText::FromString(StringFromV8(Value)));
+			}
+			else
+			{
+				const FText& Data = p->GetPropertyValue_InContainer(Buffer);
+
+				auto Instance = FStructMemoryInstance::FromV8(Value);
+				if (Instance)
+				{
+					if (Instance->Struct->IsChildOf(FJavascriptText::StaticStruct()))
+					{
+						if (Instance->GetMemory())
+						{
+							auto JText = reinterpret_cast<FJavascriptText*>(Instance->GetMemory());
+							p->SetPropertyValue_InContainer(Buffer, UJavascriptLibrary::UpdateLocalizationText(*JText, Owner));
+						}
+					}
+					else
+						I.Throw(FString::Printf(TEXT("TextProperty needed JavascriptText struct")));
+				}
+				else
+					I.Throw(FString::Printf(TEXT("Needed JavascriptText struct data")));				
+			}
 		}
 		else if (auto p = Cast<UClassProperty>(Property))
 		{
@@ -879,7 +927,7 @@ public:
 
 				for (decltype(len) Index = 0; Index < len; ++Index)
 				{
-					WriteProperty(isolate_, p->Inner, helper.GetRawPtr(Index), arr->Get(Index));
+					WriteProperty(isolate_, p->Inner, helper.GetRawPtr(Index), arr->Get(Index), Owner, Flags);
 				}
 			}
 			else
@@ -939,7 +987,7 @@ public:
 				{
 					const int32 ElementIndex = SetHelper.AddDefaultValue_Invalid_NeedsRehash();
 					uint8* ElementPtr = SetHelper.GetElementPtr(Index);
-					InternalWriteProperty(p->ElementProp, ElementPtr, arr->Get(Index));
+					InternalWriteProperty(p->ElementProp, ElementPtr, arr->Get(Index), Owner, Flags);
 				}
 
 				SetHelper.Rehash();
@@ -963,8 +1011,8 @@ public:
 					MapHelper.Rehash();
 
 					uint8* PairPtr = MapHelper.GetPairPtr(ElementIndex);
-					InternalWriteProperty(p->KeyProp, PairPtr + p->MapLayout.KeyOffset, Key);
-					InternalWriteProperty(p->ValueProp, PairPtr, Value);
+					InternalWriteProperty(p->KeyProp, PairPtr + p->MapLayout.KeyOffset, Key, Owner, Flags);
+					InternalWriteProperty(p->ValueProp, PairPtr, Value, Owner, Flags);
 				}
 			}
 		}
@@ -1339,7 +1387,7 @@ public:
 			// Do we have valid argument?
 			if (!arg.IsEmpty() && !arg->IsUndefined())
 			{				
-				WriteProperty(isolate, Prop, Buffer, arg);
+				WriteProperty(isolate, Prop, Buffer, arg, FNoPropertyOwner());
 			}							
 
 			// This is 'out ref'!
@@ -1614,8 +1662,10 @@ public:
 			auto data = info.Data();
 			check(data->IsExternal());
 
+			auto Flags = FPropertyAccessorFlags();
+			Flags.Alternative = StringFromV8(property)[0] == '$';
 			auto Property = reinterpret_cast<UProperty*>((Local<External>::Cast(data))->Value());
-			info.GetReturnValue().Set(PropertyAccessors::Get(isolate, info.This(), Property));			
+			info.GetReturnValue().Set(PropertyAccessors::Get(isolate, info.This(), Property, Flags));			
 		};
 
 		// Property setter
@@ -1625,12 +1675,24 @@ public:
 			auto data = info.Data();
 			check(data->IsExternal())			
 
+			auto Flags = FPropertyAccessorFlags();
+			Flags.Alternative = StringFromV8(property)[0] == '$';
 			auto Property = reinterpret_cast<UProperty*>((Local<External>::Cast(data))->Value());
-			PropertyAccessors::Set(isolate, info.This(), Property, value);			
+			PropertyAccessors::Set(isolate, info.This(), Property, value, Flags);			
 		};
+		
+		auto Name = PropertyNameToString(PropertyToExport, !bIsEditor);
+		Template->PrototypeTemplate()->SetAccessor(
+			I.Keyword(Name),
+			Getter,
+			Setter,
+			I.External(PropertyToExport),
+			DEFAULT,
+			(PropertyAttribute)(DontDelete | (FV8Config::IsWriteDisabledProperty(PropertyToExport) ? ReadOnly : 0))
+		);
 
 		Template->PrototypeTemplate()->SetAccessor(
-			I.Keyword(PropertyNameToString(PropertyToExport, !bIsEditor)),
+			I.Keyword("$"+Name),
 			Getter, 
 			Setter, 
 			I.External(PropertyToExport),
@@ -2756,14 +2818,14 @@ FJavascriptIsolate* FJavascriptIsolate::Create(bool bIsEditor)
 	return new FJavascriptIsolateImplementation(bIsEditor);
 }
 
-Local<Value> FJavascriptIsolate::ReadProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, const IPropertyOwner& Owner)
+Local<Value> FJavascriptIsolate::ReadProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags)
 {
-	return FJavascriptIsolateImplementation::GetSelf(isolate)->InternalReadProperty(Property, Buffer, Owner);
+	return FJavascriptIsolateImplementation::GetSelf(isolate)->InternalReadProperty(Property, Buffer, Owner, Flags);
 }
 
-void FJavascriptIsolate::WriteProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, Handle<Value> Value)
+void FJavascriptIsolate::WriteProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, Handle<Value> Value, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags)
 {
-	FJavascriptIsolateImplementation::GetSelf(isolate)->InternalWriteProperty(Property, Buffer, Value);
+	FJavascriptIsolateImplementation::GetSelf(isolate)->InternalWriteProperty(Property, Buffer, Value, Owner, Flags);
 }
 
 void FPendingClassConstruction::Finalize(FJavascriptIsolate* Isolate, UObject* UnrealObject)
@@ -2805,14 +2867,14 @@ bool TStructReader<CppType>::Read(Isolate* isolate, Local<Value> Value, CppType&
 
 namespace v8
 {
-	Local<Value> ReadProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, const IPropertyOwner& Owner)
+	Local<Value> ReadProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags)
 	{
-		return FJavascriptIsolate::ReadProperty(isolate, Property, Buffer, Owner);
+		return FJavascriptIsolate::ReadProperty(isolate, Property, Buffer, Owner, Flags);
 	}
 
-	void WriteProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, Local<Value> Value)
+	void WriteProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, Local<Value> Value, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags)
 	{
-		FJavascriptIsolate::WriteProperty(isolate, Property, Buffer, Value);
+		FJavascriptIsolate::WriteProperty(isolate, Property, Buffer, Value, Owner, Flags);
 	}
 }
 

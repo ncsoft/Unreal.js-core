@@ -32,4 +32,8 @@ public:
 
 
 	TSharedPtr< SListView<UObject*> > MyListView;
+
+	// Overriden functions from UJavascriptTreeView
+	virtual TSharedRef<ITableRow> CreateItemRow(UWidget* Widget, const TSharedRef<STableViewBase>& OwnerTable) override;
+	virtual TSharedRef<ITableRow> CreateDefaultRow(UObject* Item, const TSharedRef<STableViewBase>& OwnerTable) override;
 };

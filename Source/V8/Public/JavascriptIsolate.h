@@ -4,6 +4,17 @@
 
 class UJavascriptContext;
 class FJavascriptIsolate;
+class UJavascriptIsolate;
+
+UCLASS(Blueprintable, BlueprintType)
+class V8_API UJavascriptStaticCache : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TArray<UJavascriptIsolate*> Isolates;
+};
 
 USTRUCT()
 struct FJavascriptRawAccess_Data

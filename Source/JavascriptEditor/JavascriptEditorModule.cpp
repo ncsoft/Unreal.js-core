@@ -25,6 +25,8 @@ class FJavascriptEditorModule : public IJavascriptEditorModule
 	
 	virtual void AddExtension(IEditorExtension* Extension) override;
 	virtual void RemoveExtension(IEditorExtension* Extension) override;
+
+	void Bootstrap();
 	
 private:
 #if WITH_EDITOR
@@ -119,7 +121,7 @@ static void PatchReimportRule()
 }
 #endif
 
-void FJavascriptEditorModule::StartupModule()
+void FJavascriptEditorModule::Bootstrap()
 {
 #if WITH_EDITOR	
 	if (!IsRunningCommandlet())
@@ -134,7 +136,7 @@ void FJavascriptEditorModule::StartupModule()
 		auto Isolate = NewObject<UJavascriptIsolate>();
 		Isolate->Init(true);
 		auto Context = Isolate->CreateContext();
-	
+
 		JavascriptContext = Context;
 		JavascriptContext->AddToRoot();
 
@@ -143,16 +145,21 @@ void FJavascriptEditorModule::StartupModule()
 		Tick = NewObject<UJavascriptEditorTick>(JavascriptContext);
 		JavascriptContext->Expose(TEXT("Root"), Tick);
 		Tick->AddToRoot();
-		
+
 		FEditorScriptExecutionGuard ScriptGuard;
 
 		Context->RunFile("editor.js");
-	
+
 		bRegistered = true;
-	
+
 		FCoreDelegates::OnPreExit.AddRaw(this, &FJavascriptEditorModule::Unregister);
 	}
 #endif
+}
+
+void FJavascriptEditorModule::StartupModule()
+{
+	FCoreDelegates::OnPostEngineInit.AddRaw(this, &FJavascriptEditorModule::Bootstrap);
 }
 
 void FJavascriptEditorModule::ShutdownModule()

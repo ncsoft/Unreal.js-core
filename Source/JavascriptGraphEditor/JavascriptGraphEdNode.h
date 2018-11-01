@@ -3,8 +3,8 @@
 #include "JavascriptGraphEdGraph.h"
 #include "JavascriptGraphEditorLibrary.h"
 #include "SGraphPin.h"
+#include "SJavascriptGraphEdNode.h"
 #include "JavascriptGraphEdNode.generated.h"
-
 
 USTRUCT(BlueprintType)
 struct FJavascriptPinParams
@@ -40,6 +40,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, instanced, Category = "JavascriptGraph")
 	UObject* GraphNode;
+
+	UPROPERTY()
+	bool IsTitleOnly;
 	
 public:
 	virtual void AllocateDefaultPins() override;
@@ -70,6 +73,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	FVector2D GetDesiredSize();
 
+	UFUNCTION(BlueprintCallable)
+	void SetTitleSelectionMode(float TitleHeight);
+
+	UFUNCTION(BlueprintCallable)
+	void ResetTitleSelectionMode();
+
 public:
 	UPROPERTY()
 	bool Bidirectional;
@@ -77,5 +86,8 @@ public:
 	UPROPERTY()
 	int32 PriorityOrder;
 
-	SGraphNode* SlateGraphNode;
+	SJavascriptGraphEdNode* SlateGraphNode;
+
+	bool bTitleSelectionOnly;
+	float TitleHeight;
 };

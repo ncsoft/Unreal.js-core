@@ -31,7 +31,17 @@ namespace UnrealBuildTool.Rules
                     "KismetWidgets",
                     "JavascriptUMG"
                 }
-            );
+				);
+
+            if (Target.Type == TargetType.Editor)
+            {
+                PrivateDependencyModuleNames.AddRange(
+                    new string[]
+                    {
+                    "EditorWidgets",
+                    }
+                    );
+            }
 		}
 	}
 }

@@ -74,8 +74,15 @@ public class JavascriptEditor : ModuleRules
                         "UMG",
                         "Foliage",
                         "LandscapeEditor",
-                        "KismetWidgets"
-				    }
+                        "KismetWidgets",
+                        "Kismet",
+                        "AnimationBlueprintEditor",
+                        "AnimationEditor",
+                        "ImageWrapper",
+                        "RenderCore",
+                        "RHI",
+				        "DesktopPlatform",
+                    }
             );
         }
 

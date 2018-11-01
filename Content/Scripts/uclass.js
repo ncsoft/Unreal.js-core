@@ -205,7 +205,6 @@
             let thePackage = JavascriptLibrary.CreatePackage(null,'/Script/Javascript')
 
             let klass = null
-
             if (_.includes(classFlags, "Struct")) {
                 klass = CreateStruct(className, {
                     Parent: parentClass,
@@ -216,11 +215,14 @@
                 });
             }
             else {
+                let nonNative = _.includes(classFlags, "NonNative");
+                _.remove(classFlags, "NonNative");
                 klass = CreateClass(className, {
                     Parent: parentClass,
                     Functions: proxy,
                     ClassFlags: classFlags,
                     Outer: thePackage,
+                    NonNative: nonNative,
                     Properties: includeProperty ? properties : []
                 });
             }

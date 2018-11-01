@@ -12,6 +12,7 @@ enum class EPropertyOwner
 struct IPropertyOwner
 {
 	EPropertyOwner Owner;
+	virtual void* GetOwnerInstancePtr() const { return nullptr; }
 };
 
 struct FNoPropertyOwner : IPropertyOwner
@@ -20,12 +21,44 @@ struct FNoPropertyOwner : IPropertyOwner
 	{
 		Owner = EPropertyOwner::None;
 	}
+
+	void* GetOwnerInstancePtr() const override { return nullptr; }
+};
+
+struct FObjectPropertyOwner : IPropertyOwner
+{
+	UObject* Object;
+
+	FObjectPropertyOwner(UObject* InObject)
+		: Object(InObject)
+	{
+		Owner = EPropertyOwner::Object;
+	}
+	void* GetOwnerInstancePtr() const override { return (void*)Object; }
+};
+
+struct FStructMemoryInstance;
+struct FStructMemoryPropertyOwner : IPropertyOwner
+{
+	FStructMemoryInstance* Memory;
+
+	FStructMemoryPropertyOwner(FStructMemoryInstance* InMemory)
+		: Memory(InMemory)
+	{
+		Owner = EPropertyOwner::Memory;
+	}
+	void* GetOwnerInstancePtr() const override { return (void*)Memory; }
+};
+
+struct FPropertyAccessorFlags
+{
+	bool Alternative = false;
 };
 
 namespace v8
 {
-	Local<Value> ReadProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, const IPropertyOwner& Owner);
-	void WriteProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, Local<Value> value);
+	Local<Value> ReadProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags = FPropertyAccessorFlags());
+	void WriteProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, Local<Value> value, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags = FPropertyAccessorFlags());
 	void ReportException(Isolate* isolate, TryCatch& try_catch);
 	Local<String> V8_String(Isolate* isolate, const FString& String);
 	Local<String> V8_String(Isolate* isolate, const char* String);

@@ -87,6 +87,10 @@
                     })
                     properties = func
                 }
+                else if (k != 'constructor') {
+                    //@note : assume that ufunction would not added at rebinding time.
+                    proxy[k] = template.prototype[k];
+                }
             })
 
             let thePackage = JavascriptLibrary.CreatePackage(null,'/Script/Javascript')
@@ -94,12 +98,14 @@
             if (_.includes(classFlags, "Struct")) {
                 RebindStructProperties({
                     SelfStruct: klass,
+                    Functions: proxy,
                     Properties: properties
                 });
             }
             else {
                 RebindClassProperties({
                     SelfClass: klass,
+                    Functions: proxy,
                     Properties: properties
                 });
             }

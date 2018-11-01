@@ -47,6 +47,7 @@ public:
 
 	//~ Begin SPanel Interface
 	virtual FVector2D ComputeDesiredSize(float LayoutScaleMultiplier) const override;
+	virtual FVector2D GetDesiredSizeForMarquee() const override;
 	//~ End SPanel Interface
 
 	//~ Begin SWidget Interface

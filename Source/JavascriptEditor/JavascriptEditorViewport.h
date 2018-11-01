@@ -102,6 +102,12 @@ public:
 	void SetViewRotation(const FRotator& ViewRotation);
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	FVector GetViewLocation();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	FRotator GetViewRotation();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void SetViewFOV(float InViewFOV);
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
@@ -172,6 +178,24 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void ProjectWorldToScreen(const FVector &WorldPosition, FVector2D &OutScreenPosition);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	UDirectionalLightComponent* GetDefaultDirectionalLightComponent();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	class USkyLightComponent* GetDefaultSkyLightComponent();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	class UStaticMeshComponent* GetDefaultSkySphereComponent();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	class USphereReflectionCaptureComponent* GetDefaultSphereReflectionComponent();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	class UMaterialInstanceConstant* GetDefaultInstancedSkyMaterial();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	class UPostProcessComponent* GetDefaultPostProcessComponent();
 
 	// UPanelWidget
 	virtual UClass* GetSlotClass() const override;

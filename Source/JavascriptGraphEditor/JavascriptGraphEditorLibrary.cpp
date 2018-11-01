@@ -24,12 +24,12 @@ FJavascriptConnectionParams::operator FConnectionParams () const
 }
 #undef DO_OP
 
-FJavascriptNodeCreator UJavascriptGraphEditorLibrary::NodeCreator(UJavascriptGraphEdGraph* Graph)
+FJavascriptNodeCreator UJavascriptGraphEditorLibrary::NodeCreator(UJavascriptGraphEdGraph* Graph, bool bSelectNewNode/* = true*/)
 {
 	FJavascriptNodeCreator Out;
 	auto Creator = new FGraphNodeCreator<UJavascriptGraphEdNode>(*Graph);
 	Out.Instance = MakeShareable(reinterpret_cast<FGraphNodeCreator<UEdGraphNode>*>(Creator));
-	Out.Node = Creator->CreateNode();
+	Out.Node = Creator->CreateNode(bSelectNewNode);
 	return Out;
 }
 

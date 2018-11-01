@@ -16,13 +16,13 @@
       "Name": "V8",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Linux"]
+      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux" ]
     },
     {
       "Name": "JavascriptUMG",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Linux"]
+      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux" ]
     },
     {
       "Name": "JavascriptHttp",
@@ -34,25 +34,25 @@
       "Name": "JavascriptWebSocket",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms" : ["Win64"]
+      "WhitelistPlatforms": [ "Win64" ]
     },
-	{
+    {
       "Name": "JavascriptGraphEditor",
       "Type": "Editor",
       "LoadingPhase": "PostDefault",
-      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Linux"]
+      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux" ]
     },
     {
       "Name": "JavascriptEditor",
       "Type": "Editor",
       "LoadingPhase": "PostDefault",
-      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Linux"]
-    },	
+      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux" ]
+    },
     {
       "Name": "JavascriptConsole",
       "Type": "Editor",
       "LoadingPhase": "PostDefault",
-      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Linux"]
+      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux" ]
     }
   ],
   "Plugins": [

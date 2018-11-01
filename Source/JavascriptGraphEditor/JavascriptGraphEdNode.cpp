@@ -99,6 +99,17 @@ FVector2D UJavascriptGraphEdNode::GetDesiredSize()
 	return Size;
 }
 
+void UJavascriptGraphEdNode::SetTitleSelectionMode(float TitleHeight)
+{
+	this->bTitleSelectionOnly = true;
+	this->TitleHeight = TitleHeight;
+}
+
+void UJavascriptGraphEdNode::ResetTitleSelectionMode()
+{
+	this->bTitleSelectionOnly = false;
+}
+
 void UJavascriptGraphEdNode::ResizeNode(const FVector2D& NewSize)
 {
 	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GetSchema());

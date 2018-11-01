@@ -1,6 +1,7 @@
 #include "JavascriptEditorInputProcessor.h"
 #include "Framework/Application/IInputProcessor.h"
 #include "Framework/Application/SlateApplication.h"
+#include "UObject/UObjectThreadContext.h"
 
 #if WITH_EDITOR
 class FMyInputProcessor : public IInputProcessor
@@ -20,22 +21,26 @@ public:
 
 	virtual bool HandleKeyDownEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent)
 	{
-		return Processor.IsValid() && Processor->HandleKeyDownEvent(InKeyEvent);
+		return !FUObjectThreadContext::Get().IsRoutingPostLoad
+			&& Processor.IsValid() && Processor->HandleKeyDownEvent(InKeyEvent);
 	}
 
 	virtual bool HandleKeyUpEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent)
 	{
-		return Processor.IsValid() && Processor->HandleKeyUpEvent(InKeyEvent);
+		return !FUObjectThreadContext::Get().IsRoutingPostLoad
+			&& Processor.IsValid() && Processor->HandleKeyUpEvent(InKeyEvent);
 	}
 
 	virtual bool HandleMouseMoveEvent(FSlateApplication& SlateApp, const FPointerEvent& InPointerEvent)
 	{
-		return Processor.IsValid() && Processor->HandleMouseMoveEvent(InPointerEvent);
+		return !FUObjectThreadContext::Get().IsRoutingPostLoad
+			&& Processor.IsValid() && Processor->HandleMouseMoveEvent(InPointerEvent);
 	}
 	
 	virtual bool HandleAnalogInputEvent(FSlateApplication& SlateApp, const FAnalogInputEvent& InAnalogInputEvent)
 	{
-		return Processor.IsValid() && Processor->HandleAnalogInputEvent(InAnalogInputEvent);
+		return !FUObjectThreadContext::Get().IsRoutingPostLoad
+			&& Processor.IsValid() && Processor->HandleAnalogInputEvent(InAnalogInputEvent);
 	}
 };
 
@@ -75,7 +80,7 @@ void UJavascriptEditorInputProcessor::Register()
 
 void UJavascriptEditorInputProcessor::UnRegister()
 {
-	if (InputProcessor.IsValid())
+	if (InputProcessor.IsValid() && FSlateApplication::IsInitialized())
 	{
 		FSlateApplication::Get().UnregisterInputPreProcessor(InputProcessor);
 	}

@@ -8,6 +8,7 @@
 #include "Editor/Transactor.h"
 #include "Engine/Brush.h"
 #include "Framework/Docking/WorkspaceItem.h"
+#include "Toolkits/AssetEditorToolkit.h"
 #include "JavascriptEditorLibrary.generated.h"
 
 UENUM()
@@ -103,7 +104,23 @@ public:
 	}
 
 	TSharedPtr<FExtensibilityManager> Handle;
+	TArray<UJavascriptLazyExtenderDelegates*> LazyExtenders;
 #endif
+};
+
+USTRUCT(BlueprintType)
+struct FJavascriptExtenderParameter
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
+	FJavascriptUICommandList CommandList;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
+	TArray<UObject*> EditingObjects;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Scripting | Javascript")
+	FJavascriptExtender Extender;
 };
 
 /** The severity of the message type */
@@ -143,6 +160,18 @@ namespace EJavascriptRHIFeatureLevel
 		Num
 	};
 }
+
+UCLASS()
+class JAVASCRIPTEDITOR_API UJavascriptLazyExtenderDelegates : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FJavascriptExtender, FJavascriptGetExtender, FJavascriptUICommandList, List, const TArray<UObject*>, EditingObjects);
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FJavascriptGetExtender GetExtender;
+};
 
 /**
  * 
@@ -407,6 +436,12 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static void RemoveExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void AddLazyExtender(FJavascriptExtensibilityManager Manager, UJavascriptLazyExtenderDelegates* Delegates);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void RemoveAllLazyExtender(FJavascriptExtensibilityManager Manager);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool SavePackage(UPackage* Package, FString FileName);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
@@ -447,5 +482,36 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static UEditorEngine* GetEngine();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static UClass* GetParentClassOfBlueprint(UBlueprint* Blueprint);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddComponentsToBlueprint(UBlueprint* Blueprint, const TArray<UActorComponent*>& Components, bool bHarvesting = false, class UActorComponent* OptionalNewRootComponent = nullptr, bool bKeepMobility = false);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void RemoveComponentFromBlueprint(UBlueprint* Blueprint, UActorComponent* RemoveComponent, bool bPromoteChildren = false);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void CompileBlueprint(UBlueprint* Blueprint);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool OpenEditorForAsset(UObject* Asset);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void OpenEditorForAssetByPath(const FString& AssetPathName, const FString& ObjectName);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static TArray<FAssetData> GetAssetsByType(const TArray<FString>& Types, bool bRecursiveClasses = true);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static int32 ReplaceAnimNotifyClass(UAnimSequenceBase* Sequence, FString NotifyName, FString NewNotifyName, UObject* NewNotifyClass);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool LoadImageFromDiskAsync(const FString& ImagePath, UAsyncTaskDownloadImage* Callback);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool OpenFileDialog(const UJavascriptWindow* WindowHandle, const FString& DialogTitle, const FString& DefaultPath, const FString& DefaultFile, const FString& FileTypes, int32 Flags, TArray<FString>& OutFilenames);
+
 #endif
 };

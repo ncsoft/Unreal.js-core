@@ -112,6 +112,22 @@ void UJavascriptUMGLibrary::AddWindow(FJavascriptSlateWidget NewWindow, const bo
 	}
 }
 
+void UJavascriptUMGLibrary::ShowWindow(FJavascriptSlateWidget NewWindow)
+{
+	auto New = StaticCastSharedPtr<SWindow>(NewWindow.Widget);
+
+	if (New.IsValid())
+	{
+		auto SlateWindow = New.ToSharedRef();
+		SlateWindow->ShowWindow();
+		//@todo Slate: Potentially dangerous and annoying if all slate windows that are created steal focus.
+		if (SlateWindow->SupportsKeyboardFocus() && SlateWindow->IsFocusedInitially())
+		{
+			SlateWindow->GetNativeWindow()->SetWindowFocus();
+		}
+	}
+}
+
 FVector2D UJavascriptUMGLibrary::GenerateDynamicImageResource(const FName InDynamicBrushName)
 {
 	FIntPoint Size = FSlateApplication::Get().GetRenderer()->GenerateDynamicImageResource(InDynamicBrushName);

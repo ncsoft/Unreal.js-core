@@ -13,7 +13,6 @@ class JAVASCRIPTUMG_API UJavascriptUICommands : public UObject
 
 public:
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FJavascriptExecuteAction, FString, Id);
-
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FJavascriptCanExecuteAction, FString, Id);
 
 	UPROPERTY()
@@ -42,6 +41,9 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
 	FName StyleSetName;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
+	FString TextSubNamespace;
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	void Commit();

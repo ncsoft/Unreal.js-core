@@ -11,6 +11,7 @@ static UStruct* Struct_EditableTextBoxStyle;
 static UStruct* Struct_CheckBoxStyle;
 static UStruct* Struct_ComboBoxStyle;
 static UStruct* Struct_ComboButtonStyle;
+static UStruct* Struct_ProgressBarStyle;
 
 void Prepare()
 {
@@ -31,6 +32,7 @@ void Prepare()
 	prepare(Struct_CheckBoxStyle, TEXT("CheckBoxStyle"));
 	prepare(Struct_ComboBoxStyle, TEXT("ComboBoxStyle"));
 	prepare(Struct_ComboButtonStyle, TEXT("ComboButtonStyle"));
+	prepare(Struct_ProgressBarStyle, TEXT("ProgressBarStyle"));
 }
 
 FSlateColor Fixup(const FSlateColor& Src)
@@ -136,6 +138,11 @@ FComboBoxStyle UJavascriptStyleSetLibrary::GetComboBoxStyle(const FJavascriptSty
 FComboButtonStyle UJavascriptStyleSetLibrary::GetComboButtonStyle(const FJavascriptStyleSet& Handle, const FName& StyleName)
 {
 	return FixupWidgetStyle<FComboButtonStyle>(Handle, Struct_ComboButtonStyle, StyleName);
+}
+
+FProgressBarStyle UJavascriptStyleSetLibrary::GetProgressBarStyle(const FJavascriptStyleSet& Handle, const FName& StyleName)
+{
+	return FixupWidgetStyle<FProgressBarStyle>(Handle, Struct_ProgressBarStyle, StyleName);
 }
 
 FMargin UJavascriptStyleSetLibrary::GetMargin(const FJavascriptStyleSet& Handle, const FName& StyleName)

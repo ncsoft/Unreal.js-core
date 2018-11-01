@@ -283,3 +283,30 @@ EVisibility SJavascriptGraphPin::GetPinVisiblity() const
 	}
 	return EVisibility::Visible;
 }
+
+const FSlateBrush* SJavascriptGraphPin::GetPinIcon() const
+{
+	if (GraphPinObj->PinType.PinCategory == TEXT("exec"))
+	{
+		if (IsConnected())
+		{
+			return IsHovered() ? FEditorStyle::GetBrush(TEXT("Graph.ExecPin.ConnectedHovered")) : FEditorStyle::GetBrush(TEXT("Graph.ExecPin.Connected"));
+		}
+		else
+		{
+			return IsHovered() ? FEditorStyle::GetBrush(TEXT("Graph.ExecPin.DisconnectedHovered")) : FEditorStyle::GetBrush(TEXT("Graph.ExecPin.Disconnected"));
+		}
+	}
+
+	return SGraphPin::GetPinIcon();
+}
+
+EVisibility SJavascriptGraphPin::GetPinLabelVisibility() const
+{
+	if (GraphPinObj->PinType.PinCategory == TEXT("exec"))
+	{
+		return EVisibility::Collapsed;
+	}
+
+	return SGraphPin::GetPinLabelVisibility();
+}

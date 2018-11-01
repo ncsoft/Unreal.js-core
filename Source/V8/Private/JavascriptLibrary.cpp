@@ -13,6 +13,12 @@
 #include "UObject/MetaData.h"
 #include "Engine/Engine.h"
 #include "V8PCH.h"
+#include "Internationalization/TextNamespaceUtil.h"
+#include "Internationalization/TextPackageNamespaceUtil.h"
+#include "Serialization/TextReferenceCollector.h"
+#include "Internationalization/TextLocalizationManager.h"
+#include "Internationalization/Text.h"
+#include "Internationalization/Internationalization.h"
 
 struct FPrivateSocketHandle
 {
@@ -798,4 +804,112 @@ FBox UJavascriptLibrary::GetWorldBounds(UWorld* InWorld)
 		return NavSys->GetWorldBounds();
 	}
 	return FBox();
+}
+
+#if USE_STABLE_LOCALIZATION_KEYS
+// copy from STextPropertyEditableTextBox.cpp
+void UJavascriptLibrary::IssueStableTextId(UPackage* InPackage, const ETextPropertyEditAction InEditAction, const FString& InTextSource, const FString& InProposedNamespace, const FString& InProposedKey, FString& OutStableNamespace, FString& OutStableKey)
+{
+	bool bPersistKey = false;
+
+	const FString PackageNamespace = TextNamespaceUtil::EnsurePackageNamespace(InPackage);
+	if (!PackageNamespace.IsEmpty())
+	{
+		// Make sure the proposed namespace is using the correct namespace for this package
+		OutStableNamespace = TextNamespaceUtil::BuildFullNamespace(InProposedNamespace, PackageNamespace, /*bAlwaysApplyPackageNamespace*/true);
+
+		if (InProposedNamespace.Equals(OutStableNamespace, ESearchCase::CaseSensitive) || InEditAction == ETextPropertyEditAction::EditedNamespace)
+		{
+			// If the proposal was already using the correct namespace (or we just set the namespace), attempt to persist the proposed key too
+			if (!InProposedKey.IsEmpty())
+			{
+				// If we changed the source text, then we can persist the key if this text is the *only* reference using that ID
+				// If we changed the identifier, then we can persist the key only if doing so won't cause an identify conflict
+				const FTextReferenceCollector::EComparisonMode ReferenceComparisonMode = InEditAction == ETextPropertyEditAction::EditedSource ? FTextReferenceCollector::EComparisonMode::MatchId : FTextReferenceCollector::EComparisonMode::MismatchSource;
+				const int32 RequiredReferenceCount = InEditAction == ETextPropertyEditAction::EditedSource ? 1 : 0;
+
+				int32 ReferenceCount = 0;
+				FTextReferenceCollector(InPackage, ReferenceComparisonMode, OutStableNamespace, InProposedKey, InTextSource, ReferenceCount);
+
+				if (ReferenceCount == RequiredReferenceCount)
+				{
+					bPersistKey = true;
+					OutStableKey = InProposedKey;
+				}
+			}
+		}
+		else if (InEditAction != ETextPropertyEditAction::EditedNamespace)
+		{
+			// If our proposed namespace wasn't correct for our package, and we didn't just set it (which doesn't include the package namespace)
+			// then we should clear out any user specified part of it
+			OutStableNamespace = TextNamespaceUtil::BuildFullNamespace(FString(), PackageNamespace, /*bAlwaysApplyPackageNamespace*/true);
+		}
+	}
+
+	if (!bPersistKey)
+	{
+		OutStableKey = FGuid::NewGuid().ToString();
+	}
+}
+#endif // USE_STABLE_LOCALIZATION_KEYS
+
+FText UJavascriptLibrary::UpdateLocalizationText(const FJavascriptText& JText, const IPropertyOwner& Owner)
+{
+#if WITH_EDITOR
+	FString NewNamespace;
+	FString NewKey;
+	auto& TextSource = JText.String;
+	auto& KeySource = JText.Key;
+	auto& NamespaceSource = JText.Namespace;
+	auto& TableId = JText.TableId;
+
+	if (!TableId.IsNone())
+	{
+		const FText TextFromStringTable = FText::FromStringTable(TableId, KeySource);
+		if (TextFromStringTable.IsFromStringTable())
+		{
+			return TextFromStringTable;
+		}
+	}	
+
+	auto* Package = GetTransientPackage();
+
+	UObject* OwnerObject = nullptr;
+	switch (Owner.Owner)
+	{
+		case EPropertyOwner::Memory:
+			OwnerObject = ((FStructMemoryInstance*)Owner.GetOwnerInstancePtr())->GetNearestOwnerObject();
+			break;
+		case EPropertyOwner::Object:
+			OwnerObject = (UObject*)Owner.GetOwnerInstancePtr();
+			break;
+		default:
+			break;
+	}
+
+	if (OwnerObject)
+		Package = OwnerObject->GetOutermost();
+
+	// Get the stable namespace and key that we should use for this property
+#if USE_STABLE_LOCALIZATION_KEYS
+	IssueStableTextId(Package,
+		ETextPropertyEditAction::EditedNamespace,
+		TextSource,
+		NamespaceSource,
+		KeySource,
+		NewNamespace,
+		NewKey);
+#endif // USE_STABLE_LOCALIZATION_KEYS
+
+	FText CachedText = FInternationalization::Get().ForUseOnlyByLocMacroAndGraphNodeTextLiterals_CreateText(*TextSource, *NewNamespace, *NewKey);
+	return FText::ChangeKey(NewNamespace, NewKey, CachedText);
+#else
+	return FText::FromString(JText.String);
+#endif
+}
+
+bool UJavascriptLibrary::RemoveDisplayString(FJavascriptText& JavascriptText)
+{
+	auto DisplayString = FTextInspector::GetSharedDisplayString(JavascriptText.Handle);
+	return FTextLocalizationManager::Get().RemoveDisplayString(DisplayString);
 }

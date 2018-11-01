@@ -46,7 +46,7 @@ void UJavascriptUICommands::Initialize()
 		}
 		else
 		{
-			FJavascriptUICommandInfo CommandInfo = UJavascriptMenuLibrary::UI_COMMAND_Function(BindingContext, info);
+			FJavascriptUICommandInfo CommandInfo = UJavascriptMenuLibrary::UI_COMMAND_Function(BindingContext, info, TextSubNamespace);
 
 			CommandInfos.Add(CommandInfo);
 		}

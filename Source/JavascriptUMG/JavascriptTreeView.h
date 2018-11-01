@@ -4,6 +4,78 @@
 #include "Components/ListViewBase.h"
 #include "JavascriptTreeView.generated.h"
 
+class SJavascriptTreeView : public STreeView<UObject*>
+{
+public:
+	SJavascriptTreeView()
+		: STreeView<UObject*>()
+	{
+	}
+
+public:
+	void SetDoubleClickItemSelection(UObject* TheItem, bool bShouldBeSelected)
+	{
+		if (TableViewMode != ETableViewMode::Tree)
+		{
+			return;
+		}
+
+		if (bShouldBeSelected)
+		{
+			DoubleClickedItems.Add(TheItem);
+		}
+		else
+		{
+			DoubleClickedItems.Remove(TheItem);
+		}
+	}
+
+	void ClearDoubleClickSelection()
+	{
+		if (TableViewMode != ETableViewMode::Tree)
+		{
+			return;
+		}
+
+		DoubleClickedItems.Empty();
+	}
+
+	bool IsDoubleClickSelection(UObject* TheItem)
+	{
+		if (TableViewMode != ETableViewMode::Tree)
+		{
+			return false;
+		}
+
+		if (TheItem == nullptr)
+		{
+			return false;
+		}
+
+		return (DoubleClickedItems.Find(TheItem) != nullptr);
+	}
+
+	TArray<UObject*> GetDoubleClickedItems() const
+	{
+		TArray<UObject*> SelectedItemArray;
+
+		if (TableViewMode != ETableViewMode::Tree)
+		{
+			return SelectedItemArray;
+		}
+
+		SelectedItemArray.Empty(DoubleClickedItems.Num());
+		for (typename TSet<UObject*>::TConstIterator SelectedItemIt(DoubleClickedItems); SelectedItemIt; ++SelectedItemIt)
+		{
+			SelectedItemArray.Add(*SelectedItemIt);
+		}
+		return SelectedItemArray;
+	}
+
+protected:
+	TSet<UObject*> DoubleClickedItems;
+};
+
 class UJavascriptContext;
 
 USTRUCT(BlueprintType)
@@ -85,7 +157,7 @@ public:
 	/** Refreshes the list */
 	UFUNCTION(BlueprintCallable, Category = "Behavior")
 	void RequestTreeRefresh();
-
+	
 	/** Event fired when a tutorial stage ends */
 	UFUNCTION(BlueprintImplementableEvent, Category = "Javascript")
 	void OnDoubleClick(UObject* Object);
@@ -109,6 +181,18 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Behavior")
 	bool GetSelectedItems(TArray<UObject*>& OutItems);
 
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	void ClearDoubleClickSelection();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	void SetDoubleClickSelection(UObject* SelectedItem);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	bool IsDoubleClickSelection(UObject* SelectedItem);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	void GetDoubleClickedItems(TArray<UObject*>& OutItems);
+
 	TSharedRef<ITableRow> HandleOnGenerateRow(UObject* Item, const TSharedRef< STableViewBase >& OwnerTable);
 
 	void HandleOnGetChildren(UObject* Item, TArray<UObject*>& OutChildItems);
@@ -126,7 +210,7 @@ public:
 	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
 	//~ End UVisual Interface
 
-	TSharedPtr< STreeView<UObject*> > MyTreeView;
+	TSharedPtr<SJavascriptTreeView> MyTreeView;
 
 	TSharedPtr<SHeaderRow> GetHeaderRowWidget();
 
@@ -137,4 +221,10 @@ public:
 	static void AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector);
 
 	TMultiMap<UObject*, TWeakPtr<SWidget>> CachedRows;
+
+
+	// Virtual functions for derived classes
+	virtual TSharedRef<ITableRow> CreateTableRow(UObject* Item, const TSharedRef<STableViewBase>& OwnerTable);
+	virtual TSharedRef<ITableRow> CreateItemRow(UWidget* Widget, const TSharedRef<STableViewBase>& OwnerTable);
+	virtual TSharedRef<ITableRow> CreateDefaultRow(UObject* Item, const TSharedRef<STableViewBase>& OwnerTable);
 };

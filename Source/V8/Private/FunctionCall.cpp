@@ -91,7 +91,7 @@ namespace v8
 				{
 					auto sub_value = Object->Get(I.Keyword("$"));
 
-					WriteProperty(isolate, ReturnParam, Buffer, sub_value);						
+					WriteProperty(isolate, ReturnParam, Buffer, sub_value, FNoPropertyOwner());						
 				}
 				// rejects 'const T&' and pass 'T&' as its name
 				else if ((PropertyFlags & (CPF_ConstParm | CPF_OutParm)) == CPF_OutParm)
@@ -101,7 +101,7 @@ namespace v8
 					if (!sub_value.IsEmpty())
 					{
 						// value can be null if isolate is in trouble
-						WriteProperty(isolate, Param, Buffer, sub_value);
+						WriteProperty(isolate, Param, Buffer, sub_value, FNoPropertyOwner());
 					}						
 				}
 			}			
@@ -110,7 +110,7 @@ namespace v8
 		{
 			if (ReturnParam)
 			{
-				WriteProperty(isolate, ReturnParam, Buffer, value);
+				WriteProperty(isolate, ReturnParam, Buffer, value, FNoPropertyOwner());
 			}
 		}		
 	}

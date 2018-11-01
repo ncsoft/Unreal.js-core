@@ -574,7 +574,7 @@ public:
 		Info.extensions = NULL;
 		Info.gid = -1;
 		Info.uid = -1;
-		Info.options = 0;
+		Info.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
 		// tack on this object.
 		Info.user = this;
 		WebSocketContext = lws_create_context(&Info);
