@@ -513,5 +513,11 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool OpenFileDialog(const UJavascriptWindow* WindowHandle, const FString& DialogTitle, const FString& DefaultPath, const FString& DefaultFile, const FString& FileTypes, int32 Flags, TArray<FString>& OutFilenames);
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool LoadFileToIntArray(FString Path, TArray<uint8>& FileData);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool LoadFileToString(FString Path, FString& Data);
+
 #endif
 };

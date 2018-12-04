@@ -879,6 +879,8 @@ public:
 	void ExportUnrealEngineClasses()
 	{
 		auto fn = [](const FunctionCallbackInfo<Value>& info) {
+			auto start = FPlatformTime::Seconds();
+
 			auto Context = reinterpret_cast<FJavascriptContextImplementation*>((Local<External>::Cast(info.Data()))->Value());
 
 			auto isolate = info.GetIsolate();
@@ -1247,10 +1249,13 @@ public:
 				Class->AssembleReferenceTokenStream();
 			}
 #endif
+			auto end = FPlatformTime::Seconds();
+			UE_LOG(Javascript, Warning, TEXT("Create UClass(%s) Elapsed: %.6f"), *Name, end - start);
 		};
 
 		auto fn1 = [](const FunctionCallbackInfo<Value>& info) {
 #if WITH_EDITOR
+			auto start = FPlatformTime::Seconds();
 			auto Context = reinterpret_cast<FJavascriptContextImplementation*>((Local<External>::Cast(info.Data()))->Value());
 
 			auto isolate = info.GetIsolate();
@@ -1325,6 +1330,8 @@ public:
 			// Assemble reference token stream for garbage collection/ RTGC.
 			Class->AssembleReferenceTokenStream(true);
 #endif
+			auto end = FPlatformTime::Seconds();
+			UE_LOG(Javascript, Warning, TEXT("Rebind UClass(%s) Elapsed: %.6f"), *Class->GetName(), end - start);
 #endif
 		};
 
@@ -1338,6 +1345,8 @@ public:
 	void ExportUnrealEngineStructs()
 	{
 		auto fn = [](const FunctionCallbackInfo<Value>& info) {
+			auto start  = FPlatformTime::Seconds();
+
 			auto Context = reinterpret_cast<FJavascriptContextImplementation*>((Local<External>::Cast(info.Data()))->Value());
 
 			auto isolate = info.GetIsolate();
@@ -1399,10 +1408,14 @@ public:
 			auto FinalClass = Context->ExportObject(Struct);
 
 			info.GetReturnValue().Set(FinalClass);
+
+			auto end = FPlatformTime::Seconds();
+			UE_LOG(Javascript, Warning, TEXT("Create UStruct(%s) Elapsed: %.6f"), *Name, end - start);
 		};
 
 		auto fn1 = [](const FunctionCallbackInfo<Value>& info) {
 #if WITH_EDITOR
+			auto start = FPlatformTime::Seconds();
 			auto Context = reinterpret_cast<FJavascriptContextImplementation*>((Local<External>::Cast(info.Data()))->Value());
 
 			auto isolate = info.GetIsolate();
@@ -1447,6 +1460,8 @@ public:
 
 			auto aftr_v8_template = Context->ExportObject(Struct);
 			aftr_v8_template->ToObject()->Set(I.Keyword("proxy"), ProxyFunctions);
+			auto end = FPlatformTime::Seconds();
+			UE_LOG(Javascript, Warning, TEXT("Rebind UStruct(%s) Elapsed: %.6f"), *Struct->GetName(), end - start);
 #endif
 		};
 

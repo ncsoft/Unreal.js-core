@@ -76,6 +76,27 @@ FJavascriptEdGraphPin UJavascriptGraphEdNode::CreatePin(
 	return FJavascriptEdGraphPin{ GraphPin };
 }
 
+bool UJavascriptGraphEdNode::RemovePinByName(FName PinName)
+{
+	UEdGraphPin* Pin = FindPin(PinName);
+	if (Pin != nullptr)
+	{
+		return RemovePin(Pin);
+	}
+
+	return false;
+}
+
+bool UJavascriptGraphEdNode::RemovePin(FJavascriptEdGraphPin Pin)
+{
+	if (Pin.IsValid())
+	{
+		return Super::RemovePin(Pin.GraphPin);
+	}
+
+	return false;
+}
+
 void UJavascriptGraphEdNode::UpdateSlate()
 {
 	if (SlateGraphNode)
@@ -97,6 +118,29 @@ FVector2D UJavascriptGraphEdNode::GetDesiredSize()
 		Size.Y = NodeHeight;
 	}
 	return Size;
+}
+
+int32 UJavascriptGraphEdNode::GetNumOfPins(EEdGraphPinDirection Direction /*= EGPD_MAX*/) const
+{
+	int32 NumOfPin;
+
+	if (Direction == EGPD_Input || Direction == EGPD_Output)
+	{
+		NumOfPin = 0;
+		for (UEdGraphPin* Pin : Pins)
+		{
+			if (Pin->Direction == Direction)
+			{
+				++NumOfPin;
+			}
+		}
+	}
+	else
+	{
+		NumOfPin = Pins.Num();
+	}
+
+	return NumOfPin;
 }
 
 void UJavascriptGraphEdNode::SetTitleSelectionMode(float TitleHeight)

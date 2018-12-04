@@ -4,6 +4,9 @@
 #endif
 #define LOCTEXT_NAMESPACE "UMG"
 
+const FString UPropertyEditor::EmptyString;
+
+
 UPropertyEditor::UPropertyEditor(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {}
@@ -32,6 +35,16 @@ void UPropertyEditor::SetObjects(TArray<UObject*> Objects, bool bForceRefresh, b
 	{
 		View->SetObjects(Objects, bForceRefresh, bOverrideLock);
 	}
+}
+
+bool UPropertyEditor::IsPropertyReadOnly_Implementation(const FString& PropertyName, const FString& ParentPropertyName)
+{
+	return false;
+}
+
+bool UPropertyEditor::IsPropertyVisible_Implementation(const FString & PropertName, const FString & ParentPropertyName)
+{
+	return true;
 }
 
 TSharedRef<SWidget> UPropertyEditor::RebuildWidget()
@@ -69,13 +82,30 @@ TSharedRef<SWidget> UPropertyEditor::RebuildWidget()
 		View->SetIsPropertyEditingEnabledDelegate(FIsPropertyEditingEnabled::CreateLambda([bEditable]() {
 			return bEditable;
 		}));
+		View->SetIsPropertyReadOnlyDelegate(FIsPropertyReadOnly::CreateUObject(this, &UPropertyEditor::NativeIsPropertyReadOnly));
+		View->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateUObject(this, &UPropertyEditor::NativeIsPropertyVisible));
 
 		return View.ToSharedRef();
 	}
 }
 
+void UPropertyEditor::OnWidgetRebuilt()
+{
+	Super::OnWidgetRebuilt();
+
+	Construct();
+}
+
 void UPropertyEditor::ReleaseSlateResources(bool bReleaseChildren)
 {
+	if (View.IsValid()) 
+	{
+		if (CanSafelyRouteEvent())
+		{
+			Destruct();
+		}
+	}
+
 	Super::ReleaseSlateResources(bReleaseChildren);
 
 	View.Reset();
@@ -85,8 +115,21 @@ void UPropertyEditor::OnFinishedChangingProperties(const FPropertyChangedEvent& 
 {
 	if (PropertyChangedEvent.Property != nullptr && OnChange.IsBound())
 	{
-		OnChange.Broadcast(PropertyChangedEvent.Property->GetFName());
+		OnChange.Broadcast(PropertyChangedEvent.Property->GetFName(),
+			(PropertyChangedEvent.MemberProperty != nullptr) ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None);
 	}
+}
+
+bool UPropertyEditor::NativeIsPropertyReadOnly(const FPropertyAndParent& InPropertyAndParent)
+{
+	return IsPropertyReadOnly(InPropertyAndParent.Property.GetName(),
+		(InPropertyAndParent.ParentProperty != nullptr) ? InPropertyAndParent.ParentProperty->GetName() : EmptyString);
+}
+
+bool UPropertyEditor::NativeIsPropertyVisible(const FPropertyAndParent & InPropertyAndParent)
+{
+	return IsPropertyVisible(InPropertyAndParent.Property.GetName(),
+		(InPropertyAndParent.ParentProperty != nullptr) ? InPropertyAndParent.ParentProperty->GetName() : EmptyString);
 }
 #endif
 

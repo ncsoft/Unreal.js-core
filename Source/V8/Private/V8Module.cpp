@@ -239,9 +239,9 @@ public:
 
 	virtual void FillAutoCompletion(TSharedPtr<FString> TargetContext, TArray<FString>& OutArray, const TCHAR* Input) override
 	{
-		static auto SourceCode = LR"doc(
+		static const TCHAR* SourceCode = LR"doc(
 (function () {
-    var pattern = '%s'; var head = '';
+    var pattern = '{0}'; var head = '';
     pattern.replace(/\\W*([\\w\\.]+)$/, function (a, b, c) { head = pattern.substr(0, c + a.length - b.length); pattern = b });
     var index = pattern.lastIndexOf('.');
     var scope = this;
@@ -268,7 +268,7 @@ public:
 
 			if (Context->ContextId == TargetContext || (!TargetContext.IsValid() && Context->IsDebugContext()))
 			{
-				FString Result = Context->RunScript(FString::Printf(TEXT("%s"), SourceCode, *FString(Input).ReplaceCharWithEscapedChar()), false);
+				FString Result = Context->RunScript(FString::Format(SourceCode, { FString(Input).ReplaceCharWithEscapedChar() }), false);
 				Result.ParseIntoArray(OutArray, TEXT(","));
 			}
 		}

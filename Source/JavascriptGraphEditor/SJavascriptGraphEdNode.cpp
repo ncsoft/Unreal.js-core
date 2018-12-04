@@ -38,6 +38,13 @@ void SJavascriptGraphEdNode::UpdateGraphNode()
 	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GraphNode->GetSchema());
 	auto GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphNode);
 
+	TSharedPtr<SWidget> AltLeftNodeBoxWidget = Schema->OnUsingAlternativeInputPinBox.IsBound()
+		? TSharedPtr<SWidget>(SAssignNew(AltLeftNodeBox, SVerticalBox))
+		: nullptr;
+	TSharedPtr<SWidget> AltRightNodeBoxWidget = Schema->OnUsingAlternativeOutputPinBox.IsBound()
+		? TSharedPtr<SWidget>(SAssignNew(AltRightNodeBox, SVerticalBox))
+		: nullptr;
+
 	GraphEdNode->BackgroundColor = FLinearColor::Black;
 
 	if (GraphEdNode)
@@ -108,12 +115,16 @@ void SJavascriptGraphEdNode::UpdateGraphNode()
 			FJavascriptSlateWidget OutUserWidget;
 			FJavascriptSlateWidget OutLeftNodeBoxWidget;
 			FJavascriptSlateWidget OutRightNodeBoxWidget;
+			FJavascriptSlateWidget OutAltLeftNodeBoxWidget;
+			FJavascriptSlateWidget OutAltRightNodeBoxWidget;
 
 			OutUserWidget.Widget = UserWidget;
 			OutLeftNodeBoxWidget.Widget = LeftNodeBoxWidget;
 			OutRightNodeBoxWidget.Widget = RightNodeBoxWidget;
+			OutAltLeftNodeBoxWidget.Widget = AltLeftNodeBoxWidget;
+			OutAltRightNodeBoxWidget.Widget = AltRightNodeBoxWidget;
 
-			auto CustomContentWidget = Schema->OnTakeCustomContentWidget.Execute(GraphEdNode, OutUserWidget, OutLeftNodeBoxWidget, OutRightNodeBoxWidget).Widget;
+			auto CustomContentWidget = Schema->OnTakeCustomContentWidget.Execute(GraphEdNode, OutUserWidget, OutLeftNodeBoxWidget, OutRightNodeBoxWidget, OutAltLeftNodeBoxWidget, OutAltRightNodeBoxWidget).Widget;
 			if (CustomContentWidget.IsValid())
 			{
 				ContentWidget = CustomContentWidget;
@@ -234,25 +245,36 @@ void SJavascriptGraphEdNode::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 		PinToAdd->SetVisibility( TAttribute<EVisibility>(PinToAdd, &SGraphPin::IsPinVisibleAsAdvanced) );
 	}
 
+	FJavascriptEdGraphPin JavascriptGraphPin = FJavascriptEdGraphPin(const_cast<UEdGraphPin*>(PinObj));
+
 	bool bDisable = false;
 	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GraphNode->GetSchema());
 	if (Schema->OnUsingDefaultPin.IsBound())
 	{
-		bDisable = Schema->OnUsingDefaultPin.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(PinObj) });
+		bDisable = Schema->OnUsingDefaultPin.Execute(JavascriptGraphPin);
 	}
 
 	if (PinToAdd->GetDirection() == EEdGraphPinDirection::EGPD_Input)
 	{
+		TSharedPtr<SVerticalBox> NodeBox = LeftNodeBox;
+
+		if (Schema->OnUsingAlternativeInputPinBox.IsBound() &&
+			Schema->OnUsingAlternativeInputPinBox.Execute(JavascriptGraphPin) &&
+			AltLeftNodeBox.IsValid())
+		{
+			NodeBox = AltLeftNodeBox;
+		}
+
 		if (bDisable)
 		{
-			LeftNodeBox->AddSlot()
+			NodeBox->AddSlot()
 			[
 				PinToAdd
 			];
 		}
 		else
 		{
-			LeftNodeBox->AddSlot()
+			NodeBox->AddSlot()
 				.AutoHeight()
 				.HAlign(HAlign_Left)
 				.VAlign(VAlign_Center)
@@ -266,20 +288,29 @@ void SJavascriptGraphEdNode::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 	}
 	else // Direction == EEdGraphPinDirection::EGPD_Output
 	{
+		TSharedPtr<SVerticalBox> NodeBox = RightNodeBox;
+
+		if (Schema->OnUsingAlternativeOutputPinBox.IsBound() &&
+			Schema->OnUsingAlternativeOutputPinBox.Execute(JavascriptGraphPin) &&
+			AltRightNodeBox.IsValid())
+		{
+			NodeBox = AltRightNodeBox;
+		}
+
 		if (bDisable) 
 		{
-			RightNodeBox->AddSlot()
+			NodeBox->AddSlot()
 				[
 					PinToAdd
 				];
 		}
 		else
 		{
-			RightNodeBox->AddSlot()
+			NodeBox->AddSlot()
 				.AutoHeight()
 				.HAlign(HAlign_Right)
 				.VAlign(VAlign_Center)
-				.Padding(Settings->GetInputPinPadding())
+				.Padding(Settings->GetOutputPinPadding())
 				[
 					PinToAdd
 				];

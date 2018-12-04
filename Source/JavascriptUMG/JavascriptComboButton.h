@@ -69,5 +69,5 @@ public:
 	void HandleMenuOpenChanged(bool bOpen);
 
 protected:
-	TSharedPtr<SComboButton> MyComboButton;
+	TWeakPtr<SComboButton> MyComboButton;
 };

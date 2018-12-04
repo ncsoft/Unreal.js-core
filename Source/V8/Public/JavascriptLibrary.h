@@ -608,7 +608,4 @@ public:
 
 		P_FINISH;
 	}
-
-	// UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	// static bool RemoveDisplayString(FJavascriptText& JavascriptText);
 };

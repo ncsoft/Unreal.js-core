@@ -1268,4 +1268,14 @@ bool UJavascriptEditorLibrary::OpenFileDialog(const UJavascriptWindow* SubWindow
 	return false;
 }
 
+bool UJavascriptEditorLibrary::LoadFileToIntArray(FString Path, TArray<uint8>& FileData)
+{
+	return FFileHelper::LoadFileToArray(FileData, *Path);
+}
+
+bool UJavascriptEditorLibrary::LoadFileToString(FString Path, FString& Data)
+{
+	return FFileHelper::LoadFileToString(Data, *Path);
+}
+
 #endif

@@ -88,6 +88,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Online | Http")
 	void SetContentAsString(const FString& ContentString);
 
+	UFUNCTION(BlueprintCallable, Category = "Online | Http")
+	void SetContentWithFiles(TArray<FString> FilePaths, FString Boundary, FString Content);
+
 	/**
 	* Sets optional header info.
 	* Content-Length is the only header set for you.

@@ -4,7 +4,7 @@
 #include "Editor/PropertyEditor/Public/PropertyEditorModule.h"
 #include "PropertyEditor.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPropertyEditorParameterChanged, FName, ParameterName);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPropertyEditorPropertyChanged, FName, PropertyName, FName, MemberPropertyName);
 
 UENUM()
 enum class EPropertyEditorNameAreaSettings : uint8
@@ -27,14 +27,25 @@ class JAVASCRIPTEDITOR_API UPropertyEditor : public UWidget
 	GENERATED_UCLASS_BODY()
 
 #if WITH_EDITOR
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "PropertyEditor")
+	void Construct();
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "PropertyEditor")
+	void Destruct();
+
 	UFUNCTION(BlueprintCallable, Category = "PropertyEditor")
 	void SetObject(UObject* Object, bool bForceRefresh);
 
 	UFUNCTION(BlueprintCallable, Category = "PropertyEditor")
 	void SetObjects(TArray<UObject*> Objects, bool bForceRefresh, bool bOverrideLock);
 
+	UFUNCTION(BlueprintNativeEvent, Category = "PropertyEditor")
+	bool IsPropertyReadOnly(const FString& PropertyName, const FString& ParentPropertyName);
+
+	UFUNCTION(BlueprintNativeEvent, Category = "PropertyEditor")
+	bool IsPropertyVisible(const FString& PropertName, const FString& ParentPropertyName);
+
 	UPROPERTY(BlueprintAssignable, Category = "PropertyEditor")
-	FPropertyEditorParameterChanged OnChange;
+	FPropertyEditorPropertyChanged OnChange;
 
 	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
 	bool bUpdateFromSelection;
@@ -53,20 +64,28 @@ class JAVASCRIPTEDITOR_API UPropertyEditor : public UWidget
 
 	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
 	EPropertyEditorNameAreaSettings NameAreaSettings;
-	
+
 	TArray<FWeakObjectPtr> ObjectsToInspect;
 
-public:	
+public:
+	// UVisual interface
 	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
-
-protected:
-	TSharedPtr<class IDetailsView> View;
+	// End of UVisual interface
 
 protected:
 	// UWidget interface
 	virtual TSharedRef<SWidget> RebuildWidget() override;
+	virtual void OnWidgetRebuilt() override;
 	// End of UWidget interface
 
+protected:
 	void OnFinishedChangingProperties(const FPropertyChangedEvent& PropertyChangedEvent);
+	bool NativeIsPropertyReadOnly(const FPropertyAndParent& InPropertyAndParent);
+	bool NativeIsPropertyVisible(const FPropertyAndParent& InPropertyAndParent);
+
+protected:
+	TSharedPtr<class IDetailsView> View;
+
+	static const FString EmptyString;
 #endif	
 };

@@ -257,7 +257,7 @@ protected:
 	// End UPanelWidget
 
 protected:
-	TSharedPtr<class SJavascriptAutoRefreshViewport> ViewportWidget;
+	TWeakPtr<class SJavascriptAutoRefreshViewport> MyViewportWidget;
 
 protected:
 	// UWidget interface

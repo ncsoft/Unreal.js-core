@@ -68,10 +68,19 @@ public:
 		);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	bool RemovePinByName(FName PinName);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	bool RemovePin(FJavascriptEdGraphPin Pin);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void UpdateSlate();
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	FVector2D GetDesiredSize();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	int32 GetNumOfPins(EEdGraphPinDirection Direction = EGPD_MAX) const;
 
 	UFUNCTION(BlueprintCallable)
 	void SetTitleSelectionMode(float TitleHeight);

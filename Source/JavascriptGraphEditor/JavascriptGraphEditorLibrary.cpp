@@ -71,7 +71,7 @@ void UJavascriptGraphEditorLibrary::BreakAllPinLinks(FJavascriptEdGraphPin A)
 {
 	if (A.GraphPin)
 	{
-		A.GraphPin->BreakAllPinLinks();
+		A.GraphPin->BreakAllPinLinks(true);
 	}
 }
 

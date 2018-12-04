@@ -1,6 +1,6 @@
 #include "JavascriptProcess.h"
 
-PRAGMA_DISABLE_OPTIMIZATION
+//PRAGMA_DISABLE_OPTIMIZATION
 
 UJavascriptProcess::UJavascriptProcess(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -190,4 +190,4 @@ FString UJavascriptProcess::GetString(const FString& Key, bool bFlag)
 	return FString();
 }
 
-PRAGMA_ENABLE_OPTIMIZATION
+//PRAGMA_ENABLE_OPTIMIZATION

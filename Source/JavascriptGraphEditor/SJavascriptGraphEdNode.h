@@ -83,4 +83,8 @@ public:
 	bool bUserIsDragging;
 	/** The current window zone the mouse is in */
 	EResizableWindowZone MouseZone;
+
+protected:
+	TSharedPtr<SVerticalBox> AltLeftNodeBox;
+	TSharedPtr<SVerticalBox> AltRightNodeBox;
 };

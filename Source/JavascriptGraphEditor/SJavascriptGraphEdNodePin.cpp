@@ -133,6 +133,12 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 	else
 	{
 		LabelAndValue->AddSlot()
+			.VAlign(VAlign_Center)
+			[
+				LabelWidget
+			];
+
+		LabelAndValue->AddSlot()
 			.Padding(bIsInput ? FMargin(InArgs._SideToSideMargin, 0, 0, 0) : FMargin(0, 0, InArgs._SideToSideMargin, 0))
 			.VAlign(VAlign_Center)
 			[
@@ -304,6 +310,20 @@ const FSlateBrush* SJavascriptGraphPin::GetPinIcon() const
 EVisibility SJavascriptGraphPin::GetPinLabelVisibility() const
 {
 	if (GraphPinObj->PinType.PinCategory == TEXT("exec"))
+	{
+		return EVisibility::Collapsed;
+	}
+
+	const UEdGraphSchema* Schema = GraphPinObj->GetSchema();
+	check(Schema);
+
+	auto GraphSchema = CastChecked<UJavascriptGraphAssetGraphSchema>(Schema);
+	if (GraphSchema->OnGetPinLabelVisibility.IsBound())
+	{
+		bool bVisible = GraphSchema->OnGetPinLabelVisibility.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) });
+		return bVisible ? EVisibility::Visible : EVisibility::Collapsed;
+	}
+	else if (GraphPinObj->Direction == EGPD_Output)
 	{
 		return EVisibility::Collapsed;
 	}

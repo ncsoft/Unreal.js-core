@@ -30,8 +30,7 @@ public:
 	virtual bool GetSelectedItems_Implementation(TArray<UObject*>& OutItems) override;
 	virtual TSharedRef<STableViewBase> RebuildListWidget() override;
 
-
-	TSharedPtr< SListView<UObject*> > MyListView;
+	TWeakPtr< SListView<UObject*> > MyListView;
 
 	// Overriden functions from UJavascriptTreeView
 	virtual TSharedRef<ITableRow> CreateItemRow(UWidget* Widget, const TSharedRef<STableViewBase>& OwnerTable) override;

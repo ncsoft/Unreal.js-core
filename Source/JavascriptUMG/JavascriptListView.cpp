@@ -47,26 +47,29 @@ TSharedRef<STableViewBase> UJavascriptListView::RebuildListWidget()
 
 void UJavascriptListView::RequestListRefresh()
 {
-	if (MyListView.IsValid())
+	auto ListView = MyListView.Pin();
+	if (ListView.IsValid())
 	{
-		MyListView->RequestListRefresh();
+		ListView->RequestListRefresh();
 	}	
 }
 
 bool UJavascriptListView::GetSelectedItems_Implementation(TArray<UObject*>& OutItems)
 {
-	if (MyListView.IsValid())
+	auto ListView = MyListView.Pin();
+	if (ListView.IsValid())
 	{
-		return MyListView->GetSelectedItems(OutItems) > 0;
+		return ListView->GetSelectedItems(OutItems) > 0;
 	}
 	return false;
 }
 
 void UJavascriptListView::SetSelection_Implementation(UObject* SoleSelectedItem)
 {
-	if (MyListView.IsValid())
+	auto ListView = MyListView.Pin();
+	if (ListView.IsValid())
 	{
-		MyListView->SetSelection(SoleSelectedItem);
+		ListView->SetSelection(SoleSelectedItem);
 	}
 }
 
