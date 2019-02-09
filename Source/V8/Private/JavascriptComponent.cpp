@@ -83,6 +83,12 @@ void UJavascriptComponent::BeginDestroy()
 	{
 		StaticGameData->Isolates.Add(JavascriptIsolate);
 	}
+	else if (JavascriptIsolate)
+	{
+		JavascriptIsolate->RemoveFromRoot();
+		JavascriptIsolate = nullptr;
+		JavascriptContext = nullptr;
+	}
 
 	if (bIsActive)
 	{
