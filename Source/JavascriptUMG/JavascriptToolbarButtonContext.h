@@ -41,10 +41,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FJavascriptCanExecuteActionWithEditingObject OnIsActionButtonVisible;
 	
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void MarkReferencedObject();
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void UnmarkReferencedObject();
 
 	FSlateIcon Public_OnGetSlateIcon();

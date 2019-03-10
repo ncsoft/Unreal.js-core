@@ -12,7 +12,7 @@ class V8_API UJavascriptStaticCache : public UObject
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Scripting | Javascript")
 	TArray<UJavascriptIsolate*> Isolates;
 };
 
