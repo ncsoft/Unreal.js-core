@@ -892,6 +892,7 @@ public:
 			auto Name = StringFromV8(info[0]);
 			auto Opts = info[1]->ToObject();
 			auto Outer = UObjectFromV8(Opts->Get(I.Keyword("Outer")));
+			auto Archetype = UObjectFromV8(Opts->Get(I.Keyword("Archetype")));
 			auto ParentClass = UClassFromV8(isolate, Opts->Get(I.Keyword("Parent")));
 			auto NonNative = Opts->Get(I.Keyword("NonNative"))->BooleanValue();
 			Outer = Outer ? Outer : GetTransientPackage();
@@ -1240,7 +1241,10 @@ public:
 			info.GetReturnValue().Set(FinalClass);
 
 			// Make sure CDO is ready for use
-			Class->GetDefaultObject();
+			if (Archetype)
+				Class->ClassDefaultObject = Archetype;
+			else
+				Class->GetDefaultObject();
 
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 12
 			// Assemble reference token stream for garbage collection/ RTGC.

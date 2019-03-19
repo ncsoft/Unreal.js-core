@@ -45,7 +45,7 @@ void UJavascriptMenuLibrary::CreateMenuBarBuilder(FJavascriptUICommandList Comma
 	Function.Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
 }
 
-void UJavascriptMenuLibrary::BeginSection(FJavascriptMenuBuilder& Builder, FName InExtensionHook)
+void UJavascriptMenuLibrary::BeginSection(FJavascriptMenuBuilder& Builder, FName InExtensionHook, FText MenuHeadingText)
 {
 	if (Builder.ToolBar)
 	{
@@ -53,7 +53,7 @@ void UJavascriptMenuLibrary::BeginSection(FJavascriptMenuBuilder& Builder, FName
 	}
 	else if (Builder.Menu)
 	{
-		Builder.Menu->BeginSection(InExtensionHook);
+		Builder.Menu->BeginSection(InExtensionHook, MenuHeadingText);
 	}
 }
 
@@ -213,6 +213,7 @@ FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascript
 	const EUserInterfaceActionType::Type CommandType = EUserInterfaceActionType::Type(info.ActionType.GetValue());
 	const FInputChord& InDefaultChord = info.DefaultChord;
 	const FInputChord& InAlternateDefaultChord = FInputChord();
+	const FString IconStyleName = *info.IconStyleName;
 
 	static const FString UICommandsStr(TEXT("UICommands"));
 	const FString Namespace = OutSubNamespace && FCString::Strlen(OutSubNamespace) > 0 ? UICommandsStr + TEXT(".") + OutSubNamespace : UICommandsStr;
@@ -226,7 +227,7 @@ FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascript
 		OutCommandName,
 		FInternationalization::ForUseOnlyByLocMacroAndGraphNodeTextLiterals_CreateText(FriendlyName, *Namespace, OutCommandName),
 		FInternationalization::ForUseOnlyByLocMacroAndGraphNodeTextLiterals_CreateText(InDescription, *Namespace, *OutCommandNameUnderscoreTooltip),
-		FSlateIcon(ThisBindingContext->GetStyleSetName(), ISlateStyle::Join(FName(*OrignContextName), TCHAR_TO_ANSI(*DotOutCommandName))),
+		FSlateIcon(ThisBindingContext->GetStyleSetName(), IconStyleName.IsEmpty() ? ISlateStyle::Join(FName(*OrignContextName), TCHAR_TO_ANSI(*DotOutCommandName)) : FName(*IconStyleName)),
 		CommandType,
 		InDefaultChord,
 		InAlternateDefaultChord

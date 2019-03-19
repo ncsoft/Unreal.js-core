@@ -69,6 +69,9 @@ struct FJavascriptUICommand
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
 	FJavascriptUICommandInfo CommandInfo;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
+	FString IconStyleName;
 };
 
 USTRUCT(BlueprintType)
@@ -192,7 +195,7 @@ public:
 	static FJavascriptExtender Combine(const TArray<FJavascriptExtender>& Extenders);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void BeginSection(FJavascriptMenuBuilder& Builder, FName InExtensionHook);
+	static void BeginSection(FJavascriptMenuBuilder& Builder, FName InExtensionHook, FText MenuHeadingText);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void EndSection(FJavascriptMenuBuilder& Builder);

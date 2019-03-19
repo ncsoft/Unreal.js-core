@@ -37,19 +37,18 @@ TSharedRef<SWidget> UJavascriptGraphPinObject::RebuildWidget()
 	{
 		if (OnGetGraphPin.IsBound())
 		{
-			FJavascriptEdGraphPin JavascriptEdGraphPin = OnGetGraphPin.Execute();
-			if (JavascriptEdGraphPin && JavascriptEdGraphPin.IsValid())
+			FJavascriptEdGraphPin GraphPin = OnGetGraphPin.Execute();
+			if (GraphPin.IsValid())
 			{
-				UEdGraphPin* InPin = JavascriptEdGraphPin.GraphPin;
 				if (OnGetDefaultValue.IsBound())
 				{
 					UObject* InDefaultObject = OnGetDefaultValue.Execute();
-					InPin->DefaultObject = InDefaultObject;
+					GraphPin->DefaultObject = InDefaultObject;
 				}
-				Pin = SNew(SJavascriptGraphPinObject, InPin, this);
+				Pin = SNew(SJavascriptGraphPinObject, GraphPin.Get(), this);
 
 				// @todo:
-				UJavascriptGraphEdNode* GraphEdNode = CastChecked<UJavascriptGraphEdNode>(InPin->GetOwningNode());
+				UJavascriptGraphEdNode* GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphPin->GetOwningNode());
 				Pin->SetOwner(StaticCastSharedRef< SGraphNode >(GraphEdNode->SlateGraphNode->AsShared()));
 
 				return Pin.ToSharedRef();

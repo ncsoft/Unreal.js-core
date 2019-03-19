@@ -15,7 +15,7 @@ struct FJavascriptDetailWidgetDecl
 	GENERATED_BODY()
 
 #if WITH_EDITOR
-	FDetailWidgetDecl* WidgetDecl;
+	FDetailWidgetDecl* WidgetDecl = nullptr;
 
 	FDetailWidgetDecl* operator -> ()
 	{
@@ -41,6 +41,8 @@ struct FJavascriptPropertyHandle
 	{
 		return PropertyHandle;
 	}
+
+	bool IsValid() const { return PropertyHandle.IsValid(); }
 #endif
 };
 
@@ -55,7 +57,7 @@ struct FJavascriptDetailWidgetRow
 		return HeaderRow;
 	}
 
-	class FDetailWidgetRow* HeaderRow;
+	class FDetailWidgetRow* HeaderRow = nullptr;
 #endif
 };
 
@@ -70,7 +72,7 @@ struct FJavascriptDetailPropertyRow
 		return PropertyRow;
 	}
 
-	IDetailPropertyRow* PropertyRow;
+	IDetailPropertyRow* PropertyRow = nullptr;
 #endif
 };
 
@@ -85,11 +87,11 @@ struct FJavascriptDetailChildrenBuilder
 		return ChildBuilder;
 	}
 
-	IDetailChildrenBuilder* ChildBuilder;
+	IDetailChildrenBuilder* ChildBuilder = nullptr;
 #endif
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptPropertyTypeCustomizationUtils
 {
 	GENERATED_BODY()
@@ -100,7 +102,7 @@ struct FJavascriptPropertyTypeCustomizationUtils
 		return CustomizationUtils;
 	}
 
-	IPropertyTypeCustomizationUtils* CustomizationUtils;
+	IPropertyTypeCustomizationUtils* CustomizationUtils = nullptr;
 #endif
 };
 
@@ -115,6 +117,20 @@ enum class EPropertyAccessResult : uint8
 	Success,
 };
 
+
+DECLARE_DYNAMIC_DELEGATE_RetVal(bool, FDynamicSimpleGetBoolDelegate);
+
+UCLASS()
+class JAVASCRIPTEDITOR_API UJavascriptSimpleGetBoolDelegateWrapper : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY()
+	FDynamicSimpleGetBoolDelegate Delegate;
+};
+
+
 /**
  * 
  */
@@ -126,6 +142,8 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 #if WITH_EDITOR
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptPropertyHandle GetChildHandle(FJavascriptPropertyHandle Parent, FName Name);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool IsValidHandle(FJavascriptPropertyHandle Handle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptSlateWidget CreatePropertyNameWidget(FJavascriptPropertyHandle Handle, const FText& NameOverride, const FText& ToolTipOverride, bool bDisplayResetToDefault, bool bHideText, bool bHideThumbnail);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
@@ -140,6 +158,8 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 	static UProperty* GetProperty(FJavascriptPropertyHandle Handle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, UJavascriptPropertyCustomization* Custom);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool IsEditConst(FJavascriptPropertyHandle Handle);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptDetailWidgetDecl WholeRowContent(FJavascriptDetailWidgetRow Row);
@@ -155,23 +175,31 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptDetailPropertyRow AddChildProperty(FJavascriptDetailChildrenBuilder ChildBuilder, FJavascriptPropertyHandle PropertyHandle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FJavascriptDetailPropertyRow AddExternalObjects(FJavascriptDetailChildrenBuilder ChildBuilder, TArray<UObject*>& Objects, FName UniqueIdName = NAME_None);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FJavascriptDetailPropertyRow AddExternalObjectProperty(FJavascriptDetailChildrenBuilder ChildBuilder, TArray<UObject*>& Objects, FName PropertyName, FName UniqueIdName = NAME_None, bool bAllowChildrenOverride = false, bool bCreateCategoryNodesOverride = false);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptSlateWidget GenerateStructValueWidget(FJavascriptDetailChildrenBuilder ChildBuilder, FJavascriptPropertyHandle StructPropertyHandle);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void RequestRefresh(FJavascriptPropertyTypeCustomizationUtils CustomizationUtils, bool bForce);
 
-		
+#pragma region FJavascriptDetailPropertyRow
 	//void DisplayName(FJavascriptDetailPropertyRow Row, const FText& InDisplayName);
 	//void ToolTip(FJavascriptDetailPropertyRow Row, const FText& InToolTip);
 	//void ShowPropertyButtons(bool bShowPropertyButtons);
 	/*void EditCondition(TAttribute<bool> EditConditionValue, FOnBooleanValueChanged OnEditConditionValueChanged);
 	void IsEnabled(TAttribute<bool> InIsEnabled);*/
 	//void ShouldAutoExpand(FJavascriptDetailPropertyRow Row, bool bForceExpansion);
-	//void Visibility(TAttribute<EVisibility> Visibility);
 	//void OverrideResetToDefault(const FResetToDefaultOverride& ResetToDefault);
 	//void GetDefaultWidgets(TSharedPtr<SWidget>& OutNameWidget, TSharedPtr<SWidget>& OutValueWidget);
 	//void GetDefaultWidgets(TSharedPtr<SWidget>& OutNameWidget, TSharedPtr<SWidget>& OutValueWidget, FDetailWidgetRow& Row);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptDetailWidgetRow CustomWidget(FJavascriptDetailPropertyRow Row, bool bShowChildren);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void BindVisibility(FJavascriptDetailPropertyRow Row, UJavascriptSimpleGetBoolDelegateWrapper* Wrapper);
+#pragma endregion FJavascriptDetailPropertyRow
 
-
+#pragma region FJavascriptDetailWidgetDecl
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void SetContent(FJavascriptDetailWidgetDecl Decl, FJavascriptSlateWidget Widget);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
@@ -182,5 +210,7 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 	static void SetMinDesiredWidth(FJavascriptDetailWidgetDecl Decl, float MinWidth);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void SetMaxDesiredWidth(FJavascriptDetailWidgetDecl Decl, float MaxWidth);
+#pragma endregion FJavascriptDetailWidgetDecl
+
 #endif
 };

@@ -38,11 +38,15 @@ class JAVASCRIPTEDITOR_API UPropertyEditor : public UWidget
 	UFUNCTION(BlueprintCallable, Category = "PropertyEditor")
 	void SetObjects(TArray<UObject*> Objects, bool bForceRefresh, bool bOverrideLock);
 
+	// Note the comment in implementation of BuildPropertyPathMap for the reason
+	// why the parameter PropertyPaths is array of strings instead of unique string.
 	UFUNCTION(BlueprintNativeEvent, Category = "PropertyEditor")
-	bool IsPropertyReadOnly(const FString& PropertyName, const FString& ParentPropertyName);
+	bool IsPropertyReadOnly(const FString& PropertyName, const FString& ParentPropertyName, const TArray<FString>& PropertyPaths);
 
+	// Note the comment in implementation of BuildPropertyPathMap for the reason
+	// why the parameter PropertyPaths is array of strings instead of unique string.
 	UFUNCTION(BlueprintNativeEvent, Category = "PropertyEditor")
-	bool IsPropertyVisible(const FString& PropertName, const FString& ParentPropertyName);
+	bool IsPropertyVisible(const FString& PropertName, const FString& ParentPropertyName, const TArray<FString>& PropertyPaths);
 
 	UPROPERTY(BlueprintAssignable, Category = "PropertyEditor")
 	FPropertyEditorPropertyChanged OnChange;
@@ -61,6 +65,9 @@ class JAVASCRIPTEDITOR_API UPropertyEditor : public UWidget
 
 	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
 	bool bReadOnly;
+
+	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
+	bool bEnablePropertyPath;
 
 	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
 	EPropertyEditorNameAreaSettings NameAreaSettings;
@@ -83,9 +90,15 @@ protected:
 	bool NativeIsPropertyReadOnly(const FPropertyAndParent& InPropertyAndParent);
 	bool NativeIsPropertyVisible(const FPropertyAndParent& InPropertyAndParent);
 
+	void BuildPropertyPathMap(UStruct* InPropertyRootType);
+
 protected:
 	TSharedPtr<class IDetailsView> View;
 
+	TWeakObjectPtr<UStruct> PropertyRootType;
+	TMap<UProperty*, TArray<FString>> PropertyPathMap;
+
 	static const FString EmptyString;
+	static const TArray<FString> EmptyStringArray;
 #endif	
 };

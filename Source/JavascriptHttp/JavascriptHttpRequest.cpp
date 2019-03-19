@@ -2,6 +2,7 @@
 #include "JavascriptContext.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Base64.h"
+#include "Misc/Paths.h"
 
 #if WITH_EDITOR
 #include "TickableEditorObject.h"

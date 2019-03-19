@@ -73,7 +73,7 @@ FJavascriptEdGraphPin UJavascriptGraphEdNode::CreatePin(
 
 	UEdGraphPin* GraphPin = Super::CreatePin(Dir, PinCategory, PinSubCategory, PinSubCategoryObject, PinName, PinParams);
 	GraphPin->PinToolTip = PinToolTip;
-	return FJavascriptEdGraphPin{ GraphPin };
+	return FJavascriptEdGraphPin(GraphPin);
 }
 
 bool UJavascriptGraphEdNode::RemovePinByName(FName PinName)
@@ -91,7 +91,7 @@ bool UJavascriptGraphEdNode::RemovePin(FJavascriptEdGraphPin Pin)
 {
 	if (Pin.IsValid())
 	{
-		return Super::RemovePin(Pin.GraphPin);
+		return Super::RemovePin(Pin);
 	}
 
 	return false;

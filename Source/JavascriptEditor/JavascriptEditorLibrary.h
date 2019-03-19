@@ -519,5 +519,8 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool LoadFileToString(FString Path, FString& Data);
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FString GetKeyNameByKeyEvent(const FKeyEvent& Event);
+
 #endif
 };

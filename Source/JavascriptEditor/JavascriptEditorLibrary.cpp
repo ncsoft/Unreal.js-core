@@ -1278,4 +1278,9 @@ bool UJavascriptEditorLibrary::LoadFileToString(FString Path, FString& Data)
 	return FFileHelper::LoadFileToString(Data, *Path);
 }
 
+FString UJavascriptEditorLibrary::GetKeyNameByKeyEvent(const FKeyEvent& Event)
+{
+	return Event.GetKey().GetFName().ToString();
+}
+
 #endif

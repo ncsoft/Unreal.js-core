@@ -749,7 +749,7 @@ FJavascriptStat UJavascriptLibrary::NewStat(
         bCycleStat, 
         bSortByName,
         FPlatformMemory::EMemoryCounterRegion::MCR_Invalid);
-else
+#else
     Out.Instance = MakeShareable(new FJavascriptThreadSafeStaticStatBase);
     Out.Instance->DoSetup(
         InStatName.GetPlainANSIString(),

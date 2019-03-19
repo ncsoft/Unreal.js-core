@@ -63,17 +63,8 @@ public:
 		check(InIndex == 0);
 		const FScopedTransaction Transaction(NSLOCTEXT("GraphEditor", "ChangeTxtPinValue", "Change Text Pin Value"));
 		GraphPinObj->Modify();
-		GraphPinObj->GetSchema()->TrySetDefaultText(*GraphPinObj, InText);
-		
-		if (InText.IsFromStringTable())
-		{
-			FString Key;
-			FName TableId;
-			FStringTableRegistry::Get().FindTableIdAndKey(InText, TableId, Key);
-			EditableTextBox->HandleOnStringTableKeyChanged(TableId, Key);
-		}
-
-		EditableTextBox->HandleOnTextCommitted(InText.ToString());
+		GraphPinObj->GetSchema()->TrySetDefaultText(*GraphPinObj, InText);		
+		EditableTextBox->HandleOnTextCommitted(InText);
 	}
 
 	virtual bool IsValidText(const FText& InText, FText& OutErrorMsg) const override
@@ -140,9 +131,15 @@ void UJavascriptGraphTextPropertyEditableTextBox::HandleOnNamespaceKeyChanged(co
 	MyTextProperty.Key = InKey;
 }
 
-void UJavascriptGraphTextPropertyEditableTextBox::HandleOnTextCommitted(const FString& InValue)
+void UJavascriptGraphTextPropertyEditableTextBox::HandleOnTextCommitted(const FText& InText)
 {
-	MyTextProperty.Value = InValue;
+	FName TableId = NAME_None;
+	FString Key;
+	FTextInspector::GetTableIdAndKey(InText, TableId, Key);
+	MyTextProperty.TableId = TableId;
+	MyTextProperty.Namespace = FTextInspector::GetNamespace(InText).Get(FString());
+	MyTextProperty.Key = FTextInspector::GetKey(InText).Get(FString());
+	MyTextProperty.Value = InText.ToString();
 
 	OnTextCommitted.Broadcast(MyTextProperty);
 }
@@ -171,19 +168,17 @@ TSharedRef<SWidget> UJavascriptGraphTextPropertyEditableTextBox::RebuildWidget()
 	{
 		if (OnGetGraphPin.IsBound())
 		{
-			FJavascriptEdGraphPin JavascriptEdGraphPin = OnGetGraphPin.Execute();
+			FJavascriptEdGraphPin GraphPin = OnGetGraphPin.Execute();
 
-			if (JavascriptEdGraphPin && JavascriptEdGraphPin.IsValid())
+			if (GraphPin.IsValid())
 			{
-				UEdGraphPin* InPin = JavascriptEdGraphPin.GraphPin;
-
 				if (OnGetDefaultValue.IsBound())
 				{
 					MyTextProperty = OnGetDefaultValue.Execute();
 
 					if (!MyTextProperty.TableId.IsNone())
 					{
-						InPin->DefaultTextValue = FText::FromStringTable(MyTextProperty.TableId, MyTextProperty.Key);
+						GraphPin->DefaultTextValue = FText::FromStringTable(MyTextProperty.TableId, MyTextProperty.Key);
 					} else if (!MyTextProperty.Value.IsEmpty())
 					{
 						if (MyTextProperty.Key.IsEmpty())
@@ -193,11 +188,11 @@ TSharedRef<SWidget> UJavascriptGraphTextPropertyEditableTextBox::RebuildWidget()
 							OnTextCommitted.Broadcast(MyTextProperty);
 						}
 
-						InPin->DefaultTextValue = FText::ChangeKey(MyTextProperty.Namespace, MyTextProperty.Key, FText::FromString(MyTextProperty.Value));
+						GraphPin->DefaultTextValue = FText::ChangeKey(MyTextProperty.Namespace, MyTextProperty.Key, FText::FromString(MyTextProperty.Value));
 					}					
 				}
 
-				MyEditableTextProperty = MakeShareable(new FJavascriptEditableTextGraphPin(InPin, this));
+				MyEditableTextProperty = MakeShareable(new FJavascriptEditableTextGraphPin(GraphPin, this));
 
 				MyEditableTextBlock = SNew(STextPropertyEditableTextBox, MyEditableTextProperty.ToSharedRef())
 					.Style(&WidgetStyle)
