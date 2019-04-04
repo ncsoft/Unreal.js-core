@@ -522,5 +522,7 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FString GetKeyNameByKeyEvent(const FKeyEvent& Event);
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FString GetDataTableAsJSON(UDataTable* InDataTable, uint8 InDTExportFlags = 0);
 #endif
 };

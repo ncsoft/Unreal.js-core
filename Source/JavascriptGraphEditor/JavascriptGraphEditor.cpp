@@ -39,4 +39,4 @@ class FJavascriptGraphEditor : public IJavascriptGraphEditor
 	}
 };
 
-IMPLEMENT_MODULE( FJavascriptGraphEditor, UJavascriptGraphEditor )
+IMPLEMENT_MODULE( FJavascriptGraphEditor, JavascriptGraphEditor )

@@ -41,6 +41,7 @@ typedef FTickableGameObject FTickableAnyObject;
 #include "Translator.h"
 #include "IV8.h"
 #include "Config.h"
+#include "Containers/Queue.h"
 
 using namespace v8;
 

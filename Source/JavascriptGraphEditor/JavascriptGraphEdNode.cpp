@@ -143,10 +143,26 @@ int32 UJavascriptGraphEdNode::GetNumOfPins(EEdGraphPinDirection Direction /*= EG
 	return NumOfPin;
 }
 
-void UJavascriptGraphEdNode::SetTitleSelectionMode(float TitleHeight)
+void UJavascriptGraphEdNode::SetEnable(bool bEnable)
+{
+	if (SlateGraphNode)
+	{
+		SlateGraphNode->SetEnabled(bEnable);
+	}
+}
+
+void UJavascriptGraphEdNode::SetVisible(bool bVisible)
+{
+	if (SlateGraphNode)
+	{
+		SlateGraphNode->SetVisibility(bVisible ? EVisibility::Visible : EVisibility::Hidden);
+	}
+}
+
+void UJavascriptGraphEdNode::SetTitleSelectionMode(float InTitleHeight)
 {
 	this->bTitleSelectionOnly = true;
-	this->TitleHeight = TitleHeight;
+	this->TitleHeight = InTitleHeight;
 }
 
 void UJavascriptGraphEdNode::ResetTitleSelectionMode()

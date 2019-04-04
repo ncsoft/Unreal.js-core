@@ -7,7 +7,7 @@
 #include "EditorStyleSet.h"
 #include "Framework/Application/SlateApplication.h"
 
-IMPLEMENT_MODULE( FJavascriptConsoleModule, JavascriptLog );
+IMPLEMENT_MODULE( FJavascriptConsoleModule, JavascriptConsole );
 
 namespace JavascriptConsoleModule
 {
