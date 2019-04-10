@@ -88,10 +88,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void SetVisible(bool bVisible);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void SetTitleSelectionMode(float TitleHeight);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void ResetTitleSelectionMode();
 
 public:
