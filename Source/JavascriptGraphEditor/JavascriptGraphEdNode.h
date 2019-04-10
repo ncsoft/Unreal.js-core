@@ -83,6 +83,12 @@ public:
 	int32 GetNumOfPins(EEdGraphPinDirection Direction = EGPD_MAX) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	void SetEnable(bool bEnable);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	void SetVisible(bool bVisible);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void SetTitleSelectionMode(float TitleHeight);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")

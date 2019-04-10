@@ -30,7 +30,7 @@ struct FJavascriptEdGraphPin
 {
 	GENERATED_BODY()
 
-	FJavascriptEdGraphPin() {}
+	FJavascriptEdGraphPin() : GraphPin(nullptr) {}
 	FJavascriptEdGraphPin(UEdGraphPin* InPin) 
 		: GraphPin(InPin) 
 	{}
@@ -38,6 +38,11 @@ struct FJavascriptEdGraphPin
 	UEdGraphPin* GraphPin;
 
 	operator UEdGraphPin* () const
+	{
+		return GraphPin;
+	}
+	UEdGraphPin* Get() const { return GraphPin; }
+	UEdGraphPin* operator->()
 	{
 		return GraphPin;
 	}
@@ -245,7 +250,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FName GetPinName(FJavascriptEdGraphPin A);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void SetPinInfo(FJavascriptEdGraphPin A, FName InPinName, FString InPinToolTip);
 
@@ -253,7 +258,25 @@ public:
 	static FGuid GetPinGUID(FJavascriptEdGraphPin A);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static int32 GetPinIndex(FJavascriptEdGraphPin A);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptEdGraphPin GetParentPin(FJavascriptEdGraphPin A);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static TArray<FJavascriptEdGraphPin> GetSubPins(FJavascriptEdGraphPin A);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void SetParentPin(FJavascriptEdGraphPin A, FJavascriptEdGraphPin Parent);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool IsValid(FJavascriptEdGraphPin A);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void SetPinHidden(FJavascriptEdGraphPin A, bool bHidden);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool IsPinHidden(FJavascriptEdGraphPin A);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static class UEdGraphNode* GetOwningNode(FJavascriptEdGraphPin A);
@@ -263,6 +286,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static TArray<FJavascriptEdGraphPin> GetLinkedTo(FJavascriptEdGraphPin A);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static int32 GetLinkedPinNum(FJavascriptEdGraphPin A);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static TArray<FJavascriptEdGraphPin> GetPins(UEdGraphNode* Node);
@@ -329,6 +355,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void ResizeNode(UEdGraphNode* Node, const FVector2D& NewSize);
+
+private:
+	static TArray<FJavascriptEdGraphPin> TransformPins(const TArray<UEdGraphPin*>& Pins);
 };
 
 USTRUCT(BlueprintType)

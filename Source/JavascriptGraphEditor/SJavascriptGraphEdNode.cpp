@@ -8,6 +8,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SWindow.h"
+#include "Widgets/Images/SImage.h"
 #include "SCommentBubble.h"
 
 void SJavascriptGraphEdNode::Construct(const FArguments& InArgs, UJavascriptGraphEdNode* InNode)
@@ -164,6 +165,49 @@ void SJavascriptGraphEdNode::UpdateGraphNode()
 						ErrorReportingWidget.ToSharedRef()
 					]
 			]
+		];
+
+	this->GetOrAddSlot( ENodeZone::Center )
+		.HAlign(HAlign_Center)
+		.VAlign(VAlign_Center)
+		[
+			SNew(SVerticalBox)
+			+SVerticalBox::Slot()
+			.AutoHeight()
+			[
+				SNew(SOverlay)
+				+SOverlay::Slot()
+				.Padding(Settings->GetNonPinNodeBodyPadding())
+				[
+					SNew(SImage)
+					.Image(FEditorStyle::GetBrush("Graph.Node.Body"))
+					.ColorAndOpacity(this, &SGraphNode::GetNodeBodyColor)
+				]
+				+SOverlay::Slot()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+						.AutoHeight()
+						.HAlign(HAlign_Fill)
+						.VAlign(VAlign_Top)
+						[
+							TitleAreaWidget.ToSharedRef()
+						]
+					+ SVerticalBox::Slot()
+						.AutoHeight()
+						.HAlign(HAlign_Fill)
+						.VAlign(VAlign_Fill)
+						[
+							ContentWidget.ToSharedRef()
+						]
+					+ SVerticalBox::Slot()
+						.AutoHeight()
+						.Padding(1.0f)
+						[
+							ErrorReportingWidget.ToSharedRef()
+						]
+				]
+			]			
 		];
 
 	if (GraphEdNode && Schema->OnGetNodeComment.IsBound())

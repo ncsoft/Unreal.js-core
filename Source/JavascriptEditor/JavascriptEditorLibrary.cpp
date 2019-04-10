@@ -53,6 +53,8 @@
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
 
+#include "Engine/DataTable.h"
+
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
 {
@@ -197,7 +199,7 @@ void UJavascriptEditorLibrary::GetAllTags(const FJavascriptAssetData& AssetData,
 
 bool UJavascriptEditorLibrary::GetTagValue(const FJavascriptAssetData& AssetData, const FName& Name, FString& OutValue)
 {
-	auto Value = AssetData.SourceAssetData.TagsAndValues.Find(Name);
+	auto Value = AssetData.SourceAssetData.TagsAndValues.GetMap().Find(Name);
 
 	if (Value)
 	{
@@ -460,7 +462,11 @@ void UJavascriptEditorLibrary::DrawPolygon(const FJavascriptPDI& PDI, const TArr
 	}
 	
 	static auto TransparentPlaneMaterialXY = (UMaterial*)StaticLoadObject(UMaterial::StaticClass(), NULL, TEXT("/Engine/EditorMaterials/WidgetVertexColorMaterial.WidgetVertexColorMaterial"), NULL, LOAD_None, NULL);
+#if ENGINE_MINOR_VERSION < 22
 	MeshBuilder.Draw(PDI.PDI, FMatrix::Identity, TransparentPlaneMaterialXY->GetRenderProxy(false), DepthPriority, 0.f);
+#else
+	MeshBuilder.Draw(PDI.PDI, FMatrix::Identity, TransparentPlaneMaterialXY->GetRenderProxy(), DepthPriority, 0.f);
+#endif
 }
 
 struct HJavascriptHitProxy : public HHitProxy
@@ -1218,7 +1224,7 @@ bool UJavascriptEditorLibrary::LoadImageFromDiskAsync(const FString& ImagePath, 
 			{
 				Texture->SRGB = true;
 				Texture->UpdateResource();
-
+#if ENGINE_MINOR_VERSION < 22
 				ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
 					FWriteRawDataToTexture,
 					FTexture2DDynamicResource*, TextureResource, static_cast<FTexture2DDynamicResource*>(Texture->Resource),
@@ -1226,7 +1232,15 @@ bool UJavascriptEditorLibrary::LoadImageFromDiskAsync(const FString& ImagePath, 
 					{
 						WriteRawToTexture_RenderThread(TextureResource, RawData);
 					});
-
+#else
+				FTexture2DDynamicResource* TextureResource = static_cast<FTexture2DDynamicResource*>(Texture->Resource);
+				TArray<uint8> RawDataCopy = *RawData;
+				ENQUEUE_RENDER_COMMAND(FWriteRawDataToTexture)(
+					[TextureResource, RawDataCopy](FRHICommandListImmediate& RHICmdList)
+				{
+					WriteRawToTexture_RenderThread(TextureResource, RawDataCopy);
+				});
+#endif
 				Callback->OnSuccess.Broadcast(Texture);
 				return true;
 			}
@@ -1276,6 +1290,19 @@ bool UJavascriptEditorLibrary::LoadFileToIntArray(FString Path, TArray<uint8>& F
 bool UJavascriptEditorLibrary::LoadFileToString(FString Path, FString& Data)
 {
 	return FFileHelper::LoadFileToString(Data, *Path);
+}
+
+FString UJavascriptEditorLibrary::GetKeyNameByKeyEvent(const FKeyEvent& Event)
+{
+	return Event.GetKey().GetFName().ToString();
+}
+
+FString UJavascriptEditorLibrary::GetDataTableAsJSON(UDataTable* InDataTable, uint8 InDTExportFlags)
+{
+	if (InDataTable == nullptr)
+		return TEXT("");
+
+	return InDataTable->GetTableAsJSON((EDataTableExportFlags)InDTExportFlags);
 }
 
 #endif

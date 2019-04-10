@@ -40,19 +40,31 @@ typedef FTickableGameObject FTickableAnyObject;
 #include "Helpers.h"
 #include "Translator.h"
 #include "IV8.h"
+#include "Config.h"
+#include "Containers/Queue.h"
 
 using namespace v8;
+
+enum class EAgentImplType : uint8
+{
+	AgentBase,
+	Channel,
+	HttpResponseChannel,
+};
 
 namespace {
 	class AgentImpl : public v8_inspector::V8Inspector::Channel, public TSharedFromThis<AgentImpl>
 	{
 	public:
-		AgentImpl(v8::Isolate* isolate)
-		: isolate_(isolate)
+		AgentImpl(v8::Isolate* isolate, EAgentImplType AgentImplType = EAgentImplType::AgentBase)
+			: AgentImplType(AgentImplType)
+			, isolate_(isolate)
 		{}
 
 		virtual ~AgentImpl() {}
 
+	
+		const EAgentImplType AgentImplType;
 		v8::Isolate* isolate_;
 		TArray<uint8> Buffer;
 
@@ -132,10 +144,11 @@ namespace {
 		lws_context* WebSocketContext;
 		lws* Wsi;
 		std::unique_ptr<v8_inspector::V8InspectorSession> v8session;
-		TArray<TArray<uint8>> OutgoingBuffer;
+		TQueue<TArray<uint8>> OutgoingBuffer;
+		bool bFlushing = false;
 
 		ChannelImpl(lws_context *InContext, lws* InWsi, v8::Isolate* isolate, v8::Platform* platform, const std::unique_ptr<v8_inspector::V8Inspector>& v8inspector)
-			: AgentImpl(isolate), platform_(platform), WebSocketContext(InContext), Wsi(InWsi)
+			: AgentImpl(isolate, EAgentImplType::Channel), platform_(platform), WebSocketContext(InContext), Wsi(InWsi)
 		{
 			v8_inspector::StringView state;
 			v8session = v8inspector->connect(CONTEXT_GROUP_ID, this, state);
@@ -208,43 +221,174 @@ namespace {
 			// Reserve space for WS header data
 			Buffer.AddDefaulted(LWS_PRE);
 			Buffer.Append((uint8*)Data, Size);
-			OutgoingBuffer.Add(Buffer);
-
-			OnWritable();
+			OutgoingBuffer.Enqueue(Buffer);
 		}
 
-		void OnWritable()
+		void OnWritable() override
 		{
-			if (OutgoingBuffer.Num() == 0)
+			if (OutgoingBuffer.IsEmpty())
 			{
 				return;
 			}
 
-			TArray <uint8>& Packet = OutgoingBuffer[0];
-
-			uint32 TotalDataSize = Packet.Num() - LWS_PRE;
-			uint32 DataToSend = TotalDataSize;
-			while (DataToSend)
+			if (FV8Config::FlushInspectorWebSocketOnWritable() && bFlushing == false)
 			{
-				int Sent = lws_write(Wsi, Packet.GetData() + LWS_PRE + (DataToSend - TotalDataSize), DataToSend, (lws_write_protocol)LWS_WRITE_TEXT);
-				if (Sent < 0)
+				Flush();
+			}
+			else
+			{
+				TArray<uint8> Packet;
+				// this is very inefficient we need a constant size circular buffer to efficiently not do unnecessary allocations/deallocations.
+				if (OutgoingBuffer.Dequeue(Packet))
 				{
-					UE_LOG(Javascript, Warning, TEXT("Could not write any bytes to socket"));
-					return;
+					uint32 TotalDataSize = Packet.Num() - LWS_PRE;
+					uint32 DataToSend = TotalDataSize;
+					while (DataToSend)
+					{
+						int Sent = lws_write(Wsi, Packet.GetData() + LWS_PRE + (DataToSend - TotalDataSize), DataToSend, (lws_write_protocol)LWS_WRITE_TEXT);
+						if (Sent < 0)
+						{
+							UE_LOG(Javascript, Warning, TEXT("Could not write any bytes to socket"));
+							return;
+						}
+						if ((uint32)Sent < DataToSend)
+						{
+							UE_LOG(Javascript, Warning, TEXT("Could not write all '%d' bytes to socket"), DataToSend);
+						}
+						DataToSend -= Sent;
+					}
 				}
-				if ((uint32)Sent < DataToSend)
-				{
-					UE_LOG(Javascript, Warning, TEXT("Could not write all '%d' bytes to socket"), DataToSend);
-				}
-				DataToSend -= Sent;
+			}
+		}
+
+		void Flush()
+		{
+			if (bFlushing)
+				return;
+
+			bFlushing = true;
+
+			while (OutgoingBuffer.IsEmpty() == false)
+			{
+				lws_callback_on_writable(Wsi);
+				lws_service(WebSocketContext, 0);
 			}
 
-			// this is very inefficient we need a constant size circular buffer to efficiently not do unnecessary allocations/deallocations.
-			OutgoingBuffer.RemoveAt(0);
+			bFlushing = false;
 		}
 
 		void flushProtocolNotifications()
 		{}
+	};
+
+	class HttpResponseChannelImpl : public AgentImpl
+	{
+	public:
+		enum class ERequestedUriType
+		{
+			Unknown,
+			JsonVersion,
+			JsonList
+		};
+
+		static ERequestedUriType GetRequestedUriType(const FString& InUri)
+		{
+			if (InUri == TEXT("/json/version"))
+				return ERequestedUriType::JsonVersion;
+			else if (InUri == TEXT("/json") || InUri == TEXT("/json/list"))
+				return ERequestedUriType::JsonList;
+
+			return ERequestedUriType::Unknown;
+		}
+
+		lws* Wsi;
+		
+		TQueue<TArray<uint8>> OutgoingBuffer;
+
+		// These members are not related with this channel itself but with the context for this channel.
+		// Consider to move them to PerSessionDataServer.
+		bool bHeaderSent = false;
+		bool bBodySent = false;
+
+		HttpResponseChannelImpl(lws* InWsi, v8::Isolate* isolate)
+			: AgentImpl(isolate, EAgentImplType::HttpResponseChannel), Wsi(InWsi)
+		{
+		}
+
+		void SendResponse(const FString& InMessage)
+		{
+			FTCHARToUTF8 utf8(*InMessage);
+			sendMessage(utf8.Get(), utf8.Length());
+		}
+
+		void sendResponse(int callId, std::unique_ptr<v8_inspector::StringBuffer> message) override
+		{
+			sendMessageToFrontend(std::move(message));
+		}
+
+		void sendNotification(std::unique_ptr<v8_inspector::StringBuffer> message) override
+		{
+			sendMessageToFrontend(std::move(message));
+		}
+
+		void sendMessageToFrontend(std::unique_ptr<v8_inspector::StringBuffer> message)
+		{
+			auto view = message->string();
+			TArray<uint16> str;
+			str.Append(view.characters16(), view.length());
+			str.Add(0);
+
+			// For platforms in where TCHAR is not 16 bit.
+			TArray<TCHAR> chars;
+			for (auto ch : str)
+			{
+				chars.Add(ch);
+			}
+
+			FTCHARToUTF8 utf8(chars.GetData());
+			sendMessage(utf8.Get(), utf8.Length());
+		}
+
+		void OnWritable() override
+		{
+			if (OutgoingBuffer.IsEmpty())
+				return;
+
+			TArray<uint8> Packet;
+			// this is very inefficient we need a constant size circular buffer to efficiently not do unnecessary allocations/deallocations.
+			if (OutgoingBuffer.Dequeue(Packet))
+			{
+				uint32 TotalDataSize = Packet.Num() - LWS_PRE;
+				uint32 DataToSend = TotalDataSize;
+				while (DataToSend)
+				{
+					int Sent = lws_write_http(Wsi, Packet.GetData() + LWS_PRE + (DataToSend - TotalDataSize), DataToSend);
+					if (Sent < 0)
+					{
+						UE_LOG(Javascript, Warning, TEXT("Could not write any response to socket"));
+						return;
+					}
+					if ((uint32)Sent < DataToSend)
+					{
+						UE_LOG(Javascript, Warning, TEXT("Could not write all '%d' bytes to socket"), DataToSend);
+					}
+					DataToSend -= Sent;
+				}
+			}
+		}
+
+		void flushProtocolNotifications() {}
+
+	private:
+		void sendMessage(const void* Data, uint32 Size)
+		{
+			TArray<uint8> Buffer;
+
+			// Reserve space for WS header data
+			Buffer.AddDefaulted(LWS_PRE);
+			Buffer.Append((uint8*)Data, Size);
+			OutgoingBuffer.Enqueue(Buffer);
+		}
 	};
 }
 
@@ -389,6 +533,7 @@ public:
 		while (!terminated_)
 		{
 			lws_service(WebSocketContext, 0);
+			lws_callback_on_writable_all_protocol(WebSocketContext, &WebSocketProtocols[0]);
 
 			while (v8::platform::PumpMessageLoop(platform_, isolate_))
 			{
@@ -421,6 +566,7 @@ public:
 		if (IsAlive)
 		{
 			lws_service(WebSocketContext, 0);
+			lws_callback_on_writable_all_protocol(WebSocketContext, &WebSocketProtocols[0]);
 		}
 	}
 
@@ -440,7 +586,7 @@ public:
 		TSharedPtr<AgentImpl> Channel; // each session is actually a socket to a client
 	};
 
-	int inspector_server( lws *Wsi, lws_callback_reasons Reason,	void *User, void *In, size_t Len )
+	int inspector_server( lws *Wsi, lws_callback_reasons Reason, void *User, void *In, size_t Len )
 	{
 		PerSessionDataServer* BufferInfo = (PerSessionDataServer*)User;
 		if (!IsAlive)
@@ -450,94 +596,150 @@ public:
 
 		switch (Reason)
 		{
-		case LWS_CALLBACK_ESTABLISHED:
-		{
-			BufferInfo->Channel = MakeShared<ChannelImpl>(
-				WebSocketContext,
-				Wsi,
-				isolate_,
-				platform_,
-				v8inspector
-			);
-			lws_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
-		}
-		break;
 		case LWS_CALLBACK_HTTP:
-		{
-			auto request = (char*)In;
+			{
+				auto request = (char*)In;
 
-			UE_LOG(Javascript, Log, TEXT("requested URI:%s"), UTF8_TO_TCHAR(request));
+				FString Uri = UTF8_TO_TCHAR(request);
+				UE_LOG(Javascript, Log, TEXT("requested URI: '%s'"), *Uri);
 
-			FString res[][2] = {
+				auto RequestUriType = HttpResponseChannelImpl::GetRequestedUriType(Uri);
+				if (RequestUriType == HttpResponseChannelImpl::ERequestedUriType::Unknown)
+					// Close connection
+					return -1;
+
+				auto channel = MakeShared<HttpResponseChannelImpl>(Wsi, isolate_);
+				BufferInfo->Channel = channel;
+				lws_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
+
+				// Enqueue header to send buffer, first.
+				static const FString HeaderResponse = TEXT("HTTP/1.0 200 OK\r\nContent-Type: application/json; charset=UTF-8\r\nCache-Control: no-cache\r\n\r\n");
+				channel->SendResponse(HeaderResponse);
+
+				// Enqueue response body to send buffer, next.
+				switch (RequestUriType)
 				{
-					TEXT("description"), TEXT("unreal.js instance")
-				},
-				{
-					TEXT("devtoolsFrontendUrl"), DevToolsFrontEndUrl()
-				},
-				{
-					TEXT("type"), TEXT("node")
-				},
-				{
-					TEXT("id"), TEXT("0")
-				},
-				{
-					TEXT("title"), TEXT("unreal.js")
-				},
-				{
-					TEXT("webSocketDebuggerUrl"), WebSocketDebuggerUrl()
+				case HttpResponseChannelImpl::ERequestedUriType::JsonVersion:
+					{
+						static const FString ResponseBodyCache =
+							TEXT("{\r\n")
+							// Current version of Unreal.JS is based on v8 6.1.534.30,
+							// and the nearest version of v8 is integrated into Node.JS 8.7.
+							// Refer to https://nodejs.org/en/download/releases
+							TEXT("\"Browser\": \"node.js/v8.7.0\",\r\n")
+							TEXT("\"Protocol-Version\": \"1.1\"\r\n")
+							TEXT("}");
+						channel->SendResponse(ResponseBodyCache);
+					}
+					break;
+
+				case HttpResponseChannelImpl::ERequestedUriType::JsonList:
+					{
+						static const FString ResponseBodyCache = FString::Printf(
+							TEXT("[{\r\n")
+							TEXT("\"description\": \"unreal.js instance\",\r\n")
+							TEXT("\"devtoolsFrontendUrl\": \"%s\",\r\n")
+							TEXT("\"type\":\"node\",\r\n")
+							TEXT("\"id\": 0,\r\n")
+							TEXT("\"title\": \"unreal.js\",\r\n")
+							TEXT("\"webSocketDebuggerUrl\": \"%s\"\r\n")
+							TEXT("}]"),
+							*DevToolsFrontEndUrl(), *WebSocketDebuggerUrl());
+
+						channel->SendResponse(ResponseBodyCache);
+					}
+					break;
+
+				default:
+					// Close connection
+					// * Unreachable code: (RequestUriType == HttpResponseChannelImpl::ERequestedUriType::Unknown) is handled above.
+					return -1;
 				}
-			};
 
-			TArray<FString> res2;
-			for (auto pair : res)
-			{
-				res2.Add(FString::Printf(TEXT("\"%s\" : \"%s\""), *pair[0], *pair[1]));
+				// Request http_writable callback
+				lws_callback_on_writable_all_protocol(WebSocketContext, &WebSocketProtocols[0]);
 			}
+			break;
 
+		case LWS_CALLBACK_HTTP_WRITEABLE:
 			{
-				auto response = FString(TEXT("HTTP/1.0 200 OK\r\nContent-Type: application/json; charset=UTF-8\r\nCache-Control: no-cache\r\n\r\n"));
-				FTCHARToUTF8 utf8(*response);
-				lws_write_http(Wsi, utf8.Get(), utf8.Length());
-			}
+				if (BufferInfo->Channel.IsValid() &&
+					BufferInfo->Channel->AgentImplType == EAgentImplType::HttpResponseChannel)
+				{
+					auto channel = StaticCastSharedPtr<HttpResponseChannelImpl>(BufferInfo->Channel);
+					if (channel.IsValid())
+					{
+						bool* bResponseSentFlagPtr = nullptr;
+						if (channel->bHeaderSent == false)
+							bResponseSentFlagPtr = &channel->bHeaderSent;
+						else if (channel->bBodySent == false)
+							bResponseSentFlagPtr = &channel->bBodySent;
 
-			{
-				auto response = FString::Printf(TEXT("[{%s}]"), *FString::Join(res2, TEXT(",")));
-				FTCHARToUTF8 utf8(*response);
-				lws_write_http(Wsi, utf8.Get(), utf8.Length());
+						if (bResponseSentFlagPtr != nullptr)
+						{
+							*bResponseSentFlagPtr = true;
+							channel->OnWritable();
+							lws_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
+
+							// Request another http_writable callback to send next packet or close connection.
+							lws_callback_on_writable_all_protocol(WebSocketContext, &WebSocketProtocols[0]);
+						}
+						else
+						{
+							// Dispose channel and close connection.
+							BufferInfo->Channel.Reset();
+							return -1;
+						}
+					}
+				}
 			}
-		}
-		break;
+			break;
+
+		case LWS_CALLBACK_ESTABLISHED:
+			{
+				BufferInfo->Channel = MakeShared<ChannelImpl>(
+					WebSocketContext,
+					Wsi,
+					isolate_,
+					platform_,
+					v8inspector
+				);
+				lws_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
+			}
+			break;
+
 		case LWS_CALLBACK_RECEIVE:
-		{
-			auto Remaining = lws_remaining_packet_payload(Wsi);
-			BufferInfo->Channel->receive(In, Len, Remaining);
-			lws_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
-		}
-		break;
+			{
+				auto Remaining = lws_remaining_packet_payload(Wsi);
+				BufferInfo->Channel->receive(In, Len, Remaining);
+				lws_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
+			}
+			break;
 
 		case LWS_CALLBACK_SERVER_WRITEABLE:
-		{
-			BufferInfo->Channel->OnWritable();
-			lws_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
-		}
-		break;
+			{
+				BufferInfo->Channel->OnWritable();
+				lws_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
+			}
+			break;
+
 		case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
-		{
-			//BufferInfo->Socket->ErrorCallBack.ExecuteIfBound();
-		}
-		break;
+			{
+				// TODO: error handling
+			}
+			break;
+
 		case LWS_CALLBACK_WSI_DESTROY:
 		case LWS_CALLBACK_PROTOCOL_DESTROY:
 		case LWS_CALLBACK_CLOSED:
 		case LWS_CALLBACK_CLOSED_HTTP:
-		{
-			if (BufferInfo && BufferInfo->Channel.IsValid())
 			{
-				BufferInfo->Channel.Reset();
+				if (BufferInfo && BufferInfo->Channel.IsValid())
+				{
+					BufferInfo->Channel.Reset();
+				}
 			}
-		}
-		break;
+			break;
 		}
 
 		return 0;
@@ -577,16 +779,30 @@ public:
 		Info.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
 		// tack on this object.
 		Info.user = this;
+		// affect by lws>=3.0
+		Info.options |= LWS_SERVER_OPTION_DISABLE_IPV6;
+		
 		WebSocketContext = lws_create_context(&Info);
-
-		IsAlive = true;
+		if (WebSocketContext == nullptr)
+		{
+			delete[] WebSocketProtocols;
+			WebSocketProtocols = NULL;
+		}
+		else
+		{
+			IsAlive = true;
+		}
 	}
 
 	void Uninstall()
 	{
-		lws_context_destroy(WebSocketContext);
-		WebSocketContext = NULL;
+		if (WebSocketContext)
+		{
+			lws_context_destroy(WebSocketContext);
+			WebSocketContext = NULL;
+		}
 		delete[] WebSocketProtocols;
+		WebSocketProtocols = NULL;
 
 		IsAlive = false;
 	}

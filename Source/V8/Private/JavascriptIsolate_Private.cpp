@@ -696,8 +696,11 @@ public:
 			for (int Index = 0; Index < Num; ++Index)
 			{
 				uint8* PairPtr = MapHelper.GetPairPtr(Index);
-
+#if ENGINE_MINOR_VERSION < 22
 				auto Key = InternalReadProperty(p->KeyProp, PairPtr + p->MapLayout.KeyOffset, Owner, Flags);
+#else
+				auto Key = InternalReadProperty(p->KeyProp, PairPtr, Owner, Flags);
+#endif
 				auto Value = InternalReadProperty(p->ValueProp, PairPtr, Owner, Flags);
 
 				Out->Set(Key, Value);
@@ -1011,7 +1014,11 @@ public:
 					MapHelper.Rehash();
 
 					uint8* PairPtr = MapHelper.GetPairPtr(ElementIndex);
+#if ENGINE_MINOR_VERSION < 22
 					InternalWriteProperty(p->KeyProp, PairPtr + p->MapLayout.KeyOffset, Key, Owner, Flags);
+#else
+					InternalWriteProperty(p->KeyProp, PairPtr, Key, Owner, Flags);
+#endif
 					InternalWriteProperty(p->ValueProp, PairPtr, Value, Owner, Flags);
 				}
 			}
@@ -2332,7 +2339,10 @@ public:
 							if (info.Length() == 4) break;
 						case 5:
 							SpawnInfo.ObjectFlags = RF_Transient | RF_Transactional;
-							break;
+							if (info.Length() == 5) break;
+						case 6:
+							SpawnInfo.Template = Cast<AActor>(UObjectFromV8(info[5]));
+							if (info.Length() == 6) break;
 						default:
 							break;
 						}
@@ -2349,6 +2359,7 @@ public:
 						UObject* Outer = GetTransientPackage();
 						FName Name = NAME_None;
 						EObjectFlags ObjectFlags = RF_NoFlags;
+						UObject* Template = nullptr;
 
 						if (info.Length() > 0)
 						{
@@ -2358,16 +2369,23 @@ public:
 							}
 							if (info.Length() > 1)
 							{
-								Name = FName(*StringFromV8(info[1]));
+								if (StringFromV8(info[1]) == TEXT(""))
+									Name = NAME_None;
+								else
+									Name = FName(*StringFromV8(info[1]));
 							}
 							if (info.Length() > 2)
 							{
 								ObjectFlags = (EObjectFlags)(info[2]->Int32Value());
 							}
+							if (info.Length() > 3)
+							{
+								Template = UObjectFromV8(info[3]);
+							}
 						}
 
 						PreCreate(); 
-						Associated = NewObject<UObject>(Outer, ClassToExport, Name, ObjectFlags);
+						Associated = NewObject<UObject>(Outer, ClassToExport, Name, ObjectFlags, Template);
 					}
 
 					if (bIsJavascriptClass)

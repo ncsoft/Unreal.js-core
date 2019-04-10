@@ -56,7 +56,7 @@ public:
 	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
 
 	void HandleOnNamespaceKeyChanged(const FString& InNamespace, const FString& InKey);
-	void HandleOnTextCommitted(const FString& InValue);
+	void HandleOnTextCommitted(const FText& InText);
 	void HandleOnStringTableKeyChanged(const FName& InTableId, const FString& InKey);
 
 protected:

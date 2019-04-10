@@ -78,6 +78,9 @@ public:
 	void Discard();
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	void ForceCommit();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	void CloseTab(UWidget* Widget);
 
 	bool bRegistered;

@@ -148,5 +148,10 @@ struct FV8Config
 
 		return no_empty ? Safeify(Function->GetName()) : TEXT("");
 	}
+
+	static bool FlushInspectorWebSocketOnWritable()
+	{
+		return true;
+	}
 };
 

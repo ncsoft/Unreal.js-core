@@ -45,6 +45,17 @@ void UJavascriptEditorTab::Discard()
 	bRegistered = false;
 }
 
+void UJavascriptEditorTab::ForceCommit()
+{
+	const TSharedRef<FGlobalTabmanager>& GlobalTabManager = FGlobalTabmanager::Get();
+	if (bIsNomad && GlobalTabManager->CanSpawnTab(TabId))
+	{
+		GlobalTabManager->UnregisterNomadTabSpawner(TabId);
+	}
+
+	Commit();
+}
+
 UWidget* UJavascriptEditorTab::TakeWidget(UObject* Context)
 {
 	if (OnSpawnTab.IsBound())

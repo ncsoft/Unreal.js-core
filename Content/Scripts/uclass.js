@@ -69,9 +69,18 @@
             return out
         }
 
+        function ParseType(type) {
+            let key = {
+                'boolean': 'bool',
+                'integer': 'int'
+            }
+
+            return key[type] || type;
+        }
+
         let RE_class = /\s*class\s+(\w+)(\s+\/\*([^\*]*)\*\/)?(\s+extends\s+([^\s\{]+))?/
         let RE_func = /(\w+)\s*\(([^.)]*)\)\s*(\/\*([^\*]*)\*\/)?.*/
-        function register(target, template, includeProperty=true) {
+        function register(target, template, includeProperty=true, archetype=null) {
             target = target || {}
             let bindings = []
 
@@ -129,7 +138,7 @@
                     if (type) {
                         return {
                             Name: m[1],
-                            Type: type,
+                            Type: ParseType(type),
                             Decorators: arr,
                             IsSubclass: is_subclass,
                             IsArray: is_array,
@@ -211,6 +220,7 @@
                     Functions: proxy,
                     StructFlags: classFlags,
                     Outer: thePackage,
+                    Archetype: archetype,
                     Properties: includeProperty ? properties : []
                 });
             }
@@ -222,6 +232,7 @@
                     Functions: proxy,
                     ClassFlags: classFlags,
                     Outer: thePackage,
+                    Archetype: archetype,
                     NonNative: nonNative,
                     Properties: includeProperty ? properties : []
                 });
