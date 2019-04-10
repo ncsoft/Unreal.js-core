@@ -216,6 +216,9 @@ public:
 	static void AddMenuEntry(FJavascriptMenuBuilder& Builder, UJavascriptMenuContext* Object);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddMenuByCommands(FJavascriptMenuBuilder& Builder, UJavascriptUICommands* UICommands);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddWidget(FJavascriptMenuBuilder& Builder, UWidget* Widget, const FText& Label, bool bNoIndent, FName InTutorialHighlightName, bool bSearchable);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")

@@ -3,6 +3,7 @@
 #include "JavascriptToolbarButtonContext.h"
 #include "Components/Widget.h"
 #include "Framework/Commands/GenericCommands.h"
+#include "JavascriptUICommands.h"
 
 FJavascriptUICommandList UJavascriptMenuLibrary::CreateUICommandList()
 {
@@ -139,6 +140,17 @@ void UJavascriptMenuLibrary::AddMenuEntry(FJavascriptMenuBuilder& Builder, UJava
 			Object->ToolTip,
 			Object->Icon,
 			DefaultAction);
+	}
+}
+
+void UJavascriptMenuLibrary::AddMenuByCommands(FJavascriptMenuBuilder& Builder, UJavascriptUICommands* UICommands)
+{
+	if (Builder.Menu && UICommands)
+	{
+		for (FJavascriptUICommandInfo CommandInfo : UICommands->CommandInfos)
+		{
+			Builder.Menu->AddMenuEntry(CommandInfo.Handle);
+		}
 	}
 }
 

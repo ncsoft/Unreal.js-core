@@ -696,8 +696,11 @@ public:
 			for (int Index = 0; Index < Num; ++Index)
 			{
 				uint8* PairPtr = MapHelper.GetPairPtr(Index);
-
+#if ENGINE_MINOR_VERSION < 22
 				auto Key = InternalReadProperty(p->KeyProp, PairPtr + p->MapLayout.KeyOffset, Owner, Flags);
+#else
+				auto Key = InternalReadProperty(p->KeyProp, PairPtr, Owner, Flags);
+#endif
 				auto Value = InternalReadProperty(p->ValueProp, PairPtr, Owner, Flags);
 
 				Out->Set(Key, Value);
@@ -1011,7 +1014,11 @@ public:
 					MapHelper.Rehash();
 
 					uint8* PairPtr = MapHelper.GetPairPtr(ElementIndex);
+#if ENGINE_MINOR_VERSION < 22
 					InternalWriteProperty(p->KeyProp, PairPtr + p->MapLayout.KeyOffset, Key, Owner, Flags);
+#else
+					InternalWriteProperty(p->KeyProp, PairPtr, Key, Owner, Flags);
+#endif
 					InternalWriteProperty(p->ValueProp, PairPtr, Value, Owner, Flags);
 				}
 			}

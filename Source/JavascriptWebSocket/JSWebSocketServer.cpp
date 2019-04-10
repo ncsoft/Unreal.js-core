@@ -128,9 +128,9 @@ FString FJavascriptWebSocketServer::Info()
 // callback. 
 int FJavascriptWebSocketServer::unreal_networking_server(lws *InWsi, lws_callback_reasons Reason, void* User, void *In, size_t Len) 
 {
-	struct lws_context *Context = lws_get_context(InWsi);
+	struct lws_context *LwsContext = lws_get_context(InWsi);
 	PerSessionDataServer* BufferInfo = (PerSessionDataServer*)User;	
-	FJavascriptWebSocketServer* Server = (FJavascriptWebSocketServer*)lws_context_user(Context);
+	FJavascriptWebSocketServer* Server = (FJavascriptWebSocketServer*)lws_context_user(LwsContext);
 	if (!Server->IsAlive)
 	{
 		return 0;
@@ -140,7 +140,7 @@ int FJavascriptWebSocketServer::unreal_networking_server(lws *InWsi, lws_callbac
 	{
 		case LWS_CALLBACK_ESTABLISHED: 
 			{
-				BufferInfo->Socket = new FJavascriptWebSocket(Context, InWsi);
+				BufferInfo->Socket = new FJavascriptWebSocket(LwsContext, InWsi);
 				ConnectedCallBack.ExecuteIfBound(BufferInfo->Socket);
 				lws_set_timeout(InWsi, NO_PENDING_TIMEOUT, 0);
 			}
@@ -154,15 +154,21 @@ int FJavascriptWebSocketServer::unreal_networking_server(lws *InWsi, lws_callbac
 			break; 
 
 		case LWS_CALLBACK_SERVER_WRITEABLE: 
+			if (BufferInfo->Socket->Context == LwsContext) // UE-68340 -- bandaid until this file is removed in favor of using LwsWebSocketsManager.cpp & LwsWebSocket.cpp
 			{
 				BufferInfo->Socket->OnRawWebSocketWritable(InWsi);
-				lws_set_timeout(InWsi, NO_PENDING_TIMEOUT, 0);
 			}
-			break; 
+			lws_set_timeout(InWsi, NO_PENDING_TIMEOUT, 0);
+			break;
 		case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
 			{
 				BufferInfo->Socket->ErrorCallBack.ExecuteIfBound();
 			}
+			break;
+		case LWS_CALLBACK_WSI_DESTROY:
+		case LWS_CALLBACK_PROTOCOL_DESTROY:
+		case LWS_CALLBACK_CLOSED:
+		case LWS_CALLBACK_CLOSED_HTTP:
 			break;
 	}
 

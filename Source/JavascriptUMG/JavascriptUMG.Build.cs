@@ -12,7 +12,6 @@ public class JavascriptUMG : ModuleRules
             "InputCore", 
             "Slate",
 			"SlateCore",
-            "ShaderCore",
 			"RenderCore",
 			"RHI", 
             "UMG",
