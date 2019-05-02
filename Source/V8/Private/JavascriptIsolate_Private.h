@@ -1,6 +1,7 @@
 #pragma once
 
-#include "v8.h"
+#include "CoreMinimal.h"
+#include "V8PCH.h"
 
 struct FStructMemoryInstance;
 struct IPropertyOwner;
@@ -45,12 +46,12 @@ public:
 
 	virtual v8::Local<v8::Value> ExportObject(UObject* Object, bool bForce = false) = 0;
 	virtual v8::Local<v8::FunctionTemplate> ExportStruct(UScriptStruct* ScriptStruct) = 0;
-	virtual v8::Local<v8::FunctionTemplate> ExportClass(UClass* Class, bool bAutoRegister = true) = 0;
-	virtual void RegisterClass(UClass* Class, v8::Local<v8::FunctionTemplate> Template) = 0;
+	virtual v8::Local<v8::FunctionTemplate> ExportUClass(UClass* Class, bool bAutoRegister = true) = 0;
+	virtual void RegisterUClass(UClass* Class, v8::Local<v8::FunctionTemplate> Template) = 0;
 	virtual v8::Local<v8::ObjectTemplate> GetGlobalTemplate() = 0;
 	virtual void AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector) = 0;
 	virtual v8::Local<v8::Value> ExportStructInstance(UScriptStruct* Struct, uint8* Buffer, const IPropertyOwner& Owner) = 0;
-	virtual void PublicExportClass(UClass* ClassToExport) = 0;
+	virtual void PublicExportUClass(UClass* ClassToExport) = 0;
 	virtual void PublicExportStruct(UScriptStruct* StructToExport) = 0;
 	virtual ~FJavascriptIsolate() {}	
 };

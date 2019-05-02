@@ -1,5 +1,8 @@
 #pragma once
 
+#include "CoreMinimal.h"
+#include "V8PCH.h"
+
 namespace v8
 {
 	class Isolate;

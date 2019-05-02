@@ -65,12 +65,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	bool WriteDTS(FString Target, bool bIncludingTooltip);
 
-	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	void SetAsDebugContext(int32 InPort = 5858);
-
-	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	void ResetAsDebugContext();
-
 	UFUNCTION(BlueprintPure, Category = "Scripting|Javascript")
 	bool IsDebugContext() const;
 

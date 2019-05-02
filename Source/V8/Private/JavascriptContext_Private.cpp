@@ -758,7 +758,6 @@ class FJavascriptContextImplementation : public FJavascriptContext
 	int32 Magic{ MagicNumber };
 
 	Persistent<Context> context_;
-	//IJavascriptDebugger* debugger{ nullptr };
 	IJavascriptInspector* inspector{ nullptr };
 
 	TMap<FString, UObject*> WKOs;
@@ -773,32 +772,9 @@ public:
 	TMap<FString, UniquePersistent<Value>> Modules;
 	TArray<FString>& Paths;
 
-	void SetAsDebugContext(int32 InPort)
-	{
-		//if (debugger) return;
-
-		//Isolate::Scope isolate_scope(isolate());
-		//HandleScope handle_scope(isolate());
-
-		//debugger = IJavascriptDebugger::Create(InPort, context());
-	}
-
 	bool IsDebugContext() const
 	{
-		return false;
-		//return debugger != nullptr;
-	}
-
-	void ResetAsDebugContext()
-	{
-		//if (debugger)
-		//{
-		//	Isolate::Scope isolate_scope(isolate());
-		//	HandleScope handle_scope(isolate());
-
-		//	debugger->Destroy();
-		//	debugger = nullptr;
-		//}
+		return inspector != nullptr;
 	}
 
 	void CreateInspector(int32 Port)
@@ -845,7 +821,6 @@ public:
 
 		ReleaseAllPersistentHandles();
 
-		ResetAsDebugContext();
 		DestroyInspector();
 
 		context_.Reset();
@@ -1240,7 +1215,7 @@ public:
 			Class->StaticLink(true);
 
 			{
-				auto FinalClass = Context->Environment->ExportClass(Class,false);
+				auto FinalClass = Context->Environment->ExportUClass(Class,false);
 				auto Prototype = FinalClass->PrototypeTemplate();
 
 				for (auto It = Others.CreateIterator(); It; ++It)
@@ -1248,7 +1223,7 @@ public:
 					Prototype->Set(I.Keyword(It.Key()), It.Value());
 				}
 
-				Context->Environment->RegisterClass(Class, FinalClass);
+				Context->Environment->RegisterUClass(Class, FinalClass);
 			}
 
 			auto FinalClass = Context->ExportObject(Class);
@@ -1339,7 +1314,7 @@ public:
 				ProxyFuncMap->Set(context, I.Keyword("prector"), Function1);
 			}
 
-			Context->Environment->PublicExportClass(Class);
+			Context->Environment->PublicExportUClass(Class);
 
 			auto aftr_v8_template = Context->ExportObject(Class);
 			aftr_v8_template->ToObject(context).ToLocalChecked()->Set(I.Keyword("proxy"), ProxyFunctions);

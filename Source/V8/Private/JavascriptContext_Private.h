@@ -1,6 +1,6 @@
 #pragma once
 
-#include "v8.h"
+#include "V8PCH.h"
 
 struct FStructMemoryInstance;
 class FJavascriptIsolate;
@@ -26,8 +26,6 @@ struct FJavascriptContext : TSharedFromThis<FJavascriptContext>
 	virtual void RequestV8GarbageCollection() = 0;
 	virtual void Public_RunFile(const FString& Filename) = 0;
     virtual void FindPathFile(const FString TargetRootPath, const FString TargetFileName, TArray<FString>& OutFiles) = 0;
-	virtual void SetAsDebugContext(int32 InPort) = 0;
-	virtual void ResetAsDebugContext() = 0;
 	virtual bool IsDebugContext() const = 0;
 	virtual void CreateInspector(int32 Port) = 0;
 	virtual void DestroyInspector() = 0;

@@ -22,7 +22,6 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "StructMemoryInstance.h"
 #include "JavascriptMemoryObject.h"
 #include "Containers/Ticker.h"
-#include "V8PCH.h"
 #include "UObject/UObjectIterator.h"
 #include "UObject/TextProperty.h"
 #include "JavascriptLibrary.h"
@@ -365,7 +364,7 @@ public:
 		// Export all classes
 		for (TObjectIterator<UClass> It; It; ++It)
 		{
-			ExportClass(*It);
+			ExportUClass(*It);
 		}
 
 		// Export all enums
@@ -555,7 +554,7 @@ public:
 
 			if (Class)
 			{
-				return ExportClass(Class)->GetFunction(isolate_->GetCurrentContext()).ToLocalChecked();
+				return ExportUClass(Class)->GetFunction(isolate_->GetCurrentContext()).ToLocalChecked();
 			}
 			else
 			{
@@ -1619,12 +1618,12 @@ public:
 		Template->Set(function_name, function);
 	}
 	
-	virtual void PublicExportClass(UClass* ClassToExport) override
+	virtual void PublicExportUClass(UClass* ClassToExport) override
 	{
 		// Clear some template maps
 		OnGarbageCollectedByV8(GetContext(), ClassToExport);
 
-		ExportClass(ClassToExport);
+		ExportUClass(ClassToExport);
 	}
 
 	virtual void PublicExportStruct(UScriptStruct* StructToExport) override
@@ -2231,7 +2230,7 @@ public:
 		Template->PrototypeTemplate()->Set(I.Keyword("$memaccess"), I.FunctionTemplate(fn, ClassToExport));
 	}
 
-	Local<FunctionTemplate> InternalExportClass(UClass* ClassToExport)
+	Local<FunctionTemplate> InternalExportUClass(UClass* ClassToExport)
 	{
 		FIsolateHelper I(isolate_);
 
@@ -2567,24 +2566,24 @@ public:
 		return arr;
 	}
 
-	virtual Local<FunctionTemplate> ExportClass(UClass* Class, bool bAutoRegister = true) override
+	virtual Local<FunctionTemplate> ExportUClass(UClass* Class, bool bAutoRegister = true) override
 	{
 		auto ExportedFunctionTemplatePtr = ClassToFunctionTemplateMap.Find(Class);
 		if (ExportedFunctionTemplatePtr == nullptr)
 		{
-			auto Template = InternalExportClass(Class);
+			auto Template = InternalExportUClass(Class);
 
 			auto SuperClass = Class->GetSuperClass();
 			if (SuperClass)
 			{
-				Template->Inherit(ExportClass(SuperClass));
+				Template->Inherit(ExportUClass(SuperClass));
 			}
 
 			ExportHelperFunctions(Class, Template);
 
 			if (bAutoRegister)
 			{
-				RegisterClass(Class, Template);
+				RegisterUClass(Class, Template);
 			}			
 			
 			return Template;
@@ -2629,7 +2628,7 @@ public:
 		{
 			Local<Value> value;
 
-			auto v8_class = ExportClass(Object->GetClass());
+			auto v8_class = ExportUClass(Object->GetClass());
 			auto arg = I.External(Object);
 			Handle<Value> args[] = { arg };
 
@@ -2679,7 +2678,7 @@ public:
 			
 			if (auto Class = Cast<UClass>(Object))
 			{
-				value = ExportClass(Class)->GetFunction(isolate_->GetCurrentContext()).ToLocalChecked();
+				value = ExportUClass(Class)->GetFunction(isolate_->GetCurrentContext()).ToLocalChecked();
 			}
 			else if (auto Struct = Cast<UScriptStruct>(Object))
 			{
@@ -2693,7 +2692,7 @@ public:
 				//	return Undefined(isolate_);
 				//}
 
-				auto v8_class = ExportClass(Class);
+				auto v8_class = ExportUClass(Class);
 				auto arg = I.External(Object);
 				Handle<Value> args[] = { arg };
 
@@ -2763,9 +2762,9 @@ public:
 		SetWeak(result, Class);
 	}
 
-	virtual void RegisterClass(UClass* Class, Local<FunctionTemplate> Template) override
+	virtual void RegisterUClass(UClass* Class, v8::Local<v8::FunctionTemplate> Template) override
 	{
-		RegisterStruct(ClassToFunctionTemplateMap, Class, Template);		
+		RegisterStruct(ClassToFunctionTemplateMap, Class, Template);
 	}
 
 	void RegisterScriptStruct(UScriptStruct* Struct, Local<FunctionTemplate> Template)

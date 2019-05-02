@@ -149,16 +149,6 @@ void UJavascriptContext::FindPathFile(FString TargetRootPath, FString TargetFile
     JavascriptContext->FindPathFile(TargetRootPath, TargetFileName, OutFiles);
 }
 
-void UJavascriptContext::SetAsDebugContext(int32 InPort)
-{
-	JavascriptContext->SetAsDebugContext(InPort);
-}
-
-void UJavascriptContext::ResetAsDebugContext()
-{
-	JavascriptContext->ResetAsDebugContext();
-}
-
 void UJavascriptContext::CreateInspector(int32 Port)
 {
 	JavascriptContext->CreateInspector(Port);
