@@ -125,33 +125,17 @@ public class V8 : ModuleRules
                 LibrariesPath = Path.Combine(LibrariesPath, "Release");
             }
 
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_init.lib"));
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_initializers.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_base_0.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_base_1.lib"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_base_2.lib"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_base_3.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libbase.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libplatform.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_nosnapshot.lib"));
-
-            if (v8_version[0] >= 6)
-            {
-                if (v8_version[1] >= 4)
-                {
-                    PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_init.lib"));
-                    PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_initializers.lib"));
-                }
-                else
-                {
-                    PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_builtins_setup.lib"));
-                    PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_builtins_generators.lib"));
-                }
-            }
-
-            if (ShouldLink_libsampler)
-            {
-                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libsampler.lib"));
-            }
-
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libsampler.lib"));
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "torque_base.lib"));
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "torque_generated_initializers.lib"));
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "inspector.lib"));
 
             PublicDefinitions.Add(string.Format("WITH_V8=1"));
 

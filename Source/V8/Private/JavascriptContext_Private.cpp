@@ -35,7 +35,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 using namespace v8;
 
-static const int kContextEmbedderDataIndex = 1;
+static const int kContextEmbedderDataIndex = 0;
 static const int32 MagicNumber = 0x2852abd3;
 static const FString URL_FilePrefix(TEXT("file:///"));
 
@@ -56,7 +56,7 @@ static FString URLToLocalPath(FString URL)
 	return URL;
 }
 
-static TArray<FString> StringArrayFromV8(Handle<Value> InArray)
+static TArray<FString> StringArrayFromV8(Isolate* isolate, Handle<Value> InArray)
 {
 	TArray<FString> OutArray;
 	if (!InArray.IsEmpty() && InArray->IsArray())
@@ -66,7 +66,7 @@ static TArray<FString> StringArrayFromV8(Handle<Value> InArray)
 
 		for (decltype(len) Index = 0; Index < len; ++Index)
 		{
-			OutArray.Add(StringFromV8(arr->Get(Index)));
+			OutArray.Add(StringFromV8(isolate, arr->Get(Index)));
 		}
 	}
 	return OutArray;
@@ -452,23 +452,23 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 	return SetupProperty(Create());
 }
 
-static UProperty* CreatePropertyFromDecl(FIsolateHelper& I, UObject* Outer, Handle<Value> PropertyDecl)
+static UProperty* CreatePropertyFromDecl(Local<Context> context, FIsolateHelper& I, UObject* Outer, Handle<Value> PropertyDecl)
 {
-	auto Decl = PropertyDecl->ToObject();
-	auto Name = Decl->Get(I.Keyword("Name"));
-	auto Type = Decl->Get(I.Keyword("Type"));
-	auto Decorators = Decl->Get(I.Keyword("Decorators"));
-	auto IsArray = Decl->Get(I.Keyword("IsArray"));
-	auto IsSubClass = Decl->Get(I.Keyword("IsSubclass"));
-	auto IsMap = Decl->Get(I.Keyword("IsMap"));
+	auto Decl = PropertyDecl->ToObject(context).ToLocalChecked();
+	auto Name = Decl->Get(context, I.Keyword("Name")).ToLocalChecked();
+	auto Type = Decl->Get(context, I.Keyword("Type")).ToLocalChecked();
+	auto Decorators = Decl->Get(context, I.Keyword("Decorators")).ToLocalChecked();
+	auto IsArray = Decl->Get(context, I.Keyword("IsArray"));
+	auto IsSubClass = Decl->Get(context, I.Keyword("IsSubclass"));
+	auto IsMap = Decl->Get(context, I.Keyword("IsMap"));
 	return CreateProperty(
 		Outer,
-		*StringFromV8(Name),
-		StringArrayFromV8(Decorators),
-		StringFromV8(Type),
-		!IsArray.IsEmpty() && IsArray->BooleanValue(),
-		!IsSubClass.IsEmpty() && IsSubClass->BooleanValue(),
-		!IsMap.IsEmpty() && IsMap->BooleanValue()
+		*StringFromV8(I.isolate_, Name),
+		StringArrayFromV8(I.isolate_, Decorators),
+		StringFromV8(I.isolate_, Type),
+		!IsArray.IsEmpty() && IsArray.ToLocalChecked()->BooleanValue(I.isolate_),
+		!IsSubClass.IsEmpty() && IsSubClass.ToLocalChecked()->BooleanValue(I.isolate_),
+		!IsMap.IsEmpty() && IsMap.ToLocalChecked()->BooleanValue(I.isolate_)
 		);
 }
 
@@ -758,7 +758,7 @@ class FJavascriptContextImplementation : public FJavascriptContext
 	int32 Magic{ MagicNumber };
 
 	Persistent<Context> context_;
-	IJavascriptDebugger* debugger{ nullptr };
+	//IJavascriptDebugger* debugger{ nullptr };
 	IJavascriptInspector* inspector{ nullptr };
 
 	TMap<FString, UObject*> WKOs;
@@ -775,29 +775,30 @@ public:
 
 	void SetAsDebugContext(int32 InPort)
 	{
-		if (debugger) return;
+		//if (debugger) return;
 
-		Isolate::Scope isolate_scope(isolate());
-		HandleScope handle_scope(isolate());
+		//Isolate::Scope isolate_scope(isolate());
+		//HandleScope handle_scope(isolate());
 
-		debugger = IJavascriptDebugger::Create(InPort, context());
+		//debugger = IJavascriptDebugger::Create(InPort, context());
 	}
 
 	bool IsDebugContext() const
 	{
-		return debugger != nullptr;
+		return false;
+		//return debugger != nullptr;
 	}
 
 	void ResetAsDebugContext()
 	{
-		if (debugger)
-		{
-			Isolate::Scope isolate_scope(isolate());
-			HandleScope handle_scope(isolate());
+		//if (debugger)
+		//{
+		//	Isolate::Scope isolate_scope(isolate());
+		//	HandleScope handle_scope(isolate());
 
-			debugger->Destroy();
-			debugger = nullptr;
-		}
+		//	debugger->Destroy();
+		//	debugger = nullptr;
+		//}
 	}
 
 	void CreateInspector(int32 Port)
@@ -888,13 +889,13 @@ public:
 			FIsolateHelper I(isolate);
 
 			HandleScope scope(isolate);
-
-			auto Name = StringFromV8(info[0]);
-			auto Opts = info[1]->ToObject();
-			auto Outer = UObjectFromV8(Opts->Get(I.Keyword("Outer")));
-			auto Archetype = UObjectFromV8(Opts->Get(I.Keyword("Archetype")));
-			auto ParentClass = UClassFromV8(isolate, Opts->Get(I.Keyword("Parent")));
-			auto NonNative = Opts->Get(I.Keyword("NonNative"))->BooleanValue();
+			auto context = Context->context();
+			auto Name = StringFromV8(isolate, info[0]);
+			auto Opts = info[1]->ToObject(context).ToLocalChecked();
+			auto Outer = UObjectFromV8(context, Opts->Get(context, I.Keyword("Outer")).ToLocalChecked());
+			auto Archetype = UObjectFromV8(context, Opts->Get(context, I.Keyword("Archetype")).ToLocalChecked());
+			auto ParentClass = UClassFromV8(isolate, Opts->Get(context, I.Keyword("Parent")).ToLocalChecked());
+			auto NonNative = Opts->Get(context, I.Keyword("NonNative")).ToLocalChecked()->BooleanValue(isolate);
 			Outer = Outer ? Outer : GetTransientPackage();
 			ParentClass = ParentClass ? ParentClass : UObject::StaticClass();
 
@@ -953,10 +954,20 @@ public:
 					Context::Scope context_scope(Context->context());
 
 					auto Holder = Context->ExportObject(Class);
+					auto context = Context->context();
 
-					auto v8_obj = Holder->ToObject();
-					auto proxy = v8_obj->Get(I.Keyword("proxy"));
-					if (proxy.IsEmpty() || !proxy->IsObject())
+					auto v8_obj = Holder->ToObject(context).ToLocalChecked();
+					auto maybe_proxy = v8_obj->Get(context, I.Keyword("proxy"));
+					if (maybe_proxy.IsEmpty())
+					{
+						I.Throw(TEXT("Invalid proxy : construct class"));
+						//@todo : assertion
+						return;
+					}
+
+					auto proxy = maybe_proxy.ToLocalChecked();
+
+					if (!proxy->IsObject())
 					{
 						I.Throw(TEXT("Invalid proxy : construct class"));
 						//@todo : assertion
@@ -967,10 +978,8 @@ public:
 
 					auto This = Context->ExportObject(Object);
 
-					auto context = Context->context();
-
 					{
-						auto func = proxy->ToObject()->Get(I.Keyword("prector"));
+						auto func = proxy->ToObject(context).ToLocalChecked()->Get(context, I.Keyword("prector")).ToLocalChecked();
 
 						if (func->IsFunction())
 						{
@@ -981,7 +990,7 @@ public:
 					CallClassConstructor(Class->GetSuperClass(), ObjectInitializer);
 
 					{
-						auto func = proxy->ToObject()->Get(I.Keyword("ctor"));
+						auto func = proxy->ToObject(context).ToLocalChecked()->Get(context, I.Keyword("ctor")).ToLocalChecked();
 
 						if (func->IsFunction())
 						{
@@ -1057,9 +1066,16 @@ public:
 				}
 				else
 				{
-					auto FunctionObj = TheFunction->ToObject();
-					auto IsUFUNCTION = FunctionObj->Get(I.Keyword("IsUFUNCTION"));
-					if (IsUFUNCTION.IsEmpty() || !IsUFUNCTION->BooleanValue())
+					auto FunctionObj = TheFunction->ToObject(context).ToLocalChecked();
+					auto Maybe_IsUFUNCTION = FunctionObj->Get(context, I.Keyword("IsUFUNCTION"));
+					if (Maybe_IsUFUNCTION.IsEmpty())
+					{
+						return false;
+					}
+					
+					auto IsUFUNCTION = Maybe_IsUFUNCTION.ToLocalChecked();
+
+					if (!IsUFUNCTION->BooleanValue(isolate))
 					{
 						return false;
 					}
@@ -1069,10 +1085,10 @@ public:
 					auto Decorators = FunctionObj->Get(I.Keyword("Decorators"));
 					if (!Decorators.IsEmpty() && Decorators->IsArray())
 					{
-						SetFunctionFlags(Function, StringArrayFromV8(Decorators));
+						SetFunctionFlags(Function, StringArrayFromV8(isolate, Decorators));
 					}
 
-					auto InitializeProperties = [&I](UFunction* Function, Handle<Value> Signature) {
+					auto InitializeProperties = [&](UFunction* Function, Handle<Value> Signature) {
 						UField** Storage = &Function->Children;
 						UProperty** PropertyStorage = &Function->PropertyLink;
 
@@ -1085,7 +1101,7 @@ public:
 							{
 								auto PropertyDecl = arr->Get(Index);
 
-								auto NewProperty = CreatePropertyFromDecl(I, Function, PropertyDecl);
+								auto NewProperty = CreatePropertyFromDecl(context, I, Function, PropertyDecl);
 
 								if (NewProperty)
 								{
@@ -1101,7 +1117,7 @@ public:
 						}
 					};
 
-					auto Signature = FunctionObj->Get(I.Keyword("Signature"));
+					auto Signature = FunctionObj->Get(context, I.Keyword("Signature")).ToLocalChecked();
 
 					InitializeProperties(Function, Signature);
 				}
@@ -1164,7 +1180,7 @@ public:
 			auto ClassFlags = Opts->Get(I.Keyword("ClassFlags"));
 			if (!ClassFlags.IsEmpty() && ClassFlags->IsArray())
 			{
-				SetClassFlags(Class,StringArrayFromV8(ClassFlags));
+				SetClassFlags(Class,StringArrayFromV8(isolate, ClassFlags));
 			}
 
 			auto PropertyDecls = Opts->Get(I.Keyword("Properties"));
@@ -1178,7 +1194,7 @@ public:
 					auto PropertyDecl = arr->Get(len - Index - 1);
 					if (PropertyDecl->IsObject())
 					{
-						auto Property = CreatePropertyFromDecl(I, Class, PropertyDecl);
+						auto Property = CreatePropertyFromDecl(context, I, Class, PropertyDecl);
 
 						if (Property)
 						{
@@ -1197,15 +1213,15 @@ public:
 			TMap<FString,Handle<Value>> Others;
 			if (!Functions.IsEmpty() && Functions->IsObject())
 			{
-				auto FuncMap = Functions->ToObject();
-				auto Keys = FuncMap->GetOwnPropertyNames();
+				auto FuncMap = Functions->ToObject(context).ToLocalChecked();
+				auto Keys = FuncMap->GetOwnPropertyNames(context).ToLocalChecked();
 
 				auto NumKeys = Keys->Length();
 
 				for (decltype(NumKeys) Index = 0; Index < NumKeys; ++Index)
 				{
 					auto Name = Keys->Get(Index);
-					auto UName = StringFromV8(Name);
+					auto UName = StringFromV8(isolate, Name);
 					auto Function = FuncMap->Get(Name);
 
 					if (!Function->IsFunction()) continue;
@@ -1236,7 +1252,7 @@ public:
 			}
 
 			auto FinalClass = Context->ExportObject(Class);
-			FinalClass->ToObject()->Set(I.Keyword("proxy"), Functions);
+			FinalClass->ToObject(context).ToLocalChecked()->Set(I.Keyword("proxy"), Functions);
 
 			info.GetReturnValue().Set(FinalClass);
 
@@ -1267,9 +1283,9 @@ public:
 			FIsolateHelper I(isolate);
 
 			HandleScope scope(isolate);
-
-			auto Opts = info[0]->ToObject();
-			auto Class = (UBlueprintGeneratedClass*)UClassFromV8(isolate, Opts->Get(I.Keyword("SelfClass")));
+			auto context = Context->context();
+			auto Opts = info[0]->ToObject(context).ToLocalChecked();
+			auto Class = (UBlueprintGeneratedClass*)UClassFromV8(isolate, Opts->Get(context, I.Keyword("SelfClass")).ToLocalChecked());
 
 			// Recreate the CDO after rebind properties.
 			TMap<UClass*, UClass*> OldToNewMap;
@@ -1288,7 +1304,7 @@ public:
 					auto PropertyDecl = arr->Get(len - Index - 1);
 					if (PropertyDecl->IsObject())
 					{
-						auto Property = CreatePropertyFromDecl(I, Class, PropertyDecl);
+						auto Property = CreatePropertyFromDecl(context, I, Class, PropertyDecl);
 
 						if (Property)
 						{
@@ -1308,25 +1324,25 @@ public:
 
 			// @note: caching target class's proxy function and adjust to reexported class.
 			auto prev_v8_template = Context->ExportObject(Class);
-			auto ProxyFunctions = prev_v8_template->ToObject()->Get(I.Keyword("proxy"));
+			auto ProxyFunctions = prev_v8_template->ToObject(context).ToLocalChecked()->Get(context, I.Keyword("proxy")).ToLocalChecked();
 
 			auto Functions = Opts->Get(I.Keyword("Functions"));
 			TMap<FString, Handle<Value>> Others;
 			if (!Functions.IsEmpty() && Functions->IsObject())
 			{
-				auto FuncMap = Functions->ToObject();
-				auto Function0 = FuncMap->Get(I.Keyword("ctor"));
-				auto Function1 = FuncMap->Get(I.Keyword("prector"));
+				auto FuncMap = Functions->ToObject(context).ToLocalChecked();
+				auto Function0 = FuncMap->Get(context, I.Keyword("ctor")).ToLocalChecked();
+				auto Function1 = FuncMap->Get(context, I.Keyword("prector")).ToLocalChecked();
 
-				auto ProxyFuncMap = ProxyFunctions->ToObject();
-				ProxyFuncMap->Set(I.Keyword("ctor"), Function0);
-				ProxyFuncMap->Set(I.Keyword("prector"), Function1);
+				auto ProxyFuncMap = ProxyFunctions->ToObject(context).ToLocalChecked();
+				ProxyFuncMap->Set(context, I.Keyword("ctor"), Function0);
+				ProxyFuncMap->Set(context, I.Keyword("prector"), Function1);
 			}
 
 			Context->Environment->PublicExportClass(Class);
 
 			auto aftr_v8_template = Context->ExportObject(Class);
-			aftr_v8_template->ToObject()->Set(I.Keyword("proxy"), ProxyFunctions);
+			aftr_v8_template->ToObject(context).ToLocalChecked()->Set(I.Keyword("proxy"), ProxyFunctions);
 
 			Class->GetDefaultObject(true);
 
@@ -1339,11 +1355,12 @@ public:
 #endif
 		};
 
-		auto global = context()->Global();
+		auto ctx = context();
+		auto global = ctx->Global();
 		auto self = External::New(isolate(), this);
 
-		global->Set(V8_KeywordString(isolate(), "CreateClass"), FunctionTemplate::New(isolate(), fn, self)->GetFunction());
-		global->Set(V8_KeywordString(isolate(), "RebindClassProperties"), FunctionTemplate::New(isolate(), fn1, self)->GetFunction());
+		global->Set(ctx, V8_KeywordString(isolate(), "CreateClass"), FunctionTemplate::New(isolate(), fn, self)->GetFunction(ctx).ToLocalChecked());
+		global->Set(ctx, V8_KeywordString(isolate(), "RebindClassProperties"), FunctionTemplate::New(isolate(), fn1, self)->GetFunction(ctx).ToLocalChecked());
 	}
 
 	void ExportUnrealEngineStructs()
@@ -1358,11 +1375,11 @@ public:
 			FIsolateHelper I(isolate);
 
 			HandleScope scope(isolate);
-
-			auto Name = StringFromV8(info[0]);
-			auto Opts = info[1]->ToObject();
-			auto Outer = UObjectFromV8(Opts->Get(I.Keyword("Outer")));
-			auto ParentStruct = (UScriptStruct*)UClassFromV8(isolate, Opts->Get(I.Keyword("Parent")));
+			auto context = Context->context();
+			auto Name = StringFromV8(isolate, info[0]);
+			auto Opts = info[1]->ToObject(context).ToLocalChecked();
+			auto Outer = UObjectFromV8(context, Opts->Get(context, I.Keyword("Outer")).ToLocalChecked());
+			auto ParentStruct = (UScriptStruct*)UClassFromV8(isolate, Opts->Get(context, I.Keyword("Parent")).ToLocalChecked());
 			Outer = Outer ? Outer : GetTransientPackage();
 
 			UScriptStruct* Struct = nullptr;
@@ -1379,13 +1396,13 @@ public:
 				Struct->StructFlags = (EStructFlags)(ParentStruct->StructFlags & STRUCT_Inherit);
 			}
 
-			auto StructFlags = Opts->Get(I.Keyword("StructFlags"));
+			auto StructFlags = Opts->Get(context, I.Keyword("StructFlags")).ToLocalChecked();
 			if (!StructFlags.IsEmpty() && StructFlags->IsArray())
 			{
-				SetStructFlags(Struct, StringArrayFromV8(StructFlags));
+				SetStructFlags(Struct, StringArrayFromV8(isolate, StructFlags));
 			}
 
-			auto PropertyDecls = Opts->Get(I.Keyword("Properties"));
+			auto PropertyDecls = Opts->Get(context, I.Keyword("Properties")).ToLocalChecked();
 			if (!PropertyDecls.IsEmpty() && PropertyDecls->IsArray())
 			{
 				auto arr = Handle<Array>::Cast(PropertyDecls);
@@ -1396,7 +1413,7 @@ public:
 					auto PropertyDecl = arr->Get(len - Index - 1);
 					if (PropertyDecl->IsObject())
 					{
-						auto Property = CreatePropertyFromDecl(I, Struct, PropertyDecl);
+						auto Property = CreatePropertyFromDecl(context, I, Struct, PropertyDecl);
 
 						if (Property)
 						{
@@ -1421,18 +1438,19 @@ public:
 #if WITH_EDITOR
 			auto start = FPlatformTime::Seconds();
 			auto Context = reinterpret_cast<FJavascriptContextImplementation*>((Local<External>::Cast(info.Data()))->Value());
-
+	
 			auto isolate = info.GetIsolate();
 
 			FIsolateHelper I(isolate);
 
 			HandleScope scope(isolate);
 
-			auto Opts = info[0]->ToObject();
-			auto Struct = (UScriptStruct*)UClassFromV8(isolate, Opts->Get(I.Keyword("SelfStruct")));
+			auto context = Context->context();
+			auto Opts = info[0]->ToObject(context).ToLocalChecked();
+			auto Struct = (UScriptStruct*)UClassFromV8(isolate, Opts->Get(context, I.Keyword("SelfStruct")).ToLocalChecked());
 
 			Struct->Children = nullptr;
-			auto PropertyDecls = Opts->Get(I.Keyword("Properties"));
+			auto PropertyDecls = Opts->Get(context, I.Keyword("Properties")).ToLocalChecked();
 			if (!PropertyDecls.IsEmpty() && PropertyDecls->IsArray())
 			{
 				auto arr = Handle<Array>::Cast(PropertyDecls);
@@ -1443,7 +1461,7 @@ public:
 					auto PropertyDecl = arr->Get(len - Index - 1);
 					if (PropertyDecl->IsObject())
 					{
-						auto Property = CreatePropertyFromDecl(I, Struct, PropertyDecl);
+						auto Property = CreatePropertyFromDecl(context, I, Struct, PropertyDecl);
 
 						if (Property)
 						{
@@ -1458,22 +1476,23 @@ public:
 
 			// @note: caching target class's proxy function and adjust to reexported class.
 			auto prev_v8_template = Context->ExportObject(Struct);
-			auto ProxyFunctions = prev_v8_template->ToObject()->Get(I.Keyword("proxy"));
+			auto ProxyFunctions = prev_v8_template->ToObject(context).ToLocalChecked()->Get(context, I.Keyword("proxy")).ToLocalChecked();
 
 			Context->Environment->PublicExportStruct(Struct);
 
 			auto aftr_v8_template = Context->ExportObject(Struct);
-			aftr_v8_template->ToObject()->Set(I.Keyword("proxy"), ProxyFunctions);
+			aftr_v8_template->ToObject(context).ToLocalChecked()->Set(context, I.Keyword("proxy"), ProxyFunctions);
 			auto end = FPlatformTime::Seconds();
 			UE_LOG(Javascript, Warning, TEXT("Rebind UStruct(%s) Elapsed: %.6f"), *Struct->GetName(), end - start);
 #endif
 		};
 
-		auto global = context()->Global();
+		auto ctx = context();
+		auto global = ctx->Global();
 		auto self = External::New(isolate(), this);
 
-		global->Set(V8_KeywordString(isolate(), "CreateStruct"), FunctionTemplate::New(isolate(), fn, self)->GetFunction());
-		global->Set(V8_KeywordString(isolate(), "RebindStructProperties"), FunctionTemplate::New(isolate(), fn1, self)->GetFunction());
+		global->Set(ctx, V8_KeywordString(isolate(), "CreateStruct"), FunctionTemplate::New(isolate(), fn, self)->GetFunction(ctx).ToLocalChecked());
+		global->Set(ctx, V8_KeywordString(isolate(), "RebindStructProperties"), FunctionTemplate::New(isolate(), fn1, self)->GetFunction(ctx).ToLocalChecked());
 	}
 
 	void ExposeRequire()
@@ -1489,7 +1508,7 @@ public:
 
 			auto Self = reinterpret_cast<FJavascriptContextImplementation*>((Local<External>::Cast(info.Data()))->Value());
 
-			auto required_module = StringFromV8(info[0]);
+			auto required_module = StringFromV8(isolate, info[0]);
 
 			bool found = false;
 
@@ -1554,7 +1573,7 @@ public:
 					}
 					else
 					{
-						return inner_maybejs(script_path / StringFromV8(exports));
+						return inner_maybejs(script_path / StringFromV8(isolate, exports));
 					}
 				}
 
@@ -1653,7 +1672,10 @@ public:
 				return Dirs;
 			};
 
-			auto current_script_path = FPaths::GetPath(StringFromV8(StackTrace::CurrentStackTrace(isolate, 1, StackTrace::kScriptName)->GetFrame(0)->GetScriptName()));
+			if (inner(required_module))
+				return;
+
+			auto current_script_path = FPaths::GetPath(StringFromV8(isolate, StackTrace::CurrentStackTrace(isolate, 1, StackTrace::kScriptName)->GetFrame(isolate, 0)->GetScriptName()));
 			current_script_path = URLToLocalPath(current_script_path);
 
 			if (!(required_module[0] == '.' && inner2(current_script_path)))
@@ -1684,12 +1706,12 @@ public:
 			auto Self = reinterpret_cast<FJavascriptContextImplementation*>((Local<External>::Cast(info.Data()))->Value());
 			Self->PurgeModules();
 		};
-
-		auto global = context()->Global();
+		auto ctx = context();
+		auto global = ctx->Global();
 		auto self = External::New(isolate(), this);
 
-		global->Set(V8_KeywordString(isolate(), "require"), FunctionTemplate::New(isolate(), fn, self)->GetFunction());
-		global->Set(V8_KeywordString(isolate(), "purge_modules"), FunctionTemplate::New(isolate(), fn2, self)->GetFunction());
+		global->Set(ctx, V8_KeywordString(isolate(), "require"), FunctionTemplate::New(isolate(), fn, self)->GetFunction(ctx).ToLocalChecked());
+		global->Set(ctx, V8_KeywordString(isolate(), "purge_modules"), FunctionTemplate::New(isolate(), fn2, self)->GetFunction(ctx).ToLocalChecked());
 
 		AccessorNameGetterCallback getter = [](Local<Name> property, const PropertyCallbackInfo<Value>& info) {
 			auto isolate = info.GetIsolate();
@@ -1716,12 +1738,13 @@ public:
 	void ExposeMemory2()
 	{
 		FIsolateHelper I(isolate());
-		auto global = context()->Global();
+		auto ctx = context();
+		auto global = ctx->Global();
 
 		Local<FunctionTemplate> Template = I.FunctionTemplate();
 
 		auto add_fn = [&](const char* name, FunctionCallback fn) {
-			global->Set(I.Keyword(name), I.FunctionTemplate(fn)->GetFunction());
+			global->Set(ctx, I.Keyword(name), I.FunctionTemplate(fn)->GetFunction(ctx).ToLocalChecked());
 		};
 
 		add_fn("$memaccess", [](const FunctionCallbackInfo<Value>& info)
@@ -1729,12 +1752,13 @@ public:
 			auto isolate = info.GetIsolate();
 
 			FIsolateHelper I(isolate);
+			auto context = isolate->GetCurrentContext();
 
 			if (info.Length() == 3 && info[2]->IsFunction())
 			{
 				HandleScope handle_scope(isolate);
 
-				auto Instance = FStructMemoryInstance::FromV8(info[0]);
+				auto Instance = FStructMemoryInstance::FromV8(context, info[0]);
 				auto function = info[2].As<Function>();
 
 				// If given value is an instance
@@ -1749,7 +1773,7 @@ public:
 
 						Handle<Value> argv[1];
 
-						auto Name = StringFromV8(info[1]);
+						auto Name = StringFromV8(isolate, info[1]);
 
 						for (auto Index = 0; Index < Source->GetNumData(); ++Index)
 						{
@@ -1762,7 +1786,7 @@ public:
 									argv[0] = FJavascriptIsolate::ExportStructInstance(isolate, ProxyStruct, (uint8*)Proxy, FStructMemoryPropertyOwner(Instance));
 								}
 
-								function->Call(info.This(), 1, argv);
+								function->Call(context, info.This(), 1, argv);
 								return;
 							}
 						}
@@ -1774,7 +1798,7 @@ public:
 			{
 				HandleScope handle_scope(isolate);
 
-				auto Instance = FStructMemoryInstance::FromV8(info[0]);
+				auto Instance = FStructMemoryInstance::FromV8(context, info[0]);
 				auto function = info[1].As<Function>();
 
 				// If given value is an instance
@@ -1795,7 +1819,7 @@ public:
 							auto ab = ArrayBuffer::New(info.GetIsolate(), Source->GetMemory(nullptr), Source->GetSize(0));
 							argv[0] = ab;
 
-							function->Call(info.This(), 1, argv);
+							function->Call(context, info.This(), 1, argv);
 							return;
 						}
 						else if (Dimension == 2)
@@ -1811,7 +1835,7 @@ public:
 								out_arr->Set(Index, ab);
 							}
 
-							function->Call(info.This(), 1, argv);
+							function->Call(context, info.This(), 1, argv);
 							return;
 						}
 					}
@@ -1828,7 +1852,7 @@ public:
 							argv[0] = FJavascriptIsolate::ExportStructInstance(isolate, ProxyStruct, (uint8*)Proxy, FStructMemoryPropertyOwner(Instance));
 						}
 
-						function->Call(info.This(), 1, argv);
+						function->Call(context, info.This(), 1, argv);
 						return;
 					}
 				}
@@ -1842,8 +1866,7 @@ public:
 		for (auto Path : Paths)
 		{
 			auto FullPath = Path / Filename;
-			auto Size = IFileManager::Get().FileSize(*FullPath);
-			if (Size != INDEX_NONE)
+			if (IFileManager::Get().FileExists(*FullPath))
 			{
 				return IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*FullPath);
 			}
@@ -1885,7 +1908,7 @@ public:
 		Context::Scope context_scope(context());
 
 		auto ret = RunScript(TEXT("(inline)"), Script);
-		auto str = ret.IsEmpty() ? TEXT("(empty)") : StringFromV8(ret);
+		auto str = ret.IsEmpty() ? TEXT("(empty)") : StringFromV8(isolate(), ret);
 
 		if (bOutput && !ret.IsEmpty())
 		{
@@ -1919,24 +1942,25 @@ public:
 #endif
 		auto source = V8_String(isolate(), Script);
 		auto path = V8_String(isolate(), LocalPathToURL(Path));
+		auto ctx = context();
 		ScriptOrigin origin(path, Integer::New(isolate(), -line_offset));
-		auto script = Script::Compile(source, &origin);
+		auto script = Script::Compile(ctx, source, &origin);
 		if (script.IsEmpty())
 		{
-			FJavascriptContext::FromV8(context())->UncaughtException(FV8Exception::Report(try_catch));
+			FJavascriptContext::FromV8(ctx)->UncaughtException(FV8Exception::Report(isolate(), try_catch));
 			return Local<Value>();
 		}
 		else
 		{
-			auto result = script->Run();
+			auto result = script.ToLocalChecked()->Run(ctx);
 			if (try_catch.HasCaught())
 			{
-				FJavascriptContext::FromV8(context())->UncaughtException(FV8Exception::Report(try_catch));
+				FJavascriptContext::FromV8(ctx)->UncaughtException(FV8Exception::Report(isolate(), try_catch));
 				return Local<Value>();
 			}
 			else
 			{
-				return result;
+				return result.ToLocalChecked();
 			}
 		}
 	}
@@ -2040,11 +2064,12 @@ public:
 								bHasDefault = true;
 								auto DefaultValue = Environment->ReadProperty(isolate(), Property, Parms, FNoPropertyOwner());
 								{
-									Context::Scope context_scope(context());
+									auto ctx = context();
+									Context::Scope context_scope(ctx);
 
 									v8::Handle<Value> args[] = { DefaultValue };
-									auto ret = Packer->Call(Packer, 1, args);
-									auto Ret = StringFromV8(ret);
+									auto ret = Packer->Call(ctx, Packer, 1, args).ToLocalChecked();
+									auto Ret = StringFromV8(isolate(), ret);
 									ParameterWithValue = FString::Printf(TEXT("%s = %s"), *Parameter, *Ret);
 								}
 
@@ -2204,16 +2229,16 @@ public:
 #endif
 	}
 
-	Local<Value> GetProxyFunction(UObject* Object, const TCHAR* Name)
+	Local<Value> GetProxyFunction(Local<Context> Context, UObject* Object, const TCHAR* Name)
 	{
-		auto v8_obj = ExportObject(Object)->ToObject();
-		auto proxy = v8_obj->Get(V8_KeywordString(isolate(), "proxy"));
+		auto v8_obj = ExportObject(Object)->ToObject(Context).ToLocalChecked();
+		auto proxy = v8_obj->Get(Context, V8_KeywordString(isolate(), "proxy")).ToLocalChecked();
 		if (proxy.IsEmpty() || !proxy->IsObject())
 		{
 			return Undefined(isolate());
 		}
 
-		auto func = proxy->ToObject()->Get(V8_KeywordString(isolate(), Name));
+		auto func = proxy->ToObject(Context).ToLocalChecked()->Get(Context, V8_KeywordString(isolate(), Name)).ToLocalChecked();
 		if (func.IsEmpty() || !func->IsFunction())
 		{
 			return Undefined(isolate());
@@ -2222,9 +2247,9 @@ public:
 		return func;
 	}
 
-	Local<Value> GetProxyFunction(UObject* Object, UFunction* Function)
+	Local<Value> GetProxyFunction(Local<Context> Context, UObject* Object, UFunction* Function)
 	{
-		return GetProxyFunction(Object, *FV8Config::Safeify(Function->GetName()));
+		return GetProxyFunction(Context, Object, *FV8Config::Safeify(Function->GetName()));
 	}
 
 	bool HasProxyFunction(UObject* Holder, UFunction* Function)
@@ -2232,7 +2257,7 @@ public:
 		Isolate::Scope isolate_scope(isolate());
 		HandleScope handle_scope(isolate());
 
-		auto func = GetProxyFunction(Holder, Function);;
+		auto func = GetProxyFunction(context(), Holder, Function);;
 		return !func.IsEmpty() && func->IsFunction();
 	}
 
@@ -2245,7 +2270,7 @@ public:
 
 		Context::Scope context_scope(context());
 
-		auto func = GetProxyFunction(Holder, FunctionToCall);
+		auto func = GetProxyFunction(context(), Holder, FunctionToCall);
 		if (!func.IsEmpty() && func->IsFunction())
 		{
 			CallJavascriptFunction(context(), This ? ExportObject(This) : Local<Value>::Cast(context()->Global()), FunctionToCall, Local<Function>::Cast(func), Parms);
@@ -2268,8 +2293,8 @@ public:
 		HandleScope handle_scope(_isolate);
 		Context::Scope context_scope(context());
 
-		auto global = Local<Value>::Cast(context()->Global())->ToObject();
-		auto func = global->Get(V8_KeywordString(_isolate, "$uncaughtException"));
+		auto global = Local<Value>::Cast(context()->Global())->ToObject(context()).ToLocalChecked();
+		auto func = global->Get(context(), V8_KeywordString(_isolate, "$uncaughtException")).ToLocalChecked();
 		if (!func.IsEmpty() && func->IsFunction())
 		{
 			auto function = func.As<Function>();
@@ -2278,7 +2303,7 @@ public:
 
 			argv[0] = V8_String(_isolate, Exception);
 
-			function->Call(global, 1, argv);
+			function->Call(context(), global, 1, argv);
 		}
 	}
 };

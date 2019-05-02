@@ -5,11 +5,11 @@
 
 struct FV8Exception
 {
-	static FString Report(v8::TryCatch& try_catch)
+	static FString Report(v8::Isolate* isolate, v8::TryCatch& try_catch)
 	{
 		using namespace v8;
 
-		auto exception = StringFromV8(try_catch.Exception());
+		auto exception = StringFromV8(isolate, try_catch.Exception());
 		auto message = try_catch.Message();
 		if (message.IsEmpty())
 		{
@@ -20,13 +20,13 @@ struct FV8Exception
 		{
 			if (!exception.IsEmpty())
 			{
-				auto filename = StringFromV8(message->GetScriptResourceName());
-				auto linenum = message->GetLineNumber();
-				auto line = StringFromV8(message->GetSourceLine());
+				auto filename = StringFromV8(isolate, message->GetScriptResourceName());
+				auto linenum = message->GetLineNumber(isolate->GetCurrentContext()).ToChecked();
+				auto line = StringFromV8(isolate, message->GetSourceLine(isolate->GetCurrentContext()).ToLocalChecked());
 
 				UE_LOG(Javascript, Error, TEXT("%s:%d: %s"), *filename, linenum, *exception);
 
-				auto stack_trace = StringFromV8(try_catch.StackTrace());
+				auto stack_trace = StringFromV8(isolate, try_catch.StackTrace(isolate->GetCurrentContext()).ToLocalChecked());
 				if (stack_trace.Len() > 0)
 				{
 					TArray<FString> Lines;

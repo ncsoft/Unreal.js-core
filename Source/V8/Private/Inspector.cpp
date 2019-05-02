@@ -431,7 +431,7 @@ public:
 			InContext->Global()->Set(I.Keyword("$console"), console);
 		}
 
-		v8inspector = v8_inspector::V8Inspector::create(InContext->GetIsolate(), this);
+		v8inspector = v8_inspector::V8Inspector::create(isolate_, this);
 		const uint8_t CONTEXT_NAME[] = "Unreal.js";
 		v8_inspector::StringView context_name(CONTEXT_NAME, sizeof(CONTEXT_NAME) - 1);
 		v8inspector->contextCreated(v8_inspector::V8ContextInfo(InContext, CONTEXT_GROUP_ID, context_name));
@@ -445,8 +445,8 @@ public:
 			TryCatch try_catch(isolate_);
 
 			auto source = TEXT("'log error warn info void assert'.split(' ').forEach(x => { let o = console[x].bind(console); let y = $console[x].bind($console); console['$'+x] = o; console[x] = function () { y(...arguments); return o(...arguments); }})");
-			auto script = v8::Script::Compile(I.String(source));
-			auto result = script->Run();
+			auto script = v8::Script::Compile(InContext, I.String(source)).ToLocalChecked();
+			auto result = script->Run(InContext);
 		}
 
 		UE_LOG(Javascript, Log, TEXT("open %s"), *DevToolsFrontEndUrl());
@@ -507,13 +507,13 @@ public:
 				Handle<Value> argv[2];
 				argv[0] = I.String(FString::Printf(TEXT("%%c%s: %s"), *Category.ToString(), V));
 				argv[1] = I.String(TEXT("color:gray"));
-				function->Call(console, 2, argv);
+				function->Call(context(), console, 2, argv);
 			}
 			else
 			{
 				Handle<Value> argv[1];
 				argv[0] = I.String(FString::Printf(TEXT("%s: %s"), *Category.ToString(), V));
-				function->Call(console, 1, argv);
+				function->Call(context(), console, 1, argv);
 			}
 		}
 	}

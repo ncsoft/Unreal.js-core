@@ -107,9 +107,9 @@ struct FStructMemoryInstance
 		return TSharedRef<FStructMemoryInstance>(new FStructMemoryInstance(Struct, InOwner, Source));
 	}
 
-	static FStructMemoryInstance* FromV8(v8::Local<v8::Value> Value)
+	static FStructMemoryInstance* FromV8(v8::Local<v8::Context> context, v8::Local<v8::Value> Value)
 	{
-		auto Memory = RawMemoryFromV8(Value);
+		auto Memory = RawMemoryFromV8(context, Value);
 		return reinterpret_cast<FStructMemoryInstance*>(Memory);
 	}	
 };

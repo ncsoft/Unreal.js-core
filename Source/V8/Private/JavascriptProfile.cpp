@@ -3,7 +3,7 @@
 #include "Translator.h"
 #include "Helpers.h"
 #include "JavascriptLibrary.h"
-#include "v8-profiler.h"
+#include "V8PCH.h"
 
 using namespace v8;
 
@@ -62,53 +62,45 @@ float UJavascriptProfile::GetSampleTimestamp(int32 index)
 	return -1;
 }
 
-void UJavascriptProfile::Start(const FString& Title, bool bRecordSamples)
+FJavascriptCpuProfiler UJavascriptProfile::Start(const FString& Title, bool bRecordSamples)
 {
 	auto isolate = Isolate::GetCurrent();
 
 	FIsolateHelper I(isolate);
-	auto profiler = isolate->GetCpuProfiler();
-
+	auto profiler = v8::CpuProfiler::New(isolate);
 	profiler->StartProfiling(I.String(Title), bRecordSamples);
+
+	FJavascriptCpuProfiler out { nullptr };
+	out.Profiler = profiler;
+	return out;
 }
 
-UJavascriptProfile* UJavascriptProfile::Stop(const FString& Title)
+UJavascriptProfile* UJavascriptProfile::Stop(const FJavascriptCpuProfiler& Profiler, const FString& Title)
 {
 	auto isolate = Isolate::GetCurrent();
 
 	FIsolateHelper I(isolate);
-	auto profiler = isolate->GetCpuProfiler();
 
-	auto Profile = profiler->StopProfiling(I.String(Title));
+	auto Profile = reinterpret_cast<CpuProfiler*>(Profiler.Profiler)->StopProfiling(I.String(Title));
 
 	auto instance = NewObject<UJavascriptProfile>();
 	instance->Profile = Profile;
 	return instance;
 }
 
-void UJavascriptProfile::SetSamplingInterval(int32 us)
+void UJavascriptProfile::SetSamplingInterval(const FJavascriptCpuProfiler& Profiler, int32 us)
 {
-	auto isolate = Isolate::GetCurrent();
-
-	FIsolateHelper I(isolate);
-	auto profiler = isolate->GetCpuProfiler();
-
-	profiler->SetSamplingInterval(us);
+	reinterpret_cast<CpuProfiler*>(Profiler.Profiler)->SetSamplingInterval(us);
 }
 
-void UJavascriptProfile::SetIdle(bool is_idle)
+void UJavascriptProfile::SetIdle(const FJavascriptCpuProfiler& Profiler, bool is_idle)
 {
-	auto isolate = Isolate::GetCurrent();
-
-	FIsolateHelper I(isolate);
-	auto profiler = isolate->GetCpuProfiler();
-
-	profiler->SetIdle(is_idle);
+	reinterpret_cast<CpuProfiler*>(Profiler.Profiler)->SetIdle(is_idle);
 }
 
 FString UJavascriptLibrary::GetFunctionName(FJavascriptProfileNode Node)
 {
-	return StringFromV8(reinterpret_cast<const CpuProfileNode*>(Node.Node)->GetFunctionName());
+	return StringFromV8(Isolate::GetCurrent(), reinterpret_cast<const CpuProfileNode*>(Node.Node)->GetFunctionName());
 }
 int32 UJavascriptLibrary::GetScriptId(FJavascriptProfileNode Node)
 {
@@ -116,7 +108,7 @@ int32 UJavascriptLibrary::GetScriptId(FJavascriptProfileNode Node)
 }
 FString UJavascriptLibrary::GetScriptResourceName(FJavascriptProfileNode Node)
 {
-	return StringFromV8(reinterpret_cast<const CpuProfileNode*>(Node.Node)->GetScriptResourceName());
+	return StringFromV8(Isolate::GetCurrent(), reinterpret_cast<const CpuProfileNode*>(Node.Node)->GetScriptResourceName());
 }
 int32 UJavascriptLibrary::GetLineNumber(FJavascriptProfileNode Node)
 {
