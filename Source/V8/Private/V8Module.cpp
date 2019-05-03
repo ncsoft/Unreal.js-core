@@ -1,13 +1,16 @@
+#include "IV8.h"
 #include "V8PCH.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include <libplatform/libplatform.h>
 #include "JavascriptContext.h"
-#include "IV8.h"
 #include "JavascriptStats.h"
 #include "JavascriptSettings.h"
 #include "Containers/Ticker.h"
+#include "Containers/Queue.h"
+#include "Misc/Paths.h"
+#include "UObject/UObjectIterator.h"
 
 DEFINE_STAT(STAT_V8IdleTask);
 DEFINE_STAT(STAT_JavascriptDelegate);
@@ -47,7 +50,7 @@ void UJavascriptSettings::Apply() const
 class FUnrealJSPlatform : public v8::Platform
 {
 private:
-	v8::Platform* platform_;
+	std::unique_ptr<v8::Platform> platform_;
 	TQueue<v8::IdleTask*> IdleTasks;
 	FTickerDelegate TickDelegate;
 	FDelegateHandle TickHandle;
@@ -56,10 +59,10 @@ private:
 public:
 	v8::Platform* platform() const
 	{
-		return platform_;
+		return platform_.get();
 	}
 	FUnrealJSPlatform() 
-		: platform_(platform::CreateDefaultPlatform(0, platform::IdleTaskSupport::kEnabled))
+		: platform_(platform::NewDefaultPlatform(0, platform::IdleTaskSupport::kEnabled))
 	{
 		TickDelegate = FTickerDelegate::CreateRaw(this, &FUnrealJSPlatform::HandleTicker);
 		TickHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);
@@ -68,7 +71,7 @@ public:
 	~FUnrealJSPlatform()
 	{
 		FTicker::GetCoreTicker().RemoveTicker(TickHandle);
-		delete platform_;
+		platform_.release();
 	}
 
 	void Shutdown()
@@ -76,13 +79,11 @@ public:
 		bActive = false;
 		RunIdleTasks(FLT_MAX);
 	}
-	
-	virtual size_t NumberOfAvailableBackgroundThreads() { return platform_->NumberOfAvailableBackgroundThreads(); }
+	virtual int NumberOfWorkerThreads() { return platform_->NumberOfWorkerThreads(); }
 
-	virtual void CallOnBackgroundThread(Task* task,
-		ExpectedRuntime expected_runtime)
+	virtual std::shared_ptr<v8::TaskRunner> GetForegroundTaskRunner(Isolate* isolate)
 	{
-		platform_->CallOnBackgroundThread(task, expected_runtime);
+		return platform_->GetForegroundTaskRunner(isolate);
 	}
 
 	virtual void CallOnForegroundThread(Isolate* isolate, Task* task)
@@ -90,10 +91,21 @@ public:
 		platform_->CallOnForegroundThread(isolate, task);
 	}
 
+	virtual void CallOnWorkerThread(std::unique_ptr<Task> task)
+	{
+		platform_->CallOnWorkerThread(std::move(task));
+	}
+
+	virtual void CallDelayedOnWorkerThread(std::unique_ptr<Task> task,
+		double delay_in_seconds)
+	{
+		platform_->CallOnWorkerThread(std::move(task));
+	}
+
 	virtual void CallDelayedOnForegroundThread(Isolate* isolate, Task* task,
 		double delay_in_seconds)
 	{
-		platform_->CallDelayedOnForegroundThread(isolate, task, delay_in_seconds);
+		platform_->CallOnForegroundThread(isolate, task);
 	}
 
 	virtual void CallIdleOnForegroundThread(Isolate* isolate, IdleTask* task) 
@@ -155,7 +167,7 @@ public:
 	}
 };
 
-class V8Module : public IV8
+class FV8Module : public IV8
 {
 public:
 	TArray<FString> Paths;
@@ -333,6 +345,6 @@ public:
 	}
 };
 
-IMPLEMENT_MODULE(V8Module, V8)
+IMPLEMENT_MODULE(FV8Module, V8)
 
 PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

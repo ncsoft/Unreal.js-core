@@ -1,6 +1,15 @@
 #pragma once
 
+#include "CoreMinimal.h"
 #include "JavascriptProfile.generated.h"
+
+USTRUCT(BlueprintType)
+struct FJavascriptCpuProfiler
+{
+	GENERATED_BODY()
+
+	void* Profiler{ nullptr };
+};
 
 USTRUCT(BlueprintType)
 struct FJavascriptProfileNode
@@ -33,14 +42,14 @@ public:
 	float GetSampleTimestamp(int32 index);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
-	static void Start(const FString& Title, bool bRecordSamples);
+	static FJavascriptCpuProfiler Start(const FString& Title, bool bRecordSamples);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
-	static UJavascriptProfile* Stop(const FString& Title);
+	static UJavascriptProfile* Stop(const FJavascriptCpuProfiler& Profiler, const FString& Title);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
-	static void SetSamplingInterval(int32 us);
+	static void SetSamplingInterval(const FJavascriptCpuProfiler& Profiler, int32 us);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
-	static void SetIdle(bool is_idle);
+	static void SetIdle(const FJavascriptCpuProfiler& Profiler, bool is_idle);
 };

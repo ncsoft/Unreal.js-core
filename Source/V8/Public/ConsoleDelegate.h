@@ -31,7 +31,7 @@ namespace v8
 
 			for (int Index = StartIndex; Index < args.Length(); Index++)
 			{
-				ArgStrings.Add(StringFromV8(args[Index]));
+				ArgStrings.Add(StringFromV8(isolate_, args[Index]));
 			}
 
 			return FString::Join(ArgStrings, TEXT(" "));
@@ -72,11 +72,11 @@ namespace v8
 		bool to_assert = args.Length() < 1 || args[0]->IsFalse();
 		if (to_assert)
 		{
-			auto stack_frame = StackTrace::CurrentStackTrace(isolate_, 1, StackTrace::kOverview)->GetFrame(0);
+			auto stack_frame = StackTrace::CurrentStackTrace(isolate_, 1, StackTrace::kOverview)->GetFrame(isolate_, 0);
 			auto filename = stack_frame->GetScriptName();
 			auto line_number = stack_frame->GetLineNumber();
 
-			UE_LOG(Javascript, Error, TEXT("Assertion:%s:%d %s"), *StringFromV8(filename), line_number, *StringFromConsoleCallArgs(args, 1));
+			UE_LOG(Javascript, Error, TEXT("Assertion:%s:%d %s"), *StringFromV8(isolate_, filename), line_number, *StringFromConsoleCallArgs(args, 1));
 		}
 	}
 

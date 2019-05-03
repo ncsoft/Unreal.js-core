@@ -44,13 +44,13 @@ namespace v8
 			}
 		}
 
-		TryCatch try_catch(isolate);		
+		TryCatch try_catch(isolate);
 
-		auto value = func->Call(This, argc, argv);
+		auto maybeValue = func->Call(context, This, argc, argv);
 
 		if (try_catch.HasCaught())
 		{
-			FJavascriptContext::FromV8(context)->UncaughtException(FV8Exception::Report(try_catch));
+			FJavascriptContext::FromV8(context)->UncaughtException(FV8Exception::Report(isolate, try_catch));
 		}
 
 		bool bHasAnyOutParams = false;
@@ -71,13 +71,21 @@ namespace v8
 		if (bHasAnyOutParams)
 		{
 			FIsolateHelper I(isolate);
-			if (value.IsEmpty() || !value->IsObject())
+			if (maybeValue.IsEmpty())
 			{
 				I.Throw(TEXT("..."));
 				return;
 			}
 
-			auto Object = value->ToObject();
+			auto value = maybeValue.ToLocalChecked();
+
+			if (!value->IsObject())
+			{
+				I.Throw(TEXT("..."));
+				return;
+			}
+
+			auto Object = value->ToObject(context).ToLocalChecked();
 
 			// Iterate over parameters again
 			for (TFieldIterator<UProperty> It(SignatureFunction); It; ++It)
@@ -110,7 +118,7 @@ namespace v8
 		{
 			if (ReturnParam)
 			{
-				WriteProperty(isolate, ReturnParam, Buffer, value, FNoPropertyOwner());
+				WriteProperty(isolate, ReturnParam, Buffer, maybeValue.ToLocalChecked(), FNoPropertyOwner());
 			}
 		}		
 	}

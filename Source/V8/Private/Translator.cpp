@@ -3,9 +3,9 @@
 
 namespace v8
 {
-	UObject* UObjectFromV8(Local<Value> Value)
+	UObject* UObjectFromV8(Local<Context> context, Local<Value> Value)
 	{
-		uint8* Memory = RawMemoryFromV8(Value);
+		uint8* Memory = RawMemoryFromV8(context, Value);
 		if (Memory)
 		{
 			auto uobj = reinterpret_cast<UObject*>(Memory);
@@ -18,14 +18,14 @@ namespace v8
 		return nullptr;
 	}
 
-	uint8* RawMemoryFromV8(Local<Value> Value)
+	uint8* RawMemoryFromV8(Local<Context> context, Local<Value> Value)
 	{
 		if (Value.IsEmpty() || !Value->IsObject() || Value->IsUndefined() || Value->IsNull())
 		{
 			return nullptr;
 		}
 
-		auto v8_obj = Value->ToObject();
+		auto v8_obj = Value->ToObject(context).ToLocalChecked();
 		if (v8_obj->InternalFieldCount() == 0)
 		{
 			return nullptr;
@@ -40,18 +40,20 @@ namespace v8
 			return nullptr;
 		}
 
-		auto v8_obj = Value->ToObject();
-		if (v8_obj.IsEmpty())
+		auto maybe_v8_obj = Value->ToObject(isolate_->GetCurrentContext());
+		if (maybe_v8_obj.IsEmpty())
 		{
 			return nullptr;
 		}
 
+		auto v8_obj = maybe_v8_obj.ToLocalChecked();
+
 		if (v8_obj->IsFunction())
 		{
-			auto vv = v8_obj->Get(V8_KeywordString(isolate_, "StaticClass"));
-			if (!vv.IsEmpty())
+			auto maybe_vv = v8_obj->Get(isolate_->GetCurrentContext(), V8_KeywordString(isolate_, "StaticClass"));
+			if (!maybe_vv.IsEmpty())
 			{
-				v8_obj = vv->ToObject();
+				v8_obj = maybe_vv.ToLocalChecked()->ToObject(isolate_->GetCurrentContext()).ToLocalChecked();
 			}
 		}
 
@@ -91,20 +93,21 @@ namespace v8
 		return String::NewFromUtf8(isolate, String, String::kInternalizedString);
 	}
 
-	FString StringFromV8(Local<Value> Value)
+	FString StringFromV8(Isolate* isolate, Local<Value> Value)
 	{
-		return UTF8_TO_TCHAR(*String::Utf8Value(Value));
+		return UTF8_TO_TCHAR(*String::Utf8Value(isolate, Value));
 	}
 
 	FString StringFromArgs(const FunctionCallbackInfo<v8::Value>& args, int StartIndex)
 	{
-		HandleScope handle_scope(args.GetIsolate());
+		auto isolate = args.GetIsolate();
+		HandleScope handle_scope(isolate);
 
 		TArray<FString> ArgStrings;
 
 		for (int Index = StartIndex; Index < args.Length(); Index++)
 		{
-			ArgStrings.Add(StringFromV8(args[Index]));
+			ArgStrings.Add(StringFromV8(isolate, args[Index]));
 		}
 
 		return FString::Join(ArgStrings, TEXT(" "));
