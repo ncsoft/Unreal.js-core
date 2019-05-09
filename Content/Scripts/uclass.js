@@ -6,6 +6,26 @@
     function isClass (thing) {
         return typeof thing === 'function' && !thing.hasOwnProperty('arguments')
     }
+   
+    function getOwnPropertyNames (proto, stop) {
+        let props = new Set();
+        while (proto && proto !== stop) {
+            Object.getOwnPropertyNames(proto).filter(name => {
+                let c = Object.getOwnPropertyDescriptor(proto, name);
+                return (c.get || c.set) == undefined;
+            }).forEach(name => {
+                props.add(name);
+            });          
+
+            let parentClass = Object.getPrototypeOf(proto).constructor;
+            if (!isClass(parentClass) || parentClass == Object) {
+                break;
+            }     
+            proto = Object.getPrototypeOf (proto);
+        }
+        return [...props];   
+     }
+    
     module.exports = function () {
         let mod_patterns = {
             bCtrl: /^ctrl$/i,
@@ -153,11 +173,7 @@
             }
 
             let proxy = {}
-            _(Object.getOwnPropertyNames(template.prototype)).filter((name) => {
-                let c = Object.getOwnPropertyDescriptor(template.prototype, name);
-                return (c.get || c.set) == undefined;
-            })
-            .forEach((k) => {
+            _(getOwnPropertyNames(template.prototype)).forEach((k) => {
                 if (k == "properties") {
                     let func = String(template.prototype[k])
                     func = func.substr(func.indexOf('{')+1)
