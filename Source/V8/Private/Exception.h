@@ -26,7 +26,15 @@ struct FV8Exception
 
 				UE_LOG(Javascript, Error, TEXT("%s:%d: %s"), *filename, linenum, *exception);
 
-				auto stack_trace = StringFromV8(isolate, try_catch.StackTrace(isolate->GetCurrentContext()).ToLocalChecked());
+				auto maybe_stack_trace = try_catch.StackTrace(isolate->GetCurrentContext());
+
+				if (maybe_stack_trace.IsEmpty())
+				{
+					UE_LOG(Javascript, Error, TEXT("%s"), *exception);
+					return *exception;
+				}
+
+				auto stack_trace = StringFromV8(isolate, maybe_stack_trace.ToLocalChecked());
 				if (stack_trace.Len() > 0)
 				{
 					TArray<FString> Lines;
