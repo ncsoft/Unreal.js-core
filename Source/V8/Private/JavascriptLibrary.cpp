@@ -308,6 +308,11 @@ FString UJavascriptLibrary::GetDir(UObject* Object, FString WhichDir)
 	else return TEXT("");
 }
 
+FString UJavascriptLibrary::ConvertRelativePathToFull(UObject* Object, FString RelativePath)
+{
+	return FPaths::ConvertRelativePathToFull(RelativePath);
+}
+
 bool UJavascriptLibrary::HasUndo(UEngine* Engine)
 {
 	return !!GUndo;

@@ -29,7 +29,8 @@ namespace UnrealBuildTool.Rules
                     "GraphEditor",
                     "EditorStyle",
                     "KismetWidgets",
-                    "JavascriptUMG"
+                    "JavascriptUMG",
+                    "InputCore"
                 }
 				);
 

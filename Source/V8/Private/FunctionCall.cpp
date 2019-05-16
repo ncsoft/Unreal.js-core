@@ -46,6 +46,8 @@ namespace v8
 
 		TryCatch try_catch(isolate);
 
+		Isolate::AllowJavascriptExecutionScope allow_script(isolate);
+
 		auto maybeValue = func->Call(context, This, argc, argv);
 
 		if (try_catch.HasCaught())

@@ -143,6 +143,26 @@ void UJavascriptMenuLibrary::AddMenuEntry(FJavascriptMenuBuilder& Builder, UJava
 	}
 }
 
+void UJavascriptMenuLibrary::AddSubMenu(FJavascriptMenuBuilder& Builder, const FText& Label, const FText& ToolTip, const bool bInOpenSubMenuOnClick, FJavascriptFunction Function)
+{
+	if (Builder.Menu)
+	{
+		TSharedPtr<FJavascriptFunction> Copy(new FJavascriptFunction);
+		*(Copy.Get()) = Function;
+		Builder.Menu->AddSubMenu(
+			Label,
+			ToolTip,
+			FNewMenuDelegate::CreateLambda([=](FMenuBuilder& SubMenuBuilder) {
+				FJavascriptMenuBuilder Out;
+				Out.MultiBox = Out.Menu = &SubMenuBuilder;
+				Copy->Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
+			}),
+			bInOpenSubMenuOnClick,
+			FSlateIcon()
+		);
+	}
+}
+
 void UJavascriptMenuLibrary::AddMenuByCommands(FJavascriptMenuBuilder& Builder, UJavascriptUICommands* UICommands)
 {
 	if (Builder.Menu && UICommands)

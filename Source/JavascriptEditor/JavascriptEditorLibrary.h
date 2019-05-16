@@ -9,6 +9,7 @@
 #include "Engine/Brush.h"
 #include "Framework/Docking/WorkspaceItem.h"
 #include "Toolkits/AssetEditorToolkit.h"
+#include "Engine/CurveTable.h"
 #include "JavascriptEditorLibrary.generated.h"
 
 UENUM()
@@ -524,5 +525,16 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FString GetDataTableAsJSON(UDataTable* InDataTable, uint8 InDTExportFlags = 0);
+
+	UFUNCTION()
+	static void AddRichCurve(UCurveTable* InCurveTable, const FName& Key, const FRichCurve& InCurve);
+
+	UFUNCTION()
+	static void RemoveRichCurve(UCurveTable* InCurveTable, const FName& Key);
+
+	UFUNCTION()
+	static void NotifyUpdateCurveTable(UCurveTable* InCurveTable);
+
+
 #endif
 };

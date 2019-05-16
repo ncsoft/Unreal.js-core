@@ -79,18 +79,18 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 		}
 	}
 
-	TSharedRef<SWidget> LabelWidget = SNew(STextBlock)
+	TSharedRef<SWidget> InLabelWidget = SNew(STextBlock)
 		.Text(this, &ThisClass::GetPinLabel)
 		.TextStyle(FEditorStyle::Get(), InArgs._PinLabelStyle)
 		.Visibility(this, &ThisClass::GetPinLabelVisibility)
 		.ColorAndOpacity(this, &ThisClass::GetPinTextColor);
-	TSharedRef<SWidget> ValueWidget = SNew(SBox);
+	TSharedRef<SWidget> InValueWidget = SNew(SBox);
 	if (GraphSchema->OnGetValueWidget.IsBound())
 	{
 		auto Widget = GraphSchema->OnGetValueWidget.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) }).Widget;
 		if (Widget.IsValid())
 		{
-			ValueWidget = Widget.ToSharedRef();
+			InValueWidget = Widget.ToSharedRef();
 		}
 	}
 	// Create the widget used for the pin body (status indicator, label, and value)
@@ -110,7 +110,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 		LabelAndValue->AddSlot()
 			.VAlign(VAlign_Center)
 			[
-				LabelWidget
+				InLabelWidget
 			];
 		LabelAndValue->AddSlot()
 			.Padding(bIsInput ? FMargin(InArgs._SideToSideMargin, 0, 0, 0) : FMargin(0, 0, InArgs._SideToSideMargin, 0))
@@ -120,13 +120,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 				.Padding(0.0f)
 				.IsEnabled(this, &ThisClass::IsEditingEnabled)
 				[
-					ValueWidget
-// 					SNew(SHorizontalBox)
-// 					.Visibility(this, &ThisClass::GetDefaultValueVisibility)
-// 					+ SHorizontalBox::Slot()
-// 					[
-// 						ValueWidget
-// 					]
+					InValueWidget
 				]
 			];
 	}
@@ -135,7 +129,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 		LabelAndValue->AddSlot()
 			.VAlign(VAlign_Center)
 			[
-				LabelWidget
+				InLabelWidget
 			];
 
 		LabelAndValue->AddSlot()
@@ -146,13 +140,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 				.Padding(0.0f)
 				.IsEnabled(this, &ThisClass::IsEditingEnabled)
 				[
-					ValueWidget
-// 					SNew(SHorizontalBox)
-// 					.Visibility(this, &ThisClass::GetDefaultValueVisibility)
-// 					+ SHorizontalBox::Slot()
-// 					[
-// 						ValueWidget
-// 					]
+					InValueWidget
 				]
 			];
 

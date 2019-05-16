@@ -2,8 +2,24 @@
 
 #include "SGraphNode.h"
 #include "SGraphPin.h"
+#include "GraphEditorDragDropAction.h"
 
 class UJavascriptGraphEdNode;
+
+class FDragJavascriptGraphNode : public FGraphEditorDragDropAction
+{
+public:
+	DRAG_DROP_OPERATOR_TYPE(FDragJavascriptGraphNode, FGraphEditorDragDropAction)
+
+	static TSharedRef<FDragJavascriptGraphNode> New(const TSharedRef<SGraphNode>& InDraggedNode);
+
+	virtual void HoverTargetChanged() override;
+
+	UJavascriptGraphEdNode* GetDropTargetNode() const;
+
+protected:
+	TArray< TSharedRef<SGraphNode> > DraggedNodes;
+};
 
 class SJavascriptGraphEdNode : public SGraphNode
 {
@@ -51,6 +67,10 @@ public:
 	//~ End SPanel Interface
 
 	//~ Begin SWidget Interface
+	virtual void OnDragEnter(const FGeometry& MyGeometry, const FDragDropEvent& DragDropEvent) override;
+	virtual void OnDragLeave(const FDragDropEvent& DragDropEvent) override;
+	virtual FReply OnDragOver(const FGeometry& MyGeometry, const FDragDropEvent& DragDropEvent) override;
+	virtual FReply OnDrop(const FGeometry& MyGeometry, const FDragDropEvent& DragDropEvent) override;
 	virtual void OnMouseEnter(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual void OnMouseLeave(const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
@@ -58,8 +78,6 @@ public:
 	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FCursorReply OnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent) const override;
 	//~ End SWidget Interface
-
-	virtual EVisibility GetDragOverMarkerVisibility() const;
 
 	virtual FText GetDescription() const;
 	virtual EVisibility GetDescriptionVisibility() const;

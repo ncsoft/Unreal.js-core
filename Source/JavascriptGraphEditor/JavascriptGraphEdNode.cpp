@@ -62,6 +62,7 @@ FJavascriptEdGraphPin UJavascriptGraphEdNode::CreatePin(
 	UObject* PinSubCategoryObject,
 	const FName PinName,
 	const FString& PinToolTip,
+	const FText& PinDisplayName,
 	const FJavascriptPinParams& InPinParams
 	)
 {
@@ -73,6 +74,9 @@ FJavascriptEdGraphPin UJavascriptGraphEdNode::CreatePin(
 
 	UEdGraphPin* GraphPin = Super::CreatePin(Dir, PinCategory, PinSubCategory, PinSubCategoryObject, PinName, PinParams);
 	GraphPin->PinToolTip = PinToolTip;
+#if WITH_EDITORONLY_DATA
+	GraphPin->PinFriendlyName = PinDisplayName;
+#endif
 	return FJavascriptEdGraphPin(GraphPin);
 }
 
@@ -157,6 +161,15 @@ void UJavascriptGraphEdNode::SetVisible(bool bVisible)
 	{
 		SlateGraphNode->SetVisibility(bVisible ? EVisibility::Visible : EVisibility::Hidden);
 	}
+}
+
+bool UJavascriptGraphEdNode::GetVisible()
+{
+	if (SlateGraphNode)
+	{
+		return (SlateGraphNode->GetVisibility() == EVisibility::Visible);
+	}
+	return false;
 }
 
 void UJavascriptGraphEdNode::SetTitleSelectionMode(float InTitleHeight)

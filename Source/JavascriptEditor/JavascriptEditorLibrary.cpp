@@ -52,6 +52,7 @@
 #include "Animation/AnimTypes.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
+#include "Curves/RichCurve.h"
 
 #include "Engine/DataTable.h"
 
@@ -1303,6 +1304,27 @@ FString UJavascriptEditorLibrary::GetDataTableAsJSON(UDataTable* InDataTable, ui
 		return TEXT("");
 
 	return InDataTable->GetTableAsJSON((EDataTableExportFlags)InDTExportFlags);
+}
+
+void UJavascriptEditorLibrary::AddRichCurve(UCurveTable* InCurveTable, const FName& Key, const FRichCurve& InCurve)
+{
+	FRichCurve* NewCurve = new FRichCurve();
+	NewCurve->SetKeys(InCurve.GetConstRefOfKeys());
+	NewCurve->PreInfinityExtrap = InCurve.PreInfinityExtrap;
+	NewCurve->PostInfinityExtrap = InCurve.PostInfinityExtrap;
+	NewCurve->DefaultValue = InCurve.DefaultValue;
+
+	InCurveTable->RowMap.Add(Key, NewCurve);
+}
+
+void UJavascriptEditorLibrary::RemoveRichCurve(UCurveTable* InCurveTable, const FName& Key)
+{
+	InCurveTable->RowMap.Remove(Key);
+}
+
+void UJavascriptEditorLibrary::NotifyUpdateCurveTable(UCurveTable* InCurveTable)
+{
+	InCurveTable->OnCurveTableChanged().Broadcast();
 }
 
 #endif

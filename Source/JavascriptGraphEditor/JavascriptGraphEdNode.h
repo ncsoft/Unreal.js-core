@@ -34,6 +34,8 @@ class UJavascriptGraphEdNode : public UEdGraphNode
 {
 	GENERATED_BODY()
 
+	DECLARE_DYNAMIC_DELEGATE(FOnWidgetFinalized);
+
 public:
 	UPROPERTY()
 	FSlateColor BackgroundColor;
@@ -43,6 +45,9 @@ public:
 
 	UPROPERTY()
 	bool IsTitleOnly;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnWidgetFinalized OnWidgetFinalized;
 	
 public:
 	virtual void AllocateDefaultPins() override;
@@ -64,6 +69,7 @@ public:
 		UObject* PinSubCategoryObject,
 		const FName PinName,
 		const FString& PinToolTip,
+		const FText& PinDisplayName,
 		const FJavascriptPinParams& InPinParams
 		);
 
@@ -89,7 +95,10 @@ public:
 	void SetVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	void SetTitleSelectionMode(float TitleHeight);
+	bool GetVisible();
+
+	UFUNCTION(BlueprintCallable)
+	void SetTitleSelectionMode(float InTitleHeight);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void ResetTitleSelectionMode();

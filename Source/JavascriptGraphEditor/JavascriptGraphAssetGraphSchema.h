@@ -114,7 +114,7 @@ public:
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FJavascriptPerformSecondPassLayoutContainer, FOnPerformSecondPassLayout, UJavascriptGraphEdNode*, Instance);
 	
-	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnGetPins, UJavascriptGraphEdNode*, Instance, FJavascriptSlateEdNode, SlateEdNode);
+	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnGetPins, UJavascriptGraphEdNode*, Instance, FJavascriptSlateEdNode, SlateEdNode, const FPointerEvent&, PointerEvent);
 	
 	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnTryCreateConnection, FJavascriptEdGraphPin&, PinA, FJavascriptEdGraphPin&, PinB);
 
@@ -126,9 +126,11 @@ public:
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FSlateColor, FOnGetPinColor, bool, bHovered, FJavascriptEdGraphPin, Pin);
 
-	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnMouseEvent, UJavascriptGraphEdNode*, Instance, const FGeometry&, MyGeometry);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(bool, FOnMouseEvent, UJavascriptGraphEdNode*, Instance, const FGeometry&, MyGeometry, const FPointerEvent&, PointerEvent);
+
+	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(bool, FOnMouseDragEvent, UJavascriptGraphEdNode*, Target, UJavascriptGraphEdNode*, Capture, const FGeometry&, MyGeometry);
 	
-	DECLARE_DYNAMIC_DELEGATE_FourParams(FOnMouseEventAdvanced, UJavascriptGraphEdNode*, Instance, FVector2D, Delta, bool, bUserIsDragging, int32, MouseZone);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_FiveParams(bool, FOnMouseEventAdvanced, UJavascriptGraphEdNode*, Instance, FVector2D, Delta, bool, bUserIsDragging, int32, MouseZone, const FPointerEvent&, PointerEvent);
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal(bool, FOnShouldAlwaysPurgeOnModification);
 	
@@ -275,6 +277,18 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnShouldAlwaysPurgeOnModification OnShouldAlwaysPurgeOnModification;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnMouseDragEvent OnDragEnter;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetBooleanWidget OnDragLeave;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnMouseDragEvent OnDragOver;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnMouseDragEvent OnDrop;
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void BreakPinLinks(FJavascriptEdGraphPin TargetPin, bool bSendsNodeNotifcation);

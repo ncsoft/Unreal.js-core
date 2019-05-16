@@ -64,31 +64,31 @@ struct FJavascriptConnectionParams
 	FJavascriptConnectionParams(const FConnectionParams& In);
 
 	UPROPERTY()
-		FLinearColor WireColor;
+	FLinearColor WireColor;
 
 	UPROPERTY()
-		FJavascriptEdGraphPin AssociatedPin1;
+	FJavascriptEdGraphPin AssociatedPin1;
 
 	UPROPERTY()
-		FJavascriptEdGraphPin AssociatedPin2;
+	FJavascriptEdGraphPin AssociatedPin2;
 
 	UPROPERTY()
-		float WireThickness;
+	float WireThickness;
 
 	UPROPERTY()
-		bool bDrawBubbles;
+	bool bDrawBubbles;
 
 	UPROPERTY()
-		bool bUserFlag1;
+	bool bUserFlag1;
 
 	UPROPERTY()
-		bool bUserFlag2;
+	bool bUserFlag2;
 
 	UPROPERTY()
-		TEnumAsByte<EEdGraphPinDirection> StartDirection;
+	TEnumAsByte<EEdGraphPinDirection> StartDirection;
 
 	UPROPERTY()
-		TEnumAsByte<EEdGraphPinDirection> EndDirection;
+	TEnumAsByte<EEdGraphPinDirection> EndDirection;
 
 	operator FConnectionParams () const;
 };
@@ -220,6 +220,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void Finalize(FJavascriptNodeCreator& Creator);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static UJavascriptGraphEdNode* CreateEmptyNode(UJavascriptGraphEdGraph* Graph);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool SetNodeMetaData(UEdGraphSchema* Schema, UEdGraphNode* Node, FName KeyValue);

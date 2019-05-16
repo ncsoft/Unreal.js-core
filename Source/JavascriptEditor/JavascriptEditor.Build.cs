@@ -62,6 +62,7 @@ public class JavascriptEditor : ModuleRules
 					    "AssetTools",
 					    "ClassViewer",
                         "InputCore",
+                        "CurveTableEditor",
                         "PropertyEditor",
                         "AdvancedPreviewScene",
                         "Slate",

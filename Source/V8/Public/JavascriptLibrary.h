@@ -385,7 +385,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static FString GetDir(UObject* Object, FString WhichDir);
-		
+	
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static FString ConvertRelativePathToFull(UObject* Object, FString RelativePath);
+
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool HasUndo(UEngine* Engine);
 

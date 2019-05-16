@@ -38,6 +38,13 @@ void UJavascriptGraphEditorLibrary::Finalize(FJavascriptNodeCreator& Creator)
 	Creator.Instance->Finalize();
 }
 
+UJavascriptGraphEdNode* UJavascriptGraphEditorLibrary::CreateEmptyNode(UJavascriptGraphEdGraph* Graph)
+{
+	UEdGraphNode* NewNode = NewObject<UEdGraphNode>(Graph, UJavascriptGraphEdNode::StaticClass(), NAME_None, RF_Transactional);
+	NewNode->CreateNewGuid();
+	return (UJavascriptGraphEdNode*)NewNode;
+}
+
 bool UJavascriptGraphEditorLibrary::SetNodeMetaData(UEdGraphSchema* Schema, UEdGraphNode* Node, FName KeyValue)
 {
 	return Schema->SetNodeMetaData(Node, KeyValue);
