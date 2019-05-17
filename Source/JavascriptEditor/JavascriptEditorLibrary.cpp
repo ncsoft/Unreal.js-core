@@ -1308,18 +1308,20 @@ FString UJavascriptEditorLibrary::GetDataTableAsJSON(UDataTable* InDataTable, ui
 
 void UJavascriptEditorLibrary::AddRichCurve(UCurveTable* InCurveTable, const FName& Key, const FRichCurve& InCurve)
 {
+#if ENGINE_MINOR_VERSION < 22
 	FRichCurve* NewCurve = new FRichCurve();
 	NewCurve->SetKeys(InCurve.GetConstRefOfKeys());
 	NewCurve->PreInfinityExtrap = InCurve.PreInfinityExtrap;
 	NewCurve->PostInfinityExtrap = InCurve.PostInfinityExtrap;
-	NewCurve->DefaultValue = InCurve.DefaultValue;
-
+	NewCurve->DefaultValue = InCurve.DefaultValue;	
 	InCurveTable->RowMap.Add(Key, NewCurve);
-}
-
-void UJavascriptEditorLibrary::RemoveRichCurve(UCurveTable* InCurveTable, const FName& Key)
-{
-	InCurveTable->RowMap.Remove(Key);
+#else
+	FRichCurve& NewCurve = InCurveTable->AddRichCurve(Key);
+	NewCurve.SetKeys(InCurve.GetConstRefOfKeys());
+	NewCurve.PreInfinityExtrap = InCurve.PreInfinityExtrap;
+	NewCurve.PostInfinityExtrap = InCurve.PostInfinityExtrap;
+	NewCurve.DefaultValue = InCurve.DefaultValue;
+#endif
 }
 
 void UJavascriptEditorLibrary::NotifyUpdateCurveTable(UCurveTable* InCurveTable)

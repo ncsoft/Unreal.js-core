@@ -530,11 +530,6 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static void AddRichCurve(UCurveTable* InCurveTable, const FName& Key, const FRichCurve& InCurve);
 
 	UFUNCTION()
-	static void RemoveRichCurve(UCurveTable* InCurveTable, const FName& Key);
-
-	UFUNCTION()
 	static void NotifyUpdateCurveTable(UCurveTable* InCurveTable);
-
-
 #endif
 };
