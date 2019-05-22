@@ -1313,7 +1313,8 @@ void UJavascriptEditorLibrary::AddRichCurve(UCurveTable* InCurveTable, const FNa
 	NewCurve->SetKeys(InCurve.GetConstRefOfKeys());
 	NewCurve->PreInfinityExtrap = InCurve.PreInfinityExtrap;
 	NewCurve->PostInfinityExtrap = InCurve.PostInfinityExtrap;
-	NewCurve->DefaultValue = InCurve.DefaultValue;	
+	NewCurve->DefaultValue = InCurve.DefaultValue;
+	InCurveTable->RowMap.Remove(Key);
 	InCurveTable->RowMap.Add(Key, NewCurve);
 #else
 	FRichCurve& NewCurve = InCurveTable->AddRichCurve(Key);

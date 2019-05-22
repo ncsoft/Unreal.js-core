@@ -92,11 +92,7 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnBuildMenu, FJavascriptGraphMenuBuilder&, Builder);
 
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnEdNodeAction, UJavascriptGraphEdNode*, Node);
-
-	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FText, FOnGetText, UJavascriptGraphEdNode*, Node);
-
-	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSetText, UJavascriptGraphEdNode*, Node, FText, String);
-
+	
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FOnCreateAutomaticConversionNodeAndConnections, FJavascriptEdGraphPin, A, FJavascriptEdGraphPin, B);
 	
 	/** Delegate for constructing a UWidget based on a UObject */
@@ -122,7 +118,7 @@ public:
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnGetBoolean_GraphPin, FJavascriptEdGraphPin, Pin);
 
-	DECLARE_DYNAMIC_DELEGATE_RetVal_SixParams(FJavascriptSlateWidget, FOnTakeCustomContentWidget, UJavascriptGraphEdNode*, Instance, FJavascriptSlateWidget, OutUserWidget, FJavascriptSlateWidget, OutLeftNodeBoxWidget, FJavascriptSlateWidget, OutRightNodeBoxWidget, FJavascriptSlateWidget, OutAltLeftNodeBoxWidget, FJavascriptSlateWidget, OutAltRightNodeBoxWidget);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(FJavascriptSlateWidget, FOnTakeContentWidget, UJavascriptGraphEdNode*, Instance, FJavascriptSlateWidget, OutLeftNodeBoxWidget, FJavascriptSlateWidget, OutRightNodeBoxWidget);
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FSlateColor, FOnGetPinColor, bool, bHovered, FJavascriptEdGraphPin, Pin);
 
@@ -174,7 +170,7 @@ public:
 	FOnGetBooleanMoveTo OnMoveTo;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnTakeCustomContentWidget OnTakeCustomContentWidget;
+	FOnTakeContentWidget OnTakeContentWidget;
 	
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnCreatePin OnGetValueWidget;
@@ -219,10 +215,10 @@ public:
 	FOnDrawPreviewConnector OnDrawPreviewConnector;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnTakeWidget OnTakeWidget;
+	FOnTakeWidget OnTakeUserWidget;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnTakeWidget OnTakeTitleWidget;
+	FOnTakeWidget OnTakeTitleAreaWidget;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnTakeWidget OnTakeErrorReportingWidget;
@@ -256,12 +252,6 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnDetermineLinkGeometry OnDetermineLinkGeometry;
-
-	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnGetText OnGetNodeComment;
-
-	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnSetText OnSetNodeComment;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetBooleanWidget OnIsNodeComment;

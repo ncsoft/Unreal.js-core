@@ -34,8 +34,14 @@ public class JavascriptEditor : ModuleRules
                     "Landscape",
                     "JavascriptUMG",
                     "RawMesh",
-                    "NavigationSystem"
-				}
+                    "NavigationSystem",
+                    "WebBrowser",
+                    "AppFramework",
+                    "KismetWidgets",
+                    "EditorStyle",
+                    "UnrealEd"
+
+                }
             );	// @todo Mac: for some reason CoreUObject and Engine are needed to link in debug on Mac
 
         if (Target.bBuildEditor == true)

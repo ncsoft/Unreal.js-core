@@ -55,6 +55,14 @@ namespace v8
 			FJavascriptContext::FromV8(context)->UncaughtException(FV8Exception::Report(isolate, try_catch));
 		}
 
+		FIsolateHelper I(isolate);
+
+		if (maybeValue.IsEmpty())
+		{
+			I.Throw(TEXT("..."));
+			return;
+		}
+
 		bool bHasAnyOutParams = false;
 		if (SignatureFunction && SignatureFunction->HasAnyFunctionFlags(FUNC_HasOutParms))
 		{
@@ -70,17 +78,10 @@ namespace v8
 			}
 		}
 
+		auto value = maybeValue.ToLocalChecked();
+
 		if (bHasAnyOutParams)
 		{
-			FIsolateHelper I(isolate);
-			if (maybeValue.IsEmpty())
-			{
-				I.Throw(TEXT("..."));
-				return;
-			}
-
-			auto value = maybeValue.ToLocalChecked();
-
 			if (!value->IsObject())
 			{
 				I.Throw(TEXT("..."));
@@ -120,7 +121,7 @@ namespace v8
 		{
 			if (ReturnParam)
 			{
-				WriteProperty(isolate, ReturnParam, Buffer, maybeValue.ToLocalChecked(), FNoPropertyOwner());
+				WriteProperty(isolate, ReturnParam, Buffer, value, FNoPropertyOwner());
 			}
 		}		
 	}

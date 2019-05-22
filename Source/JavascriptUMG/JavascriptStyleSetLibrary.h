@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Styling/SlateTypes.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "JavascriptStyleSetLibrary.generated.h"
 

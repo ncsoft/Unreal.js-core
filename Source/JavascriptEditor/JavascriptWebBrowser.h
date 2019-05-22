@@ -5,8 +5,8 @@
 
 class SSearchBox;
 
-UCLASS(Experimental)
-class JAVASCRIPTUMG_API UJavascriptWebBrowser : public UWidget
+UCLASS()
+class JAVASCRIPTEDITOR_API UJavascriptWebBrowser : public UWidget
 {
 	GENERATED_UCLASS_BODY()
 

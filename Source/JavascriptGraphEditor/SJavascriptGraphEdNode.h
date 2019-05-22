@@ -92,6 +92,13 @@ public:
 public:
 	void PositionBetweenTwoNodesWithOffset(const FGeometry& StartGeom, const FGeometry& EndGeom, int32 NodeIndex, int32 MaxNodes) const;
 
+private:
+	TSharedPtr<SWidget> GetTitleAreaWidget();
+	TSharedPtr<SWidget>	GetUserWidget();
+	TSharedPtr<SWidget> GetContentWidget();
+	TSharedPtr<SWidget> ErrorReportingWidget();
+	void UpdatePinSlate();
+
 public:
 	/** The non snapped size of the node for fluid resizing */
 	FVector2D DragSize;

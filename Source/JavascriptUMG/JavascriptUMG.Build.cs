@@ -15,8 +15,7 @@ public class JavascriptUMG : ModuleRules
 			"RenderCore",
 			"RHI", 
             "UMG",
-            "V8",
-            "WebBrowser"
-        });        
+            "V8"
+        });
 	}
 }
