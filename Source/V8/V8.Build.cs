@@ -152,7 +152,6 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libplatform.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_nosnapshot.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libsampler.a"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libtorque_base.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libtorque_generated_initializers.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libinspector.a"));
 
@@ -179,7 +178,6 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libplatform.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_nosnapshot.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libsampler.a"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libtorque_base.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libtorque_generated_initializers.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libinspector.a"));
 
