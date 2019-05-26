@@ -1334,8 +1334,8 @@ public:
 		auto global = ctx->Global();
 		auto self = External::New(isolate(), this);
 
-		global->Set(ctx, V8_KeywordString(isolate(), "CreateClass"), FunctionTemplate::New(isolate(), fn, self)->GetFunction(ctx).ToLocalChecked());
-		global->Set(ctx, V8_KeywordString(isolate(), "RebindClassProperties"), FunctionTemplate::New(isolate(), fn1, self)->GetFunction(ctx).ToLocalChecked());
+		(void)global->Set(ctx, V8_KeywordString(isolate(), "CreateClass"), FunctionTemplate::New(isolate(), fn, self)->GetFunction(ctx).ToLocalChecked());
+		(void)global->Set(ctx, V8_KeywordString(isolate(), "RebindClassProperties"), FunctionTemplate::New(isolate(), fn1, self)->GetFunction(ctx).ToLocalChecked());
 	}
 
 	void ExportUnrealEngineStructs()
@@ -1466,8 +1466,8 @@ public:
 		auto global = ctx->Global();
 		auto self = External::New(isolate(), this);
 
-		global->Set(ctx, V8_KeywordString(isolate(), "CreateStruct"), FunctionTemplate::New(isolate(), fn, self)->GetFunction(ctx).ToLocalChecked());
-		global->Set(ctx, V8_KeywordString(isolate(), "RebindStructProperties"), FunctionTemplate::New(isolate(), fn1, self)->GetFunction(ctx).ToLocalChecked());
+		(void)global->Set(ctx, V8_KeywordString(isolate(), "CreateStruct"), FunctionTemplate::New(isolate(), fn, self)->GetFunction(ctx).ToLocalChecked());
+		(void)global->Set(ctx, V8_KeywordString(isolate(), "RebindStructProperties"), FunctionTemplate::New(isolate(), fn1, self)->GetFunction(ctx).ToLocalChecked());
 	}
 
 	void ExposeRequire()
@@ -1685,8 +1685,8 @@ public:
 		auto global = ctx->Global();
 		auto self = External::New(isolate(), this);
 
-		global->Set(ctx, V8_KeywordString(isolate(), "require"), FunctionTemplate::New(isolate(), fn, self)->GetFunction(ctx).ToLocalChecked());
-		global->Set(ctx, V8_KeywordString(isolate(), "purge_modules"), FunctionTemplate::New(isolate(), fn2, self)->GetFunction(ctx).ToLocalChecked());
+		(void)global->Set(ctx, V8_KeywordString(isolate(), "require"), FunctionTemplate::New(isolate(), fn, self)->GetFunction(ctx).ToLocalChecked());
+		(void)global->Set(ctx, V8_KeywordString(isolate(), "purge_modules"), FunctionTemplate::New(isolate(), fn2, self)->GetFunction(ctx).ToLocalChecked());
 
 		AccessorNameGetterCallback getter = [](Local<Name> property, const PropertyCallbackInfo<Value>& info) {
 			auto isolate = info.GetIsolate();
@@ -1707,7 +1707,7 @@ public:
 
 			info.GetReturnValue().Set(out);
 		};
-		global->SetAccessor(context(), V8_KeywordString(isolate(), "modules"), getter, 0, self);
+		(void)global->SetAccessor(context(), V8_KeywordString(isolate(), "modules"), getter, 0, self);
 	}
 
 	void ExposeMemory2()
@@ -1719,7 +1719,7 @@ public:
 		Local<FunctionTemplate> Template = I.FunctionTemplate();
 
 		auto add_fn = [&](const char* name, FunctionCallback fn) {
-			global->Set(ctx, I.Keyword(name), I.FunctionTemplate(fn)->GetFunction(ctx).ToLocalChecked());
+			(void)global->Set(ctx, I.Keyword(name), I.FunctionTemplate(fn)->GetFunction(ctx).ToLocalChecked());
 		};
 
 		add_fn("$memaccess", [](const FunctionCallbackInfo<Value>& info)
@@ -1761,7 +1761,7 @@ public:
 									argv[0] = FJavascriptIsolate::ExportStructInstance(isolate, ProxyStruct, (uint8*)Proxy, FStructMemoryPropertyOwner(Instance));
 								}
 
-								function->Call(context, info.This(), 1, argv);
+								(void)function->Call(context, info.This(), 1, argv);
 								return;
 							}
 						}
@@ -1794,7 +1794,7 @@ public:
 							auto ab = ArrayBuffer::New(info.GetIsolate(), Source->GetMemory(nullptr), Source->GetSize(0));
 							argv[0] = ab;
 
-							function->Call(context, info.This(), 1, argv);
+							(void)function->Call(context, info.This(), 1, argv);
 							return;
 						}
 						else if (Dimension == 2)
@@ -1810,7 +1810,7 @@ public:
 								out_arr->Set(Index, ab);
 							}
 
-							function->Call(context, info.This(), 1, argv);
+							(void)function->Call(context, info.This(), 1, argv);
 							return;
 						}
 					}
@@ -1827,7 +1827,7 @@ public:
 							argv[0] = FJavascriptIsolate::ExportStructInstance(isolate, ProxyStruct, (uint8*)Proxy, FStructMemoryPropertyOwner(Instance));
 						}
 
-						function->Call(context, info.This(), 1, argv);
+						(void)function->Call(context, info.This(), 1, argv);
 						return;
 					}
 				}
@@ -1958,7 +1958,7 @@ public:
 		auto ctx = context();
 		Context::Scope context_scope(ctx);
 
-		ctx->Global()->SetAccessor(ctx, V8_KeywordString(isolate(), RootName), RootGetter, 0, ExportObject(Object));
+		(void)ctx->Global()->SetAccessor(ctx, V8_KeywordString(isolate(), RootName), RootGetter, 0, ExportObject(Object));
 	}
 
 	Local<Value> ExportObject(UObject* Object, bool bForce = false) override
@@ -2278,7 +2278,7 @@ public:
 
 			argv[0] = V8_String(_isolate, Exception);
 
-			function->Call(context(), global, 1, argv);
+			(void)function->Call(context(), global, 1, argv);
 		}
 	}
 };

@@ -251,7 +251,7 @@ public:
 
 	virtual void FillAutoCompletion(TSharedPtr<FString> TargetContext, TArray<FString>& OutArray, const TCHAR* Input) override
 	{
-		static const TCHAR* SourceCode = LR"doc(
+		static const TCHAR* SourceCode = (const TCHAR *)LR"doc(
 (function () {
     var pattern = '{0}'; var head = '';
     pattern.replace(/\\W*([\\w\\.]+)$/, function (a, b, c) { head = pattern.substr(0, c + a.length - b.length); pattern = b });
