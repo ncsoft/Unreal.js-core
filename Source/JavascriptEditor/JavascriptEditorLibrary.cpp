@@ -1,16 +1,60 @@
-#include "JavascriptEditor.h"
 #include "JavascriptEditorLibrary.h"
 #include "LandscapeComponent.h"
+
+// WORKAROUND for 4.15
+#ifndef WITH_KISSFFT
+#define WITH_KISSFFT 0
+#endif
+
+#include "AssetRegistryModule.h"
 #include "Editor/LandscapeEditor/Private/LandscapeEdModeTools.h"
 #include "JavascriptContext.h"
 #include "DynamicMeshBuilder.h"
 #include "BSPOps.h"
-#include "HotReloadInterface.h"
-#include "JavascriptWindow.h"
+#include "Misc/HotReloadInterface.h"
+#include "JavascriptUMG/JavascriptWindow.h"
 #include "Editor/PropertyEditor/Public/PropertyEditorModule.h"
 #include "Toolkits/AssetEditorToolkit.h"
 #include "LevelEditor.h"
+#include "Editor/AnimationBlueprintEditor/Private/AnimationBlueprintEditorModule.h"
+#include "IAnimationEditorModule.h"
+#include "BlueprintEditorModule.h"
+#include "Landscape.h"
+#include "LandscapeDataAccess.h"
+#include "LandscapeEdit.h"
+
+#include "Engine/BrushBuilder.h"
+#include "Engine/Selection.h"
+#include "EngineUtils.h"
+#include "GameFramework/Volume.h"
+#include "Components/BrushComponent.h"
+
 #include "../../Launch/Resources/Version.h"
+#include "HAL/PlatformFileManager.h"
+#include "HAL/FileManager.h"
+#include "AI/NavDataGenerator.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Engine/LevelStreaming.h"
+#include "VisualLogger/VisualLogger.h"
+#include "JavascriptUMG/JavascriptUICommands.h"
+#include "WorkspaceMenuStructure.h"
+#include "WorkspaceMenuStructureModule.h"
+#include "Engine/SimpleConstructionScript.h"
+#include "Engine/SCS_Node.h"
+#include "Kismet2/BlueprintEditorUtils.h"
+#include "NavigationSystem.h"
+
+#include "Developer/MessageLog/Public/MessageLogModule.h"
+#include "Developer/MessageLog/Public/IMessageLogListing.h"
+
+#include "Kismet2/KismetEditorUtilities.h"
+#include "Animation/AnimSequence.h"
+#include "Animation/AnimTypes.h"
+#include "Animation/AnimNotifies/AnimNotifyState.h"
+#include "Animation/AnimNotifies/AnimNotify.h"
+#include "Curves/RichCurve.h"
+
+#include "Engine/DataTable.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -156,7 +200,7 @@ void UJavascriptEditorLibrary::GetAllTags(const FJavascriptAssetData& AssetData,
 
 bool UJavascriptEditorLibrary::GetTagValue(const FJavascriptAssetData& AssetData, const FName& Name, FString& OutValue)
 {
-	auto Value = AssetData.SourceAssetData.TagsAndValues.Find(Name);
+	auto Value = AssetData.SourceAssetData.TagsAndValues.GetMap().Find(Name);
 
 	if (Value)
 	{
@@ -191,7 +235,11 @@ bool UJavascriptEditorLibrary::IsAssetLoaded(const FJavascriptAssetData& AssetDa
 
 bool UJavascriptEditorLibrary::EditorDestroyActor(UWorld* World, AActor* Actor, bool bShouldModifyLevel)
 {
-	return World->EditorDestroyActor(Actor, bShouldModifyLevel);
+	if (World && Actor)
+	{
+		return World->EditorDestroyActor(Actor, bShouldModifyLevel);
+	}
+	return false;
 }
 
 void UJavascriptEditorLibrary::SetIsTemporarilyHiddenInEditor(AActor* Actor, bool bIsHidden)
@@ -398,9 +446,9 @@ void UJavascriptEditorLibrary::DrawWireDiamond(const FJavascriptPDI& PDI, const 
 {
 	::DrawWireDiamond(PDI.PDI, Transform.ToMatrixWithScale(), Size, InColor, DepthPriority);
 }
-void UJavascriptEditorLibrary::DrawPolygon(const FJavascriptPDI& PDI, const TArray<FVector>& Verts, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority)
+void UJavascriptEditorLibrary::DrawPolygon(const FJavascriptPDI& PDI, const TArray<FVector>& Verts, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority, EJavascriptRHIFeatureLevel::Type RHIFeatureLevel)
 {
-	FDynamicMeshBuilder MeshBuilder;
+	FDynamicMeshBuilder MeshBuilder((ERHIFeatureLevel::Type)RHIFeatureLevel);
 
 	FColor Color = InColor.ToFColor(false);
 
@@ -415,7 +463,11 @@ void UJavascriptEditorLibrary::DrawPolygon(const FJavascriptPDI& PDI, const TArr
 	}
 	
 	static auto TransparentPlaneMaterialXY = (UMaterial*)StaticLoadObject(UMaterial::StaticClass(), NULL, TEXT("/Engine/EditorMaterials/WidgetVertexColorMaterial.WidgetVertexColorMaterial"), NULL, LOAD_None, NULL);
+#if ENGINE_MINOR_VERSION < 22
 	MeshBuilder.Draw(PDI.PDI, FMatrix::Identity, TransparentPlaneMaterialXY->GetRenderProxy(false), DepthPriority, 0.f);
+#else
+	MeshBuilder.Draw(PDI.PDI, FMatrix::Identity, TransparentPlaneMaterialXY->GetRenderProxy(), DepthPriority, 0.f);
+#endif
 }
 
 struct HJavascriptHitProxy : public HHitProxy
@@ -588,6 +640,9 @@ void UJavascriptEditorLibrary::CreatePropertyEditorToolkit(TArray<UObject*> Obje
 
 static FName NAME_LevelEditor("LevelEditor");
 static FName NAME_MaterialEditor("MaterialEditor");
+static FName NAME_AnimationBlueprintEditor("AnimationBlueprintEditor");
+static FName NAME_AnimationEditor("AnimationEditor");
+static FName NAME_BlueprintEditor("Kismet");
 
 FJavascriptExtensibilityManager UJavascriptEditorLibrary::GetMenuExtensibilityManager(FName What)
 {
@@ -595,6 +650,21 @@ FJavascriptExtensibilityManager UJavascriptEditorLibrary::GetMenuExtensibilityMa
 	{
 		FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
 		return {LevelEditor.GetMenuExtensibilityManager()};
+	}
+	else if (What == NAME_BlueprintEditor)
+	{
+		FBlueprintEditorModule& BlueprintEditor = FModuleManager::LoadModuleChecked<FBlueprintEditorModule>(NAME_BlueprintEditor);
+		return { BlueprintEditor.GetMenuExtensibilityManager() };
+	}
+	else if (What == NAME_AnimationBlueprintEditor)
+	{
+		FAnimationBlueprintEditorModule& AnimationEditor = FModuleManager::LoadModuleChecked<FAnimationBlueprintEditorModule>(NAME_AnimationBlueprintEditor);
+		return { AnimationEditor.GetMenuExtensibilityManager() };
+	}
+	else if (What == NAME_AnimationEditor)
+	{
+		IAnimationEditorModule& AnimationEditor = FModuleManager::LoadModuleChecked<IAnimationEditorModule>(NAME_AnimationEditor);
+		return { AnimationEditor.GetMenuExtensibilityManager() };
 	}
 	return FJavascriptExtensibilityManager();
 }
@@ -606,7 +676,32 @@ FJavascriptExtensibilityManager UJavascriptEditorLibrary::GetToolBarExtensibilit
 		FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
 		return{ LevelEditor.GetToolBarExtensibilityManager() };
 	}
+	else if (What == NAME_BlueprintEditor)
+	{
+		FBlueprintEditorModule& BlueprintEditor = FModuleManager::LoadModuleChecked<FBlueprintEditorModule>(NAME_BlueprintEditor);
+		return { BlueprintEditor.GetMenuExtensibilityManager() };
+	}
+	else if (What == NAME_AnimationBlueprintEditor)
+	{
+		FAnimationBlueprintEditorModule& AnimationEditor = FModuleManager::LoadModuleChecked<FAnimationBlueprintEditorModule>(NAME_AnimationBlueprintEditor);
+		return { AnimationEditor.GetToolBarExtensibilityManager() };
+	}
+	else if (What == NAME_AnimationEditor)
+	{
+		IAnimationEditorModule& AnimationEditor = FModuleManager::LoadModuleChecked<IAnimationEditorModule>(NAME_AnimationEditor);
+		return { AnimationEditor.GetToolBarExtensibilityManager() };
+	}
 	return FJavascriptExtensibilityManager();
+}
+
+FJavascriptUICommandList UJavascriptEditorLibrary::GetLevelEditorActions()
+{
+	FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
+	TSharedRef<FUICommandList> LevelEditorActions = LevelEditor.GetGlobalLevelEditorActions();
+	
+	FJavascriptUICommandList CommandList;
+	CommandList.Handle = LevelEditorActions;
+	return CommandList;
 }
 
 void UJavascriptEditorLibrary::AddExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender)
@@ -622,6 +717,35 @@ void UJavascriptEditorLibrary::RemoveExtender(FJavascriptExtensibilityManager Ma
 	if (Manager.Handle.IsValid() && Extender.Handle.IsValid())
 	{
 		Manager->RemoveExtender(Extender.Handle);
+	}
+}
+
+void UJavascriptEditorLibrary::AddLazyExtender(FJavascriptExtensibilityManager Manager, UJavascriptLazyExtenderDelegates* Delegates)
+{
+	if (Manager.Handle.IsValid())
+	{
+		Delegates->AddToRoot();
+		Manager->GetExtenderDelegates().Add(FAssetEditorExtender::CreateLambda([=](const TSharedRef<FUICommandList> CommandList, const TArray<UObject*> EditingObjects)
+		{
+			//@hack: instead of returnless javascript.call
+			auto Extender = Delegates->GetExtender.Execute({ CommandList }, EditingObjects).Handle.ToSharedRef();
+			return Extender;
+		}));
+		Manager.LazyExtenders.Add(Delegates);
+	}
+}
+
+void UJavascriptEditorLibrary::RemoveAllLazyExtender(FJavascriptExtensibilityManager Manager)
+{
+	if (Manager.Handle.IsValid())
+	{
+		//@todo : remove from lazyextenders
+		for (auto* Delegates : Manager.LazyExtenders)
+		{
+			Delegates->RemoveFromRoot();
+		}
+		Manager.LazyExtenders.Empty();
+		Manager->GetExtenderDelegates().Empty();
 	}
 }
 
@@ -651,4 +775,559 @@ bool UJavascriptEditorLibrary::DeletePackage(UPackage* Package)
 	}
 	return false;
 }
+
+void UJavascriptEditorLibrary::CreateBrushForVolumeActor(AVolume* NewActor, UBrushBuilder* BrushBuilder)
+{
+	if (NewActor != NULL)
+	{
+		// this code builds a brush for the new actor
+		NewActor->PreEditChange(NULL);
+
+		NewActor->PolyFlags = 0;
+		NewActor->Brush = NewObject<UModel>(NewActor, NAME_None, RF_Transactional);
+		NewActor->Brush->Initialize(nullptr, true);
+		NewActor->Brush->Polys = NewObject<UPolys>(NewActor->Brush, NAME_None, RF_Transactional);
+		NewActor->GetBrushComponent()->Brush = NewActor->Brush;
+		if (BrushBuilder != nullptr)
+		{
+			NewActor->BrushBuilder = DuplicateObject<UBrushBuilder>(BrushBuilder, NewActor);
+		}
+
+		BrushBuilder->Build(NewActor->GetWorld(), NewActor);
+
+		FBSPOps::csgPrepMovingBrush(NewActor);
+
+		// Set the texture on all polys to NULL.  This stops invisible textures
+		// dependencies from being formed on volumes.
+		if (NewActor->Brush)
+		{
+			for (int32 poly = 0; poly < NewActor->Brush->Polys->Element.Num(); ++poly)
+			{
+				FPoly* Poly = &(NewActor->Brush->Polys->Element[poly]);
+				Poly->Material = NULL;
+			}
+		}
+
+		NewActor->PostEditChange();
+	}
+}
+
+UWorld* UJavascriptEditorLibrary::FindWorldInPackage(UPackage* Package)
+{
+	return UWorld::FindWorldInPackage(Package);
+}
+
+FString UJavascriptEditorLibrary::ExportNavigation(UWorld* InWorld, FString Name)
+{
+	InWorld->WorldType = EWorldType::Editor;
+	InWorld->AddToRoot();
+	if (!InWorld->bIsWorldInitialized)
+	{
+		UWorld::InitializationValues IVS;
+		IVS.EnableTraceCollision(true);
+		IVS.CreateNavigation(true);
+
+		InWorld->InitWorld(IVS);
+		InWorld->PersistentLevel->UpdateModelComponents();
+		InWorld->UpdateWorldComponents(true, false);
+		InWorld->UpdateLevelStreaming();
+		//InWorld->LoadSecondaryLevels(true, NULL);
+	}
+
+	FWorldContext &WorldContext = GEditor->GetEditorWorldContext(true);
+	WorldContext.SetCurrentWorld(InWorld);
+	GWorld = InWorld;
+
+//	UGameplayStatics::LoadStreamLevel(InWorld, FName(TEXT("BackgroundMountains")), true, true, FLatentActionInfo());
+// 	UWorld::InitializationValues().ShouldSimulatePhysics(false).EnableTraceCollision(true).CreateNavigation(InWorldType == EWorldType::Editor).CreateAISystem(InWorldType == EWorldType::Editor);
+// 	UNavigationSystem::InitializeForWorld(InWorld, FNavigationSystemRunMode::GameMode);
+	if (UNavigationSystemV1* Nav = Cast<UNavigationSystemV1>(InWorld->GetNavigationSystem()))
+	{
+		Nav->InitializeForWorld(*InWorld, FNavigationSystemRunMode::EditorMode);
+		Nav->Build();
+		if (const ANavigationData* NavData = Nav->GetDefaultNavDataInstance(FNavigationSystem::ECreateIfEmpty::Create))
+		{
+			if (const FNavDataGenerator* Generator = NavData->GetGenerator())
+			{
+				//const FString Name = NavData->GetName();
+				//auto fname = FString::Printf(TEXT("%s/%s"), *FPaths::GameSavedDir(), *Name);
+				Generator->ExportNavigationData(Name);
+				InWorld->RemoveFromRoot();
+				return Name;
+			}
+			else
+			{
+				UE_LOG(LogNavigation, Error, TEXT("Failed to export navigation data due to missing generator"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogNavigation, Error, TEXT("Failed to export navigation data due to navigation data"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogNavigation, Error, TEXT("Failed to export navigation data due to missing navigation system"));
+	}
+
+	InWorld->RemoveFromRoot();
+
+	return FString("");
+}
+
+void UJavascriptEditorLibrary::RequestEndPlayMapInPIE()
+{
+	if (GEditor->PlayWorld)
+	{
+		GEditor->RequestEndPlayMap();
+	}
+}
+
+void UJavascriptEditorLibrary::RemoveLevelInstance(UWorld* World)
+{
+	// Clean up existing world and remove it from root set so it can be garbage collected.
+	World->bIsLevelStreamingFrozen = false;
+	World->SetShouldForceUnloadStreamingLevels(true);
+	World->SetShouldForceVisibleStreamingLevels(false);
+	for (ULevelStreaming* StreamingLevel : World->GetStreamingLevels())
+	{
+		StreamingLevel->SetIsRequestingUnloadAndRemoval(true);
+	}
+	World->RefreshStreamingLevels();
+}
+
+void UJavascriptEditorLibrary::AddWhitelistedObject(UObject* InObject)
+{
+	FVisualLogger::Get().AddWhitelistedObject(*InObject);
+}
+
+void UJavascriptEditorLibrary::PostEditChange(UObject* InObject)
+{
+	if (InObject)
+	{
+		InObject->PostEditChange();
+	}
+}
+
+bool UJavascriptEditorLibrary::MarkPackageDirty(UObject* InObject)
+{
+	return InObject && InObject->MarkPackageDirty();
+}
+
+void UJavascriptEditorLibrary::CreateLogListing(const FName& InLogName, const FText& InLabel)
+{
+	FMessageLogModule& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>("MessageLog");
+	FMessageLogInitializationOptions InitOptions;
+	InitOptions.bShowFilters = true;
+	InitOptions.bShowPages = true;
+	TSharedRef<class IMessageLogListing> Listing = MessageLogModule.CreateLogListing(InLogName, InitOptions);
+	Listing->SetLabel(InLabel);
+	MessageLogModule.RegisterLogListing(InLogName, InLabel, InitOptions);
+}
+
+FJavascriptSlateWidget UJavascriptEditorLibrary::CreateLogListingWidget(const FName& InLogName)
+{
+	FMessageLogModule& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>("MessageLog");
+	FJavascriptSlateWidget Out;
+	Out.Widget = MessageLogModule.CreateLogListingWidget(MessageLogModule.GetLogListing(InLogName));
+	return Out;
+}
+
+void UJavascriptEditorLibrary::AddLogListingMessage(const FName& InLogName, EJavascriptMessageSeverity::Type InSeverity, const FString& LogText)
+{
+	FMessageLogModule& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>("MessageLog");
+	TSharedRef<FTokenizedMessage> Line = FTokenizedMessage::Create((EMessageSeverity::Type)(InSeverity));
+	Line->AddToken(FTextToken::Create(FText::FromString(LogText)));
+	MessageLogModule.GetLogListing(InLogName)->AddMessage(Line, false);
+}
+
+UEditorEngine* UJavascriptEditorLibrary::GetEngine()
+{
+	return Cast<UEditorEngine>(GEngine);
+}
+
+UClass* UJavascriptEditorLibrary::GetParentClassOfBlueprint(UBlueprint* Blueprint)
+{
+	return Cast<UClass>(Blueprint->ParentClass);
+}
+
+USCS_Node* FindSCSNode(const TArray<USCS_Node*>& Nodes, UActorComponent* Component)
+{
+	for (auto* Node : Nodes)
+	{
+		if (Node->ComponentTemplate == Component)
+			return Node;
+
+		auto* Ret = FindSCSNode(Node->ChildNodes, Component);
+		if (Ret)
+			return Ret;
+	}
+	return nullptr;
+}
+
+void UJavascriptEditorLibrary::AddComponentsToBlueprint(UBlueprint* Blueprint, const TArray<UActorComponent*>& Components, bool bHarvesting, UActorComponent* OptionalNewRootComponent, bool bKeepMobility)
+{
+	auto* OptionalNewRootNode = FindSCSNode(Blueprint->SimpleConstructionScript->GetRootNodes(), OptionalNewRootComponent);
+	FKismetEditorUtilities::AddComponentsToBlueprint(Blueprint, Components, bHarvesting, OptionalNewRootNode, bKeepMobility);
+	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+}
+
+void UJavascriptEditorLibrary::RemoveComponentFromBlueprint(UBlueprint* Blueprint, UActorComponent* RemoveComponent, bool bPromoteChildren)
+{
+	auto* RemoveNode = FindSCSNode(Blueprint->SimpleConstructionScript->GetRootNodes(), RemoveComponent);
+	if (RemoveNode)
+	{
+		FBlueprintEditorUtils::RemoveVariableNodes(Blueprint, RemoveNode->GetVariableName());
+		if (bPromoteChildren)
+			Blueprint->SimpleConstructionScript->RemoveNodeAndPromoteChildren(RemoveNode);
+		else
+			Blueprint->SimpleConstructionScript->RemoveNode(RemoveNode);
+
+		// Clear the delegate
+		RemoveNode->SetOnNameChanged(FSCSNodeNameChanged());
+		FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+	}
+}
+
+void UJavascriptEditorLibrary::CompileBlueprint(UBlueprint* Blueprint)
+{
+	//FBlueprintEditorUtils::MarkBlueprintAsModified(Blueprint);
+	FKismetEditorUtilities::CompileBlueprint(Blueprint);
+ 	//Blueprint->Modify();
+ 	//Blueprint->PostEditChange();
+}
+
+bool UJavascriptEditorLibrary::OpenEditorForAsset(UObject* Asset)
+{
+	return FAssetEditorManager::Get().OpenEditorForAsset(Asset);
+}
+
+void UJavascriptEditorLibrary::OpenEditorForAssetByPath(const FString& AssetPathName, const FString& ObjectName)
+{
+	// An asset needs loading
+	UPackage* Package = LoadPackage(NULL, *AssetPathName, LOAD_NoRedirects);
+	if (Package)
+	{
+		Package->FullyLoad();
+
+		UObject* Object = FindObject<UObject>(Package, *ObjectName);
+		if (Object != NULL)
+		{
+			FAssetEditorManager::Get().OpenEditorForAsset(Object);
+		}
+	}
+}
+
+TArray<FAssetData> UJavascriptEditorLibrary::GetAssetsByType(const TArray<FString>& Types, bool bRecursiveClasses)
+{
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+	
+	FARFilter Filter;
+	for (auto& Type : Types)
+	{
+		Filter.ClassNames.Add(FName(*Type));
+	}
+	Filter.bRecursiveClasses = bRecursiveClasses;
+	TArray<FAssetData> AssetList;
+	AssetRegistryModule.Get().GetAssets(Filter, /*out*/AssetList);
+
+	return AssetList;
+}
+
+FAnimNotifyEvent& CreateNewNotify(UAnimSequenceBase* Sequence, FString NewNotifyName, UClass* NotifyClass, int32 TrackIndex, float StartTime)
+{
+	// Insert a new notify record and spawn the new notify object
+	int32 NewNotifyIndex = Sequence->Notifies.Add(FAnimNotifyEvent());
+	FAnimNotifyEvent& NewEvent = Sequence->Notifies[NewNotifyIndex];
+	NewEvent.NotifyName = FName(*NewNotifyName);
+
+	NewEvent.Link(Sequence, StartTime);
+	NewEvent.TriggerTimeOffset = GetTriggerTimeOffsetForType(Sequence->CalculateOffsetForNotify(StartTime));
+	NewEvent.TrackIndex = TrackIndex;
+
+	if (NotifyClass)
+	{
+		class UObject* AnimNotifyClass = NewObject<UObject>(Sequence, NotifyClass, NAME_None, RF_Transactional);
+		NewEvent.NotifyStateClass = Cast<UAnimNotifyState>(AnimNotifyClass);
+		NewEvent.Notify = Cast<UAnimNotify>(AnimNotifyClass);
+
+		// Set default duration to 1 frame for AnimNotifyState.
+		if (NewEvent.NotifyStateClass)
+		{
+			NewEvent.NotifyName = FName(*NewEvent.NotifyStateClass->GetNotifyName());
+			NewEvent.SetDuration(1 / 30.f);
+			NewEvent.EndLink.Link(Sequence, NewEvent.EndLink.GetTime());
+		}
+		else
+		{
+			NewEvent.NotifyName = FName(*NewEvent.Notify->GetNotifyName());
+		}
+	}
+	else
+	{
+		NewEvent.Notify = NULL;
+		NewEvent.NotifyStateClass = NULL;
+	}
+
+	if (NewEvent.Notify)
+	{
+		NewEvent.Notify->OnAnimNotifyCreatedInEditor(NewEvent);
+	}
+	else if (NewEvent.NotifyStateClass)
+	{
+		NewEvent.NotifyStateClass->OnAnimNotifyCreatedInEditor(NewEvent);
+	}
+
+	Sequence->MarkPackageDirty();
+
+	return NewEvent;
+}
+
+int32 UJavascriptEditorLibrary::ReplaceAnimNotifyClass(UAnimSequenceBase* Sequence, FString NotifyName, FString NewNotifyName, UObject* NewNotifyClassTemplate)
+{
+	UClass* NewNotifyClass = NewNotifyClassTemplate->GetClass();
+	Sequence->Modify(true);
+
+	TArray<int32> Replaces;
+	for (auto i = 0; i < Sequence->Notifies.Num(); i++)
+	{
+		if (FName(*NotifyName) == Sequence->Notifies[i].NotifyName)
+			Replaces.Insert(i, 0);
+	}
+
+	///@note : notifies.add�� ���ÿ� ����ǹǷ� replaces�� index�� �������� ���� �Ѵ�. 3->2->1������ �ְ� push_back���� �߰��ǵ���.
+	for (auto Index : Replaces)
+	{
+		auto* OldEvent = &Sequence->Notifies[Index];
+		if (OldEvent)
+		{
+			float BeginTime = OldEvent->GetTime();
+			float Length = OldEvent->GetDuration();
+			int32 TargetTrackIndex = OldEvent->TrackIndex;
+			float TriggerTimeOffset = OldEvent->TriggerTimeOffset;
+			float EndTriggerTimeOffset = OldEvent->EndTriggerTimeOffset;
+			int32 SlotIndex = OldEvent->GetSlotIndex();
+			int32 EndSlotIndex = OldEvent->EndLink.GetSlotIndex();
+			int32 SegmentIndex = OldEvent->GetSegmentIndex();
+			int32 EndSegmentIndex = OldEvent->GetSegmentIndex();
+			EAnimLinkMethod::Type LinkMethod = OldEvent->GetLinkMethod();
+			EAnimLinkMethod::Type EndLinkMethod = OldEvent->EndLink.GetLinkMethod();
+
+			// Delete old one before creating new one to avoid potential array re-allocation when array temporarily increases by 1 in size
+			for (int32 i = 0; i < Sequence->Notifies.Num(); ++i)
+			{
+				if (OldEvent == &(Sequence->Notifies[i]))
+				{
+					Sequence->Notifies.RemoveAt(i);
+					Sequence->MarkPackageDirty();
+					break;
+				}
+			}
+
+			FAnimNotifyEvent& NewEvent = CreateNewNotify(Sequence, NewNotifyName, NewNotifyClass, TargetTrackIndex, BeginTime);
+
+			NewEvent.TriggerTimeOffset = TriggerTimeOffset;
+			NewEvent.ChangeSlotIndex(SlotIndex);
+			NewEvent.SetSegmentIndex(SegmentIndex);
+			NewEvent.ChangeLinkMethod(LinkMethod);
+
+			// For Anim Notify States, handle the end time and link
+			if (NewEvent.NotifyStateClass != nullptr)
+			{
+				NewEvent.SetDuration(Length);
+				NewEvent.EndTriggerTimeOffset = EndTriggerTimeOffset;
+				NewEvent.EndLink.ChangeSlotIndex(EndSlotIndex);
+				NewEvent.EndLink.SetSegmentIndex(EndSegmentIndex);
+				NewEvent.EndLink.ChangeLinkMethod(EndLinkMethod);
+			}
+
+			NewEvent.Update();
+		}
+	}
+
+	return Replaces.Num();
+}
+
+#include "Blueprint/AsyncTaskDownloadImage.h"
+#include "Modules/ModuleManager.h"
+#include "Engine/Texture2D.h"
+#include "Engine/Texture2DDynamic.h"
+#include "IImageWrapper.h"
+#include "IImageWrapperModule.h"
+#include "Misc/FileHelper.h"
+
+//----------------------------------------------------------------------//
+// UAsyncTaskDownloadImage
+//----------------------------------------------------------------------//
+
+#if !UE_SERVER
+
+static void WriteRawToTexture_RenderThread(FTexture2DDynamicResource* TextureResource, const TArray<uint8>& RawData, bool bUseSRGB = true)
+{
+	check(IsInRenderingThread());
+
+	FTexture2DRHIParamRef TextureRHI = TextureResource->GetTexture2DRHI();
+
+	int32 Width = TextureRHI->GetSizeX();
+	int32 Height = TextureRHI->GetSizeY();
+
+	uint32 DestStride = 0;
+	uint8* DestData = reinterpret_cast<uint8*>(RHILockTexture2D(TextureRHI, 0, RLM_WriteOnly, DestStride, false, false));
+
+	for (int32 y = 0; y < Height; y++)
+	{
+		uint8* DestPtr = &DestData[(Height - 1 - y) * DestStride];
+
+		const FColor* SrcPtr = &((FColor*)(RawData.GetData()))[(Height - 1 - y) * Width];
+		for (int32 x = 0; x < Width; x++)
+		{
+			*DestPtr++ = SrcPtr->B;
+			*DestPtr++ = SrcPtr->G;
+			*DestPtr++ = SrcPtr->R;
+			*DestPtr++ = SrcPtr->A;
+			SrcPtr++;
+		}
+	}
+
+	RHIUnlockTexture2D(TextureRHI, 0, false, false);
+}
+
+#endif
+
+bool UJavascriptEditorLibrary::LoadImageFromDiskAsync(const FString& ImagePath, UAsyncTaskDownloadImage* Callback)
+{
+	IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(TEXT("ImageWrapper"));
+
+	if (!FPaths::FileExists(ImagePath))
+	{
+		///@log error
+		Callback->OnFail.Broadcast(nullptr);
+		return false;
+	}
+
+	TArray<uint8> FileData;
+	if (!FFileHelper::LoadFileToArray(FileData, *ImagePath))
+	{
+		///@log error
+		Callback->OnFail.Broadcast(nullptr);
+		return false;
+	}
+
+	EImageFormat ImageFormat = ImageWrapperModule.DetectImageFormat(FileData.GetData(), FileData.Num());
+	TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(ImageFormat);
+
+	if (ImageWrapper.IsValid() && ImageWrapper->SetCompressed(FileData.GetData(), FileData.Num()))
+	{
+		const TArray<uint8>* RawData = nullptr;
+		if (ImageWrapper->GetRaw(ERGBFormat::BGRA, 8, RawData))
+		{
+			if (UTexture2DDynamic* Texture = UTexture2DDynamic::Create(ImageWrapper->GetWidth(), ImageWrapper->GetHeight()))
+			{
+				Texture->SRGB = true;
+				Texture->UpdateResource();
+#if ENGINE_MINOR_VERSION < 22
+				ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+					FWriteRawDataToTexture,
+					FTexture2DDynamicResource*, TextureResource, static_cast<FTexture2DDynamicResource*>(Texture->Resource),
+					TArray<uint8>, RawData, *RawData,
+					{
+						WriteRawToTexture_RenderThread(TextureResource, RawData);
+					});
+#else
+				FTexture2DDynamicResource* TextureResource = static_cast<FTexture2DDynamicResource*>(Texture->Resource);
+				TArray<uint8> RawDataCopy = *RawData;
+				ENQUEUE_RENDER_COMMAND(FWriteRawDataToTexture)(
+					[TextureResource, RawDataCopy](FRHICommandListImmediate& RHICmdList)
+				{
+					WriteRawToTexture_RenderThread(TextureResource, RawDataCopy);
+				});
+#endif
+				Callback->OnSuccess.Broadcast(Texture);
+				return true;
+			}
+		}
+
+	}
+	
+	Callback->OnFail.Broadcast(nullptr);	
+	return false;
+}
+
+#include "IDesktopPlatform.h"
+#include "DesktopPlatformModule.h"
+#include "EditorDirectories.h"
+bool UJavascriptEditorLibrary::OpenFileDialog(const UJavascriptWindow* SubWindow, const FString& DialogTitle, const FString& DefaultPath, const FString& DefaultFile, const FString& FileTypes, int32 Flags, TArray<FString>& OutFilenames)
+{
+	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
+	if (DesktopPlatform)
+	{
+		const void* ParentWindowWindowHandle = nullptr;
+		if (SubWindow)
+			ParentWindowWindowHandle = nullptr;
+		else			
+			ParentWindowWindowHandle = FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr);
+		
+		int OutFilterIndex = 0;
+		return DesktopPlatform->OpenFileDialog(
+			ParentWindowWindowHandle,
+			DialogTitle,
+			FEditorDirectories::Get().GetLastDirectory(ELastDirectory::GENERIC_IMPORT),
+			TEXT(""),
+			FileTypes,
+			EFileDialogFlags::Type(Flags),
+			OutFilenames,
+			OutFilterIndex
+		);
+	}
+
+	return false;
+}
+
+bool UJavascriptEditorLibrary::LoadFileToIntArray(FString Path, TArray<uint8>& FileData)
+{
+	return FFileHelper::LoadFileToArray(FileData, *Path);
+}
+
+bool UJavascriptEditorLibrary::LoadFileToString(FString Path, FString& Data)
+{
+	return FFileHelper::LoadFileToString(Data, *Path);
+}
+
+FString UJavascriptEditorLibrary::GetKeyNameByKeyEvent(const FKeyEvent& Event)
+{
+	return Event.GetKey().GetFName().ToString();
+}
+
+FString UJavascriptEditorLibrary::GetDataTableAsJSON(UDataTable* InDataTable, uint8 InDTExportFlags)
+{
+	if (InDataTable == nullptr)
+		return TEXT("");
+
+	return InDataTable->GetTableAsJSON((EDataTableExportFlags)InDTExportFlags);
+}
+
+void UJavascriptEditorLibrary::AddRichCurve(UCurveTable* InCurveTable, const FName& Key, const FRichCurve& InCurve)
+{
+#if ENGINE_MINOR_VERSION < 22
+	FRichCurve* NewCurve = new FRichCurve();
+	NewCurve->SetKeys(InCurve.GetConstRefOfKeys());
+	NewCurve->PreInfinityExtrap = InCurve.PreInfinityExtrap;
+	NewCurve->PostInfinityExtrap = InCurve.PostInfinityExtrap;
+	NewCurve->DefaultValue = InCurve.DefaultValue;
+	InCurveTable->RowMap.Remove(Key);
+	InCurveTable->RowMap.Add(Key, NewCurve);
+#else
+	FRichCurve& NewCurve = InCurveTable->AddRichCurve(Key);
+	NewCurve.SetKeys(InCurve.GetConstRefOfKeys());
+	NewCurve.PreInfinityExtrap = InCurve.PreInfinityExtrap;
+	NewCurve.PostInfinityExtrap = InCurve.PostInfinityExtrap;
+	NewCurve.DefaultValue = InCurve.DefaultValue;
+#endif
+}
+
+void UJavascriptEditorLibrary::NotifyUpdateCurveTable(UCurveTable* InCurveTable)
+{
+	InCurveTable->OnCurveTableChanged().Broadcast();
+}
+
 #endif

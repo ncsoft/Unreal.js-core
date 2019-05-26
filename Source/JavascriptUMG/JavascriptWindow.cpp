@@ -1,6 +1,6 @@
-#include "JavascriptUMG.h"
 #include "JavascriptWindow.h"
-#include "SWindow.h"
+#include "Widgets/SWindow.h"
+#include "Launch/Resources/Version.h"
 
 UJavascriptWindow::UJavascriptWindow(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -31,21 +31,21 @@ TSharedRef<SWidget> UJavascriptWindow::RebuildWidget()
 {
 	auto Content = (GetChildrenCount() > 0) ? GetContentSlot()->Content : nullptr;
 
-	MyWindow = SNew(SWindow)
-		.Type((EWindowType)Type.GetValue())
+	TSharedRef<SWindow> Window = SNew(SWindow)
+		.Type((EWindowType)Type)
 		.Style(&FCoreStyle::Get().GetWidgetStyle<FWindowStyle>("Window"))
 		.Title(Title)
 		.bDragAnywhere(bDragAnywhere)
-		.AutoCenter((EAutoCenter::Type)AutoCenter.GetValue())
+		.AutoCenter((EAutoCenter)AutoCenter)
 		.ScreenPosition(ScreenPosition)
 		.ClientSize(ClientSize)
-		.SupportsTransparency((EWindowTransparency)SupportsTransparency.GetValue())
+		.SupportsTransparency((EWindowTransparency)SupportsTransparency)
 		.InitialOpacity(InitialOpacity)
 		.IsInitiallyMaximized(IsInitiallyMaximized)
-		.SizingRule((ESizingRule::Type)SizingRule.GetValue())
+		.SizingRule((ESizingRule)SizingRule)
 		.IsPopupWindow(IsPopupWindow)
 		.FocusWhenFirstShown(FocusWhenFirstShown)
-		.ActivateWhenFirstShown(ActivateWhenFirstShown)
+		.ActivationPolicy(EWindowActivationPolicy::FirstShown)
 		.UseOSWindowBorder(UseOSWindowBorder)
 		.HasCloseButton(HasCloseButton)
 		.SupportsMaximize(SupportsMaximize)
@@ -59,11 +59,13 @@ TSharedRef<SWidget> UJavascriptWindow::RebuildWidget()
 				Content == nullptr ? SNullWidget::NullWidget : Content->TakeWidget()
 			];
 
-	return BuildDesignTimeWidget(MyWindow.ToSharedRef());
+	WeakWindow = Window;
+	return Window;
 }
 
 void UJavascriptWindow::MoveWindowTo(FVector2D NewPosition)
 {
+	auto MyWindow = GetSlatePtr();
 	if (MyWindow.IsValid())
 	{
 		MyWindow->MoveWindowTo(NewPosition);
@@ -71,6 +73,7 @@ void UJavascriptWindow::MoveWindowTo(FVector2D NewPosition)
 }
 void UJavascriptWindow::ReshapeWindow(FVector2D NewPosition, FVector2D NewSize)
 {
+	auto MyWindow = GetSlatePtr();
 	if (MyWindow.IsValid())
 	{
 		MyWindow->ReshapeWindow(NewPosition, NewSize);
@@ -78,6 +81,7 @@ void UJavascriptWindow::ReshapeWindow(FVector2D NewPosition, FVector2D NewSize)
 }
 void UJavascriptWindow::Resize(FVector2D NewSize)
 {
+	auto MyWindow = GetSlatePtr();
 	if (MyWindow.IsValid())
 	{
 		MyWindow->Resize(NewSize);
@@ -85,6 +89,7 @@ void UJavascriptWindow::Resize(FVector2D NewSize)
 }
 void UJavascriptWindow::FlashWindow()
 {
+	auto MyWindow = GetSlatePtr();
 	if (MyWindow.IsValid())
 	{
 		MyWindow->FlashWindow();
@@ -92,6 +97,7 @@ void UJavascriptWindow::FlashWindow()
 }
 void UJavascriptWindow::BringToFront()
 {
+	auto MyWindow = GetSlatePtr();
 	if (MyWindow.IsValid())
 	{
 		MyWindow->BringToFront();
@@ -99,6 +105,7 @@ void UJavascriptWindow::BringToFront()
 }
 void UJavascriptWindow::RequestDestroyWindow()
 {
+	auto MyWindow = GetSlatePtr();
 	if (MyWindow.IsValid())
 	{
 		MyWindow->RequestDestroyWindow();
@@ -106,6 +113,7 @@ void UJavascriptWindow::RequestDestroyWindow()
 }
 void UJavascriptWindow::DestroyWindowImmediately()
 {
+	auto MyWindow = GetSlatePtr();
 	if (MyWindow.IsValid())
 	{
 		MyWindow->DestroyWindowImmediately();
@@ -113,6 +121,7 @@ void UJavascriptWindow::DestroyWindowImmediately()
 }
 void UJavascriptWindow::ShowWindow()
 {
+	auto MyWindow = GetSlatePtr();
 	if (MyWindow.IsValid())
 	{
 		MyWindow->ShowWindow();
@@ -120,6 +129,7 @@ void UJavascriptWindow::ShowWindow()
 }
 void UJavascriptWindow::HideWindow()
 {
+	auto MyWindow = GetSlatePtr();
 	if (MyWindow.IsValid())
 	{
 		MyWindow->HideWindow();
@@ -127,6 +137,7 @@ void UJavascriptWindow::HideWindow()
 }
 void UJavascriptWindow::EnableWindow(bool bEnable)
 {
+	auto MyWindow = GetSlatePtr();
 	if (MyWindow.IsValid())
 	{
 		MyWindow->EnableWindow(bEnable);
@@ -134,6 +145,7 @@ void UJavascriptWindow::EnableWindow(bool bEnable)
 }
 void UJavascriptWindow::SetOpacity(const float InOpacity)
 {
+	auto MyWindow = GetSlatePtr();
 	if (MyWindow.IsValid())
 	{
 		MyWindow->SetOpacity(InOpacity);

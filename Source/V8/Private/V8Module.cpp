@@ -1,13 +1,18 @@
+#include "IV8.h"
 #include "V8PCH.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include <libplatform/libplatform.h>
 #include "JavascriptContext.h"
-#include "IV8.h"
 #include "JavascriptStats.h"
 #include "JavascriptSettings.h"
+#include "Containers/Ticker.h"
+#include "Containers/Queue.h"
+#include "Misc/Paths.h"
+#include "UObject/UObjectIterator.h"
 
+DEFINE_STAT(STAT_V8IdleTask);
 DEFINE_STAT(STAT_JavascriptDelegate);
 DEFINE_STAT(STAT_JavascriptProxy);
 DEFINE_STAT(STAT_Scavenge);
@@ -34,7 +39,7 @@ static float GV8IdleTaskBudget = 1 / 60.0f;
 UJavascriptSettings::UJavascriptSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	V8Flags = TEXT("--harmony --harmony-shipping --es-staging --expose-debug-as=v8debug --expose-gc --harmony_simd");
+	V8Flags = TEXT("--harmony --harmony-shipping --es-staging --expose-gc");
 }
 
 void UJavascriptSettings::Apply() const
@@ -45,15 +50,19 @@ void UJavascriptSettings::Apply() const
 class FUnrealJSPlatform : public v8::Platform
 {
 private:
-	v8::Platform* platform_;
+	std::unique_ptr<v8::Platform> platform_;
 	TQueue<v8::IdleTask*> IdleTasks;
 	FTickerDelegate TickDelegate;
 	FDelegateHandle TickHandle;
 	bool bActive{ true };
 
 public:
+	v8::Platform* platform() const
+	{
+		return platform_.get();
+	}
 	FUnrealJSPlatform() 
-		: platform_(platform::CreateDefaultPlatform()) 
+		: platform_(platform::NewDefaultPlatform(0, platform::IdleTaskSupport::kEnabled))
 	{
 		TickDelegate = FTickerDelegate::CreateRaw(this, &FUnrealJSPlatform::HandleTicker);
 		TickHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);
@@ -62,7 +71,7 @@ public:
 	~FUnrealJSPlatform()
 	{
 		FTicker::GetCoreTicker().RemoveTicker(TickHandle);
-		delete platform_;
+		platform_.release();
 	}
 
 	void Shutdown()
@@ -70,13 +79,11 @@ public:
 		bActive = false;
 		RunIdleTasks(FLT_MAX);
 	}
-	
-	virtual size_t NumberOfAvailableBackgroundThreads() { return platform_->NumberOfAvailableBackgroundThreads(); }
+	virtual int NumberOfWorkerThreads() { return platform_->NumberOfWorkerThreads(); }
 
-	virtual void CallOnBackgroundThread(Task* task,
-		ExpectedRuntime expected_runtime)
+	virtual std::shared_ptr<v8::TaskRunner> GetForegroundTaskRunner(Isolate* isolate)
 	{
-		platform_->CallOnBackgroundThread(task, expected_runtime);
+		return platform_->GetForegroundTaskRunner(isolate);
 	}
 
 	virtual void CallOnForegroundThread(Isolate* isolate, Task* task)
@@ -84,10 +91,21 @@ public:
 		platform_->CallOnForegroundThread(isolate, task);
 	}
 
+	virtual void CallOnWorkerThread(std::unique_ptr<Task> task)
+	{
+		platform_->CallOnWorkerThread(std::move(task));
+	}
+
+	virtual void CallDelayedOnWorkerThread(std::unique_ptr<Task> task,
+		double delay_in_seconds)
+	{
+		platform_->CallOnWorkerThread(std::move(task));
+	}
+
 	virtual void CallDelayedOnForegroundThread(Isolate* isolate, Task* task,
 		double delay_in_seconds)
 	{
-		platform_->CallDelayedOnForegroundThread(isolate, task, delay_in_seconds);
+		platform_->CallOnForegroundThread(isolate, task);
 	}
 
 	virtual void CallIdleOnForegroundThread(Isolate* isolate, IdleTask* task) 
@@ -105,15 +123,34 @@ public:
 		return platform_->MonotonicallyIncreasingTime();
 	}
 
+#if V8_MAJOR_VERSION > 5 && V8_MINOR_VERSION > 3
+	virtual double CurrentClockTimeMillis()
+	{
+		return platform_->CurrentClockTimeMillis();
+	}
+#endif
+
+#if V8_MAJOR_VERSION > 5
+	v8::TracingController* GetTracingController() override
+	{
+		return platform_->GetTracingController();
+	}
+#endif
+
 	void RunIdleTasks(float Budget)
 	{
 		float Start = FPlatformTime::Seconds();
-		while (!IdleTasks.IsEmpty() && Budget >= 0)
+		while (!IdleTasks.IsEmpty() && Budget > 0)
 		{
 			v8::IdleTask* Task = nullptr;
 			IdleTasks.Dequeue(Task);
 
-			Task->Run(MonotonicallyIncreasingTime() + Budget);
+			{
+				SCOPE_CYCLE_COUNTER(STAT_V8IdleTask);
+
+				Task->Run(MonotonicallyIncreasingTime() + Budget);
+			}
+			
 			delete Task;
 			
 			float Now = FPlatformTime::Seconds();
@@ -130,7 +167,7 @@ public:
 	}
 };
 
-class V8Module : public IV8
+class FV8Module : public IV8
 {
 public:
 	TArray<FString> Paths;
@@ -150,7 +187,7 @@ public:
 		const UJavascriptSettings& Settings = *GetDefault<UJavascriptSettings>();
 		Settings.Apply();
 
-		V8::InitializeICU();
+		V8::InitializeICUDefaultLocation(nullptr);
 		V8::InitializePlatform(&platform_);
 		V8::Initialize();
 
@@ -184,7 +221,7 @@ public:
 
 	static FString GetPluginScriptsDirectory4()
 	{
-		return FPaths::GamePluginsDir() / "UnrealJS/Content/Scripts/";
+		return FPaths::ProjectPluginsDir() / "UnrealJS/Content/Scripts/";
 	}
 
 	static FString GetPakPluginScriptsDirectory()
@@ -194,7 +231,7 @@ public:
 
 	static FString GetGameScriptsDirectory()
 	{
-		return FPaths::GameContentDir() / "Scripts/";
+		return FPaths::ProjectContentDir() / "Scripts/";
 	}
 
 	virtual void AddGlobalScriptSearchPath(const FString& Path) override
@@ -214,9 +251,9 @@ public:
 
 	virtual void FillAutoCompletion(TSharedPtr<FString> TargetContext, TArray<FString>& OutArray, const TCHAR* Input) override
 	{
-		static auto SourceCode = LR"doc(
+		static const TCHAR* SourceCode = LR"doc(
 (function () {
-    var pattern = '%s'; var head = '';
+    var pattern = '{0}'; var head = '';
     pattern.replace(/\\W*([\\w\\.]+)$/, function (a, b, c) { head = pattern.substr(0, c + a.length - b.length); pattern = b });
     var index = pattern.lastIndexOf('.');
     var scope = this;
@@ -243,7 +280,7 @@ public:
 
 			if (Context->ContextId == TargetContext || (!TargetContext.IsValid() && Context->IsDebugContext()))
 			{
-				FString Result = Context->RunScript(FString::Printf(SourceCode, *FString(Input).ReplaceCharWithEscapedChar()), false);
+				FString Result = Context->RunScript(FString::Format(SourceCode, { FString(Input).ReplaceCharWithEscapedChar() }), false);
 				Result.ParseIntoArray(OutArray, TEXT(","));
 			}
 		}
@@ -301,8 +338,13 @@ public:
 	{
 		GV8IdleTaskBudget = BudgetInSeconds;
 	}
+
+	virtual void* GetV8Platform() override
+	{
+		return platform_.platform();
+	}
 };
 
-IMPLEMENT_MODULE(V8Module, V8)
+IMPLEMENT_MODULE(FV8Module, V8)
 
 PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

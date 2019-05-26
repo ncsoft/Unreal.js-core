@@ -1,8 +1,7 @@
-#include "JavascriptEditor.h"
+#include "JavascriptUIExtender.h"
 
 #if WITH_EDITOR
-#include "JavascriptUIExtender.h"
-#include "JavascriptUICommands.h"
+#include "JavascriptUMG/JavascriptUICommands.h"
 
 namespace
 {

@@ -16,6 +16,7 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_FourParams(FCustomHeader, FJavascriptPropertyHandle, Handle, FJavascriptDetailWidgetRow, HeaderRow, FJavascriptPropertyTypeCustomizationUtils, Utils, int32, Id);
 	DECLARE_DYNAMIC_DELEGATE_FourParams(FCustomChildren, FJavascriptPropertyHandle, Handle, FJavascriptDetailChildrenBuilder, ChildBuilder, FJavascriptPropertyTypeCustomizationUtils, Utils, int32, Id);
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnDestroy, int32, Id);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPropertyValueChanged);
 
 	UPROPERTY()
 	FName PropertyTypeName;
@@ -27,7 +28,10 @@ public:
 	FCustomHeader OnCustomizeHeader;	
 
 	UPROPERTY()
-	FCustomChildren OnCustomizeChildren;	
+	FCustomChildren OnCustomizeChildren;
+
+	UPROPERTY()
+	FOnPropertyValueChanged OnPropertyValueChanged;
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	void Register();

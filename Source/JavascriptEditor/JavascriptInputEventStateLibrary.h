@@ -1,8 +1,10 @@
 #pragma once
-
+#include "EditorViewportClient.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
+#include "UObject/ScriptMacros.h"
 #include "JavascriptInputEventStateLibrary.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptInputEventState
 {
 	GENERATED_BODY()

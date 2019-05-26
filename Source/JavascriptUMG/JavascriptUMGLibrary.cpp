@@ -1,5 +1,7 @@
-#include "JavascriptUMG.h"
 #include "JavascriptUMGLibrary.h"
+#include "JavascriptWidget.h"
+#include "Components/NativeWidgetHost.h"
+#include "Styling/SlateStyleRegistry.h"
 
 FJavascriptSlateStyle UJavascriptUMGLibrary::CreateSlateStyle(FName InStyleSetName)
 {
@@ -77,6 +79,18 @@ FJavascriptSlateWidget UJavascriptUMGLibrary::TakeWidget(UWidget* Widget)
 	return Out;
 }
 
+UWidget* UJavascriptUMGLibrary::SetContent(UNativeWidgetHost* TargetWidget, FJavascriptSlateWidget SlateWidget)
+{
+	UWidget* Widget = nullptr;
+	if (TargetWidget != nullptr && SlateWidget.Widget.IsValid())
+	{
+		TargetWidget->SetContent(SlateWidget.Widget.ToSharedRef());
+		Widget = Cast<UWidget>(TargetWidget);
+	}
+
+	return Widget;
+}
+
 void UJavascriptUMGLibrary::AddWindowAsNativeChild(FJavascriptSlateWidget NewWindow, FJavascriptSlateWidget RootWindow)
 {
 	auto New = StaticCastSharedPtr<SWindow>(NewWindow.Widget);
@@ -88,13 +102,29 @@ void UJavascriptUMGLibrary::AddWindowAsNativeChild(FJavascriptSlateWidget NewWin
 	}
 }
 
-void UJavascriptUMGLibrary::AddWindow(FJavascriptSlateWidget NewWindow)
+void UJavascriptUMGLibrary::AddWindow(FJavascriptSlateWidget NewWindow, const bool bShowImmediately)
 {
 	auto New = StaticCastSharedPtr<SWindow>(NewWindow.Widget);
 
 	if (New.IsValid())
 	{
-		FSlateApplication::Get().AddWindow(New.ToSharedRef());
+		FSlateApplication::Get().AddWindow(New.ToSharedRef(), bShowImmediately);
+	}
+}
+
+void UJavascriptUMGLibrary::ShowWindow(FJavascriptSlateWidget NewWindow)
+{
+	auto New = StaticCastSharedPtr<SWindow>(NewWindow.Widget);
+
+	if (New.IsValid())
+	{
+		auto SlateWindow = New.ToSharedRef();
+		SlateWindow->ShowWindow();
+		//@todo Slate: Potentially dangerous and annoying if all slate windows that are created steal focus.
+		if (SlateWindow->SupportsKeyboardFocus() && SlateWindow->IsFocusedInitially())
+		{
+			SlateWindow->GetNativeWindow()->SetWindowFocus();
+		}
 	}
 }
 

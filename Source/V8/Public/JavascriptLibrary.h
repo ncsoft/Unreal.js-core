@@ -1,7 +1,11 @@
 #pragma once
 
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "JavascriptProfile.h"
 #include "JavascriptIsolate.h"
+#include "Engine/StreamableManager.h"
+#include "IPAddress.h"
+#include "NavMesh/RecastNavMesh.h"
 #include "JavascriptLibrary.generated.h"
 
 USTRUCT(BlueprintType)
@@ -14,6 +18,104 @@ struct V8_API FDirectoryItem
 
 	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
 	bool bIsDirectory;
+};
+
+#if STATS
+struct FJavascriptThreadSafeStaticStatBase : FThreadSafeStaticStatBase
+{
+	friend class UJavascriptLibrary;
+
+	FJavascriptThreadSafeStaticStatBase() 
+	{
+		HighPerformanceEnable = nullptr;
+	}
+
+	FORCEINLINE_STATS TStatId GetStatId() const
+	{
+		return *(TStatId*)(&HighPerformanceEnable);
+	}
+};
+#endif
+
+USTRUCT(BlueprintType)
+struct FJavascriptStat
+{
+	GENERATED_BODY()
+
+#if STATS
+	TSharedPtr<FJavascriptThreadSafeStaticStatBase> Instance;
+#endif
+};
+
+/**
+* What the type of the payload is
+*/
+UENUM()
+enum class EJavascriptStatDataType : uint8
+{
+	Invalid,
+	/** Not defined. */
+	ST_None,
+	/** int64. */
+	ST_int64,
+	/** double. */
+	ST_double,
+	/** FName. */
+	ST_FName,
+	/** Memory pointer, stored as uint64. */
+	ST_Ptr,
+};
+
+UENUM()
+namespace EJavascriptEncodingOptions
+{
+	/** Ordered according to their severity */
+	enum Type
+	{
+		AutoDetect = 0,
+		ForceAnsi,
+		ForceUnicode,
+		ForceUTF8,
+		ForceUTF8WithoutBOM
+	};
+}
+
+/**
+* The operation being performed by this message
+*/
+UENUM()
+enum class EJavascriptStatOperation : uint8
+{
+	Invalid,
+	/** Indicates metadata message. */
+	SetLongName,
+	/** Special message for advancing the stats frame from the game thread. */
+	AdvanceFrameEventGameThread,
+	/** Special message for advancing the stats frame from the render thread. */
+	AdvanceFrameEventRenderThread,
+	/** Indicates begin of the cycle scope. */
+	CycleScopeStart,
+	/** Indicates end of the cycle scope. */
+	CycleScopeEnd,
+	/** This is not a regular stat operation, but just a special message marker to determine that we encountered a special data in the stat file. */
+	SpecialMessageMarker,
+	/** Set operation. */
+	Set,
+	/** Clear operation. */
+	Clear,
+	/** Add operation. */
+	Add,
+	/** Subtract operation. */
+	Subtract,
+
+	// these are special ones for processed data
+	ChildrenStart,
+	ChildrenEnd,
+	Leaf,
+	MaxVal,
+
+	/** This is a memory operation. @see EMemoryOperation. */
+	Memory,
 };
 
 UENUM()
@@ -56,7 +158,7 @@ enum class ELogVerbosity_JS : uint8
 	VeryVerbose
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptLogCategory
 {
 	GENERATED_USTRUCT_BODY()
@@ -66,7 +168,7 @@ struct FJavascriptLogCategory
 #endif
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptStreamableManager
 {
 	GENERATED_USTRUCT_BODY()
@@ -79,12 +181,94 @@ struct FJavascriptStreamableManager
 	TSharedPtr<FStreamableManager> Handle;
 };
 
+USTRUCT(BlueprintType)
+struct FJavascriptStubStruct
+{
+	GENERATED_BODY()
+};
+
+struct FPrivateSocketHandle;
+
+USTRUCT(BlueprintType)
+struct FJavascriptSocket
+{
+	GENERATED_BODY()
+
+	TSharedPtr<FPrivateSocketHandle> Handle;
+};
+
+USTRUCT(BlueprintType)
+struct FJavascriptInternetAddr
+{
+	GENERATED_BODY()
+
+	TSharedPtr<FInternetAddr> Handle;
+};
+
+USTRUCT(BlueprintType)
+struct FJavscriptProperty
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString Type;
+
+	UPROPERTY()
+	FString Name;
+};
+
+USTRUCT(BlueprintType)
+struct FJavascriptText
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString String;
+
+	UPROPERTY()
+	FString Namespace;
+
+	UPROPERTY()
+	FString Key;
+
+	UPROPERTY()
+	FName TableId;
+
+	FText Handle;
+};
+
+// copy from STextPropertyEditableTextBox.h
+enum class ETextPropertyEditAction : uint8
+{
+	EditedNamespace,
+	EditedKey,
+	EditedSource,
+};
+
 UCLASS()
 class V8_API UJavascriptLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
 public:	
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static FJavascriptSocket CreateSocket(FName SocketType, FString Description, bool bForceUDP = false);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static FJavascriptInternetAddr CreateInternetAddr();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static bool ResolveIp(FString HostName, FString& OutIp);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static void SetIp(FJavascriptInternetAddr& Addr, FString ResolvedAddress, bool& bValid);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static void SetPort(FJavascriptInternetAddr& Addr, int32 Port);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static bool SendMemoryTo(FJavascriptSocket& Socket, const FJavascriptInternetAddr& ToAddr, int32 NumBytes, int32& BytesSent);
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static FJavascriptStreamableManager CreateStreamableManager();
 
@@ -113,10 +297,10 @@ public:
 	static void Log(const FJavascriptLogCategory& Category, ELogVerbosity_JS Verbosity, const FString& Message, const FString& FileName, int32 LineNumber);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	bool IsSuppressed(const FJavascriptLogCategory& Category, ELogVerbosity_JS Verbosity);
+	static bool IsSuppressed(const FJavascriptLogCategory& Category, ELogVerbosity_JS Verbosity);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	FName GetCategoryName(const FJavascriptLogCategory& Category);
+	static FName GetCategoryName(const FJavascriptLogCategory& Category);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static void SetMobile(USceneComponent* SceneComponent);
@@ -179,7 +363,7 @@ public:
 	static UDynamicBlueprintBinding* GetDynamicBinding(UClass* Outer, TSubclassOf<UDynamicBlueprintBinding> BindingObjectClass);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	static void HandleSeamlessTravelPlayer(AGameMode* GameMode, AController*& C);
+	static void HandleSeamlessTravelPlayer(AGameModeBase* GameMode, AController*& C);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static void SetRootComponent(AActor* Actor, USceneComponent* Component);
@@ -197,11 +381,14 @@ public:
 	static FString ReadStringFromFile(UObject* Object, FString Filename);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	static bool WriteStringToFile(UObject* Object, FString Filename, const FString& Data);
+	static bool WriteStringToFile(UObject* Object, FString Filename, const FString& Data, EJavascriptEncodingOptions::Type EncodingOptions);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static FString GetDir(UObject* Object, FString WhichDir);
-		
+	
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static FString ConvertRelativePathToFull(UObject* Object, FString RelativePath);
+
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool HasUndo(UEngine* Engine);
 
@@ -290,6 +477,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void SetObjectFlags(UObject* Obj, int32 Flags);
+	
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void SetActorFlags(AActor* Actor, int32 Flags);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static float GetLastRenderTime(AActor* Actor);
@@ -308,6 +498,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool FileExists(const FString& Filename);
+    
+    UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+    static bool DeleteFile(const FString& Filename, bool ReadOnly = false);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool DirectoryExists(const FString& InDirectory);
@@ -335,4 +528,87 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static UObject* TryLoadByPath(FString Path);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void GenerateNavigation(UWorld* InWorld, ARecastNavMesh* NavData);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static const FString& GetMetaData(UField* Field, const FString Key);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static TArray<UField*> GetFields(const UObject* Object, bool bIncludeSuper);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static TArray<FJavscriptProperty> GetStructProperties(const FString StructName, bool bIncludeSuper);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static int32 GetFunctionParmsSize(UFunction* Function);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void ClipboardCopy(const FString& String);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FString ClipboardPaste();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptStat NewStat(
+		FName InStatName,
+		const FString& InStatDesc,
+		FName InGroupName,
+		FName InGroupCategory,
+		const FString& InGroupDesc,
+		bool bDefaultEnable,
+		bool bShouldClearEveryFrame,
+		EJavascriptStatDataType InStatType,
+		bool bCycleStat,
+		bool bSortByName);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddMessage(FJavascriptStat Stat, EJavascriptStatOperation InStatOperation);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddMessage_int(FJavascriptStat Stat, EJavascriptStatOperation InStatOperation, int Value, bool bIsCycle);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddMessage_float(FJavascriptStat Stat, EJavascriptStatOperation InStatOperation, float Value, bool bIsCycle);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static TArray<UClass*> GetSuperClasses(UClass* InClass);
+	
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool IsGeneratedByBlueprint(UClass* InClass);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool IsPendingKill(AActor* InActor);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FBox GetWorldBounds(UWorld* InWorld);
+
+	UFUNCTION(BlueprintCallable, CustomThunk, Category = "Scripting | Javascript", meta = (CustomStructureParam = "CustomStruct"))
+	static void CallJS(FJavascriptFunction Function, const FJavascriptStubStruct& CustomStruct);
+
+#if USE_STABLE_LOCALIZATION_KEYS
+	// copy from STextPropertyEditableTextBox.cpp
+	static void IssueStableTextId(UPackage* InPackage, const ETextPropertyEditAction InEditAction, const FString& InTextSource, const FString& InProposedNamespace, const FString& InProposedKey, FString& OutStableNamespace, FString& OutStableKey);
+#endif // USE_STABLE_LOCALIZATION_KEYS
+	static FText UpdateLocalizationText(const FJavascriptText& JText, const struct IPropertyOwner& Owner);
+
+	DECLARE_FUNCTION(execCallJS)
+	{
+		PARAM_PASSED_BY_VAL(Function, UStructProperty, FJavascriptFunction);
+
+		Stack.MostRecentPropertyAddress = nullptr;
+		Stack.MostRecentProperty = nullptr;
+
+		Stack.StepCompiledIn<UStructProperty>(NULL);
+		void* SrcStructAddr = Stack.MostRecentPropertyAddress;
+		auto SrcStructProperty = Cast<UStructProperty>(Stack.MostRecentProperty);
+
+		if (SrcStructAddr && SrcStructProperty)
+		{
+			Function.Execute(SrcStructProperty->Struct, SrcStructAddr);
+		}
+
+		P_FINISH;
+	}
 };

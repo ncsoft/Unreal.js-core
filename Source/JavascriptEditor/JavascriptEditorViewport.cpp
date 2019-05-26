@@ -1,13 +1,58 @@
-#include "JavascriptEditor.h"
 #include "JavascriptEditorViewport.h"
 #include "SEditorViewport.h"
-#include "PreviewScene.h"
+#include "AdvancedPreviewScene.h"
 #include "Runtime/Engine/Public/Slate/SceneViewport.h"
+#include "EngineUtils.h"
+#include "Engine/Canvas.h"
+#include "Components/OverlaySlot.h"
+#include "AssetViewerSettings.h"
+#include "Launch/Resources/Version.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptEditor"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
+class FJavascriptPreviewScene : public FAdvancedPreviewScene
+{
+public:
+	FJavascriptPreviewScene(ConstructionValues CVS, float InFloorOffset = 0.0f)
+		: FAdvancedPreviewScene(CVS, InFloorOffset)
+	{
+	}
+	~FJavascriptPreviewScene()
+	{
+	}
+
+	class UDirectionalLightComponent* GetDefaultDirectionalLightComponent()
+	{
+		return DirectionalLight;
+	}
+
+	class USkyLightComponent* GetDefaultSkyLightComponent()
+	{
+		return SkyLight;
+	}
+
+	class UStaticMeshComponent* GetDefaultSkySphereComponent()
+	{
+		return SkyComponent;
+	}
+
+	class USphereReflectionCaptureComponent* GetDefaultSphereReflectionComponent()
+	{
+		return SphereReflectionComponent;
+	}
+
+	class UMaterialInstanceConstant* GetDefaultInstancedSkyMaterial()
+	{
+		return InstancedSkyMaterial;
+	}
+
+	class UPostProcessComponent* GetDefaultPostProcessComponent()
+	{
+		return PostProcessComponent;
+	}
+};
 
 class FCanvasOwner : public FGCObject
 {
@@ -34,13 +79,11 @@ public:
 	TWeakObjectPtr<UJavascriptEditorViewport> Widget;
 	
 	/** Constructor */
-	explicit FJavascriptEditorViewportClient(FPreviewScene& InPreviewScene, const TWeakPtr<class SEditorViewport>& InEditorViewportWidget = nullptr, TWeakObjectPtr<UJavascriptEditorViewport> InWidget = nullptr)
+	explicit FJavascriptEditorViewportClient(FAdvancedPreviewScene& InPreviewScene, const TWeakPtr<class SEditorViewport>& InEditorViewportWidget = nullptr, TWeakObjectPtr<UJavascriptEditorViewport> InWidget = nullptr)
 		: FEditorViewportClient(nullptr,&InPreviewScene,InEditorViewportWidget), Widget(InWidget), BackgroundColor(FColor(55,55,55))
-	{		
+	{
 	}
-	~FJavascriptEditorViewportClient()
-	{}
-
+	
 	virtual void ProcessClick(class FSceneView& View, class HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY) override
 	{
 		if (Widget.IsValid() && Widget->OnClick.IsBound())
@@ -155,7 +198,7 @@ public:
             }
             
             CanvasOwner.Canvas->Canvas = &Canvas;
-            CanvasOwner.Canvas->Init(View.UnscaledViewRect.Width(), View.UnscaledViewRect.Height(), const_cast<FSceneView*>(&View));
+            CanvasOwner.Canvas->Init(View.UnscaledViewRect.Width(), View.UnscaledViewRect.Height(), const_cast<FSceneView*>(&View), &Canvas);
             CanvasOwner.Canvas->ApplySafeZoneTransform();
             
             Widget->OnDrawCanvas.Execute(CanvasOwner.Canvas, Widget.Get());
@@ -221,7 +264,14 @@ public:
 			{
 				for (FActorIterator It(PreviewScene->GetWorld()); It; ++It)
 				{
-					It->BeginPlay();
+#if ENGINE_MINOR_VERSION > 14
+					It->DispatchBeginPlay();
+#else
+					if (It->HasActorBegunPlay() == false)
+					{
+						It->BeginPlay();
+					}
+#endif
 				}
 				PreviewScene->GetWorld()->bBegunPlay = true;
 			}
@@ -255,6 +305,16 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 				.IsEnabled(FSlateApplication::Get().GetNormalExecutionAttribute())
 				.AddMetaData<FTagMetaData>(TEXT("JavascriptEditor.Viewport"))
 			);
+	}
+	SAutoRefreshEditorViewport()
+		: PreviewScene(FPreviewScene::ConstructionValues().SetEditor(false).AllowAudioPlayback(true))
+	{
+
+	}
+
+	~SAutoRefreshEditorViewport()
+	{
+		EditorViewportClient.Reset();
 	}
 
 	virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override
@@ -297,6 +357,16 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 	void SetViewRotation(const FRotator& ViewRotation)
 	{
 		EditorViewportClient->SetViewRotation(ViewRotation);
+	}
+
+	FVector GetViewLocation()
+	{
+		return EditorViewportClient->GetViewLocation();
+	}
+
+	FRotator GetViewRotation()
+	{
+		return EditorViewportClient->GetViewRotation();
 	}
 
 	void SetViewFOV(float InViewFOV)
@@ -391,11 +461,86 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 		}
 	}
 
+	void SetProfileIndex(const int32 InProfileIndex)
+	{
+		PreviewScene.SetProfileIndex(InProfileIndex);
+	}
+
+	int32 GetCurrentProfileIndex()
+	{
+		return PreviewScene.GetCurrentProfileIndex();
+	}
+
+	void SetFloorOffset(const float InFloorOffset)
+	{
+		PreviewScene.SetFloorOffset(InFloorOffset);
+	}
+
+	UStaticMeshComponent* GetFloorMeshComponent()
+	{
+		return const_cast<UStaticMeshComponent*>(PreviewScene.GetFloorMeshComponent());
+	}
+
+	class UDirectionalLightComponent* GetDefaultDirectionalLightComponent()
+	{
+		return PreviewScene.GetDefaultDirectionalLightComponent();
+	}
+
+	class USkyLightComponent* GetDefaultSkyLightComponent()
+	{
+		return PreviewScene.GetDefaultSkyLightComponent();
+	}
+
+	class UStaticMeshComponent* GetDefaultSkySphereComponent()
+	{
+		return PreviewScene.GetDefaultSkySphereComponent();
+	}
+
+	class USphereReflectionCaptureComponent* GetDefaultSphereReflectionComponent()
+	{
+		return PreviewScene.GetDefaultSphereReflectionComponent();
+	}
+
+	class UMaterialInstanceConstant* GetDefaultInstancedSkyMaterial()
+	{
+		return PreviewScene.GetDefaultInstancedSkyMaterial();
+	}
+
+	class UPostProcessComponent* GetDefaultPostProcessComponent()
+	{
+		return PreviewScene.GetDefaultPostProcessComponent();
+	}
+
+	UStaticMeshComponent* GetSkyComponent()
+	{
+		for (TObjectIterator<UStaticMeshComponent> Itr; Itr; ++Itr)
+		{
+			if (Itr->GetWorld() != PreviewScene.GetWorld())
+				continue;
+
+			UStaticMeshComponent* Component = *Itr;
+			if (Component && Component->GetOwner() == nullptr) 
+			{
+#if ENGINE_MINOR_VERSION >= 14
+				auto StaticMesh = Component->GetStaticMesh();
+#else
+				auto StaticMesh = Component->StaticMesh;
+#endif
+				if (StaticMesh && StaticMesh->GetName().Equals(FString(TEXT("Sphere_inversenormals"))))
+				{
+					return Component;
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
 public:
 	TSharedPtr<FJavascriptEditorViewportClient> EditorViewportClient;
 	
 	/** preview scene */
-	FPreviewScene PreviewScene;
+	FJavascriptPreviewScene PreviewScene;
 
 private:
 	TWeakObjectPtr<UJavascriptEditorViewport> Widget;
@@ -406,7 +551,7 @@ TSharedRef<SWidget> UJavascriptEditorViewport::RebuildWidget()
 {
 	if (IsDesignTime())
 	{
-		return BuildDesignTimeWidget(SNew(SBox)
+		return RebuildDesignWidget(SNew(SBox)
 			.HAlign(HAlign_Center)
 			.VAlign(VAlign_Center)
 			[
@@ -427,7 +572,7 @@ TSharedRef<SWidget> UJavascriptEditorViewport::RebuildWidget()
 			}
 		}
 		
-		return BuildDesignTimeWidget(ViewportWidget.ToSharedRef());
+		return ViewportWidget.ToSharedRef();
 	}
 }
 #endif
@@ -480,6 +625,12 @@ void UJavascriptEditorViewport::OnSlotRemoved(UPanelSlot* Slot)
 	}
 }
 
+void UJavascriptEditorViewport::ReleaseSlateResources(bool bReleaseChildren)
+{
+	Super::ReleaseSlateResources(bReleaseChildren);
+	ViewportWidget.Reset();
+}
+
 void UJavascriptEditorViewport::SetRealtime(bool bInRealtime, bool bStoreCurrentValue)
 {
 	if (ViewportWidget.IsValid())
@@ -526,6 +677,26 @@ void UJavascriptEditorViewport::SetViewRotation(const FRotator& ViewRotation)
 	{
 		ViewportWidget->SetViewRotation(ViewRotation);
 	}
+}
+
+FVector UJavascriptEditorViewport::GetViewLocation()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetViewLocation();
+	}
+
+	return FVector::ZeroVector;
+}
+
+FRotator UJavascriptEditorViewport::GetViewRotation()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetViewRotation();
+	}
+
+	return FRotator::ZeroRotator;
 }
 
 void UJavascriptEditorViewport::SetViewFOV(float InViewFOV)
@@ -645,8 +816,13 @@ void UJavascriptEditorViewport::DeprojectScreenToWorld(const FVector2D &ScreenPo
     {
         FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues( ViewportWidget->EditorViewportClient->Viewport, ViewportWidget->EditorViewportClient->GetScene(), ViewportWidget->EditorViewportClient->EngineShowFlags ));
         FSceneView* View = ViewportWidget->EditorViewportClient->CalcSceneView(&ViewFamily);
-        
-        FSceneView::DeprojectScreenToWorld(ScreenPosition, View->ViewRect, View->ViewMatrices.GetInvViewProjMatrix(), OutRayOrigin, OutRayDirection);
+		
+#if ENGINE_MINOR_VERSION >= 14
+		const auto& InvViewProjMatrix = View->ViewMatrices.GetInvViewProjectionMatrix();
+#else
+		const auto& InvViewProjMatrix = View->ViewMatrices.GetInvViewProjMatrix();
+#endif
+        FSceneView::DeprojectScreenToWorld(ScreenPosition, View->UnscaledViewRect, InvViewProjMatrix, OutRayOrigin, OutRayDirection);
     }
 }
 
@@ -656,8 +832,14 @@ void UJavascriptEditorViewport::ProjectWorldToScreen(const FVector &WorldPositio
     {
         FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues( ViewportWidget->EditorViewportClient->Viewport, ViewportWidget->EditorViewportClient->GetScene(), ViewportWidget->EditorViewportClient->EngineShowFlags ));
         FSceneView* View = ViewportWidget->EditorViewportClient->CalcSceneView(&ViewFamily);
+
+#if ENGINE_MINOR_VERSION >= 14
+		const auto& ViewProjMatrix = View->ViewMatrices.GetViewProjectionMatrix();
+#else
+		const auto& ViewProjMatrix = View->ViewMatrices.GetViewProjMatrix();
+#endif
         
-        FSceneView::ProjectWorldToScreen(WorldPosition, View->ViewRect, View->ViewMatrices.GetViewProjMatrix(), OutScreenPosition);
+        FSceneView::ProjectWorldToScreen(WorldPosition, View->UnscaledViewRect, ViewProjMatrix, OutScreenPosition);
     }
 }
 
@@ -683,6 +865,116 @@ bool UJavascriptEditorViewport::SetEngineShowFlags(const FString& In)
 	{
 		return false;
 	}
+}
+
+void UJavascriptEditorViewport::SetProfileIndex(const int32 InProfileIndex)
+{
+	if (ViewportWidget.IsValid())
+	{
+		ViewportWidget->SetProfileIndex(InProfileIndex);
+	}
+}
+
+int32 UJavascriptEditorViewport::GetCurrentProfileIndex()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetCurrentProfileIndex();
+	}
+
+	return 0;
+}
+
+UAssetViewerSettings* UJavascriptEditorViewport::GetDefaultAssetViewerSettings()
+{
+	return UAssetViewerSettings::Get();
+}
+
+void UJavascriptEditorViewport::SetFloorOffset(const float InFloorOffset)
+{
+	if (ViewportWidget.IsValid())
+	{
+		ViewportWidget->SetFloorOffset(InFloorOffset);
+	}
+}
+
+UStaticMeshComponent* UJavascriptEditorViewport::GetFloorMeshComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetFloorMeshComponent();
+	}
+	return nullptr;
+}
+
+UStaticMeshComponent* UJavascriptEditorViewport::GetSkyComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetSkyComponent();
+	}
+
+	return nullptr;
+}
+
+class UDirectionalLightComponent* UJavascriptEditorViewport::GetDefaultDirectionalLightComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetDefaultDirectionalLightComponent();
+	}
+
+	return nullptr;
+}
+
+class USkyLightComponent* UJavascriptEditorViewport::GetDefaultSkyLightComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetDefaultSkyLightComponent();
+	}
+
+	return nullptr;
+}
+
+class UStaticMeshComponent* UJavascriptEditorViewport::GetDefaultSkySphereComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetDefaultSkySphereComponent();
+	}
+
+	return nullptr;
+}
+
+class USphereReflectionCaptureComponent* UJavascriptEditorViewport::GetDefaultSphereReflectionComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetDefaultSphereReflectionComponent();
+	}
+
+	return nullptr;
+}
+
+class UMaterialInstanceConstant* UJavascriptEditorViewport::GetDefaultInstancedSkyMaterial()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetDefaultInstancedSkyMaterial();
+	}
+
+	return nullptr;
+}
+
+class UPostProcessComponent* UJavascriptEditorViewport::GetDefaultPostProcessComponent()
+{
+	if (ViewportWidget.IsValid())
+	{
+		return ViewportWidget->GetDefaultPostProcessComponent();
+	}
+
+	return nullptr;
 }
 
 PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

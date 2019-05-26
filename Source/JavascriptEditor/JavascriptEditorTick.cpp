@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptEditorTick.h"
 #include "ScopedTransaction.h"
 
@@ -56,5 +55,13 @@ void UJavascriptEditorTick::BeginDestroy()
 UEditorEngine* UJavascriptEditorTick::GetEngine()
 {
 	return Cast<UEditorEngine>(GEngine);
+}
+
+void UJavascriptEditorTick::ForceTick(float DeltaTime)
+{
+	if (Tickable)
+	{
+		Tickable->Tick(DeltaTime);
+	}
 }
 #endif

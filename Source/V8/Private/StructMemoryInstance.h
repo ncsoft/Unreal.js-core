@@ -1,28 +1,5 @@
 #pragma once
 
-struct FObjectPropertyOwner : IPropertyOwner
-{
-	UObject* Object;
-
-	FObjectPropertyOwner(UObject* InObject)
-		: Object(InObject)
-	{
-		Owner = EPropertyOwner::Object;
-	}
-};
-
-struct FStructMemoryInstance;
-struct FStructMemoryPropertyOwner : IPropertyOwner
-{
-	FStructMemoryInstance* Memory;
-
-	FStructMemoryPropertyOwner(FStructMemoryInstance* InMemory)
-		: Memory(InMemory)
-	{
-		Owner = EPropertyOwner::Memory;
-	}
-};
-
 struct FStructMemoryInstance
 	: public TSharedFromThis<FStructMemoryInstance>
 {
@@ -72,6 +49,21 @@ struct FStructMemoryInstance
 		}
 	}
 
+	UObject* GetNearestOwnerObject()
+	{
+		auto* StructMemoryPtr = this;
+		while (StructMemoryPtr)
+		{
+			if (StructMemoryPtr->Owner == EPropertyOwner::None)
+				return nullptr;
+			if (StructMemoryPtr->Object.IsValid())
+				return StructMemoryPtr->Object.Get();
+			StructMemoryPtr = StructMemoryPtr->Parent.Get();
+		}
+
+		return nullptr;
+	}
+
 	// Struct 
 	UScriptStruct* Struct;
 
@@ -88,7 +80,7 @@ struct FStructMemoryInstance
 	TSharedPtr<FStructMemoryInstance> Parent;
 
 	// Independent memory buffer
-	TArray<uint8> Buffer;
+	TArray<uint8, TAlignedHeapAllocator<16>> Buffer;
 
 	uint8* GetMemory()
 	{
@@ -115,9 +107,9 @@ struct FStructMemoryInstance
 		return TSharedRef<FStructMemoryInstance>(new FStructMemoryInstance(Struct, InOwner, Source));
 	}
 
-	static FStructMemoryInstance* FromV8(v8::Local<v8::Value> Value)
+	static FStructMemoryInstance* FromV8(v8::Local<v8::Context> context, v8::Local<v8::Value> Value)
 	{
-		auto Memory = RawMemoryFromV8(Value);
+		auto Memory = RawMemoryFromV8(context, Value);
 		return reinterpret_cast<FStructMemoryInstance*>(Memory);
 	}	
 };

@@ -1,8 +1,7 @@
-#include "V8PCH.h"
-
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptTestLibrary.h"
+#include "Engine/Engine.h"
 #include "Misc/AutomationTest.h"
 
 #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
@@ -139,7 +138,7 @@ void UJavascriptTestLibrary::AddLogItem(const FJavascriptAutomatedTestInstance& 
 #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 	if (Test.Handle.IsValid())
 	{
-		Test.Handle->AddLogItem(InLogItem);
+		Test.Handle->AddInfo(InLogItem);
 	}
 #endif
 }
@@ -208,4 +207,12 @@ void UJavascriptTestLibrary::DestroyWorld(UWorld* World)
 #endif
 }
 
+void UJavascriptTestLibrary::DestroyUObject(UObject* Object)
+{
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	Object->ConditionalBeginDestroy();
+#endif
+}
+
 PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
+

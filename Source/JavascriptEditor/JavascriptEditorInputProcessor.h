@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Input/Events.h"
+#include "Framework/Application/IInputProcessor.h"
 #include "JavascriptEditorInputProcessor.generated.h"
 
 /**
@@ -27,8 +29,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void Activate(bool bEnable);
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	void Register();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	void UnRegister();
+
 	virtual void BeginDestroy() override;
 
 	bool bActivated{ false };
+	TSharedPtr<IInputProcessor> InputProcessor;
 #endif
 };

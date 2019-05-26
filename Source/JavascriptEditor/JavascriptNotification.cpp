@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptNotification.h"
 
 #define LOCTEXT_NAMESPACE "UMG"
@@ -14,7 +13,7 @@ bUseThrobber(true),
 bUseSuccessFailIcons(true),
 bUseLargeFont(true),
 bFireAndForget(true),
-CheckBoxState(ECheckBoxState::Unchecked),
+CheckBoxState(EJSCheckBoxState::Unchecked),
 bAllowThrottleWhenFrameRateIsLow(true)
 #endif
 {}
@@ -22,7 +21,7 @@ bAllowThrottleWhenFrameRateIsLow(true)
 #if WITH_EDITOR
 ECheckBoxState UJavascriptNotification::GetCheckBoxState() const
 {
-	return CheckBoxState;
+	return (ECheckBoxState)CheckBoxState.GetValue();
 }
 
 void UJavascriptNotification::Fire()
@@ -88,6 +87,12 @@ void UJavascriptNotification::Reset()
 {
 	Item.Reset();
 }
+
+void UJavascriptNotification::SetText(FText InText)
+{
+	if (Item.IsValid()) Item->SetText(InText);
+}
+
 #endif
 
 #undef LOCTEXT_NAMESPACE

@@ -59,26 +59,42 @@ var devrequire = function (opts) {
     };
     
     watcher.OnChanged.Add(function () {
-        var changed_modules = get_change(watcher)
+        var changed_modules = get_change(watcher)        
         var module_changed = changed_modules.length > 0
         if (module_changed) {
-            cleanup()            
-            cleanup = exec()
-            gc()
-            if (!_.isFunction(cleanup)) {
-                cleanup = function () { }
+            cleanup() 
+
+            function retry(index) {
+                try {
+                    cleanup = exec()
+                } catch (e) {
+                    cleanup = _ => {}
+                    if (index < 3) {
+                        process.nextTick(_ => retry(index+1))
+                    } else {
+                        console.error(e.stack)                    
+                    }
+                    return
+                }
+                
+                gc()
+                if (!_.isFunction(cleanup)) {
+                    cleanup = function () { }
+                }
+
+                var file = _.uniq(changed_modules).join(',')
+
+                if (should_notify) {
+                    var note = new JavascriptNotification
+                    note.Text = notification_message + ": " + file
+                    note.bFireAndForget = true
+                    note.Fire()
+                    note.ExpireDuration = 3
+                    note.Success()
+                }
             }
 
-            var file = _.uniq(changed_modules).join(',')
-
-            if (should_notify) {
-                var note = new JavascriptNotification
-                note.Text = notification_message + ": " + file
-                note.bFireAndForget = true
-                note.Fire()
-                note.ExpireDuration = 3
-                note.Success()
-            }
+            retry(0)            
         }
     })
     

@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Camera/CameraTypes.h"
-#include "ContentWidget.h"
+#include "Components/ContentWidget.h"
 #include "JavascriptInGameScene.h"
+#include "SceneManagement.h"
 #include "JavascriptGameViewport.generated.h"
 
 class FJavascriptInGameScene;
@@ -256,7 +257,7 @@ protected:
 	// End UPanelWidget
 
 protected:
-	TSharedPtr<class SJavascriptAutoRefreshViewport> ViewportWidget;
+	TWeakPtr<class SJavascriptAutoRefreshViewport> MyViewportWidget;
 
 protected:
 	// UWidget interface

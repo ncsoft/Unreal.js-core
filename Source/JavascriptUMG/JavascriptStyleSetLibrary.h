@@ -1,8 +1,11 @@
 #pragma once
 
+#include "CoreMinimal.h"
+#include "Styling/SlateTypes.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "JavascriptStyleSetLibrary.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptStyleSet
 {
 	GENERATED_BODY()
@@ -34,6 +37,8 @@ public:
 	static FComboBoxStyle GetComboBoxStyle(const FJavascriptStyleSet& Handle, const FName& StyleName);
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	static FComboButtonStyle GetComboButtonStyle(const FJavascriptStyleSet& Handle, const FName& StyleName);
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	static FProgressBarStyle GetProgressBarStyle(const FJavascriptStyleSet& Handle, const FName& StyleName);
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	static FMargin GetMargin(const FJavascriptStyleSet& Handle, const FName& StyleName);
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
@@ -77,4 +82,7 @@ public:
 
 	UPROPERTY()	
 	FComboButtonStyle ComboButtonStyle;
+
+	UPROPERTY()
+	FProgressBarStyle ProgressBarStyle;
 };

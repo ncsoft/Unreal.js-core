@@ -1,6 +1,5 @@
-#include "JavascriptUMG.h"
 #include "JavascriptComboButton.h"
-#include "SComboButton.h"
+#include "Widgets/Input/SComboButton.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
@@ -13,7 +12,7 @@ TSharedRef<SWidget> UJavascriptComboButton::RebuildWidget()
 {
 	auto Content = (GetChildrenCount() > 0) ? GetContentSlot()->Content : nullptr;
 	
-	MyComboButton = SNew(SComboButton)
+	auto ComboButton = SNew(SComboButton)
 		.ComboButtonStyle(&ComboButtonStyle)
 		.ButtonStyle(&ButtonStyle)
 		.OnMenuOpenChanged(BIND_UOBJECT_DELEGATE(::FOnIsOpenChanged, HandleMenuOpenChanged))
@@ -40,10 +39,10 @@ TSharedRef<SWidget> UJavascriptComboButton::RebuildWidget()
 		.ContentPadding(ContentPadding)
 		.MenuPlacement(MenuPlacement)
 		.HAlign(HAlign)
-		.VAlign(VAlign)
-		;
+		.VAlign(VAlign);
 
-	return BuildDesignTimeWidget(MyComboButton.ToSharedRef());
+	MyComboButton = ComboButton;
+	return ComboButton;
 }
 
 void UJavascriptComboButton::HandleComboBoxOpened()
@@ -63,9 +62,10 @@ void UJavascriptComboButton::SynchronizeProperties()
 
 void UJavascriptComboButton::SetIsOpen(bool InIsOpen, bool bFocusMenu)
 {
-	if (MyComboButton.IsValid())
+	auto ComboButton = MyComboButton.Pin();
+	if (ComboButton.IsValid())
 	{
-		return MyComboButton->SetIsOpen(InIsOpen, bFocusMenu);
+		return ComboButton->SetIsOpen(InIsOpen, bFocusMenu);
 	}
 }
 

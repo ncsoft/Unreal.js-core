@@ -1,27 +1,28 @@
 // Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
 
-#include "JavascriptWebSocketModule.h"
-
 #if WITH_JSWEBSOCKET
 
 #include "JSWebSocketServer.h"
 #include "JSWebSocket.h"
 
 #if PLATFORM_WINDOWS
-#include "AllowWindowsPlatformTypes.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
 #endif
 
-#if !PLATFORM_HTML5
-#ifndef LWS_INCLUDED
-#include "libwebsockets.h"
-#define LWS_INCLUDED
-#define LWS_EXTERN extern
-#include "private-libwebsockets.h"
+#ifndef THIRD_PARTY_INCLUDES_START
+#	define THIRD_PARTY_INCLUDES_START
+#	define THIRD_PARTY_INCLUDES_END
 #endif
-#endif 
+
+// Work around a conflict between a UI namespace defined by engine code and a typedef in OpenSSL
+#define UI UI_ST
+THIRD_PARTY_INCLUDES_START
+#include "libwebsockets.h"
+THIRD_PARTY_INCLUDES_END
+#undef UI
 
 #if PLATFORM_WINDOWS
-#include "HideWindowsPlatformTypes.h"
+#include "Windows/HideWindowsPlatformTypes.h"
 #endif
 
 // a object of this type is associated by libwebsocket to every connected session. 
@@ -31,39 +32,28 @@ struct PerSessionDataServer
 };
 
 
-#if !PLATFORM_HTML5
-// real networking handler. 
-static int unreal_networking_server(
-	struct libwebsocket_context *,
-	struct libwebsocket *wsi,
-	enum libwebsocket_callback_reasons reason,
-	void *user,
-	void *in,
-	size_t
-	len
-);
-
 #if !UE_BUILD_SHIPPING
-	void libwebsocket_debugLog_JS(int level, const char *line)
+	void lws_debugLog_JS(int level, const char *line)
 	{ 
 		UE_LOG(LogWebsocket, Log, TEXT("websocket server: %s"), ANSI_TO_TCHAR(line));
 	}
 #endif 
-#endif 
 
 bool FJavascriptWebSocketServer::Init(uint32 Port, FJavascriptWebSocketClientConnectedCallBack CallBack)
 {
-#if !PLATFORM_HTML5
 	// setup log level.
 #if !UE_BUILD_SHIPPING
-	lws_set_log_level(LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_DEBUG | LLL_INFO, libwebsocket_debugLog_JS);
+	lws_set_log_level(LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_DEBUG | LLL_INFO, lws_debugLog_JS);
 #endif 
 
-	Protocols = new libwebsocket_protocols[3];
-	FMemory::Memzero(Protocols, sizeof(libwebsocket_protocols) * 3);
+	Protocols = new lws_protocols[3];
+	FMemory::Memzero(Protocols, sizeof(lws_protocols) * 3);
 
 	Protocols[0].name = "binary";
-	Protocols[0].callback = FJavascriptWebSocket::unreal_networking_server;
+	Protocols[0].callback = [](lws *Wsi, lws_callback_reasons Reason, void *User, void *In, size_t Len) {
+		auto context = lws_get_context(Wsi);
+		return reinterpret_cast<FJavascriptWebSocketServer*>(lws_context_user(context))->unreal_networking_server(Wsi, Reason, User, In, Len);
+	};
 	Protocols[0].per_session_data_size = sizeof(PerSessionDataServer);
 	Protocols[0].rx_buffer_size = 10 * 1024 * 1024;
 
@@ -75,6 +65,7 @@ bool FJavascriptWebSocketServer::Init(uint32 Port, FJavascriptWebSocketClientCon
 	memset(&Info, 0, sizeof(lws_context_creation_info));
 	// look up libwebsockets.h for details. 
 	Info.port = Port;
+	ServerPort = Port;
 	// we listen on all available interfaces. 
 	Info.iface = NULL;
 	Info.protocols = &Protocols[0];
@@ -86,30 +77,29 @@ bool FJavascriptWebSocketServer::Init(uint32 Port, FJavascriptWebSocketClientCon
 	// tack on this object. 
 	Info.user = this;
 	Info.port = Port; 
-	Context = libwebsocket_create_context(&Info);
+	Context = lws_create_context(&Info);
 
 	if (Context == NULL) 
 	{
-		return false; // couldn't create a server. 
+		ServerPort = 0;
+		delete Protocols;
+		Protocols = NULL;
+		IsAlive = false;
+		return false; // couldn't create a server.
 	}
+	ConnectedCallBack = CallBack; 	
+	IsAlive = true;
 
-	ConnectedCallBack = CallBack; 
-
-	//@HACK
-	Context->user_space = this;
-
-#endif
 	return true; 
 }
 
 bool FJavascriptWebSocketServer::Tick()
 {
-#if !PLATFORM_HTML5
+	if (IsAlive)
 	{
-		libwebsocket_service(Context, 0);
-		libwebsocket_callback_on_writable_all_protocol(&Protocols[0]);
+		lws_service(Context, 0);
+		lws_callback_on_writable_all_protocol(Context, &Protocols[0]);
 	}
-#endif 
 	return true;
 }
 
@@ -118,77 +108,71 @@ FJavascriptWebSocketServer::FJavascriptWebSocketServer()
 
 FJavascriptWebSocketServer::~FJavascriptWebSocketServer()
 {
-#if !PLATFORM_HTML5
 	if (Context)
 	{
-
-		libwebsocket_context_destroy(Context);
+		lws_context_destroy(Context);
 		Context = NULL;
 	}
 
 	 delete Protocols; 
 	 Protocols = NULL; 
-#endif 		
+
+	 IsAlive = false;
 }
 
 FString FJavascriptWebSocketServer::Info()
 {
-
-#if !PLATFORM_HTML5
-	return FString(ANSI_TO_TCHAR(libwebsocket_canonical_hostname(Context)));
-#else 
-	return FString(TEXT("NOT SUPPORTED"));
-#endif 
-
+	return FString(ANSI_TO_TCHAR(lws_canonical_hostname(Context)));
 }
 
 // callback. 
-#if !PLATFORM_HTML5
-int FJavascriptWebSocket::unreal_networking_server
-	(
-		struct libwebsocket_context *Context, 
-		struct libwebsocket *Wsi, 
-		enum libwebsocket_callback_reasons Reason, 
-		void *User, 
-		void *In, 
-		size_t Len
-	)
+int FJavascriptWebSocketServer::unreal_networking_server(lws *InWsi, lws_callback_reasons Reason, void* User, void *In, size_t Len) 
 {
-	PerSessionDataServer* BufferInfo = (PerSessionDataServer*)User;
-	FJavascriptWebSocketServer* Server = (FJavascriptWebSocketServer*)libwebsocket_context_user(Context);
+	struct lws_context *LwsContext = lws_get_context(InWsi);
+	PerSessionDataServer* BufferInfo = (PerSessionDataServer*)User;	
+	FJavascriptWebSocketServer* Server = (FJavascriptWebSocketServer*)lws_context_user(LwsContext);
+	if (!Server->IsAlive)
+	{
+		return 0;
+	}
 
 	switch (Reason)
 	{
 		case LWS_CALLBACK_ESTABLISHED: 
 			{
-				BufferInfo->Socket = new FJavascriptWebSocket(Context, Wsi);
-				Server->ConnectedCallBack.ExecuteIfBound(BufferInfo->Socket);
-				libwebsocket_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
+				BufferInfo->Socket = new FJavascriptWebSocket(LwsContext, InWsi);
+				ConnectedCallBack.ExecuteIfBound(BufferInfo->Socket);
+				lws_set_timeout(InWsi, NO_PENDING_TIMEOUT, 0);
 			}
 			break;
 
 		case LWS_CALLBACK_RECEIVE:
 			{
 				BufferInfo->Socket->OnRawRecieve(In, Len);
-				libwebsocket_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
+				lws_set_timeout(InWsi, NO_PENDING_TIMEOUT, 0);
 			}
 			break; 
 
 		case LWS_CALLBACK_SERVER_WRITEABLE: 
+			if (BufferInfo->Socket->Context == LwsContext) // UE-68340 -- bandaid until this file is removed in favor of using LwsWebSocketsManager.cpp & LwsWebSocket.cpp
 			{
-				BufferInfo->Socket->OnRawWebSocketWritable(Wsi);
-				libwebsocket_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
+				BufferInfo->Socket->OnRawWebSocketWritable(InWsi);
 			}
-			break; 
+			lws_set_timeout(InWsi, NO_PENDING_TIMEOUT, 0);
+			break;
 		case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
 			{
 				BufferInfo->Socket->ErrorCallBack.ExecuteIfBound();
 			}
 			break;
+		case LWS_CALLBACK_WSI_DESTROY:
+		case LWS_CALLBACK_PROTOCOL_DESTROY:
+		case LWS_CALLBACK_CLOSED:
+		case LWS_CALLBACK_CLOSED_HTTP:
+			break;
 	}
 
 	return 0; 
 }
-#endif 
 
 #endif

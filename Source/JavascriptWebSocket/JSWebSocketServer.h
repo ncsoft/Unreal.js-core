@@ -4,6 +4,8 @@
 // This uses https://libwebsockets.org/trac/libwebsockets 
 #pragma  once
 
+#include "JavascriptWebSocketModule.h"
+
 class FJavascriptWebSocketServer
 {
 public:
@@ -19,6 +21,10 @@ public:
 
 	/** Describe this libwebsocket server */
 	FString Info(); 
+
+	int unreal_networking_server(lws *Wsi, lws_callback_reasons Reason, void* User, void *In, size_t Len);
+	uint32 ServerPort;
+	bool IsAlive;
 
 private: 
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Templates/SubclassOf.h"
+#include "Components/ActorComponent.h"
 #include "JavascriptContext.h"
 #include "JavascriptComponent.generated.h"
 
@@ -47,7 +49,10 @@ public:
 	bool bActiveWithinEditor;
 
 	UPROPERTY(transient)
-	UJavascriptContext* JavascriptContext;	
+	UJavascriptContext* JavascriptContext;
+
+	UPROPERTY(transient)
+	UJavascriptIsolate* JavascriptIsolate;
 
 	UPROPERTY()
 	FJavascriptTickSignature OnTick;
@@ -91,18 +96,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	UClass* ResolveClass(FName Name);
-
-#if WITH_V8_FAST_CALL
-	template <typename... Rest>
-	bool FastCall(Rest... rest)
-	{
-		return JavascriptContext && JavascriptContext->FastCall(this, rest...);
-	}
-
-	template <typename... Rest>
-	bool FastCallWithReturn(Rest... rest)
-	{
-		return JavascriptContext && JavascriptContext->FastCallWithReturn(this, rest...);
-	}
-#endif
 };

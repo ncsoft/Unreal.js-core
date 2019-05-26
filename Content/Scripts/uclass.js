@@ -3,7 +3,29 @@
 
     let _ = require('lodash')
     let inputBinding = require('input-binding')
+    function isClass (thing) {
+        return typeof thing === 'function' && !thing.hasOwnProperty('arguments')
+    }
+   
+    function getOwnPropertyNames (proto, stop) {
+        let props = new Set();
+        while (proto && proto !== stop) {
+            Object.getOwnPropertyNames(proto).filter(name => {
+                let c = Object.getOwnPropertyDescriptor(proto, name);
+                return (c.get || c.set) == undefined;
+            }).forEach(name => {
+                props.add(name);
+            });          
 
+            let parentClass = Object.getPrototypeOf(proto).constructor;
+            if (!isClass(parentClass) || parentClass == Object) {
+                break;
+            }     
+            proto = Object.getPrototypeOf (proto);
+        }
+        return [...props];   
+     }
+    
     module.exports = function () {
         let mod_patterns = {
             bCtrl: /^ctrl$/i,
@@ -67,14 +89,22 @@
             return out
         }
 
+        function ParseType(type) {
+            let key = {
+                'boolean': 'bool',
+                'integer': 'int'
+            }
+
+            return key[type] || type;
+        }
+
         let RE_class = /\s*class\s+(\w+)(\s+\/\*([^\*]*)\*\/)?(\s+extends\s+([^\s\{]+))?/
         let RE_func = /(\w+)\s*\(([^.)]*)\)\s*(\/\*([^\*]*)\*\/)?.*/
-        function register(target, template) {
+        function register(target, template, includeProperty=true, archetype=null) {
             target = target || {}
             let bindings = []
 
-            let splits = RE_class.exec(template)
-
+            let splits = RE_class.exec(template) || (isClass(template) ? [null, template.name] : null)
             if (!splits) throw "Invalid class definition"
 
             let orgClassName = splits[1]
@@ -96,9 +126,10 @@
                 let m = /\s*(\w+)\s*(\/\*([^\*]*)\*\/)?\s*/.exec(x)
                 if (m) {
                     let arr = (m[3] || '').split('+').map((x) => x.trim())
-                    let type = arr.pop()
-                    let is_array = false
+                    let type = arr.pop()                        
+                    let is_array = false                    
                     let is_subclass = false                    
+                    let is_map = false
                     if (/\[\]$/.test(type)) {
                         is_array = true
                         type = type.substr(0, type.length - 2)
@@ -106,6 +137,15 @@
                     if (/\<\>$/.test(type)) {
                         is_subclass = true
                         type = type.substr(0, type.length - 2)
+                    }
+                    if(/\{\}$/.test(type)) {
+                        is_map = true
+                        let kv = (m[3] || '').split('::').map(x => x.trim());
+                        let tv = _.map(kv, t => t.split('+').map(x => x.trim()));
+                        type = tv[0].pop() + '::' + tv[1].pop();           
+                        type = type.substr(0, type.length - 2)                        
+                        arr = _.concat(tv[0],  tv[1]);
+
                     }
                     if (_.isFunction(target[type])) {
                         let src = String(target[type])
@@ -118,10 +158,11 @@
                     if (type) {
                         return {
                             Name: m[1],
-                            Type: type,
+                            Type: ParseType(type),
                             Decorators: arr,
                             IsSubclass: is_subclass,
-                            IsArray: is_array
+                            IsArray: is_array,
+                            IsMap: is_map
                         }
                     } else {
                         return null
@@ -132,11 +173,7 @@
             }
 
             let proxy = {}
-            _(Object.getOwnPropertyNames(template.prototype)).filter((name) => {
-                let c = Object.getOwnPropertyDescriptor(template.prototype, name);
-                return (c.get || c.set) == undefined;
-            })
-            .forEach((k) => {
+            _(getOwnPropertyNames(template.prototype)).forEach((k) => {
                 if (k == "properties") {
                     let func = String(template.prototype[k])
                     func = func.substr(func.indexOf('{')+1)
@@ -193,23 +230,27 @@
             let thePackage = JavascriptLibrary.CreatePackage(null,'/Script/Javascript')
 
             let klass = null
-
             if (_.includes(classFlags, "Struct")) {
                 klass = CreateStruct(className, {
                     Parent: parentClass,
                     Functions: proxy,
                     StructFlags: classFlags,
                     Outer: thePackage,
-                    Properties: properties
+                    Archetype: archetype,
+                    Properties: includeProperty ? properties : []
                 });
             }
             else {
+                let nonNative = _.includes(classFlags, "NonNative");
+                _.remove(classFlags, "NonNative");
                 klass = CreateClass(className, {
                     Parent: parentClass,
                     Functions: proxy,
                     ClassFlags: classFlags,
                     Outer: thePackage,
-                    Properties: properties
+                    Archetype: archetype,
+                    NonNative: nonNative,
+                    Properties: includeProperty ? properties : []
                 });
             }
 

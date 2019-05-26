@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptTileView.h"
 #include "JavascriptContext.h"
 
@@ -7,13 +6,12 @@ UJavascriptTileView::UJavascriptTileView(const FObjectInitializer& ObjectInitial
 {	
 }
 
-TSharedRef<SWidget> UJavascriptTileView::RebuildWidget()
+TSharedRef<STableViewBase> UJavascriptTileView::RebuildListWidget()
 {
 	MyTileView = SNew(STileView< UObject* >)
 		.SelectionMode(SelectionMode)
-		.ListItemsSource(&Items)
-		.ItemHeight(ItemHeight)
-		.OnGenerateTile(BIND_UOBJECT_DELEGATE(STileView< UObject* >::FOnGenerateRow, HandleOnGenerateTile))
+		.ListItemsSource(&ListItems)
+		.ItemHeight(EntryHeight)
 		.OnSelectionChanged_Lambda([this](UObject* Object, ESelectInfo::Type SelectInfo){
 			OnSelectionChanged(Object, SelectInfo);
 		})
@@ -30,7 +28,7 @@ TSharedRef<SWidget> UJavascriptTileView::RebuildWidget()
 		//	);
 		;
 
-	return BuildDesignTimeWidget(MyTileView.ToSharedRef());
+	return MyTileView.ToSharedRef();
 }
 
 void UJavascriptTileView::ProcessEvent(UFunction* Function, void* Parms)

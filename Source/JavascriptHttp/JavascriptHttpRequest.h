@@ -1,5 +1,13 @@
 #pragma once
 
+#include "CoreMinimal.h"
+#include "UObject/ObjectMacros.h"
+#include "UObject/Object.h"
+#include "UObject/ScriptMacros.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
+#include "HttpModule.h"
+
 #include "JavascriptHttpRequest.generated.h"
 
 UENUM()
@@ -79,6 +87,9 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Online | Http")
 	void SetContentAsString(const FString& ContentString);
+
+	UFUNCTION(BlueprintCallable, Category = "Online | Http")
+	void SetContentWithFiles(TArray<FString> FilePaths, FString Boundary, FString Content);
 
 	/**
 	* Sets optional header info.

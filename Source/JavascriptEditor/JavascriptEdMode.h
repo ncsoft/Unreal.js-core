@@ -17,33 +17,6 @@ enum class EJavascriptEditAction : uint8
 };
 
 
-USTRUCT()
-struct FJavascriptSlateIcon
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	FName StyleSetName;
-
-	UPROPERTY()
-	FName StyleName;
-
-	UPROPERTY()
-	FName SmallStyleName;
-
-	FSlateIcon GetSlateIcon() const
-	{
-		if (StyleSetName.IsNone() || StyleName.IsNone()) return FSlateIcon();
-		if (SmallStyleName.IsNone()) return FSlateIcon(StyleSetName, StyleName);
-		return FSlateIcon(StyleSetName, StyleName, SmallStyleName);
-	}
-
-	operator FSlateIcon () const
-	{
-		return GetSlateIcon();
-	}
-};
-
 UCLASS()
 class JAVASCRIPTEDITOR_API UJavascriptEdMode : public UObject
 {

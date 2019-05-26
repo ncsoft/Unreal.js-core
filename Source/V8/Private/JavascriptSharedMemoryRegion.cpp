@@ -1,11 +1,10 @@
-#include "V8PCH.h"
 #include "JavascriptSharedMemoryRegion.h"
 #include "JavascriptSemaphore.h"
 #include "JavascriptContext.h"
 
 //@HACK : Current windows implementation creates 'global' shared memory handle which requires privilege.
 #if PLATFORM_WINDOWS
-#include "AllowWindowsPlatformTypes.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
 
 /**
 * Windows implementation of the memory OS functions
@@ -172,8 +171,9 @@ bool FWindowsPlatformMemory_Local::UnmapNamedSharedMemoryRegion(FSharedMemoryReg
 
 	return bAllSucceeded;
 }
-
-#include "HideWindowsPlatformTypes.h"
+#if PLATFORM_WINDOWS
+#include "Windows/HideWindowsPlatformTypes.h"
+#endif
 
 typedef FWindowsPlatformMemory_Local FPlatformMemory_Hack;
 #else

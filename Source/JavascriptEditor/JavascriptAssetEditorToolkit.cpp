@@ -1,11 +1,11 @@
-#include "JavascriptEditor.h"
+#include "JavascriptAssetEditorToolkit.h"
 
 #if WITH_EDITOR
-#include "JavascriptAssetEditorToolkit.h"
 #include "JavascriptEditorTab.h"
-#include "JavascriptUICommands.h"
 #include "JavascriptUIExtender.h"
+#include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
+#include "JavascriptUMG/JavascriptUICommands.h"
 #endif
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS

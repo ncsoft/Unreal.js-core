@@ -1,10 +1,12 @@
-#include "JavascriptEditor.h"
+#include "JavascriptEditorModule.h"
 #include "AssetToolsModule.h"
+#include "JavascriptSettings.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
 #include "JavascriptEditorTick.h"
 #include "IV8.h"
 #include "ScopedTransaction.h"
+#include "Misc/CoreDelegates.h"
 #if WITH_EDITOR
 // Settings
 #include "JavascriptSettings.h"
@@ -23,6 +25,8 @@ class FJavascriptEditorModule : public IJavascriptEditorModule
 	
 	virtual void AddExtension(IEditorExtension* Extension) override;
 	virtual void RemoveExtension(IEditorExtension* Extension) override;
+
+	void Bootstrap();
 	
 private:
 #if WITH_EDITOR
@@ -117,7 +121,7 @@ static void PatchReimportRule()
 }
 #endif
 
-void FJavascriptEditorModule::StartupModule()
+void FJavascriptEditorModule::Bootstrap()
 {
 #if WITH_EDITOR	
 	if (!IsRunningCommandlet())
@@ -130,8 +134,9 @@ void FJavascriptEditorModule::StartupModule()
 		PatchReimportRule();
 
 		auto Isolate = NewObject<UJavascriptIsolate>();
+		Isolate->Init(true);
 		auto Context = Isolate->CreateContext();
-	
+
 		JavascriptContext = Context;
 		JavascriptContext->AddToRoot();
 
@@ -140,16 +145,21 @@ void FJavascriptEditorModule::StartupModule()
 		Tick = NewObject<UJavascriptEditorTick>(JavascriptContext);
 		JavascriptContext->Expose(TEXT("Root"), Tick);
 		Tick->AddToRoot();
-		
+
 		FEditorScriptExecutionGuard ScriptGuard;
 
 		Context->RunFile("editor.js");
-	
+
 		bRegistered = true;
-	
+
 		FCoreDelegates::OnPreExit.AddRaw(this, &FJavascriptEditorModule::Unregister);
 	}
 #endif
+}
+
+void FJavascriptEditorModule::StartupModule()
+{
+	FCoreDelegates::OnPostEngineInit.AddRaw(this, &FJavascriptEditorModule::Bootstrap);
 }
 
 void FJavascriptEditorModule::ShutdownModule()
@@ -180,14 +190,12 @@ void FJavascriptEditorModule::Unregister()
 	Extensions.Empty();
 
 	JavascriptContext->RunScript(TEXT("this['$exit'] && this['$exit']()"));
-	JavascriptContext->RunScript(TEXT("gc()"));
+	JavascriptContext->RequestV8GarbageCollection();
 
 	JavascriptContext->JavascriptContext.Reset();
-	
-	JavascriptContext->RemoveFromRoot();
-	Tick->RemoveFromRoot();		
 
-	CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);	
+	JavascriptContext->RemoveFromRoot();
+	Tick->RemoveFromRoot();
 }
 #endif
 

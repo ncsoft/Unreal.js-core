@@ -1,8 +1,23 @@
 #pragma once
 
-#include "SNotificationList.h"
-#include "NotificationManager.h"
+#include "Widgets/Notifications/SNotificationList.h"
+#include "Framework/Notifications/NotificationManager.h"
 #include "JavascriptNotification.generated.h"
+
+/** Current state of the check box */
+UENUM(BlueprintType)
+namespace EJSCheckBoxState
+{
+	enum Type 
+	{
+		/** Unchecked */
+		Unchecked,
+		/** Checked */
+		Checked,
+		/** Neither checked nor unchecked */
+		Undetermined
+	};	
+}
 
 /**
  * 
@@ -35,6 +50,9 @@ class JAVASCRIPTEDITOR_API UJavascriptNotification : public UObject
 
 	UFUNCTION(BlueprintCallable, Category = "JavascriptNotification")
 	void Reset();
+
+	UFUNCTION(BlueprintCallable, Category = "JavascriptNotification")
+	void SetText(FText InText);
 
 	/** The text displayed in this text block */
 	UPROPERTY(BlueprintReadWrite, Category = "Javscript|Editor")
@@ -82,7 +100,7 @@ class JAVASCRIPTEDITOR_API UJavascriptNotification : public UObject
 
 	/** When set this will display a check box on the notification; handles getting the current check box state */
 	UPROPERTY(BlueprintReadWrite, Category = "Javscript|Editor")
-	TEnumAsByte<ECheckBoxState> CheckBoxState;
+	TEnumAsByte<EJSCheckBoxState::Type> CheckBoxState;
 
 	/** When set this will display a check box on the notification; handles setting the new check box state */
 	UPROPERTY()

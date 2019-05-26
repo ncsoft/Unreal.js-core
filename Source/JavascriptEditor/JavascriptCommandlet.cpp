@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptCommandlet.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
@@ -17,6 +16,7 @@ int32 UJavascriptCommandlet::Main(const FString& Params)
 
 	{
 		auto JavascriptIsolate = NewObject<UJavascriptIsolate>();
+		JavascriptIsolate->Init(true);
 		auto JavascriptContext = JavascriptIsolate->CreateContext();
 
 		JavascriptContext->Expose(TEXT("Root"), this);

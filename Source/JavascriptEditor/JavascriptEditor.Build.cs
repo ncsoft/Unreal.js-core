@@ -2,8 +2,28 @@ using UnrealBuildTool;
 
 public class JavascriptEditor : ModuleRules
 {
-	public JavascriptEditor(TargetInfo Target)
-	{        
+    public static bool IsVREditorNeeded()
+    {
+        string[] VersionHeader = Utils.ReadAllText("../Source/Runtime/Launch/Resources/Version.h").Replace("\r\n", "\n").Replace("\t", " ").Split('\n');
+        string EngineVersionMajor = "4";
+        string EngineVersionMinor = "0";
+        foreach (string Line in VersionHeader)
+        {
+            if (Line.StartsWith("#define ENGINE_MAJOR_VERSION "))
+            {
+                EngineVersionMajor = Line.Split(' ')[2];
+            }
+            else if (Line.StartsWith("#define ENGINE_MINOR_VERSION "))
+            {
+                EngineVersionMinor = Line.Split(' ')[2];
+            }
+        }
+        return System.Int32.Parse(EngineVersionMajor) == 4 && System.Int32.Parse(EngineVersionMinor) >= 14;
+    }
+
+    public JavascriptEditor(ReadOnlyTargetRules Target) : base(Target)
+	{
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(
                 new string[]
 				{
@@ -13,27 +33,30 @@ public class JavascriptEditor : ModuleRules
 					"Slate",                    
                     "Landscape",
                     "JavascriptUMG",
-                    "RawMesh"
-				}
+                    "RawMesh",
+                    "NavigationSystem",
+                    "WebBrowser",
+                    "AppFramework",
+                    "KismetWidgets",
+                    "EditorStyle",
+                    "UnrealEd"
+
+                }
             );	// @todo Mac: for some reason CoreUObject and Engine are needed to link in debug on Mac
 
-        if (UEBuildConfiguration.bBuildEditor == true)
+        if (Target.bBuildEditor == true)
         {
             PublicDependencyModuleNames.AddRange(
-                    new string[]
-                    {
-                        "AssetRegistry",
-                    }
-                );
-            PrivateIncludePaths.AddRange(
-                    new string[] {
-                        "Editor/GraphEditor/Private",
-				        "Editor/Kismet/Private",
-					    "Editor/GameplayAbilitiesEditor/Private",
-                        "Editor/LandscapeEditor/Private",
-                        "Developer/AssetTools/Private",
-				    }
-                );
+                new string[]
+                {
+                    "AssetRegistry",
+                }
+            );
+
+            if (IsVREditorNeeded())
+            {
+                PrivateDependencyModuleNames.AddRange(new string []{ "LevelEditor", "ViewportInteraction", "VREditor" });
+            }
 
             PrivateDependencyModuleNames.AddRange(
                 new string[]
@@ -45,19 +68,28 @@ public class JavascriptEditor : ModuleRules
 					    "AssetTools",
 					    "ClassViewer",
                         "InputCore",
+                        "CurveTableEditor",
                         "PropertyEditor",
-					    "Slate",
+                        "AdvancedPreviewScene",
+                        "Slate",
 					    "SlateCore",
                         "EditorStyle",                    
-					    "GraphEditor",
 					    "MainFrame",
 					    "UnrealEd",
                         "WorkspaceMenuStructure",
                         "V8",
                         "UMG",
                         "Foliage",
-                        "LandscapeEditor"
-				    }
+                        "LandscapeEditor",
+                        "KismetWidgets",
+                        "Kismet",
+                        "AnimationBlueprintEditor",
+                        "AnimationEditor",
+                        "ImageWrapper",
+                        "RenderCore",
+                        "RHI",
+				        "DesktopPlatform",
+                    }
             );
         }
 

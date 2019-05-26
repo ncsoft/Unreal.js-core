@@ -3,6 +3,7 @@
 #if WITH_EDITOR
 #include "IAssetTypeActions.h"
 #endif
+#include "JavascriptEditorModule.h"
 
 #include "JavascriptAssetTypeActions.generated.h"
 

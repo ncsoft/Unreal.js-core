@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptTextBlock.h"
 
 UJavascriptTextBlock::UJavascriptTextBlock(const FObjectInitializer& ObjectInitializer)
@@ -19,7 +18,7 @@ void UJavascriptTextBlock::SynchronizeProperties()
 {
 	Super::SynchronizeProperties();
 
-	TAttribute<FText> HighlightTextBinding = OPTIONAL_BINDING(FText, HighlightText);
+	TAttribute<FText> HighlightTextBinding = PROPERTY_BINDING(FText, HighlightText);
 
 	MyTextBlock->SetHighlightText(HighlightTextBinding);	
 }

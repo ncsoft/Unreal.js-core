@@ -1,6 +1,16 @@
 #pragma once
 
+#include "JavascriptUMGLibrary.h"
+#include "JavascriptObject.h"
 #include "JavascriptIsolate.h"
+#include "JavascriptComboButtonContext.h"
+#include "JavascriptMenuContext.h"
+#include "Framework/Commands/UICommandInfo.h"
+#include "Framework/Multibox/MultiBoxBuilder.h"
+#include "Framework/Multibox/MultiBoxExtender.h"
+#include "Framework/Commands/InputBindingManager.h"
+#include "UObject/ScriptMacros.h"
+#include "UObject/TextProperty.h"
 #include "JavascriptMenuLibrary.generated.h"
 
 UENUM()
@@ -8,6 +18,9 @@ namespace EJavasrciptUserInterfaceActionType
 {
 	enum Type
 	{
+		/** An action which should not be associated with a user interface action */
+		None,
+
 		/** Momentary buttons or menu items.  These support enable state, and execute a delegate when clicked. */
 		Button,
 
@@ -18,9 +31,21 @@ namespace EJavasrciptUserInterfaceActionType
 		RadioButton,
 
 		/** Similar to Button but will display a readonly checkbox next to the item. */
-		Check
+		Check,
+
+		/** Similar to Button but has the checkbox area collapsed */
+		CollapsedButton
 	};
 }
+
+USTRUCT(BlueprintType)
+struct FJavascriptUICommandInfo
+{
+	GENERATED_BODY()
+
+public:
+	TSharedPtr<FUICommandInfo> Handle;
+};
 
 USTRUCT(BlueprintType)
 struct FJavascriptUICommand
@@ -41,9 +66,15 @@ struct FJavascriptUICommand
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
 	TEnumAsByte<EJavasrciptUserInterfaceActionType::Type> ActionType;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
+	FJavascriptUICommandInfo CommandInfo;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
+	FString IconStyleName;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptMenuBuilder
 {
 	GENERATED_BODY()
@@ -54,15 +85,20 @@ struct FJavascriptMenuBuilder
 	FToolBarBuilder* ToolBar = nullptr;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptUICommandList
 {
 	GENERATED_BODY()
 
 	TSharedPtr<FUICommandList> Handle;
+
+	operator TSharedPtr<FUICommandList>()
+	{
+		return Handle;
+	}
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptBindingContext
 {
 	GENERATED_BODY()
@@ -81,16 +117,7 @@ public:
 };
 
 
-USTRUCT()
-struct FJavascriptUICommandInfo
-{
-	GENERATED_BODY()
-
-public:
-	TSharedPtr<FUICommandInfo> Handle;
-};
-
-USTRUCT()
+USTRUCT(BlueprintType)
 struct JAVASCRIPTUMG_API FJavascriptExtender
 {
 	GENERATED_BODY()
@@ -107,7 +134,7 @@ public:
 	TSharedPtr<FExtender> Handle;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptExtensionBase
 {
 	GENERATED_BODY()
@@ -138,6 +165,8 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 {
 	GENERATED_BODY()
 
+public:
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void CreateToolbarBuilder(FJavascriptUICommandList CommandList, EOrientation Orientation, FJavascriptFunction Function);
 
@@ -166,7 +195,7 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 	static FJavascriptExtender Combine(const TArray<FJavascriptExtender>& Extenders);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void BeginSection(FJavascriptMenuBuilder& Builder, FName InExtensionHook);
+	static void BeginSection(FJavascriptMenuBuilder& Builder, FName InExtensionHook, FText MenuHeadingText);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void EndSection(FJavascriptMenuBuilder& Builder);
@@ -176,6 +205,21 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddToolBarButton(FJavascriptMenuBuilder& Builder, FJavascriptUICommandInfo CommandInfo);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddToolBarButtonByContext(FJavascriptMenuBuilder& Builder, UJavascriptToolbarButtonContext* Context, UObject* EditingObject);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptComboButtonContext* Object);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddMenuEntry(FJavascriptMenuBuilder& Builder, UJavascriptMenuContext* Object);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddSubMenu(FJavascriptMenuBuilder& Builder, const FText& Label, const FText& ToolTip, const bool bInOpenSubMenuOnClick, FJavascriptFunction Function);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddMenuByCommands(FJavascriptMenuBuilder& Builder, UJavascriptUICommands* UICommands);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddWidget(FJavascriptMenuBuilder& Builder, UWidget* Widget, const FText& Label, bool bNoIndent, FName InTutorialHighlightName, bool bSearchable);
@@ -196,7 +240,7 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 	static void Destroy(FJavascriptBindingContext Context);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FJavascriptUICommandInfo UI_COMMAND_Function(FJavascriptBindingContext This, FJavascriptUICommand Command);
+	static FJavascriptUICommandInfo UI_COMMAND_Function(FJavascriptBindingContext This, FJavascriptUICommand Command, const FString& InTextSubNamespace);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptUICommandList CreateUICommandList();
@@ -206,4 +250,7 @@ class JAVASCRIPTUMG_API UJavascriptMenuLibrary : public UBlueprintFunctionLibrar
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool ProcessCommandBindings_PointerEvent(FJavascriptUICommandList CommandList, const FPointerEvent& InMouseEvent);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptUICommandInfo GenericCommand(FString What);
 };

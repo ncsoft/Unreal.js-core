@@ -14,6 +14,8 @@ public:
 
 	TWeakPtr<FJavascriptDelegate> JavascriptDelegate;	
 
+	virtual void BeginDestroy() override;
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	void Fire();
 

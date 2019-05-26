@@ -1,6 +1,7 @@
-#include "JavascriptEditor.h"
-#include "Framework/Application/IInputProcessor.h"
 #include "JavascriptEditorInputProcessor.h"
+#include "Framework/Application/IInputProcessor.h"
+#include "Framework/Application/SlateApplication.h"
+#include "UObject/UObjectThreadContext.h"
 
 #if WITH_EDITOR
 class FMyInputProcessor : public IInputProcessor
@@ -20,22 +21,26 @@ public:
 
 	virtual bool HandleKeyDownEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent)
 	{
-		return Processor.IsValid() && Processor->HandleKeyDownEvent(InKeyEvent);
+		return !FUObjectThreadContext::Get().IsRoutingPostLoad
+			&& Processor.IsValid() && Processor->HandleKeyDownEvent(InKeyEvent);
 	}
 
 	virtual bool HandleKeyUpEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent)
 	{
-		return Processor.IsValid() && Processor->HandleKeyUpEvent(InKeyEvent);
+		return !FUObjectThreadContext::Get().IsRoutingPostLoad
+			&& Processor.IsValid() && Processor->HandleKeyUpEvent(InKeyEvent);
 	}
 
 	virtual bool HandleMouseMoveEvent(FSlateApplication& SlateApp, const FPointerEvent& InPointerEvent)
 	{
-		return Processor.IsValid() && Processor->HandleMouseMoveEvent(InPointerEvent);
+		return !FUObjectThreadContext::Get().IsRoutingPostLoad
+			&& Processor.IsValid() && Processor->HandleMouseMoveEvent(InPointerEvent);
 	}
 	
 	virtual bool HandleAnalogInputEvent(FSlateApplication& SlateApp, const FAnalogInputEvent& InAnalogInputEvent)
 	{
-		return Processor.IsValid() && Processor->HandleAnalogInputEvent(InAnalogInputEvent);
+		return !FUObjectThreadContext::Get().IsRoutingPostLoad
+			&& Processor.IsValid() && Processor->HandleAnalogInputEvent(InAnalogInputEvent);
 	}
 };
 
@@ -52,18 +57,32 @@ void UJavascriptEditorInputProcessor::Activate(bool bActivate)
 	{
 		if (bActivated) return;
 		bActivated = true;
-
-		FSlateApplication::Get().SetInputPreProcessor(true, MakeShareable(new FMyInputProcessor(this)));
+		InputProcessor = MakeShareable(new FMyInputProcessor(this));
+		FSlateApplication::Get().RegisterInputPreProcessor(InputProcessor);
 	}
 	else
 	{
 		if (!bActivated) return;
 		bActivated = false;
 
-		if (FSlateApplication::IsInitialized())
+		if (InputProcessor.IsValid())
 		{
-			FSlateApplication::Get().SetInputPreProcessor(false);
+			FSlateApplication::Get().UnregisterInputPreProcessor(InputProcessor);
 		}
+	}
+}
+
+void UJavascriptEditorInputProcessor::Register()
+{
+	InputProcessor = MakeShareable(new FMyInputProcessor(this));
+	FSlateApplication::Get().RegisterInputPreProcessor(InputProcessor);
+}
+
+void UJavascriptEditorInputProcessor::UnRegister()
+{
+	if (InputProcessor.IsValid() && FSlateApplication::IsInitialized())
+	{
+		FSlateApplication::Get().UnregisterInputPreProcessor(InputProcessor);
 	}
 }
 #endif

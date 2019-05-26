@@ -3,6 +3,7 @@
 #if WITH_EDITOR
 #include "TickableEditorObject.h"
 #endif
+#include "CoreMinimal.h"
 #include "JavascriptEditorTick.generated.h"
 
 /**
@@ -24,6 +25,9 @@ public:
 
 	UFUNCTION()
 	UEditorEngine* GetEngine();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	void ForceTick(float DeltaTime);
 
 	virtual void BeginDestroy() override;
 #endif

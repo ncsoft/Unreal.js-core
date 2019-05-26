@@ -1,9 +1,15 @@
 #pragma once
 
 #include "JavascriptEditorGlobalDelegates.h"
-#include "JavascriptMenuLibrary.h"
-#include "JavascriptUMGLibrary.h"
+#include "LandscapeProxy.h"
+#include "JavascriptUMG/JavascriptMenuLibrary.h"
+#include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "JavascriptInputEventStateLibrary.h"
+#include "Editor/Transactor.h"
+#include "Engine/Brush.h"
+#include "Framework/Docking/WorkspaceItem.h"
+#include "Toolkits/AssetEditorToolkit.h"
+#include "Engine/CurveTable.h"
 #include "JavascriptEditorLibrary.generated.h"
 
 UENUM()
@@ -18,7 +24,7 @@ enum class EJavascriptWidgetMode : uint8
 	WM_None = 255,
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptTransaction
 {
 	GENERATED_BODY()
@@ -34,7 +40,7 @@ public:
 #endif
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptWorkspaceItem
 {
 	GENERATED_BODY()
@@ -45,7 +51,7 @@ public:
 #endif
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptHitProxy
 {
 	GENERATED_BODY()
@@ -53,7 +59,7 @@ struct FJavascriptHitProxy
 	class HHitProxy* HitProxy;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptViewportClick
 {
 	GENERATED_BODY()
@@ -68,7 +74,7 @@ struct FJavascriptViewportClick
 	const FViewportClick* Click;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptPDI
 {
 	GENERATED_BODY()
@@ -86,7 +92,7 @@ struct FJavascriptPDI
 // forward decl
 class FExtensibilityManager;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptExtensibilityManager
 {
 	GENERATED_BODY()
@@ -99,7 +105,73 @@ public:
 	}
 
 	TSharedPtr<FExtensibilityManager> Handle;
+	TArray<UJavascriptLazyExtenderDelegates*> LazyExtenders;
 #endif
+};
+
+USTRUCT(BlueprintType)
+struct FJavascriptExtenderParameter
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
+	FJavascriptUICommandList CommandList;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
+	TArray<UObject*> EditingObjects;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Scripting | Javascript")
+	FJavascriptExtender Extender;
+};
+
+/** The severity of the message type */
+UENUM()
+namespace EJavascriptMessageSeverity
+{
+	/** Ordered according to their severity */
+	enum Type
+	{
+		CriticalError = 0,
+		Error = 1,
+		PerformanceWarning = 2,
+		Warning = 3,
+		Info = 4,	// Should be last
+	};
+}
+
+/**
+* The RHI's feature level indicates what level of support can be relied upon.
+* Note: these are named after graphics API's like ES2 but a feature level can be used with a different API (eg ERHIFeatureLevel::ES2 on D3D11)
+* As long as the graphics API supports all the features of the feature level (eg no ERHIFeatureLevel::SM5 on OpenGL ES2)
+*/
+
+UENUM()
+namespace EJavascriptRHIFeatureLevel
+{
+	enum Type
+	{
+		/** Feature level defined by the core capabilities of OpenGL ES2. */
+		ES2,
+		/** Feature level defined by the core capabilities of OpenGL ES3.1 & Metal/Vulkan. */
+		ES3_1,
+		/** Feature level defined by the capabilities of DX10 Shader Model 4. */
+		SM4,
+		/** Feature level defined by the capabilities of DX11 Shader Model 5. */
+		SM5,
+		Num
+	};
+}
+
+UCLASS()
+class JAVASCRIPTEDITOR_API UJavascriptLazyExtenderDelegates : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FJavascriptExtender, FJavascriptGetExtender, FJavascriptUICommandList, List, const TArray<UObject*>, EditingObjects);
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FJavascriptGetExtender GetExtender;
 };
 
 /**
@@ -280,7 +352,7 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static void DrawWireDiamond(const FJavascriptPDI& PDI, const FTransform& Transform, float Size, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void DrawPolygon(const FJavascriptPDI& PDI, const TArray<FVector>& Verts, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority);
+	static void DrawPolygon(const FJavascriptPDI& PDI, const TArray<FVector>& Verts, const FLinearColor& InColor, ESceneDepthPriorityGroup DepthPriority, EJavascriptRHIFeatureLevel::Type RHIFeatureLevel);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void SetHitProxy(const FJavascriptPDI& PDI, const FName& Name);
@@ -356,15 +428,108 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static FJavascriptExtensibilityManager GetToolBarExtensibilityManager(FName What);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FJavascriptUICommandList GetLevelEditorActions();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void AddExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender);
 	
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void RemoveExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void AddLazyExtender(FJavascriptExtensibilityManager Manager, UJavascriptLazyExtenderDelegates* Delegates);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void RemoveAllLazyExtender(FJavascriptExtensibilityManager Manager);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool SavePackage(UPackage* Package, FString FileName);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool DeletePackage(UPackage* Package);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void CreateBrushForVolumeActor(AVolume* NewActor, UBrushBuilder* BrushBuilder);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static UWorld* FindWorldInPackage(UPackage* Package);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FString ExportNavigation(UWorld* InWorld, FString Path);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void RequestEndPlayMapInPIE();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void RemoveLevelInstance(UWorld* World);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddWhitelistedObject(UObject* InObject);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void PostEditChange(UObject* InObject);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool MarkPackageDirty(UObject* InObject);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void CreateLogListing(const FName& InLogName, const FText& InLabel);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptSlateWidget CreateLogListingWidget(const FName& InLogName);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddLogListingMessage(const FName& InLogName, EJavascriptMessageSeverity::Type InSeverity, const FString& LogText);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static UEditorEngine* GetEngine();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static UClass* GetParentClassOfBlueprint(UBlueprint* Blueprint);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void AddComponentsToBlueprint(UBlueprint* Blueprint, const TArray<UActorComponent*>& Components, bool bHarvesting = false, class UActorComponent* OptionalNewRootComponent = nullptr, bool bKeepMobility = false);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void RemoveComponentFromBlueprint(UBlueprint* Blueprint, UActorComponent* RemoveComponent, bool bPromoteChildren = false);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void CompileBlueprint(UBlueprint* Blueprint);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool OpenEditorForAsset(UObject* Asset);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void OpenEditorForAssetByPath(const FString& AssetPathName, const FString& ObjectName);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static TArray<FAssetData> GetAssetsByType(const TArray<FString>& Types, bool bRecursiveClasses = true);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static int32 ReplaceAnimNotifyClass(UAnimSequenceBase* Sequence, FString NotifyName, FString NewNotifyName, UObject* NewNotifyClass);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool LoadImageFromDiskAsync(const FString& ImagePath, UAsyncTaskDownloadImage* Callback);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool OpenFileDialog(const UJavascriptWindow* WindowHandle, const FString& DialogTitle, const FString& DefaultPath, const FString& DefaultFile, const FString& FileTypes, int32 Flags, TArray<FString>& OutFilenames);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool LoadFileToIntArray(FString Path, TArray<uint8>& FileData);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool LoadFileToString(FString Path, FString& Data);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FString GetKeyNameByKeyEvent(const FKeyEvent& Event);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FString GetDataTableAsJSON(UDataTable* InDataTable, uint8 InDTExportFlags = 0);
+
+	UFUNCTION()
+	static void AddRichCurve(UCurveTable* InCurveTable, const FName& Key, const FRichCurve& InCurve);
+
+	UFUNCTION()
+	static void NotifyUpdateCurveTable(UCurveTable* InCurveTable);
 #endif
 };

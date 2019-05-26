@@ -1,10 +1,13 @@
-#include "JavascriptLogPrivatePCH.h"
+#include "JavascriptConsoleModule.h"
 #include "SJavascriptConsole.h"
 #include "SJavascriptLog.h"
+#include "Editor/WorkspaceMenuStructure/Public/WorkspaceMenuStructure.h"
 #include "Editor/WorkspaceMenuStructure/Public/WorkspaceMenuStructureModule.h"
-#include "SDockTab.h"
+#include "Widgets/Docking/SDockTab.h"
+#include "EditorStyleSet.h"
+#include "Framework/Application/SlateApplication.h"
 
-IMPLEMENT_MODULE( FJavascriptConsoleModule, JavascriptLog );
+IMPLEMENT_MODULE( FJavascriptConsoleModule, JavascriptConsole );
 
 namespace JavascriptConsoleModule
 {

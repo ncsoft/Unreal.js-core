@@ -2,8 +2,9 @@ using UnrealBuildTool;
 
 public class JavascriptUMG : ModuleRules
 {
-	public JavascriptUMG(TargetInfo Target)
+	public JavascriptUMG(ReadOnlyTargetRules Target) : base(Target)
 	{
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new string[] { 
             "Core", 
             "CoreUObject", 
@@ -11,11 +12,10 @@ public class JavascriptUMG : ModuleRules
             "InputCore", 
             "Slate",
 			"SlateCore",
-            "ShaderCore",
 			"RenderCore",
 			"RHI", 
             "UMG",
             "V8"
-        });        
+        });
 	}
 }

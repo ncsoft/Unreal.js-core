@@ -1,6 +1,5 @@
-#include "V8PCH.h"
 #include "JavascriptOutputDevice.h"
-#include "UObjectThreadContext.h"
+#include "UObject/UObjectThreadContext.h"
 
 /** This class is to capture all log output even if the log window is closed */
 class FJavascriptOutputDevice : public FOutputDevice

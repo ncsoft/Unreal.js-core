@@ -1,4 +1,3 @@
-#include "JavascriptUMG.h"
 #include "JavascriptUMGBlueprintLibrary.h"
 #include "JavascriptTextModel.h"
 
@@ -25,7 +24,6 @@ void UJavascriptUMGBlueprintLibrary::DrawSpaceSpline(UPARAM(ref) FPaintContext& 
 		Transform.TransformVector(InStartDir),
 		Transform.TransformPoint(InEnd),
 		Transform.TransformVector(InEndDir),
-		Context.MyClippingRect,
 		InThickness * Transform.GetScale(),
 		ESlateDrawEffect::None,
 		InTint);

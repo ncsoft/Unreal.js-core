@@ -1,5 +1,11 @@
 #pragma once
 
+#include "CoreMinimal.h"
+#include "UObject/ObjectMacros.h"
+#include "UObject/Object.h"
+#include "UObject/UObjectGlobals.h"
+#include "UObject/ScriptMacros.h"
+#include "Engine/World.h"
 #include "JavascriptGlobalDelegates.generated.h"
 
 UCLASS()
@@ -23,14 +29,17 @@ public:
 
 	void OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& Event)
 	{
-		OnObjectPropertyChanged_Friendly(InObject, Event.Property, Event.MemberProperty, (int32)Event.ChangeType);
+		if (Event.Property != nullptr)
+		{
+			OnObjectPropertyChanged_Friendly(InObject, Event.Property, Event.MemberProperty, (int32)Event.ChangeType);
+		}
 	}
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void RedirectorFollowed(const FString& PackageName, UObject* Redirector);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-	void PreGarbageCollect();
+	void PreGarbageCollectDelegate();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void PostGarbageCollect();
@@ -44,7 +53,7 @@ public:
 	}
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-	void PostLoadMap();
+	void PostLoadMapWithWorld(UWorld* World);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void PostDemoPlay();

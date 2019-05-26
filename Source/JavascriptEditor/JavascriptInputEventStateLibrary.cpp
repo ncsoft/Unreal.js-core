@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptInputEventStateLibrary.h"
 
 #if WITH_EDITOR

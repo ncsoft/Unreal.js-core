@@ -2,7 +2,10 @@
 
 #include "JavascriptWebSocketServer.generated.h"
 
+#if WITH_JSWEBSOCKET
+class FJavascriptWebSocket;
 class FJavascriptWebSocketServer;
+#endif
 class UJavascriptWebSocket;
 
 UCLASS()

@@ -1,7 +1,14 @@
 
-#include "JavascriptUMG.h"
 #include "JavascriptGameViewport.h"
-#include "SceneViewport.h"
+#include "Slate/SceneViewport.h"
+#include "Framework/Application/SlateApplication.h"
+
+#include "EngineUtils.h"
+#include "EngineModule.h"
+#include "SceneView.h"
+#include "CanvasTypes.h"
+#include "Widgets/SViewport.h"
+#include "Launch/Resources/Version.h"
 
 #define LOCTEXT_NAMESPACE "UMG"
 
@@ -103,7 +110,14 @@ void FJavascriptUMGViewportClient::Tick(float InDeltaTime)
 		{
 			for (FActorIterator It(GameScene->GetWorld()); It; ++It)
 			{
-				It->BeginPlay();
+#if ENGINE_MINOR_VERSION > 14
+				It->DispatchBeginPlay();
+#else
+				if (It->HasActorBegunPlay() == false)
+				{
+					It->BeginPlay();
+				}
+#endif
 			}
 			GameScene->GetWorld()->bBegunPlay = true;
 		}
@@ -356,25 +370,27 @@ void UJavascriptGameViewport::ReleaseSlateResources(bool bReleaseChildren)
 {
 	Super::ReleaseSlateResources(bReleaseChildren);
 
-	ViewportWidget.Reset();
+	// MyViewportWidget.Reset();
 }
 
 TSharedRef<SWidget> UJavascriptGameViewport::RebuildWidget()
 {
-	ViewportWidget = SNew(SJavascriptAutoRefreshViewport);
+	auto ViewportWidget = SNew(SJavascriptAutoRefreshViewport);
 
 	if (GetChildrenCount() > 0)
 	{
 		ViewportWidget->SetContent(GetContentSlot()->Content ? GetContentSlot()->Content->TakeWidget() : SNullWidget::NullWidget);
 	}
 
-	return ViewportWidget.ToSharedRef();
+	MyViewportWidget = ViewportWidget;
+	return ViewportWidget;
 }
 
 void UJavascriptGameViewport::SynchronizeProperties()
 {
 	Super::SynchronizeProperties();
 
+	auto ViewportWidget = MyViewportWidget.Pin();
 	if (ViewportWidget.IsValid())
 	{
 		ViewportWidget->ViewportClient->SetBackgroundColor(BackgroundColor);
@@ -385,6 +401,7 @@ void UJavascriptGameViewport::SynchronizeProperties()
 void UJavascriptGameViewport::OnSlotAdded(UPanelSlot* InSlot)
 {
 	// Add the child to the live canvas if it already exists
+	auto ViewportWidget = MyViewportWidget.Pin();
 	if (ViewportWidget.IsValid())
 	{
 		ViewportWidget->SetContent(InSlot->Content ? InSlot->Content->TakeWidget() : SNullWidget::NullWidget);
@@ -394,6 +411,7 @@ void UJavascriptGameViewport::OnSlotAdded(UPanelSlot* InSlot)
 void UJavascriptGameViewport::OnSlotRemoved(UPanelSlot* InSlot)
 {
 	// Remove the widget from the live slot if it exists.
+	auto ViewportWidget = MyViewportWidget.Pin();
 	if (ViewportWidget.IsValid())
 	{
 		ViewportWidget->SetContent(SNullWidget::NullWidget);
@@ -402,6 +420,7 @@ void UJavascriptGameViewport::OnSlotRemoved(UPanelSlot* InSlot)
 
 UWorld* UJavascriptGameViewport::GetViewportWorld() const
 {
+	auto ViewportWidget = MyViewportWidget.Pin();
 	if (ViewportWidget.IsValid())
 	{
 		return ViewportWidget->GameScene->GetWorld();
@@ -412,6 +431,7 @@ UWorld* UJavascriptGameViewport::GetViewportWorld() const
 
 FVector UJavascriptGameViewport::GetViewLocation() const
 {
+	auto ViewportWidget = MyViewportWidget.Pin();
 	if (ViewportWidget.IsValid())
 	{
 		return ViewportWidget->ViewportClient->GetViewLocation();
@@ -422,6 +442,7 @@ FVector UJavascriptGameViewport::GetViewLocation() const
 
 void UJavascriptGameViewport::SetViewLocation(FVector Vector)
 {
+	auto ViewportWidget = MyViewportWidget.Pin();
 	if (ViewportWidget.IsValid())
 	{
 		ViewportWidget->ViewportClient->SetViewLocation(Vector);
@@ -430,6 +451,7 @@ void UJavascriptGameViewport::SetViewLocation(FVector Vector)
 
 FRotator UJavascriptGameViewport::GetViewRotation() const
 {
+	auto ViewportWidget = MyViewportWidget.Pin();
 	if (ViewportWidget.IsValid())
 	{
 		return ViewportWidget->ViewportClient->GetViewRotation();
@@ -440,6 +462,7 @@ FRotator UJavascriptGameViewport::GetViewRotation() const
 
 void UJavascriptGameViewport::SetViewRotation(FRotator Rotator)
 {
+	auto ViewportWidget = MyViewportWidget.Pin();
 	if (ViewportWidget.IsValid())
 	{
 		ViewportWidget->ViewportClient->SetViewRotation(Rotator);
@@ -448,6 +471,7 @@ void UJavascriptGameViewport::SetViewRotation(FRotator Rotator)
 
 AActor* UJavascriptGameViewport::Spawn(TSubclassOf<AActor> ActorClass)
 {
+	auto ViewportWidget = MyViewportWidget.Pin();
 	if (ViewportWidget.IsValid())
 	{
 		UWorld* World = GetViewportWorld();

@@ -1,8 +1,9 @@
-#include "JavascriptUMG.h"
 #include "JavascriptUICommands.h"
+#include "JavascriptMenuLibrary.h"
 #include "Framework/Commands/Commands.h"
+#include "Launch/Resources/Version.h"
 
-PRAGMA_DISABLE_OPTIMIZATION
+//PRAGMA_DISABLE_OPTIMIZATION
 
 UJavascriptUICommands::UJavascriptUICommands(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer), bRegistered(false)
@@ -39,36 +40,39 @@ void UJavascriptUICommands::Initialize()
 {
 	for (auto info : Commands)
 	{
-		FJavascriptUICommandInfo CommandInfo;
+		if (info.CommandInfo.Handle.IsValid())
+		{
+			CommandInfos.Add(info.CommandInfo);
+		}
+		else
+		{
+			FJavascriptUICommandInfo CommandInfo = UJavascriptMenuLibrary::UI_COMMAND_Function(BindingContext, info, TextSubNamespace);
 
-		UI_COMMAND_Function(
-			BindingContext.Handle.Get(),
-			CommandInfo.Handle,
-			TEXT(""),
-			*info.Id,
-			*FString::Printf(TEXT("%s_Tooltip"), *info.Id),
-			TCHAR_TO_ANSI(*FString::Printf(TEXT(".%s"), *info.Id)),
-			*info.FriendlyName,
-			*info.Description,
-			EUserInterfaceActionType::Type(info.ActionType.GetValue()),
-			info.DefaultChord);
-
-		CommandInfos.Add(CommandInfo);
+			CommandInfos.Add(CommandInfo);
+		}
 	}
 
-	BroadcastCommandsChanged();
+	BroadcastCommandsChanged(ContextName);
 }
 
 void UJavascriptUICommands::Uninitialize()
 {	
 	CommandInfos.Empty();
 
-	BroadcastCommandsChanged();
+	BroadcastCommandsChanged(ContextName);
 }
 
-void UJavascriptUICommands::BroadcastCommandsChanged()
+void UJavascriptUICommands::BroadcastCommandsChanged(const FString& InContextName)
 {
+#if ENGINE_MINOR_VERSION > 14
+	TSharedPtr<FBindingContext> ExistingBindingContext = FInputBindingManager::Get().GetContextByName(*InContextName);
+	if (ExistingBindingContext.IsValid())
+	{
+		FBindingContext::CommandsChanged.Broadcast(*ExistingBindingContext);
+	}
+#else
 	FBindingContext::CommandsChanged.Broadcast();
+#endif
 }
 
 void UJavascriptUICommands::Refresh()
@@ -113,6 +117,13 @@ void UJavascriptUICommands::Bind(FUICommandList* CommandList)
 void UJavascriptUICommands::Unbind(FUICommandList* CommandList)
 {
 	// unbind is not supported, just rebind again!
+	for (auto CommandInfo : CommandInfos)
+	{
+		if (CommandList->IsActionMapped(CommandInfo.Handle))
+		{
+			CommandList->UnmapAction(CommandInfo.Handle);
+		}
+	}
 }
 
 FJavascriptUICommandInfo UJavascriptUICommands::GetAction(FString Id)
@@ -131,4 +142,4 @@ FJavascriptUICommandInfo UJavascriptUICommands::GetAction(FString Id)
 	return FJavascriptUICommandInfo();
 }
 
-PRAGMA_ENABLE_OPTIMIZATION
+//PRAGMA_ENABLE_OPTIMIZATION

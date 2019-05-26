@@ -1,9 +1,11 @@
 
-#include "JavascriptUMG.h"
-#include "SoundDefinitions.h"
 #include "JavascriptInGameScene.h"
+#include "SoundDefinitions.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/LineBatchComponent.h"
+#include "Components/MeshComponent.h"
+#include "AudioDevice.h"
+#include "Misc/ConfigCacheIni.h"
 #include "../../Launch/Resources/Version.h"
 
 FJavascriptInGameScene::FJavascriptInGameScene(FJavascriptInGameScene::ConstructionValues CVS)
@@ -34,7 +36,7 @@ FJavascriptInGameScene::FJavascriptInGameScene(FJavascriptInGameScene::Construct
 	GetScene()->UpdateDynamicSkyLight(FLinearColor::White * CVS.SkyBrightness, FLinearColor::Black);
 #endif
 
-	DirectionalLight = NewObject<UDirectionalLightComponent>(GetTransientPackage());
+	DirectionalLight = NewObject<UDirectionalLightComponent>((UObject*)GetTransientPackage());
 	DirectionalLight->Intensity = CVS.LightBrightness;
 	DirectionalLight->LightColor = FColor::White;
 	AddComponent(DirectionalLight, FTransform(CVS.LightRotation));
@@ -80,8 +82,11 @@ void FJavascriptInGameScene::Destroy()
 		Component->UnregisterComponent();
 	}
 
-	PreviewWorld->CleanupWorld();
-	GEngine->DestroyWorldContext(GetWorld());
+	if (GEngine) 
+	{
+		PreviewWorld->CleanupWorld();
+		GEngine->DestroyWorldContext(GetWorld());
+	}
 	bDestroyed = true;
 }
 
@@ -139,7 +144,7 @@ void FJavascriptInGameScene::AddReferencedObjects(FReferenceCollector& Collector
 /** Accessor for finding the current direction of the preview scene's DirectionalLight. */
 FRotator FJavascriptInGameScene::GetLightDirection()
 {
-	return DirectionalLight->ComponentToWorld.GetUnitAxis(EAxis::X).Rotation();
+	return DirectionalLight->GetComponentTransform().GetUnitAxis(EAxis::X).Rotation();
 }
 
 /** Function for modifying the current direction of the preview scene's DirectionalLight. */

@@ -1,13 +1,20 @@
-#include "V8PCH.h"
 #include "JavascriptComponent.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
+#include "JavascriptStats.h"
+#include "Engine/World.h"
+#include "Engine/Engine.h"
+#include "V8PCH.h"
 #include "IV8.h"
+
+
+DECLARE_CYCLE_STAT(TEXT("Javascript Component Tick Time"), STAT_JavascriptComponentTickTime, STATGROUP_Javascript);
 
 UJavascriptComponent::UJavascriptComponent(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.TickInterval = 0.03f;
 	bTickInEditor = false;
 	bAutoActivate = true;
 	bWantsInitializeComponent = true;
@@ -18,12 +25,29 @@ void UJavascriptComponent::OnRegister()
 	auto ContextOwner = GetOuter();
 	if (ContextOwner && !HasAnyFlags(RF_ClassDefaultObject) && !ContextOwner->HasAnyFlags(RF_ClassDefaultObject))
 	{
-		if (GetWorld() && (GetWorld()->IsGameWorld() || bActiveWithinEditor))
+		if (GetWorld() && ((GetWorld()->IsGameWorld() && !GetWorld()->IsPreviewWorld()) || bActiveWithinEditor))
 		{
-			auto Isolate = NewObject<UJavascriptIsolate>();
-			auto Context = Isolate->CreateContext();
+			UJavascriptIsolate* Isolate = nullptr;
+			if (!IsRunningCommandlet())
+			{
+				UJavascriptStaticCache* StaticGameData = Cast<UJavascriptStaticCache>(GEngine->GameSingleton);
+				if (StaticGameData)
+				{
+					if (StaticGameData->Isolates.Num() > 0)
+						Isolate = StaticGameData->Isolates.Pop();
+				}
+			}
 
+			if (!Isolate)
+			{
+				Isolate = NewObject<UJavascriptIsolate>();
+				Isolate->Init(false);
+				Isolate->AddToRoot();
+			}			
+
+			auto* Context = Isolate->CreateContext();
 			JavascriptContext = Context;
+			JavascriptIsolate = Isolate;
 
 			Context->Expose("Root", this);
 			Context->Expose("GWorld", GetWorld());
@@ -57,6 +81,20 @@ void UJavascriptComponent::Deactivate()
 
 void UJavascriptComponent::BeginDestroy()
 {
+	if (!IsRunningCommandlet())
+	{
+		auto* StaticGameData = Cast<UJavascriptStaticCache>(GEngine->GameSingleton);
+		if (StaticGameData)
+		{
+			StaticGameData->Isolates.Add(JavascriptIsolate);
+		}
+		else if (JavascriptIsolate)
+		{
+			JavascriptIsolate->RemoveFromRoot();
+			JavascriptIsolate = nullptr;
+			JavascriptContext = nullptr;
+		}
+	}
 	if (bIsActive)
 	{
 		Deactivate();
@@ -69,6 +107,8 @@ void UJavascriptComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 {
 	check(bRegistered);
 
+	SCOPE_CYCLE_COUNTER(STAT_JavascriptComponentTickTime);
+
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	OnTick.ExecuteIfBound(DeltaTime);
@@ -76,7 +116,7 @@ void UJavascriptComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 
 void UJavascriptComponent::ForceGC()
 {
-	JavascriptContext->RunScript(TEXT("gc();"));
+	JavascriptContext->RequestV8GarbageCollection();
 }
 
 void UJavascriptComponent::Expose(FString ExposedAs, UObject* Object)

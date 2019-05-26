@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Components/Widget.h"
+#include "Widgets/Layout/SBox.h"
 #include "JavascriptEditorTab.h"
 #include "JavascriptEditorTabManager.generated.h"
 

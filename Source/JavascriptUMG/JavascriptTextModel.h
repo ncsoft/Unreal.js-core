@@ -1,8 +1,10 @@
 #pragma once
 
+#include "Framework/Text/SlateTextRun.h"
+#include "Framework/Text/IRun.h"
 #include "JavascriptTextModel.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptSlateTextRun
 {
 	GENERATED_BODY()

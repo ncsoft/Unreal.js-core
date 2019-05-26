@@ -4,6 +4,17 @@
 
 class UJavascriptContext;
 class FJavascriptIsolate;
+class UJavascriptIsolate;
+
+UCLASS(Blueprintable, BlueprintType)
+class V8_API UJavascriptStaticCache : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Scripting | Javascript")
+	TArray<UJavascriptIsolate*> Isolates;
+};
 
 USTRUCT()
 struct FJavascriptRawAccess_Data
@@ -15,8 +26,8 @@ USTRUCT()
 struct FJavascriptRawAccess
 {
 	GENERATED_BODY()
-
 public:
+    virtual ~FJavascriptRawAccess() {}
 	virtual UScriptStruct* GetScriptStruct(int32 Index) { return nullptr; }
 	virtual void* GetData(int32 Index) { return nullptr; }
 	virtual int32 GetNumData() { return 0; }
@@ -29,14 +40,16 @@ struct FJavascriptMemoryStruct
 	GENERATED_BODY()
 
 public:
+    virtual ~FJavascriptMemoryStruct() {}
 	virtual int32 GetDimension() { return 1;  }
 	virtual void* GetMemory(const int32* Dim) { return nullptr; }
 	virtual int32 GetSize(int32 Dim) { return 0; }
 };
 
 struct FPrivateJavascriptFunction;
+struct FPrivateJavascriptRef;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct V8_API FJavascriptFunction
 {
 	GENERATED_BODY()
@@ -46,6 +59,15 @@ public:
 	void Execute(UScriptStruct* Struct, void* Buffer);
 
 	TSharedPtr<FPrivateJavascriptFunction> Handle;
+};
+
+USTRUCT(BlueprintType)
+struct V8_API FJavascriptRef
+{
+	GENERATED_BODY()
+
+public:
+	TSharedPtr<FPrivateJavascriptRef> Handle;
 };
 
 USTRUCT(BlueprintType)
@@ -84,9 +106,12 @@ class V8_API UJavascriptIsolate : public UObject
 	GENERATED_UCLASS_BODY()
 
 public:
-	virtual ~UJavascriptIsolate() override;
+	virtual void BeginDestroy() override;
 
-	TSharedPtr<FJavascriptIsolate> JavascriptIsolate;	
+	TSharedPtr<FJavascriptIsolate> JavascriptIsolate;
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	void Init(bool bIsEditor);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	UJavascriptContext* CreateContext();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Components/Widget.h"
 #include "JavascriptSearchBox.generated.h"
 
 class SSearchBox;
@@ -51,4 +52,7 @@ public:
 
 protected:
 	TSharedPtr<SSearchBox> MySearchBox;
+	PROPERTY_BINDING_IMPLEMENTATION(FText, Text);
+	PROPERTY_BINDING_IMPLEMENTATION(FText, HintText);
+
 };

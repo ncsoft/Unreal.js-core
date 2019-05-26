@@ -3,6 +3,9 @@
 // libwebsocket client wrapper. 
 //
 #pragma  once
+#if WITH_JSWEBSOCKET
+#include "JavascriptWebSocketModule.h"
+#endif
 
 DECLARE_DELEGATE(FJavascriptWebSocketInfoCallBack);
 
@@ -68,11 +71,8 @@ private:
 	/** Server side socket or client side*/
 	bool IsServerSide; 
 
-#if !PLATFORM_HTML5
-	/* libwebsocket service functions */ 
-	static int unreal_networking_server(struct libwebsocket_context *, struct libwebsocket *wsi, enum libwebsocket_callback_reasons reason, void *user, void *in, size_t len);
-	static int unreal_networking_client(struct libwebsocket_context *, struct libwebsocket *wsi, enum libwebsocket_callback_reasons reason, void *user, void *in, size_t len);
-#endif 
+	/* libwebsocket service functions */ 	
+	int unreal_networking_client(lws *Wsi, lws_callback_reasons Reason, void* User, void *In, size_t Len);
 
 	friend class FJavascriptWebSocketServer;
 	int SockFd;

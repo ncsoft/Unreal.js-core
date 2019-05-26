@@ -1,6 +1,9 @@
 #pragma once
 
 #include "JavascriptUMGLibrary.h"
+#include "Components/ContentWidget.h"
+#include "Styling/SlateTypes.h"
+#include "Styling/CoreStyle.h"
 #include "JavascriptComboButton.generated.h"
 
 class SComboButton;
@@ -16,10 +19,10 @@ public:
 	DECLARE_DYNAMIC_DELEGATE(FOnComboBoxOpened);
 
 	UPROPERTY()
-	FComboButtonStyle ComboButtonStyle;
+	FComboButtonStyle ComboButtonStyle = FCoreStyle::Get().GetWidgetStyle<FComboButtonStyle>("ComboButton");
 
 	UPROPERTY()
-	FButtonStyle ButtonStyle;
+	FButtonStyle ButtonStyle = FCoreStyle::Get().GetWidgetStyle<FComboButtonStyle>("ComboButton").ButtonStyle;
 	
 	UPROPERTY(meta = (IsBindableEvent = "True"))
 	FOnGetContent OnGetMenuContent;
@@ -31,28 +34,28 @@ public:
 	FOnComboBoxOpened OnComboBoxOpened;
 	
 	UPROPERTY()
-	bool bIsFocusable;
+	bool bIsFocusable = true;
 
 	UPROPERTY()
-	bool bHasDownArrow;
+	bool bHasDownArrow = true;
 
 	UPROPERTY()
-	FSlateColor ForegroundColor;
+	FSlateColor ForegroundColor = FCoreStyle::Get().GetSlateColor("InvertedForeground");
 
 	UPROPERTY()
-	FSlateColor ButtonColorAndOpacity;
+	FSlateColor ButtonColorAndOpacity = FLinearColor::White;
 
 	UPROPERTY()
-	FMargin ContentPadding;
+	FMargin ContentPadding = FMargin(5);
 
 	UPROPERTY()
-	TEnumAsByte<EMenuPlacement> MenuPlacement;
+	TEnumAsByte<EMenuPlacement> MenuPlacement = MenuPlacement_ComboBox;
 
 	UPROPERTY()
-	TEnumAsByte<EHorizontalAlignment> HAlign;
+	TEnumAsByte<EHorizontalAlignment> HAlign = HAlign_Fill;
 
 	UPROPERTY()
-	TEnumAsByte<EVerticalAlignment> VAlign;
+	TEnumAsByte<EVerticalAlignment> VAlign = VAlign_Center;
 
 	/** Closes the menu if it is currently open. */
 	UFUNCTION(BlueprintCallable, Category = "Menu Anchor")
@@ -67,5 +70,5 @@ public:
 	void HandleMenuOpenChanged(bool bOpen);
 
 protected:
-	TSharedPtr<SComboButton> MyComboButton;
+	TWeakPtr<SComboButton> MyComboButton;
 };

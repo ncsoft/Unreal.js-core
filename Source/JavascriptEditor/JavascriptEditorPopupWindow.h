@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Components/Widget.h"
+#include "Framework/Application/IMenu.h"
 #include "JavascriptEditorPopupWindow.generated.h"
 
 /**
@@ -12,7 +14,7 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorPopupWindow : public UObject
 
 public:
 #if WITH_EDITOR
-	UPROPERTY(BlueprintReadonly, Category = "Scripting | Javascript")
+	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
 	UWidget* Widget;
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")

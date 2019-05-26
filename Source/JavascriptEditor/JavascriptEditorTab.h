@@ -1,7 +1,10 @@
 #pragma once
 
-#include "SDockTab.h"
+#include "CoreMinimal.h"
+#include "Widgets/Docking/SDockTab.h"
 #include "JavascriptEditorLibrary.h"
+#include "UObject/Object.h"
+#include "JavascriptEditorModule.h"
 #include "JavascriptEditorTab.generated.h"
 
 UENUM()
@@ -13,6 +16,16 @@ namespace EJavascriptTabRole
 		PanelTab,
 		NomadTab,
 		DocumentTab		
+	};
+}
+
+UENUM()
+namespace EJavasriptTabActivationCause
+{
+	enum Type
+	{
+		UserClickedOnTab,
+		SetDirectly
 	};
 }
 
@@ -29,12 +42,19 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(UWidget*, FSpawnTab, UObject*, Context);
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FCloseTab, UWidget*, Widget);
 
+	/** Invoked when a tab is activated */
+	DECLARE_DELEGATE_TwoParams(FOnTabActivatedCallback, TSharedRef<SDockTab>, ETabActivationCause);
+	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnTabActivated, FString, TabId, TEnumAsByte<EJavasriptTabActivationCause::Type>, Cause);
+
 #if WITH_EDITOR
 	UPROPERTY()
 	FSpawnTab OnSpawnTab;	
 
 	UPROPERTY()
 	FCloseTab OnCloseTab;
+
+	UPROPERTY()
+	FOnTabActivated OnTabActivatedCallback;
 
 	UPROPERTY()
 	FJavascriptWorkspaceItem Group;
@@ -58,11 +78,16 @@ public:
 	void Discard();
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	void ForceCommit();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	void CloseTab(UWidget* Widget);
 
 	bool bRegistered;
 
 	UWidget* TakeWidget(UObject* Context);
+
+	void TabActivatedCallback(TSharedRef<SDockTab> Tab, ETabActivationCause Cause);
 
 	virtual void Register() override;
 	virtual void Unregister() override;

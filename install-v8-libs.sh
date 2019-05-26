@@ -12,15 +12,12 @@ if [ -d "ThirdParty/v8/lib" ]; then
     echo "Unreal.js is ready to build"
 else
     if [ -f "ThirdParty/v8/$ZipFile" ]; then
-        unzip -tq ThirdParty/v8/$ZipFile || rm ThirdParty/v8/$ZipFile
-    fi 
-    if [ -f "ThirdParty/v8/$ZipFile" ]; then
         echo "Okay you have zip"
     else
         echo "Download prebuilt V8 libraries for Unreal.js"
         (cd ThirdParty/v8; curl -O -L https://github.com/ncsoft/Unreal.js-core/releases/download/$Tag/$ZipFile)
     fi
 
-    (cd ThirdParty/v8; unzip $ZipFile)
+    (cd ThirdParty/v8; unzip $ZipFile;)
 fi
 

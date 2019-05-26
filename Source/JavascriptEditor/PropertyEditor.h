@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Widget.h"
+#include "Components/Widget.h"
 #include "Editor/PropertyEditor/Public/PropertyEditorModule.h"
 #include "PropertyEditor.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPropertyEditorParameterChanged, FName, ParameterName);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPropertyEditorPropertyChanged, FName, PropertyName, FName, MemberPropertyName);
 
 UENUM()
 enum class EPropertyEditorNameAreaSettings : uint8
@@ -27,14 +27,29 @@ class JAVASCRIPTEDITOR_API UPropertyEditor : public UWidget
 	GENERATED_UCLASS_BODY()
 
 #if WITH_EDITOR
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "PropertyEditor")
+	void Construct();
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "PropertyEditor")
+	void Destruct();
+
 	UFUNCTION(BlueprintCallable, Category = "PropertyEditor")
 	void SetObject(UObject* Object, bool bForceRefresh);
 
 	UFUNCTION(BlueprintCallable, Category = "PropertyEditor")
 	void SetObjects(TArray<UObject*> Objects, bool bForceRefresh, bool bOverrideLock);
 
+	// Note the comment in implementation of BuildPropertyPathMap for the reason
+	// why the parameter PropertyPaths is array of strings instead of unique string.
+	UFUNCTION(BlueprintNativeEvent, Category = "PropertyEditor")
+	bool IsPropertyReadOnly(const FString& PropertyName, const FString& ParentPropertyName, const TArray<FString>& PropertyPaths);
+
+	// Note the comment in implementation of BuildPropertyPathMap for the reason
+	// why the parameter PropertyPaths is array of strings instead of unique string.
+	UFUNCTION(BlueprintNativeEvent, Category = "PropertyEditor")
+	bool IsPropertyVisible(const FString& PropertName, const FString& ParentPropertyName, const TArray<FString>& PropertyPaths);
+
 	UPROPERTY(BlueprintAssignable, Category = "PropertyEditor")
-	FPropertyEditorParameterChanged OnChange;
+	FPropertyEditorPropertyChanged OnChange;
 
 	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
 	bool bUpdateFromSelection;
@@ -49,21 +64,41 @@ class JAVASCRIPTEDITOR_API UPropertyEditor : public UWidget
 	bool bHideSelectionTip;
 
 	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
+	bool bReadOnly;
+
+	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
+	bool bEnablePropertyPath;
+
+	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
 	EPropertyEditorNameAreaSettings NameAreaSettings;
-	
+
 	TArray<FWeakObjectPtr> ObjectsToInspect;
 
-public:	
+public:
+	// UVisual interface
 	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
-
-protected:
-	TSharedPtr<class IDetailsView> View;
+	// End of UVisual interface
 
 protected:
 	// UWidget interface
 	virtual TSharedRef<SWidget> RebuildWidget() override;
+	virtual void OnWidgetRebuilt() override;
 	// End of UWidget interface
 
+protected:
 	void OnFinishedChangingProperties(const FPropertyChangedEvent& PropertyChangedEvent);
+	bool NativeIsPropertyReadOnly(const FPropertyAndParent& InPropertyAndParent);
+	bool NativeIsPropertyVisible(const FPropertyAndParent& InPropertyAndParent);
+
+	void BuildPropertyPathMap(UStruct* InPropertyRootType);
+
+protected:
+	TSharedPtr<class IDetailsView> View;
+
+	TWeakObjectPtr<UStruct> PropertyRootType;
+	TMap<UProperty*, TArray<FString>> PropertyPathMap;
+
+	static const FString EmptyString;
+	static const TArray<FString> EmptyStringArray;
 #endif	
 };

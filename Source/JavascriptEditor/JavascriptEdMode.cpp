@@ -1,13 +1,14 @@
-#include "JavascriptEditor.h"
-
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
-#include "SJavascriptBox.h"
 #include "JavascriptEdMode.h"
-#include "Toolkits/ToolkitManager.h"
-
 
 #if WITH_EDITOR
+#include "Components/Widget.h"
+#include "EditorModeManager.h"
+#include "EdMode.h"
+#include "Engine/Canvas.h"
+#include "JavascriptUMG/SJavascriptBox.h"
+#include "Toolkits/ToolkitManager.h"
 
 /** Util to find named canvas in transient package, and create if not found */
 static UCanvas* GetCanvasByName(FName CanvasName)
@@ -247,7 +248,7 @@ public:
 			UCanvas* CanvasObject = GetCanvasByName(CanvasObjectName);
 			CanvasObject->Canvas = Canvas;
 
-			CanvasObject->Init(View->UnscaledViewRect.Width(), View->UnscaledViewRect.Height(), const_cast<FSceneView*>(View));
+			CanvasObject->Init(View->UnscaledViewRect.Width(), View->UnscaledViewRect.Height(), const_cast<FSceneView*>(View), Canvas);
 			CanvasObject->ApplySafeZoneTransform();
 
 			Parent->OnDrawHUD.Execute(CanvasObject, this);

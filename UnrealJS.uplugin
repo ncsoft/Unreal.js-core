@@ -2,9 +2,9 @@
   "FileVersion": 3,
   "FriendlyName": "Unreal.js - Javascript Runtime",
   "Version": 2,
-  "VersionName": "0.2.2",
-  "FriendlyVersion": "0.2.2",
-  "EngineVersion": "4.13.0",
+  "VersionName": "0.3.5",
+  "FriendlyVersion": "0.3.5",
+  "EngineVersion": "4.22.0",
   "Description": "Javascript powered UnrealEngine",
   "Category": "Programming",
   "CreatedBy": "NCSOFT Corporation",
@@ -16,36 +16,50 @@
       "Name": "V8",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Android", "Linux"]
+      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux", "Android", "IOS" ]
     },
     {
       "Name": "JavascriptUMG",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Android", "Linux"]
+      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux", "Android", "IOS" ]
     },
     {
       "Name": "JavascriptHttp",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Android", "Linux"]
+      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux", "Android", "IOS" ]
     },
     {
       "Name": "JavascriptWebSocket",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms" : ["Win64"]
+      "WhitelistPlatforms": [ "Win64" ]
+    },
+    {
+      "Name": "JavascriptGraphEditor",
+      "Type": "Editor",
+      "LoadingPhase": "PostDefault",
+      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux" ]
     },
     {
       "Name": "JavascriptEditor",
       "Type": "Editor",
-      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Linux"]
+      "LoadingPhase": "PostDefault",
+      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux" ]
     },
     {
       "Name": "JavascriptConsole",
       "Type": "Editor",
-      "WhitelistPlatforms" : ["Win64", "Win32", "Mac", "Linux"]
+      "LoadingPhase": "PostDefault",
+      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux" ]
     }
+  ],
+  "Plugins": [
+	{
+      "Name": "OnlineSubsystemUtils",
+	  "Enabled": true
+	}
   ],
   "CanContainContent": true
 }

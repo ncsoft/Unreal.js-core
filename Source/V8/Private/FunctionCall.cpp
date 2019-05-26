@@ -1,4 +1,5 @@
 #include "V8PCH.h"
+#include "JavascriptIsolate_Private.h"
 #include "JavascriptContext_Private.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
@@ -43,13 +44,23 @@ namespace v8
 			}
 		}
 
-		TryCatch try_catch;		
+		TryCatch try_catch(isolate);
 
-		auto value = func->Call(This, argc, argv);
+		Isolate::AllowJavascriptExecutionScope allow_script(isolate);
+
+		auto maybeValue = func->Call(context, This, argc, argv);
 
 		if (try_catch.HasCaught())
 		{
-			FJavascriptContext::FromV8(context)->UncaughtException(FV8Exception::Report(try_catch));
+			FJavascriptContext::FromV8(context)->UncaughtException(FV8Exception::Report(isolate, try_catch));
+		}
+
+		FIsolateHelper I(isolate);
+
+		if (maybeValue.IsEmpty())
+		{
+			I.Throw(TEXT("..."));
+			return;
 		}
 
 		bool bHasAnyOutParams = false;
@@ -67,16 +78,17 @@ namespace v8
 			}
 		}
 
+		auto value = maybeValue.ToLocalChecked();
+
 		if (bHasAnyOutParams)
 		{
-			FIsolateHelper I(isolate);
-			if (value.IsEmpty() || !value->IsObject())
+			if (!value->IsObject())
 			{
 				I.Throw(TEXT("..."));
 				return;
 			}
 
-			auto Object = value->ToObject();
+			auto Object = value->ToObject(context).ToLocalChecked();
 
 			// Iterate over parameters again
 			for (TFieldIterator<UProperty> It(SignatureFunction); It; ++It)
@@ -90,7 +102,7 @@ namespace v8
 				{
 					auto sub_value = Object->Get(I.Keyword("$"));
 
-					WriteProperty(isolate, ReturnParam, Buffer, sub_value);						
+					WriteProperty(isolate, ReturnParam, Buffer, sub_value, FNoPropertyOwner());						
 				}
 				// rejects 'const T&' and pass 'T&' as its name
 				else if ((PropertyFlags & (CPF_ConstParm | CPF_OutParm)) == CPF_OutParm)
@@ -100,7 +112,7 @@ namespace v8
 					if (!sub_value.IsEmpty())
 					{
 						// value can be null if isolate is in trouble
-						WriteProperty(isolate, Param, Buffer, sub_value);
+						WriteProperty(isolate, Param, Buffer, sub_value, FNoPropertyOwner());
 					}						
 				}
 			}			
@@ -109,7 +121,7 @@ namespace v8
 		{
 			if (ReturnParam)
 			{
-				WriteProperty(isolate, ReturnParam, Buffer, value);
+				WriteProperty(isolate, ReturnParam, Buffer, value, FNoPropertyOwner());
 			}
 		}		
 	}

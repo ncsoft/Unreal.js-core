@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Config.h"
+#include "Translator.h"
+#include "Misc/FileHelper.h"
 
 struct TypingGeneratorBase
 {
@@ -37,7 +39,7 @@ struct TypingGeneratorBase
 			ExportEnum(s);
 		}
 	}
-
+	virtual ~TypingGeneratorBase() {}
 	virtual void ExportClass(UClass* source) {}
 	virtual void ExportStruct(UStruct* source) {}
 	virtual void ExportEnum(UEnum* source) {}
@@ -125,6 +127,11 @@ struct TokenWriter
 				push("number");
 			}
 		}
+		else if (auto p = Cast<UEnumProperty>(Property))
+		{
+			generator.Export(p->GetEnum());
+			push(FV8Config::Safeify(p->GetEnum()->GetName()));
+		}
 		else if (auto p = Cast<UMulticastDelegateProperty>(Property))
 		{
 			push("UnrealEngineMulticastDelegate<");
@@ -138,6 +145,11 @@ struct TokenWriter
 			push(">");
 		}
 		else if (auto p = Cast<UObjectProperty>(Property))
+		{
+			generator.Export(p->PropertyClass);
+			push(FV8Config::Safeify(p->PropertyClass->GetName()));
+		}
+		else if (auto p = Cast<USoftObjectProperty>(Property))
 		{
 			generator.Export(p->PropertyClass);
 			push(FV8Config::Safeify(p->PropertyClass->GetName()));
@@ -157,7 +169,7 @@ struct TokenWriter
 		{
 			auto Prop = *It;
 			if (!first) push(", ");
-			push(FV8Config::Safeify(Prop->GetName()));
+			push(FV8Config::Safeify(PropertyNameToString(Prop)));
 			push(": ");
 			push(Prop);
 			first = false;
@@ -208,7 +220,7 @@ struct TypingGenerator : TypingGeneratorBase
 	TypingGenerator(FJavascriptIsolate& InEnvironment)
 	: Environment(InEnvironment)
 	{}
-
+	virtual ~TypingGenerator() {}
 	FJavascriptIsolate& Environment;
 
 	FString Text;
@@ -231,19 +243,44 @@ struct TypingGenerator : TypingGeneratorBase
 		auto enumName = FV8Config::Safeify(source->GetName());
 		w.push("declare type ");
 		w.push(enumName);
-		w.push(" = string | symbol;\n");		
+		w.push(" = ");
+
+		
+
+		auto EnumCount = source->NumEnums();
+
+		TSet<FString> StringLiteralVisited;
+
+		for (decltype(EnumCount) Index = 0; Index < EnumCount; ++Index)
+		{
+
+			auto name = source->GetNameStringByIndex(Index);
+			if ( StringLiteralVisited.Find(name) ) continue;
+			StringLiteralVisited.Add(name);
+		}
+
+		auto MaxStringLiteralValues = StringLiteralVisited.Num();
+		for (int32 Index = 0; Index < MaxStringLiteralValues; Index++) {
+			auto name = StringLiteralVisited.Array()[Index];
+			w.push("'");
+			w.push(name);
+			w.push("'");
+			if (Index < MaxStringLiteralValues - 1) {
+				w.push(" | ");
+			}
+		}
+
+		w.push(";\n");
 
 		w.push("declare var ");
 		w.push(enumName);
-		w.push(" = { ");
-
-		auto MaxEnumValue = source->GetMaxEnumValue();
+		w.push(" : { ");
 
 		TSet<FString> Visited;
 
-		for (decltype(MaxEnumValue) Index = 0; Index < MaxEnumValue; ++Index)
+		for (decltype(EnumCount) Index = 0; Index < EnumCount; ++Index)
 		{
-			auto name = source->GetEnumName(Index);
+			auto name = source->GetNameStringByIndex(Index);
 
 			if (Visited.Find(name)) continue;
 			Visited.Add(name);
@@ -276,6 +313,8 @@ struct TypingGenerator : TypingGeneratorBase
 
 		const auto name = FV8Config::Safeify(source->GetName());
 		auto super_class = source->GetSuperStruct();
+		
+		w.tooltip("", source);
 
 		w.push("declare class ");
 		w.push(name);
@@ -292,7 +331,7 @@ struct TypingGenerator : TypingGeneratorBase
 		for (TFieldIterator<UProperty> PropertyIt(source, EFieldIteratorFlags::ExcludeSuper); PropertyIt; ++PropertyIt)
 		{
 			auto Property = *PropertyIt;
-			auto PropertyName = FV8Config::Safeify(Property->GetName());
+			auto PropertyName = FV8Config::Safeify(PropertyNameToString(Property));
 
 			w.tooltip("\t", Property);
 
@@ -329,7 +368,7 @@ struct TypingGenerator : TypingGeneratorBase
 				}
 
 				auto Property = *ParamIt;
-				auto PropertyName = FV8Config::Safeify(Property->GetName());
+				auto PropertyName = FV8Config::Safeify(PropertyNameToString(Property));
 
 				w2.push(PropertyName);
 				if (is_optional)
@@ -366,7 +405,7 @@ struct TypingGenerator : TypingGeneratorBase
 					}
 					else if ((ParamIt->PropertyFlags & (CPF_ConstParm | CPF_OutParm)) == CPF_OutParm)
 					{
-						w2.push(ParamIt->GetName());
+						w2.push(PropertyNameToString(*ParamIt));
 						w2.push(": ");
 						w2.push(*ParamIt);
 
@@ -402,15 +441,22 @@ struct TypingGenerator : TypingGeneratorBase
 
 		if (auto klass = Cast<UClass>(source))
 		{
+
+			bool bIsUObject = (klass == UObject::StaticClass() || !klass->IsChildOf(UObject::StaticClass()));
+
 			if (klass->IsChildOf(AActor::StaticClass()))
 			{
 				Export(UWorld::StaticClass());
-				w.push("\tconstructor(InWorld: World, Location?: Vector, Rotation?: Rotator);\n");
+				if (klass == AActor::StaticClass()) {
+					w.push("\tconstructor(InWorld: World, Location?: Vector, Rotation?: Rotator);\n");
+				}
 			}
 			else
 			{
-				w.push("\tconstructor();\n");
-				w.push("\tconstructor(Outer: UObject);\n");
+				if (bIsUObject) {
+					w.push("\tconstructor();\n");
+					w.push("\tconstructor(Outer: UObject);\n");
+				}
 				w.push("\tstatic Load(ResourceName: string): ");
 				w.push(name);
 				w.push(";\n");
@@ -419,16 +465,20 @@ struct TypingGenerator : TypingGeneratorBase
 				w.push(";\n");
 			}
 
-			w.push("\tstatic StaticClass: any;\n");
+			if (bIsUObject) {
+				w.push("\tstatic StaticClass: any;\n");
 
-			w.push("\tstatic GetClassObject(): UClass;\n");
+				w.push("\tstatic GetClassObject(): Class;\n");
+			}
 
 			w.push("\tstatic GetDefaultObject(): ");
 			w.push(name);
 			w.push(";\n");
 
-			w.push("\tstatic GetDefaultSubobjectByName(Name: string): UObject;\n");
-			w.push("\tstatic SetDefaultSubobjectClass(Name: string): void;\n");
+			if (bIsUObject) {
+				w.push("\tstatic GetDefaultSubobjectByName(Name: string): UObject;\n");
+				w.push("\tstatic SetDefaultSubobjectClass(Name: string): void;\n");
+			}
 			w.push("\tstatic CreateDefaultSubobject(Name: string, Transient?: boolean, Required?: boolean, Abstract?: boolean): ");
 			w.push(name);
 			w.push(";\n");
@@ -450,7 +500,7 @@ struct TypingGenerator : TypingGeneratorBase
 		}
 
 		{
-			w.push("\tstatic C(Other: UObject): ");
+			w.push("\tstatic C(Other: UObject | any): ");
 			w.push(name);
 			w.push(";\n");
 
@@ -479,6 +529,9 @@ struct TypingGenerator : TypingGeneratorBase
 	void ExportBootstrap()
 	{
 		TokenWriter w(*this);
+		w.push("declare global {\n");
+		w.push("\tfunction require(name: string): any;\n");
+		w.push("}\n\n");
 		w.push("declare function gc() : void;\n");
 		w.push("declare type UnrealEngineClass = any;\n");
 
@@ -506,6 +559,19 @@ struct TypingGenerator : TypingGeneratorBase
 		w.push("\taccess(obj : JavascriptMemoryObject): ArrayBuffer;\n");
 		w.push("}\n\n");
 		w.push("declare var memory : Memory;\n\n");
+		w.push("declare var GEngine : Engine;\n\n");
+		w.push("declare var GWorld : World;\n\n");
+		w.push("declare var Root : JavascriptComponent | any;\n\n");
+		w.push("declare namespace JSX {\n");
+		w.push("\tinterface IntrinsicElements {\n");
+		w.push("\t\t[elemName: string]: any;\n");
+		w.push("\t\tdiv: any;\n");
+		w.push("\t\tspan: any;\n");
+		w.push("\t\ttext: any;\n");
+		w.push("\t\timg: any;\n");
+		w.push("\t\tinput: any;\n");
+		w.push("\t}\n");
+		w.push("}\n\n");
 
 		Text.Append(*w);
 	}

@@ -1,11 +1,12 @@
 #pragma once
 
 #include "JavascriptIsolate.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "JavascriptTestLibrary.generated.h"
 
 struct FJavascriptAutomatedTestImpl;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptAutomatedTestInstance
 {
 	GENERATED_BODY()
@@ -14,7 +15,7 @@ public:
 	TSharedPtr<FJavascriptAutomatedTestImpl> Handle;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptAutomatedTestParameters
 {
 	GENERATED_BODY()
@@ -27,7 +28,7 @@ public:
 	FJavascriptAutomatedTestInstance Tester;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptAutomatedTest
 {
 	GENERATED_BODY()
@@ -93,7 +94,7 @@ class V8_API UJavascriptTestLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static UWorld* NewWorld();
 
-	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	UFUNCTION(BlueprintInternalUseOnly, Category = "Javascript | Editor")
 	static void InitializeActorsForPlay(UWorld* World, const FURL& URL);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
@@ -107,4 +108,7 @@ class V8_API UJavascriptTestLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void DestroyWorld(UWorld* World);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void DestroyUObject(UObject* Object);
 };

@@ -1,5 +1,10 @@
 #pragma once
 
+#include "CoreMinimal.h"
+#include "UObject/ObjectMacros.h"
+#include "UObject/Object.h"
+#include "UObject/UObjectGlobals.h"
+#include "UObject/ScriptMacros.h"
 #include "JavascriptContext.generated.h"
 
 struct FJavascriptContext;
@@ -49,83 +54,26 @@ public:
 	FString RunScript(FString Script, bool bOutput = true);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	void RequestV8GarbageCollection();
+
+    UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+    void FindPathFile(FString TargetRootPath, FString TargetFileName, TArray<FString>& OutFiles);
+	
+    UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	bool WriteAliases(FString Target);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	bool WriteDTS(FString Target, bool bIncludingTooltip);
 
-	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	void SetAsDebugContext();
-
-	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	void ResetAsDebugContext();
-
 	UFUNCTION(BlueprintPure, Category = "Scripting|Javascript")
 	bool IsDebugContext() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	void CreateInspector(int32 Port = 9229);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	void DestroyInspector();
+
 	bool HasProxyFunction(UObject* Holder, UFunction* Function);
 	bool CallProxyFunction(UObject* Holder, UObject* This, UFunction* Function, void* Parms);
-
-#if WITH_V8_FAST_CALL
-	// FastCall
-	void InternalPushArgument(int32 Value);
-	void InternalPushArgument(float Value);
-	void InternalPushArgument(bool Value);
-	void InternalPushArgument(const FString& Value)
-	{
-		InternalPushArgument(*Value);
-	}
-	void InternalPushArgument(const TCHAR* Value);
-	void InternalPushArgument(UObject* Value);
-
-	bool InternalPopReturnValue(int32& Value);
-	bool InternalPopReturnValue(float& Value);
-	bool InternalPopReturnValue(bool& Value);
-	bool InternalPopReturnValue(FString& Value);
-	bool InternalPopReturnValue(UObject*& Value);
-
-	void InternalBegin();
-	void InternalEnd();
-	bool InternalCall(UObject* Object, FName Name);
-
-	template <typename First>
-	void InternalPushArguments(const First& first)
-	{
-		InternalPushArgument(first);
-	}
-
-	template <typename First, typename... Rest>
-	void InternalPushArguments(const First& first, Rest... rest)
-	{
-		InternalPushArgument(first);
-		InternalPushArguments(rest...);
-	}
-
-	template <typename... Rest>
-	bool FastCall(UObject* Object, FName Name, Rest... rest)
-	{
-		InternalBegin();
-		InternalPushArguments(rest...);
-		bool successful = InternalCall(Object, Name);
-		InternalEnd();
-		return successful;
-	}
-
-	template <typename Ret, typename... Rest>
-	bool FastCallWithReturn(UObject* Object, FName Name, Ret* ret, Rest... rest)
-	{
-		InternalBegin();
-		InternalPushArguments(rest...);
-		bool successful = InternalCall(Object, Name);
-		if (successful)
-		{
-			if (!InternalPopReturnValue(*ret))
-			{
-				successful = false;
-			}
-		}
-		InternalEnd();
-		return successful;
-	}
-#endif
 };

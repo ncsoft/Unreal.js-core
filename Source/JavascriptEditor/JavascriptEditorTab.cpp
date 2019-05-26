@@ -1,9 +1,12 @@
-#include "JavascriptEditor.h"
-
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptEditorTab.h"
+#if WITH_EDITOR
+#include "Components/Button.h"
+#include "Widgets/Layout/SSpacer.h"
+#include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
+#endif
 
 UJavascriptEditorTab::UJavascriptEditorTab(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -42,6 +45,17 @@ void UJavascriptEditorTab::Discard()
 	bRegistered = false;
 }
 
+void UJavascriptEditorTab::ForceCommit()
+{
+	const TSharedRef<FGlobalTabmanager>& GlobalTabManager = FGlobalTabmanager::Get();
+	if (bIsNomad && GlobalTabManager->CanSpawnTab(TabId))
+	{
+		GlobalTabManager->UnregisterNomadTabSpawner(TabId);
+	}
+
+	Commit();
+}
+
 UWidget* UJavascriptEditorTab::TakeWidget(UObject* Context)
 {
 	if (OnSpawnTab.IsBound())
@@ -50,6 +64,14 @@ UWidget* UJavascriptEditorTab::TakeWidget(UObject* Context)
 		if (Widget) return Widget;
 	}
 	return NewObject<UButton>();
+}
+
+void UJavascriptEditorTab::TabActivatedCallback(TSharedRef<SDockTab> Tab, ETabActivationCause Cause)
+{
+	if (OnTabActivatedCallback.IsBound())
+	{
+		OnTabActivatedCallback.Execute(Tab->GetLayoutIdentifier().ToString(), TEnumAsByte<EJavasriptTabActivationCause::Type>((uint8)Cause));
+	}
 }
 
 struct FJavascriptEditorTabTracker : public FGCObject
@@ -189,7 +211,9 @@ void UJavascriptEditorTab::Register(TSharedRef<FTabManager> TabManager, UObject*
 		UJavascriptEditorTab::MajorTab = MajorTab;		 
 		
 		MajorTab->SetContent(Widget->TakeWidget());
-		
+		MajorTab->SetOnTabActivated(FOnTabActivatedCallback::CreateLambda([this](TSharedRef<SDockTab> Tab, ETabActivationCause Cause) {
+			this->TabActivatedCallback(Tab, Cause);
+		}));
 		UJavascriptEditorTab::MajorTab = OldTab;
 
 		return MajorTab;

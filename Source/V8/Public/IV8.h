@@ -1,6 +1,7 @@
 #pragma once
 
-#include "ModuleManager.h"
+#include "Modules/ModuleInterface.h"
+#include "Modules/ModuleManager.h"
 
 /**
 * The public interface to this module. 
@@ -29,4 +30,6 @@ public:
 
 	virtual void SetFlagsFromString(const FString& Flags) = 0;
 	virtual void SetIdleTaskBudget(float BudgetInSeconds) = 0;
+
+	virtual void* GetV8Platform() = 0;
 };

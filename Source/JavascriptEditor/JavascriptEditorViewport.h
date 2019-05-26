@@ -1,9 +1,11 @@
 #pragma once
 
 #include "JavascriptEditorLibrary.h"
+#include "Components/PanelWidget.h"
 #include "JavascriptEditorViewport.generated.h"
 
 class SAutoRefreshEditorViewport;
+class UAssetViewerSettings;
 
 /**
  * 
@@ -16,7 +18,7 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorViewport : public UPanelWidget
 public:	
 #if WITH_EDITOR
 	virtual TSharedRef<SWidget> RebuildWidget();
-
+	
 	TSharedPtr<class SAutoRefreshEditorViewport> ViewportWidget;
 #endif
 
@@ -100,6 +102,12 @@ public:
 	void SetViewRotation(const FRotator& ViewRotation);
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	FVector GetViewLocation();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	FRotator GetViewRotation();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void SetViewFOV(float InViewFOV);
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
@@ -142,6 +150,24 @@ public:
 	bool SetEngineShowFlags(const FString& In);
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void SetProfileIndex(const int32 InProfileIndex);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	int32 GetCurrentProfileIndex();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	UAssetViewerSettings* GetDefaultAssetViewerSettings();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void SetFloorOffset(const float InFloorOffset);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	UStaticMeshComponent* GetFloorMeshComponent();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	UStaticMeshComponent* GetSkyComponent();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void SetViewportType(ELevelViewportType InViewportType);
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
@@ -153,9 +179,31 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void ProjectWorldToScreen(const FVector &WorldPosition, FVector2D &OutScreenPosition);
 
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	UDirectionalLightComponent* GetDefaultDirectionalLightComponent();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	class USkyLightComponent* GetDefaultSkyLightComponent();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	class UStaticMeshComponent* GetDefaultSkySphereComponent();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	class USphereReflectionCaptureComponent* GetDefaultSphereReflectionComponent();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	class UMaterialInstanceConstant* GetDefaultInstancedSkyMaterial();
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	class UPostProcessComponent* GetDefaultPostProcessComponent();
+
 	// UPanelWidget
 	virtual UClass* GetSlotClass() const override;
 	virtual void OnSlotAdded(UPanelSlot* Slot) override;
 	virtual void OnSlotRemoved(UPanelSlot* Slot) override;
 	// End UPanelWidget
+
+	//UVisual interface
+	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
+	//~ End UVisual Interface
 };

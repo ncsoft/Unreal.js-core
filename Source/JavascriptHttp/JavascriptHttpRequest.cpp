@@ -1,6 +1,8 @@
-#include "JavascriptHttp.h"
 #include "JavascriptHttpRequest.h"
 #include "JavascriptContext.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Base64.h"
+#include "Misc/Paths.h"
 
 #if WITH_EDITOR
 #include "TickableEditorObject.h"
@@ -83,6 +85,61 @@ void UJavascriptHttpRequest::SetVerb(const FString& Verb)
 void UJavascriptHttpRequest::SetURL(const FString& URL)
 {
 	Request->SetURL(URL);
+}
+
+FString GetFileFormat(FString FileExtension)
+{
+	if (FileExtension == ".png")
+		return "image/png";
+	else if (FileExtension == ".jpg")
+		return "image/jpeg";
+	else if (FileExtension == ".gif")
+		return "image/gif";
+	else if (FileExtension == ".json")
+		return "application/json";
+	else
+		return "application/octet-stream";
+}
+
+void UJavascriptHttpRequest::SetContentWithFiles(TArray<FString> FilePaths, FString Boundary, FString Content)
+{
+	TArray<uint8> Payload;
+
+	auto MakePayloadFromString = [&](FString _c)
+	{
+		auto Index = Payload.Num();
+		FTCHARToUTF8 Converter(*_c);
+		Payload.SetNumUninitialized(Payload.Num() + Converter.Length());
+		FMemory::Memcpy(Payload.GetData() + Index, (const uint8*)Converter.Get(), Converter.Length());
+	};
+
+	auto MakePayloadFromBinary = [&](const TArray<uint8>& _d)
+	{
+		auto Index = Payload.Num();
+		Payload.SetNumUninitialized(Payload.Num() + _d.Num());
+		FMemory::Memcpy(Payload.GetData() + Index, _d.GetData(), _d.Num());
+	};
+
+	MakePayloadFromString(Content);
+
+	FString PrefixBoundry = "\r\n--" + Boundary + "\r\n";
+	FString SuffixBoundary = "\r\n--" + Boundary + "--\r\n";
+	for (auto FilePath : FilePaths)
+	{
+		TArray<uint8> FileRawData;
+		auto FileFormat = GetFileFormat(FPaths::GetExtension(FilePath, true));
+		if (FFileHelper::LoadFileToArray(FileRawData, *FilePath))
+		{
+			FString FileHeader = "Content-Disposition: form-data; name=\"file\"; filename=\"" + FilePath + "\"\r\nContent-Type: " + FileFormat + "\r\n\r\n";
+			MakePayloadFromString(PrefixBoundry);
+			MakePayloadFromString(FileHeader);
+			MakePayloadFromBinary(FileRawData);
+		}
+	}
+	
+	MakePayloadFromString(SuffixBoundary);
+
+	Request->SetContent(Payload);
 }
 
 void UJavascriptHttpRequest::SetContentFromMemory()

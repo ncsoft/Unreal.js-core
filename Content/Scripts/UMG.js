@@ -49,6 +49,29 @@
             }
             return this.generic(TextBlock, _.extend(out, opts))
         },
+        input: function (opts, text) {
+            var out = {}
+            if (text) {
+                var arr = []
+                var last = 0
+                function push(t) {
+                    arr.push('"' + t.replace('"', '\"') + '"')
+                }
+                text.replace(regex_interpolate, function (match, pos) {
+                    push(text.substr(last, pos - last))
+                    arr.push('"" + (' + match.substr(2, match.length - 4) + ')')
+                    last = pos + match.length
+                });
+                if (arr.length) {
+                    push(text.substr(last));
+                    text = arr.join('+');
+                    out['binding.text'] = text;
+                } else {
+                    out.text = text;
+                }
+            }
+            return this.generic(EditableTextBox, _.extend(out, opts))
+        },
         preview: function (opts) {
             return UMG.base(Viewport, opts, {
                 $link: function (elem, scope, attrs) {
@@ -104,7 +127,7 @@
                 attrs: attrs,
                 slot: slot,
                 $link: opts.$link,
-                $unlink : opts.$unlink
+                $unlink: opts.$unlink
             }, other || {});
         },
         generic2: function (type, opts, children) {
@@ -673,7 +696,7 @@
         }
 
     }
-    
+
 
     module.exports = _.extend(UMG.generic, UMG);
-} (this))
+}(this))

@@ -2,10 +2,12 @@
 #if WITH_EDITOR
 #include "AssetData.h"
 #include "IAssetRegistry.h"
+#include "Editor/UnrealEdTypes.h"
 #endif
+#include "UObject/ScriptMacros.h"
 #include "JavascriptEditorGlobalDelegates.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptTagAndValue
 {
 	GENERATED_BODY()
@@ -17,7 +19,7 @@ struct FJavascriptTagAndValue
 	FString Value;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptAssetData
 {
 	GENERATED_BODY()
@@ -34,8 +36,8 @@ struct FJavascriptAssetData
 	FName PackageName;
 	UPROPERTY()
 	FName PackagePath;
-	UPROPERTY()
-	FName GroupNames;
+	//UPROPERTY()
+	//FName GroupNames;
 	UPROPERTY()
 	FName AssetName;
 	UPROPERTY()
@@ -288,7 +290,10 @@ public:
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void WorldChange();
-	
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void EndPlayMapDelegate();
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void Bind(FString Key);
 

@@ -1,4 +1,3 @@
-#include "JavascriptEditor.h"
 #include "JavascriptRawMeshLibrary.h"
 
 #if WITH_EDITOR
@@ -40,11 +39,6 @@ void UJavascriptRawMeshLibrary::LoadRawMesh(UStaticMesh* StaticMesh, int32 Sourc
 void UJavascriptRawMeshLibrary::Build(UStaticMesh* StaticMesh)
 {
 	StaticMesh->Build();
-}
-
-bool UJavascriptRawMeshLibrary::MarkPackageDirty(UObject* InObject)
-{
-	return InObject->MarkPackageDirty();
 }
 
 FMeshSectionInfo UJavascriptRawMeshLibrary::GetSectionInfo(UStaticMesh* StaticMesh, int32 LODIndex, int32 SectionIndex)

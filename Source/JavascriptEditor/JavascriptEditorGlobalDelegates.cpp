@@ -1,7 +1,9 @@
-#include "JavascriptEditor.h"
+#include "JavascriptEditorGlobalDelegates.h"
 #include "AssetRegistryModule.h"
 #include "EditorSupportDelegates.h"
-#include "JavascriptEditorGlobalDelegates.h"
+#include "Editor/EditorEngine.h"
+#include "Editor.h"
+#include "GameDelegates.h"
 
 #if WITH_EDITOR
 void UJavascriptEditorGlobalDelegates::BeginDestroy()
@@ -79,8 +81,11 @@ OP_REFLECT_SUPPORT(RedrawAllViewports)\
 OP_REFLECT_SUPPORT(CleanseEditor)\
 OP_REFLECT_SUPPORT(WorldChange)
 
+#define DO_REFLECT_GAME() \
+OP_REFLECT_GAME(EndPlayMapDelegate)
+
 FJavascriptAssetData::FJavascriptAssetData(const FAssetData& Source)
-	: ObjectPath(Source.ObjectPath), PackageName(Source.PackageName), PackagePath(Source.PackagePath), GroupNames(Source.GroupNames), AssetName(Source.AssetName), AssetClass(Source.AssetClass), ChunkIDs(Source.ChunkIDs), PackageFlags((int32)Source.PackageFlags), SourceAssetData(Source)
+	: ObjectPath(Source.ObjectPath), PackageName(Source.PackageName), PackagePath(Source.PackagePath), AssetName(Source.AssetName), AssetClass(Source.AssetClass), ChunkIDs(Source.ChunkIDs), PackageFlags((int32)Source.PackageFlags), SourceAssetData(Source)
 {
 }
 
@@ -93,11 +98,13 @@ void UJavascriptEditorGlobalDelegates::Bind(FString Key)
 #define OP_REFLECT_ASSETREGISTRY(x) else if (Key == #x) { Handle = AssetRegistry.x().AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
 #define OP_REFLECT_EDITORENGINE(x) else if (Key == #x) { Handle = Cast<UEditorEngine>(GEngine)->x().AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
 #define OP_REFLECT_SUPPORT(x) else if (Key == #x) { Handle = FEditorSupportDelegates::x.AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
+#define OP_REFLECT_GAME(x) else if (Key == #x) { Handle = FGameDelegates::Get().Get##x().AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
 	if (false) {}
 		DO_REFLECT()
 		DO_REFLECT_ASSETREGISTRY()
 		DO_REFLECT_EDITORENGINE()
 		DO_REFLECT_SUPPORT()
+		DO_REFLECT_GAME()
 		;
 
 	if (Handle.IsValid())
@@ -108,6 +115,7 @@ void UJavascriptEditorGlobalDelegates::Bind(FString Key)
 #undef OP_REFLECT_ASSETREGISTRY
 #undef OP_REFLECT_EDITORENGINE
 #undef OP_REFLECT_SUPPORT
+#undef OP_REFLECT_GAME
 }
 
 void UJavascriptEditorGlobalDelegates::UnbindAll()
@@ -121,17 +129,18 @@ void UJavascriptEditorGlobalDelegates::UnbindAll()
 void UJavascriptEditorGlobalDelegates::Unbind(FString Key)
 {
 	auto Handle = Handles[Key];
-
-	auto& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();
+	
 #define OP_REFLECT(x) else if (Key == #x) { FEditorDelegates::x.Remove(Handle); }
-#define OP_REFLECT_ASSETREGISTRY(x) else if (Key == #x) { AssetRegistry.x().Remove(Handle); }
+#define OP_REFLECT_ASSETREGISTRY(x) else if (Key == #x) { if (FModuleManager::Get().IsModuleLoaded(TEXT("AssetRegistry"))) { FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get().x().Remove(Handle); } }
 #define OP_REFLECT_EDITORENGINE(x) else if (Key == #x) { Cast<UEditorEngine>(GEngine)->x().Remove(Handle); }
 #define OP_REFLECT_SUPPORT(x) else if (Key == #x) { FEditorSupportDelegates::x.Remove(Handle); }
+#define OP_REFLECT_GAME(x) else if (Key == #x) { Handle = FGameDelegates::Get().Get##x().AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
 	if (false) {}
 		DO_REFLECT()
 		DO_REFLECT_ASSETREGISTRY()
 		DO_REFLECT_EDITORENGINE()
 		DO_REFLECT_SUPPORT()
+		DO_REFLECT_GAME()
 		;
 
 	Handles.Remove(Key);
@@ -139,5 +148,6 @@ void UJavascriptEditorGlobalDelegates::Unbind(FString Key)
 #undef OP_REFLECT_ASSETREGISTRY
 #undef OP_REFLECT_EDITORENGINE
 #undef OP_REFLECT_SUPPORT
+#undef OP_REFLECT_GAME
 }
 #endif

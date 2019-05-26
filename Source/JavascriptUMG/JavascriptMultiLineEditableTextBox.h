@@ -1,9 +1,9 @@
 #pragma once
 
-#include "MultiLineEditableTextBox.h"
+#include "Components/MultiLineEditableTextBox.h"
 #include "JavascriptMultiLineEditableTextBox.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptTextLayout
 {
 	GENERATED_BODY()
@@ -34,9 +34,6 @@ public:
 	
 	UPROPERTY()
 	FSetText SetTextDelegate;
-
-	UPROPERTY()
-	bool bIsReadOnly;
 
 	UPROPERTY()
 	bool bAlwaysShowScrollbars;

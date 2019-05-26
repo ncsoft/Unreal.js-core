@@ -2,8 +2,9 @@ using UnrealBuildTool;
 
 public class JavascriptHttp : ModuleRules
 {
-	public JavascriptHttp(TargetInfo Target)
+	public JavascriptHttp(ReadOnlyTargetRules Target) : base(Target)
 	{
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new string[] { 
             "Core", 
             "CoreUObject", 
@@ -12,7 +13,7 @@ public class JavascriptHttp : ModuleRules
             "Http"
         });
 
-        if (UEBuildConfiguration.bBuildEditor == true)
+        if (Target.bBuildEditor == true)
         {
             PrivateDependencyModuleNames.Add("UnrealEd");
         }

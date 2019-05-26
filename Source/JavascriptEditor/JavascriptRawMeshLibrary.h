@@ -1,9 +1,11 @@
 #pragma once
 
 #include "RawMesh.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
+#include "Engine/StaticMesh.h"
 #include "JavascriptRawMeshLibrary.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptRawMesh
 {
 	GENERATED_BODY()
@@ -121,16 +123,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void LoadRawMesh(UStaticMesh* StaticMesh, int32 SourceModelIndex, FJavascriptRawMesh& OutMesh);
 
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	UFUNCTION(BlueprintInternalUseOnly, Category = "Scripting | Javascript")
 	static FMeshSectionInfo GetSectionInfo(UStaticMesh* StaticMesh, int32 LODIndex, int32 SectionIndex);
 	
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	UFUNCTION(BlueprintInternalUseOnly, Category = "Scripting | Javascript")
 	static void SetSectionInfo(UStaticMesh* StaticMesh, int32 LODIndex, int32 SectionIndex, const FMeshSectionInfo& Info);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void Build(UStaticMesh* StaticMesh);
-
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static bool MarkPackageDirty(UObject* InObject);
 #endif
 };

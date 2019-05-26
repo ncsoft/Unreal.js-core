@@ -26,15 +26,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Behavior")
 	void RequestListRefresh();
 
-	UFUNCTION(BlueprintCallable, Category = "Behavior")
-	void GetSelectedItems(TArray<UObject*>& OutItems);
+	virtual void SetSelection_Implementation(UObject* SoleSelectedItem) override;
+	virtual bool GetSelectedItems_Implementation(TArray<UObject*>& OutItems) override;
+	virtual TSharedRef<STableViewBase> RebuildListWidget() override;
 
-	UFUNCTION(BlueprintCallable, Category = "Behavior")
-	void SetSelection(UObject* SoleSelectedItem);
+	TWeakPtr< SListView<UObject*> > MyListView;
 
-	// UWidget interface
-	virtual TSharedRef<SWidget> RebuildWidget() override;
-	// End of UWidget interface
-
-	TSharedPtr< SListView<UObject*> > MyListView;
+	// Overriden functions from UJavascriptTreeView
+	virtual TSharedRef<ITableRow> CreateItemRow(UWidget* Widget, const TSharedRef<STableViewBase>& OwnerTable) override;
+	virtual TSharedRef<ITableRow> CreateDefaultRow(UObject* Item, const TSharedRef<STableViewBase>& OwnerTable) override;
 };

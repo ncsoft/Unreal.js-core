@@ -1,9 +1,9 @@
 #pragma once
 
-#include "JavascriptMenuLibrary.h"
+#include "JavascriptUMG/JavascriptMenuLibrary.h"
 #include "JavascriptUIExtender.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptMenuExtension
 {
 	GENERATED_BODY()

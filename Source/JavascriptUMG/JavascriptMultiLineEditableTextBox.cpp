@@ -1,6 +1,6 @@
-#include "JavascriptUMG.h"
 #include "JavascriptMultiLineEditableTextBox.h"
-#include "BaseTextLayoutMarshaller.h"
+#include "Widgets/Input/SMultiLineEditableTextBox.h"
+#include "Framework/Text/BaseTextLayoutMarshaller.h"
 
 struct FJavascriptTextLayoutMarshaller : FBaseTextLayoutMarshaller
 {
@@ -38,7 +38,7 @@ TSharedRef<SWidget> UJavascriptMultiLineEditableTextBox::RebuildWidget()
 		.TextStyle(&TextStyle)
 		.Justification(Justification)
 		.WrapTextAt(WrapTextAt)
-		.AutoWrapText(AutoWrapText)
+		.AutoWrapText(!!AutoWrapText)
 		.Marshaller(Marshaller)
 		.IsReadOnly(bIsReadOnly)
 		.AlwaysShowScrollbars(bAlwaysShowScrollbars)

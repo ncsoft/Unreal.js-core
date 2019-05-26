@@ -1,8 +1,13 @@
 #pragma once
-
+#include "CoreMinimal.h"
+#include "Styling/SlateStyle.h"
+#include "Widgets/SWidget.h"
+#include "UObject/ScriptMacros.h"
+#include "Textures/SlateIcon.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "JavascriptUMGLibrary.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptSlateStyle
 {
 	GENERATED_BODY()
@@ -10,12 +15,39 @@ struct FJavascriptSlateStyle
 	TSharedPtr<FSlateStyleSet> Handle;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FJavascriptSlateWidget
 {
 	GENERATED_BODY()
 
 	TSharedPtr<SWidget> Widget;
+};
+
+USTRUCT()
+struct FJavascriptSlateIcon
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FName StyleSetName;
+
+	UPROPERTY()
+	FName StyleName;
+
+	UPROPERTY()
+	FName SmallStyleName;
+
+	FSlateIcon GetSlateIcon() const
+	{
+		if (StyleSetName.IsNone() || StyleName.IsNone()) return FSlateIcon();
+		if (SmallStyleName.IsNone()) return FSlateIcon(StyleSetName, StyleName);
+		return FSlateIcon(StyleSetName, StyleName, SmallStyleName);
+	}
+
+	operator FSlateIcon () const
+	{
+		return GetSlateIcon();
+	}
 };
 /**
  * 
@@ -64,11 +96,17 @@ class JAVASCRIPTUMG_API UJavascriptUMGLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptSlateWidget TakeWidget(UWidget* Widget);
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static UWidget* SetContent(UNativeWidgetHost* TargetWidget, FJavascriptSlateWidget SlateWidget);
+
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void AddWindowAsNativeChild(FJavascriptSlateWidget NewWindow, FJavascriptSlateWidget RootWindow);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void AddWindow(FJavascriptSlateWidget NewWindow);
+	static void AddWindow(FJavascriptSlateWidget NewWindow, const bool bShowImmediately = true);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void ShowWindow(FJavascriptSlateWidget NewWindow);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FVector2D GenerateDynamicImageResource(const FName InDynamicBrushName);

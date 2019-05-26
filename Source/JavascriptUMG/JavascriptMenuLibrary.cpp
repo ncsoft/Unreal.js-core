@@ -1,6 +1,9 @@
-#include "JavascriptUMG.h"
 #include "JavascriptMenuLibrary.h"
 #include "SJavascriptBox.h"
+#include "JavascriptToolbarButtonContext.h"
+#include "Components/Widget.h"
+#include "Framework/Commands/GenericCommands.h"
+#include "JavascriptUICommands.h"
 
 FJavascriptUICommandList UJavascriptMenuLibrary::CreateUICommandList()
 {
@@ -43,7 +46,7 @@ void UJavascriptMenuLibrary::CreateMenuBarBuilder(FJavascriptUICommandList Comma
 	Function.Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
 }
 
-void UJavascriptMenuLibrary::BeginSection(FJavascriptMenuBuilder& Builder, FName InExtensionHook)
+void UJavascriptMenuLibrary::BeginSection(FJavascriptMenuBuilder& Builder, FName InExtensionHook, FText MenuHeadingText)
 {
 	if (Builder.ToolBar)
 	{
@@ -51,7 +54,7 @@ void UJavascriptMenuLibrary::BeginSection(FJavascriptMenuBuilder& Builder, FName
 	}
 	else if (Builder.Menu)
 	{
-		Builder.Menu->BeginSection(InExtensionHook);
+		Builder.Menu->BeginSection(InExtensionHook, MenuHeadingText);
 	}
 }
 
@@ -88,6 +91,86 @@ void UJavascriptMenuLibrary::AddToolBarButton(FJavascriptMenuBuilder& Builder, F
 	else if (Builder.Menu)
 	{
 		Builder.Menu->AddMenuEntry(CommandInfo.Handle);
+	}
+}
+
+void UJavascriptMenuLibrary::AddToolBarButtonByContext(FJavascriptMenuBuilder& Builder, UJavascriptToolbarButtonContext* Context, UObject* EditingObject)
+{
+	if (Builder.ToolBar)
+	{
+		FUIAction DefaultAction;
+		DefaultAction.ExecuteAction = FExecuteAction::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnExecuteAction, EditingObject);
+		DefaultAction.CanExecuteAction = FCanExecuteAction::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnCanExecuteAction, EditingObject);
+		DefaultAction.IsActionVisibleDelegate = FCanExecuteAction::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnIsActionButtonVisible, EditingObject);
+		Builder.ToolBar->AddToolBarButton(
+			DefaultAction, 
+			NAME_None,
+			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnGetLabel)),
+			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnGetTooltip)),
+			TAttribute< FSlateIcon >::Create(TAttribute< FSlateIcon >::FGetter::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnGetSlateIcon))
+		);
+	}
+}
+
+void UJavascriptMenuLibrary::AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptComboButtonContext* Object)
+{
+	if (Builder.ToolBar)
+	{
+		FUIAction DefaultAction;
+		DefaultAction.CanExecuteAction = FCanExecuteAction::CreateUObject(Object, &UJavascriptComboButtonContext::Public_CanExecute);
+		Builder.ToolBar->AddComboButton(
+			DefaultAction, 
+			FOnGetContent::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetWidget),
+			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetLabel)),
+			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetTooltip)),
+			TAttribute< FSlateIcon >::Create(TAttribute< FSlateIcon >::FGetter::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetSlateIcon))
+		);
+	}
+}
+
+void UJavascriptMenuLibrary::AddMenuEntry(FJavascriptMenuBuilder& Builder, UJavascriptMenuContext* Object)
+{
+	if (Builder.Menu)
+	{
+		FUIAction DefaultAction;
+		DefaultAction.CanExecuteAction = FCanExecuteAction::CreateUObject(Object, &UJavascriptMenuContext::Public_CanExecute);
+		DefaultAction.ExecuteAction = FExecuteAction::CreateUObject(Object, &UJavascriptMenuContext::Public_Execute);
+		Builder.Menu->AddMenuEntry(
+			Object->Description,
+			Object->ToolTip,
+			Object->Icon,
+			DefaultAction);
+	}
+}
+
+void UJavascriptMenuLibrary::AddSubMenu(FJavascriptMenuBuilder& Builder, const FText& Label, const FText& ToolTip, const bool bInOpenSubMenuOnClick, FJavascriptFunction Function)
+{
+	if (Builder.Menu)
+	{
+		TSharedPtr<FJavascriptFunction> Copy(new FJavascriptFunction);
+		*(Copy.Get()) = Function;
+		Builder.Menu->AddSubMenu(
+			Label,
+			ToolTip,
+			FNewMenuDelegate::CreateLambda([=](FMenuBuilder& SubMenuBuilder) {
+				FJavascriptMenuBuilder Out;
+				Out.MultiBox = Out.Menu = &SubMenuBuilder;
+				Copy->Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
+			}),
+			bInOpenSubMenuOnClick,
+			FSlateIcon()
+		);
+	}
+}
+
+void UJavascriptMenuLibrary::AddMenuByCommands(FJavascriptMenuBuilder& Builder, UJavascriptUICommands* UICommands)
+{
+	if (Builder.Menu && UICommands)
+	{
+		for (FJavascriptUICommandInfo CommandInfo : UICommands->CommandInfos)
+		{
+			Builder.Menu->AddMenuEntry(CommandInfo.Handle);
+		}
 	}
 }
 
@@ -141,7 +224,7 @@ void UJavascriptMenuLibrary::Destroy(FJavascriptBindingContext Context)
 	Context.Destroy();
 }
 
-FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascriptBindingContext This, FJavascriptUICommand info)
+FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascriptBindingContext This, FJavascriptUICommand info, const FString& InTextSubNamespace)
 {
 	FJavascriptUICommandInfo Out;
 
@@ -149,19 +232,39 @@ FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascript
 	{
 		info.FriendlyName = info.Id;
 	}
+	//////////////////////////////////////////////////////////////////////////
+	// @NOTE: Commands/Commands.cpp <UI_COMMAND_Function>
+	FBindingContext* ThisBindingContext = This.Handle.Get();
+	TSharedPtr< FUICommandInfo >& OutCommand = Out.Handle;
+	const TCHAR* OutSubNamespace = *InTextSubNamespace;
+	const TCHAR* OutCommandName = *info.Id;
+	const FString OutCommandNameUnderscoreTooltip = FString::Printf(TEXT("%s_Tooltip"), *info.Id);
+	const FString DotOutCommandName = FString::Printf(TEXT(".%s"), *info.Id);
+	const TCHAR* FriendlyName = *info.FriendlyName;
+	const TCHAR* InDescription = *info.Description;
+	const EUserInterfaceActionType::Type CommandType = EUserInterfaceActionType::Type(info.ActionType.GetValue());
+	const FInputChord& InDefaultChord = info.DefaultChord;
+	const FInputChord& InAlternateDefaultChord = FInputChord();
+	const FString IconStyleName = *info.IconStyleName;
 
-	::UI_COMMAND_Function(
-		This.Handle.Get(),
-		Out.Handle,
-		TEXT(""),
-		*info.Id,
-		*FString::Printf(TEXT("%s_Tooltip"), *info.Id),
-		TCHAR_TO_ANSI(*FString::Printf(TEXT(".%s"), *info.Id)),
-		*info.FriendlyName,
-		*info.Description,
-		EUserInterfaceActionType::Type(info.ActionType.GetValue()),
-		info.DefaultChord);
+	static const FString UICommandsStr(TEXT("UICommands"));
+	const FString Namespace = OutSubNamespace && FCString::Strlen(OutSubNamespace) > 0 ? UICommandsStr + TEXT(".") + OutSubNamespace : UICommandsStr;
 
+	FString OrignContextName, ContextIdx;
+	ThisBindingContext->GetContextName().ToString().Split("@", &OrignContextName, &ContextIdx);
+
+	FUICommandInfo::MakeCommandInfo(
+		ThisBindingContext->AsShared(),
+		OutCommand,
+		OutCommandName,
+		FInternationalization::ForUseOnlyByLocMacroAndGraphNodeTextLiterals_CreateText(FriendlyName, *Namespace, OutCommandName),
+		FInternationalization::ForUseOnlyByLocMacroAndGraphNodeTextLiterals_CreateText(InDescription, *Namespace, *OutCommandNameUnderscoreTooltip),
+		FSlateIcon(ThisBindingContext->GetStyleSetName(), IconStyleName.IsEmpty() ? ISlateStyle::Join(FName(*OrignContextName), TCHAR_TO_ANSI(*DotOutCommandName)) : FName(*IconStyleName)),
+		CommandType,
+		InDefaultChord,
+		InAlternateDefaultChord
+	);
+	//////////////////////////////////////////////////////////////////////////
 	return Out;
 }
 
@@ -248,4 +351,24 @@ void UJavascriptMenuLibrary::AddPullDownMenu(FJavascriptMenuBuilder& MenuBuilder
 		});
 		MenuBuilder.MenuBar->AddPullDownMenu(InMenuLabel, InToolTip, Delegate, InExtensionHook, InTutorialHighlightName);
 	}
+}
+
+FJavascriptUICommandInfo UJavascriptMenuLibrary::GenericCommand(FString What)
+{
+	auto Commands = FGenericCommands::Get();
+	FJavascriptUICommandInfo Out;
+
+#define OP(x) if (What == TEXT(#x)) { Out.Handle = Commands.x; }
+	OP(Cut);
+	OP(Copy);
+	OP(Paste);
+	OP(Duplicate);
+	OP(Undo);
+	OP(Redo);
+	OP(Delete);
+	OP(Rename);
+	OP(SelectAll);
+
+#undef OP
+	return Out;
 }

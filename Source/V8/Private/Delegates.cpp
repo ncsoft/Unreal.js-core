@@ -1,12 +1,10 @@
-#include "V8PCH.h"
-
-PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
-
+#include "Delegates.h"
 #include "JavascriptDelegate.h"
 #include "Translator.h"
-#include "Delegates.h"
 #include "JavascriptStats.h"
 #include "UObject/GCObject.h"
+
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 using namespace v8;
 
@@ -140,10 +138,10 @@ public:
 
 		auto data = External::New(isolate_, this);
 
-		out->Set(V8_KeywordString(isolate_, "Add"), Function::New(isolate_, add, data));
-		out->Set(V8_KeywordString(isolate_, "Remove"), Function::New(isolate_, remove, data));
-		out->Set(V8_KeywordString(isolate_, "Clear"), Function::New(isolate_, clear, data));
-		out->Set(V8_KeywordString(isolate_, "toJSON"), Function::New(isolate_, toJSON, data));
+		out->Set(context, V8_KeywordString(isolate_, "Add"), Function::New(context, add, data).ToLocalChecked());
+		out->Set(context, V8_KeywordString(isolate_, "Remove"), Function::New(context, remove, data).ToLocalChecked());
+		out->Set(context, V8_KeywordString(isolate_, "Clear"), Function::New(context, clear, data).ToLocalChecked());
+		out->Set(context, V8_KeywordString(isolate_, "toJSON"), Function::New(context, toJSON, data).ToLocalChecked());
 
 		WrappedObject.Reset(isolate_, out);
 
@@ -171,14 +169,14 @@ public:
 		Bind(DelegateObject, function);
 	}
 
-	UJavascriptDelegate* FindJavascriptDelegateByFunction(Local<Function> function)
+	UJavascriptDelegate* FindJavascriptDelegateByFunction(Local<Context> context, Local<Function> function)
 	{
 		HandleScope handle_scope(isolate_);
 
 		bool bWasSuccessful = false;
 		for (auto it = functions.CreateIterator(); it; ++it)
 		{
-			if (Local<Function>::New(isolate_, it.Value())->Equals(function))
+			if (Local<Function>::New(isolate_, it.Value())->Equals(context, function).ToChecked())
 			{
 				for (auto obj : DelegateObjects)
 				{
@@ -195,7 +193,7 @@ public:
 
 	void Remove(Local<Function> function)
 	{
-		auto obj = FindJavascriptDelegateByFunction(function);
+		auto obj = FindJavascriptDelegateByFunction(isolate_->GetCurrentContext(), function);
 
 		if (obj)
 		{
@@ -310,7 +308,7 @@ public:
 			{
 				auto context = Local<Context>::New(isolate_, context_);
 
-				Context::Scope context_sopce(context);
+				Context::Scope context_scope(context);
 
 				CallJavascriptFunction(context, context->Global(), GetSignatureFunction(), func, Parms);
 			}
@@ -346,12 +344,17 @@ struct FDelegateManager : IDelegateManager
 			if (!d->IsValid())
 			{
 				it.RemoveCurrent();
+				d.Reset();
 			}
 		}
 	}
 
 	void PurgeAllDelegates()
 	{
+		for (auto& d : Delegates)
+		{
+			d.Reset();
+		}
 		Delegates.Empty();
 	}
 
@@ -392,6 +395,17 @@ namespace v8
 	{
 		return new FDelegateManager(isolate);
 	}
+}
+
+void UJavascriptDelegate::BeginDestroy()
+{
+	const bool bIsClassDefaultObject = IsTemplate(RF_ClassDefaultObject);
+	if (!bIsClassDefaultObject)
+	{
+		JavascriptDelegate.Reset();
+	}
+
+	Super::BeginDestroy();
 }
 
 void UJavascriptDelegate::Fire()

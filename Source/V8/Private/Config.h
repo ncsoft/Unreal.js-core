@@ -1,4 +1,6 @@
 #pragma once
+#include "UObject/Package.h"
+#include "UObject/MetaData.h"
 
 struct FV8Config
 {
@@ -115,7 +117,7 @@ struct FV8Config
 		};
 
 		static FName NAME_DisplayName("DisplayName");
-		if (has_meta(Function, NAME_DisplayName))
+		if (!no_empty && has_meta(Function, NAME_DisplayName))
 		{
 			FString Name = get_meta(Function, NAME_DisplayName).Replace(TEXT(" "), TEXT(""));
 
@@ -145,6 +147,11 @@ struct FV8Config
 		}
 
 		return no_empty ? Safeify(Function->GetName()) : TEXT("");
+	}
+
+	static bool FlushInspectorWebSocketOnWritable()
+	{
+		return true;
 	}
 };
 
