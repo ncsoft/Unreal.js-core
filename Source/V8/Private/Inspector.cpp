@@ -507,13 +507,13 @@ public:
 				Handle<Value> argv[2];
 				argv[0] = I.String(FString::Printf(TEXT("%%c%s: %s"), *Category.ToString(), V));
 				argv[1] = I.String(TEXT("color:gray"));
-				function->Call(context(), console, 2, argv);
+				(void)function->Call(context(), console, 2, argv);
 			}
 			else
 			{
 				Handle<Value> argv[1];
 				argv[0] = I.String(FString::Printf(TEXT("%s: %s"), *Category.ToString(), V));
-				function->Call(context(), console, 1, argv);
+				(void)function->Call(context(), console, 1, argv);
 			}
 		}
 	}

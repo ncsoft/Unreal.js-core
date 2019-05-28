@@ -175,7 +175,7 @@ public:
 				auto ProxyObject = proxy->ToObject(context).ToLocalChecked();
 				{					
 					auto clear_fn = Handle<Function>::Cast(ProxyObject->Get(context, I.Keyword("Clear")).ToLocalChecked());
-					clear_fn->Call(context, ProxyObject, 0, nullptr);
+					(void)clear_fn->Call(context, ProxyObject, 0, nullptr);
 				}
 
 				auto add_fn = Handle<Function>::Cast(ProxyObject->Get(context, I.Keyword("Add")).ToLocalChecked());
@@ -189,14 +189,14 @@ public:
 					{						
 						auto elem = arr->Get(Index);
 						Handle<Value> args[] = {elem};
-						add_fn->Call(context, ProxyObject, 1, args);
+						(void)add_fn->Call(context, ProxyObject, 1, args);
 					}
 				}
 				// only one delegate
 				else if (!value->IsNull())
 				{					
 					Handle<Value> args[] = {value};
-					add_fn->Call(context, ProxyObject, 1, args);
+					(void)add_fn->Call(context, ProxyObject, 1, args);
 				}
 			};
 
@@ -1075,7 +1075,7 @@ public:
 
 		auto fileManagerCwd = [](const FunctionCallbackInfo<Value>& info)
 		{
-			info.GetReturnValue().Set(V8_String(info.GetIsolate(), IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(L"."))); // FPaths::ProjectDir()
+			info.GetReturnValue().Set(V8_String(info.GetIsolate(), IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead((const TCHAR *)L"."))); // FPaths::ProjectDir()
         };
 		global_templ->Set(I.Keyword("$cwd"), I.FunctionTemplate(fileManagerCwd));
 
@@ -1190,7 +1190,7 @@ public:
 
 				Handle<Value> argv[1];
 				argv[0] = arr;
-				function->Call(isolate->GetCurrentContext(), info.This(), 1, argv);
+				(void)function->Call(isolate->GetCurrentContext(), info.This(), 1, argv);
 
 				GCurrentContents = v8::ArrayBuffer::Contents();
 			}
@@ -2891,7 +2891,7 @@ void FJavascriptFunction::Execute()
 
 			Context::Scope context_scope(context);
 
-			function->Call(context, function, 0, nullptr);
+			(void)function->Call(context, function, 0, nullptr);
 		}
 	}
 }
@@ -2917,7 +2917,7 @@ void FJavascriptFunction::Execute(UScriptStruct* Struct, void* Buffer)
 
 			auto arg = FJavascriptIsolateImplementation::GetSelf(Handle->isolate)->ExportStructInstance(Struct, (uint8*)Buffer, FNoPropertyOwner());
 			v8::Handle<Value> args[] = { arg };
-			function->Call(context, function, 1, args);
+			(void)function->Call(context, function, 1, args);
 		}
 	}
 }

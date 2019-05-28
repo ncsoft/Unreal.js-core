@@ -138,10 +138,10 @@ public:
 
 		auto data = External::New(isolate_, this);
 
-		out->Set(context, V8_KeywordString(isolate_, "Add"), Function::New(context, add, data).ToLocalChecked());
-		out->Set(context, V8_KeywordString(isolate_, "Remove"), Function::New(context, remove, data).ToLocalChecked());
-		out->Set(context, V8_KeywordString(isolate_, "Clear"), Function::New(context, clear, data).ToLocalChecked());
-		out->Set(context, V8_KeywordString(isolate_, "toJSON"), Function::New(context, toJSON, data).ToLocalChecked());
+		(void)out->Set(context, V8_KeywordString(isolate_, "Add"), Function::New(context, add, data).ToLocalChecked());
+		(void)out->Set(context, V8_KeywordString(isolate_, "Remove"), Function::New(context, remove, data).ToLocalChecked());
+		(void)out->Set(context, V8_KeywordString(isolate_, "Clear"), Function::New(context, clear, data).ToLocalChecked());
+		(void)out->Set(context, V8_KeywordString(isolate_, "toJSON"), Function::New(context, toJSON, data).ToLocalChecked());
 
 		WrappedObject.Reset(isolate_, out);
 
