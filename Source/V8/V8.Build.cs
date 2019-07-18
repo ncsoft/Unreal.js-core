@@ -143,17 +143,20 @@ public class V8 : ModuleRules
         }
         else if (Target.Platform == UnrealTargetPlatform.Android)
         {
-            string LibrariesPath = Path.Combine(ThirdPartyPath, "v8", "lib", "Android", "ARM64");
+            string LibrariesPath = Path.Combine(ThirdPartyPath, "v8", "lib", "Android");
 
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_init.a"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_initializers.a"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_base.a"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libbase.a"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libplatform.a"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_nosnapshot.a"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libsampler.a"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libtorque_generated_initializers.a"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libinspector.a"));
+            PublicLibraryPaths.Add(Path.Combine(LibrariesPath, "ARM64"));
+            PublicLibraryPaths.Add(Path.Combine(LibrariesPath, "ARMv7"));
+
+            PublicAdditionalLibraries.Add("v8_init");
+            PublicAdditionalLibraries.Add("v8_initializers");
+            PublicAdditionalLibraries.Add("v8_base");
+            PublicAdditionalLibraries.Add("v8_libbase");
+            PublicAdditionalLibraries.Add("v8_libplatform");
+            PublicAdditionalLibraries.Add("v8_nosnapshot");
+            PublicAdditionalLibraries.Add("v8_libsampler");
+            PublicAdditionalLibraries.Add("torque_generated_initializers");
+            PublicAdditionalLibraries.Add("inspector");
 
             PublicDefinitions.Add(string.Format("WITH_V8=1"));
 
