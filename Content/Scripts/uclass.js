@@ -99,7 +99,7 @@
         }
 
         let RE_class = /\s*class\s+(\w+)(\s+\/\*([^\*]*)\*\/)?(\s+extends\s+([^\s\{]+))?/
-        let RE_func = /(\w+)\s*\(([^.)]*)\)\s*(\/\*([^\*]*)\*\/)?.*/
+        let RE_func = /(\w+)\s*(\/\*([^\*]*)\*\/)?\s*\(([^.)]*)\)\s*(\/\*([^\*]*)\*\/)?\s*.*/
         function register(target, template, includeProperty=true, archetype=null) {
             target = target || {}
             let bindings = []
@@ -190,15 +190,15 @@
                     let s = String(F)
 
                     let matches = RE_func.exec(s)
-                    if (!matches) throw "invalid function"
+                    if(!matches) throw "invalid function"
 
                     let functionName = matches[1]
-                    s = matches[4]
+                    s = matches[matches[3] ? 3 : 6]
                     let a = (s || '').split(/[\[\],]/).map((x) => x.trim())
                     a = _.compact(a)
                     let flags = _.filter(a, (a) => /^[\-\+]/.test(a))
                     a = _.filter(a, (a) => !/^[\-\+]/.test(a))
-                    let args = ((matches[2] || '').split(',').map((x) => refactored(x.trim())))
+                    let args = ((matches[4] || '').split(',').map((x) => refactored(x.trim())))
                     F.IsUFUNCTION = false
                     if (_.every(args, (x) => !!x)) {
                         F.Signature = args
