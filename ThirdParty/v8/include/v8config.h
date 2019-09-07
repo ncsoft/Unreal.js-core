@@ -64,6 +64,7 @@
 //  V8_OS_FUCHSIA       - Fuchsia
 //  V8_OS_LINUX         - Linux
 //  V8_OS_MACOSX        - Mac OS X
+//  V8_OS_IOS           - iOS
 //  V8_OS_NETBSD        - NetBSD
 //  V8_OS_OPENBSD       - OpenBSD
 //  V8_OS_POSIX         - POSIX compatible (mostly everything except Windows)
@@ -80,6 +81,9 @@
 # define V8_OS_BSD 1
 # define V8_OS_MACOSX 1
 # define V8_OS_POSIX 1
+# if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+#  define V8_OS_IOS 1
+# endif  // defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
 #elif defined(__CYGWIN__)
 # define V8_OS_CYGWIN 1
 # define V8_OS_POSIX 1
@@ -347,6 +351,12 @@
 #define V8_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
 #else
 #define V8_WARN_UNUSED_RESULT /* NOT SUPPORTED */
+#endif
+
+#if defined(BUILDING_V8_SHARED) && defined(USING_V8_SHARED)
+#error Inconsistent build configuration: To build the V8 shared library \
+set BUILDING_V8_SHARED, to include its headers for linking against the \
+V8 shared library set USING_V8_SHARED.
 #endif
 
 #ifdef V8_OS_WIN

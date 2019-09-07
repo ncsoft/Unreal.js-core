@@ -189,8 +189,9 @@ public:
 					auto Length = arr->Length();					
 					for (decltype(Length) Index = 0; Index < Length; ++Index)
 					{						
-						auto elem = arr->Get(Index);
-						Handle<Value> args[] = {elem};
+						auto elem = arr->Get(context, Index);
+						if (elem.IsEmpty()) continue;
+						Handle<Value> args[] = { elem.ToLocalChecked() };
 						(void)add_fn->Call(context, ProxyObject, 1, args);
 					}
 				}
@@ -649,11 +650,12 @@ public:
 			auto Out = Array::New(isolate_);
 
 			auto Num = SetHelper.Num();
+			auto context = isolate_->GetCurrentContext();
 			for (int Index = 0; Index < Num; ++Index)
 			{
 				auto PairPtr = SetHelper.GetElementPtr(Index);
 
-				Out->Set(Index, InternalReadProperty(p->ElementProp, SetHelper.GetElementPtr(Index), Owner, Flags));
+				Out->Set(context, Index, InternalReadProperty(p->ElementProp, SetHelper.GetElementPtr(Index), Owner, Flags));
 			}
 
 			return Out;
@@ -665,6 +667,7 @@ public:
 			auto Out = Object::New(isolate_);
 
 			auto Num = MapHelper.Num();
+			auto context = isolate_->GetCurrentContext();
 			for (int Index = 0; Index < Num; ++Index)
 			{
 				uint8* PairPtr = MapHelper.GetPairPtr(Index);
@@ -675,7 +678,7 @@ public:
 #endif
 				auto Value = InternalReadProperty(p->ValueProp, PairPtr, Owner, Flags);
 
-				Out->Set(Key, Value);
+				Out->Set(context, Key, Value);
 			}
 
 			return Out;
@@ -699,16 +702,19 @@ public:
 		auto arr = _arr.ToLocalChecked();
 
 		auto len = arr->Length();
-		
+		auto context = isolate_->GetCurrentContext();
 		for (TFieldIterator<UProperty> PropertyIt(Struct, EFieldIteratorFlags::IncludeSuper); PropertyIt && len; ++PropertyIt)
 		{
 			auto Property = *PropertyIt;
 			auto PropertyName = PropertyNameToString(Property, !bIsEditor);
 
 			auto name = I.Keyword(PropertyName);
-			auto value = v8_obj->Get(name);
+			auto maybe_value = v8_obj->Get(context, name);
 
-			if (!value.IsEmpty() && !value->IsUndefined())
+			if (maybe_value.IsEmpty()) continue;
+			auto value = maybe_value.ToLocalChecked();
+
+			if (!value->IsUndefined())
 			{
 				len--;
 				InternalWriteProperty(Property, struct_buffer, value, FNoPropertyOwner(), FPropertyAccessorFlags());
@@ -738,7 +744,7 @@ public:
 		}
 		else if (auto p = Cast<UBoolProperty>(Property))
 		{
-			p->SetPropertyValue_InContainer(Buffer, Value->BooleanValue(isolate_->GetCurrentContext()).ToChecked());
+			p->SetPropertyValue_InContainer(Buffer, Value->BooleanValue(isolate_));
 		}
 		else if (auto p = Cast<UNameProperty>(Property))
 		{			
@@ -900,9 +906,14 @@ public:
 					helper.RemoveValues(len, CurSize - len);
 				}
 
+				auto context = isolate_->GetCurrentContext();
 				for (decltype(len) Index = 0; Index < len; ++Index)
 				{
-					WriteProperty(isolate_, p->Inner, helper.GetRawPtr(Index), arr->Get(Index), Owner, Flags);
+					auto maybe_value = arr->Get(context, Index);
+					if (!maybe_value.IsEmpty())
+					{
+						WriteProperty(isolate_, p->Inner, helper.GetRawPtr(Index), maybe_value.ToLocalChecked(), Owner, Flags);
+					}
 				}
 			}
 			else
@@ -958,11 +969,16 @@ public:
 				FScriptSetHelper_InContainer SetHelper(p, Buffer);
 
 				auto Num = SetHelper.Num();
+				auto context = isolate_->GetCurrentContext();
 				for (int Index = 0; Index < Num; ++Index)
 				{
 					const int32 ElementIndex = SetHelper.AddDefaultValue_Invalid_NeedsRehash();
 					uint8* ElementPtr = SetHelper.GetElementPtr(Index);
-					InternalWriteProperty(p->ElementProp, ElementPtr, arr->Get(Index), Owner, Flags);
+					auto maybe_value = arr->Get(context, Index);
+					if (!maybe_value.IsEmpty())
+					{
+						InternalWriteProperty(p->ElementProp, ElementPtr, maybe_value.ToLocalChecked(), Owner, Flags);
+					}
 				}
 
 				SetHelper.Rehash();
@@ -1159,17 +1175,18 @@ public:
 		add_fn("access", [](const FunctionCallbackInfo<Value>& info)
 		{
 			auto isolate = info.GetIsolate();
-
+			
 			FIsolateHelper I(isolate);
 			
 			if (info.Length() == 1)
 			{
-				auto Source = Cast<UJavascriptMemoryObject>(UObjectFromV8(isolate->GetCurrentContext(), info[0]));
+				auto context = isolate->GetCurrentContext();
+				auto Source = Cast<UJavascriptMemoryObject>(UObjectFromV8(context, info[0]));
 
 				if (Source)
 				{
-					auto ab = ArrayBuffer::New(info.GetIsolate(), Source->GetMemory(), Source->GetSize());
-					ab->Set(I.Keyword("$source"), info[0]);
+					auto ab = ArrayBuffer::New(isolate, Source->GetMemory(), Source->GetSize());
+					ab->Set(context, I.Keyword("$source"), info[0]);
 					info.GetReturnValue().Set(ab);
 					return;
 				}
@@ -1420,6 +1437,7 @@ public:
 			// Allocate an object to pass return values within
 			auto OutParameters = Object::New(isolate);
 
+			auto context = isolate->GetCurrentContext();
 			// Iterate over parameters again
 			for (TFieldIterator<UProperty> It(Function); It; ++It, ArgIndex++)
 			{
@@ -1435,6 +1453,7 @@ public:
 					if (!value.IsEmpty())
 					{
 						OutParameters->Set(
+							context,
 							// "$"
 							I.Keyword("$"),
 							// property value
@@ -1449,6 +1468,7 @@ public:
 					if (!value.IsEmpty())
 					{
 						OutParameters->Set(
+							context,
 							// parameter name
 							I.Keyword(Param->GetName()),
 							// property value
@@ -2023,6 +2043,7 @@ public:
 						return V8_String(isolate, Object->GetPathName());
 					}
 				};
+				auto context = isolate->GetCurrentContext();
 
 				for (TFieldIterator<UProperty> PropertyIt(Class, EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
 				{
@@ -2056,11 +2077,11 @@ public:
 								value = I.Keyword("null");
 							}
 
-							out->Set(name, value);
+							out->Set(context, name, value);
 						}
 						else if (auto p = Cast<UObjectPropertyBase>(Property))
 						{
-							out->Set(name, Object_toJSON(value));
+							out->Set(context, name, Object_toJSON(value));
 						}
 						else if (auto p = Cast<UArrayProperty>(Property))
 						{
@@ -2070,21 +2091,25 @@ public:
 								auto len = arr->Length();
 
 								auto out_arr = Array::New(isolate, len);
-								out->Set(name, out_arr);
+								out->Set(context, name, out_arr);
 
 								for (decltype(len) Index = 0; Index < len; ++Index)
 								{
-									out_arr->Set(Index, Object_toJSON(arr->Get(Index)));
+									auto maybe_value = arr->Get(context, Index);
+									if (!maybe_value.IsEmpty())
+									{
+										out_arr->Set(context, Index, Object_toJSON(maybe_value.ToLocalChecked()));
+									}
 								}
 							}
 							else
 							{
-								out->Set(name, value);
+								out->Set(context, name, value);
 							}
 						}
 						else
 						{
-							out->Set(name, value);
+							out->Set(context, name, value);
 						}
 					}
 				}
@@ -2116,6 +2141,8 @@ public:
 						return V8_String(isolate, Object->GetPathName());
 					}
 				};
+
+				auto context = isolate->GetCurrentContext();
 
 				for (TFieldIterator<UProperty> PropertyIt(Class, EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
 				{
@@ -2149,11 +2176,11 @@ public:
 								value = I.Keyword("null");
 							}
 
-							out->Set(name, value);
+							out->Set(context, name, value);
 						}
 						else if (auto p = Cast<UObjectPropertyBase>(Property))
 						{
-							out->Set(name, Object_toJSON(value));
+							out->Set(context, name, Object_toJSON(value));
 						}
 						else if (auto p = Cast<UArrayProperty>(Property))
 						{
@@ -2163,21 +2190,25 @@ public:
 								auto len = arr->Length();
 
 								auto out_arr = Array::New(isolate, len);
-								out->Set(name, out_arr);
+								out->Set(context, name, out_arr);
 
 								for (decltype(len) Index = 0; Index < len; ++Index)
 								{
-									out_arr->Set(Index, Object_toJSON(arr->Get(Index)));
+									auto maybe_value = arr->Get(context, Index);
+									if (!maybe_value.IsEmpty())
+									{
+										out_arr->Set(context, Index, Object_toJSON(maybe_value.ToLocalChecked()));
+									}
 								}
 							}
 							else
 							{
-								out->Set(name, value);
+								out->Set(context, name, value);
 							}
 						}
 						else
 						{
-							out->Set(name, value);
+							out->Set(context, name, value);
 						}
 					}
 				}
@@ -2556,12 +2587,12 @@ public:
 
 		auto EnumLength = Enum->NumEnums();
 		auto arr = Array::New(isolate_, EnumLength);
-
+		auto context = isolate_->GetCurrentContext();
 		for (decltype(EnumLength) Index = 0; Index < EnumLength; ++Index)
 		{
 			auto value = I.Keyword(Enum->GetNameStringByIndex(Index));
-			arr->Set(Index, value);
-			arr->Set(value, value);
+			arr->Set(context, Index, value);
+			arr->Set(context, value, value);
 		}
 
 		// public name
@@ -2756,7 +2787,7 @@ public:
 		auto Context = isolate_->GetCurrentContext();
 		if (!Context.IsEmpty())
 		{
-			Context->Global()->Set(name, Template->GetFunction(Context).ToLocalChecked());
+			Context->Global()->Set(Context, name, Template->GetFunction(Context).ToLocalChecked());
 		}
 
 		// Register this class to the global template so that any other contexts which will be created later have this function template.

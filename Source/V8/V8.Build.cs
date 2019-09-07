@@ -102,7 +102,7 @@ public class V8 : ModuleRules
     {
         int[] v8_version = GetV8Version();
         bool ShouldLink_libsampler = !(v8_version[0] == 5 && v8_version[1] < 3);
-
+        bool ShouldLink_lib_v8_compiler = (v8_version[0] > 6 && v8_version[1] > 6);
         if ((Target.Platform == UnrealTargetPlatform.Win64) || (Target.Platform == UnrealTargetPlatform.Win32))
         {
             string LibrariesPath = Path.Combine(ThirdPartyPath, "v8", "lib");
@@ -127,8 +127,6 @@ public class V8 : ModuleRules
 
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_init.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_initializers.lib"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_base_0.lib"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_base_1.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libbase.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_libplatform.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_nosnapshot.lib"));
@@ -136,6 +134,22 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "torque_base.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "torque_generated_initializers.lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "inspector.lib"));
+
+            if (ShouldLink_lib_v8_compiler)
+            {
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_compiler.lib"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_base_without_compiler_0.lib"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_base_without_compiler_1.lib"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "inspector_string_conversions.lib"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "torque_generated_definitions.lib"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "encoding.lib"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "bindings.lib"));
+            }
+            else
+            {
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_base_0.lib"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_base_1.lib"));
+            }
 
             PublicDefinitions.Add(string.Format("WITH_V8=1"));
 
@@ -150,13 +164,26 @@ public class V8 : ModuleRules
 
             PublicAdditionalLibraries.Add("v8_init");
             PublicAdditionalLibraries.Add("v8_initializers");
-            PublicAdditionalLibraries.Add("v8_base");
             PublicAdditionalLibraries.Add("v8_libbase");
             PublicAdditionalLibraries.Add("v8_libplatform");
             PublicAdditionalLibraries.Add("v8_nosnapshot");
             PublicAdditionalLibraries.Add("v8_libsampler");
             PublicAdditionalLibraries.Add("torque_generated_initializers");
             PublicAdditionalLibraries.Add("inspector");
+
+            if (ShouldLink_lib_v8_compiler)
+            {
+                PublicAdditionalLibraries.Add("v8_compiler");
+                PublicAdditionalLibraries.Add("v8_base_without_compiler");
+                PublicAdditionalLibraries.Add("inspector_string_conversions");
+                PublicAdditionalLibraries.Add("encoding");
+                PublicAdditionalLibraries.Add("bindings");
+                PublicAdditionalLibraries.Add("torque_generated_definitions");
+            }
+            else
+            {
+                PublicAdditionalLibraries.Add("v8_base");
+            }
 
             PublicDefinitions.Add(string.Format("WITH_V8=1"));
 
@@ -176,13 +203,27 @@ public class V8 : ModuleRules
 
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_init.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_initializers.a"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_base.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libbase.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libplatform.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_nosnapshot.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libsampler.a"));
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libtorque_base.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libtorque_generated_initializers.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libinspector.a"));
+
+            if (ShouldLink_lib_v8_compiler)
+            {
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_compiler.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_base_without_compiler.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libinspector_string_conversions.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libencoding.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libbindings.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libtorque_generated_definitions.a"));
+            }
+            else
+            {
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_base.a"));
+            }
 
             PublicDefinitions.Add(string.Format("WITH_V8=1"));
 
@@ -203,7 +244,6 @@ public class V8 : ModuleRules
 
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_init.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_initializers.a"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_base.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libbase.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libplatform.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_nosnapshot.a"));
@@ -211,6 +251,21 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libtorque_base.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libtorque_generated_initializers.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libinspector.a"));
+
+
+            if (ShouldLink_lib_v8_compiler)
+            {
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_compiler.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_base_without_compiler.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libinspector_string_conversions.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libencoding.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libbindings.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libtorque_generated_definitions.a"));
+            }
+            else
+            {
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_base.a"));
+            }
 
             PublicDefinitions.Add(string.Format("WITH_V8=1"));
 
@@ -231,13 +286,26 @@ public class V8 : ModuleRules
 
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_init.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_initializers.a"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_base.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libbase.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libplatform.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_nosnapshot.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_libsampler.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libtorque_generated_initializers.a"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libinspector.a"));
+
+            if (ShouldLink_lib_v8_compiler)
+            {
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_compiler.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_base_without_compiler.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libinspector_string_conversions.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libencoding.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libbindings.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libtorque_generated_definitions.a"));
+            }
+            else
+            {
+                PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_base.a"));
+            }
 
             PublicDefinitions.Add(string.Format("WITH_V8=1"));
 

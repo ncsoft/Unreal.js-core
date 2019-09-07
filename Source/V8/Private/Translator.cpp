@@ -76,22 +76,22 @@ namespace v8
 
 	Local<String> V8_String(Isolate* isolate, const FString& String)
 	{
-		return String::NewFromUtf8(isolate, TCHAR_TO_UTF8(*String));
+		return String::NewFromUtf8(isolate, TCHAR_TO_UTF8(*String)).ToLocalChecked();
 	}
 
 	Local<String> V8_String(Isolate* isolate, const char* String)
 	{
-		return String::NewFromUtf8(isolate, String);
+		return String::NewFromUtf8(isolate, String).ToLocalChecked();
 	}
 
 	Local<String> V8_KeywordString(Isolate* isolate, const FString& String)
 	{
-		return String::NewFromUtf8(isolate, TCHAR_TO_UTF8(*String), String::kInternalizedString);
+		return String::NewFromUtf8(isolate, TCHAR_TO_UTF8(*String), NewStringType::kInternalized).ToLocalChecked();
 	}
 
 	Local<String> V8_KeywordString(Isolate* isolate, const char* String)
 	{
-		return String::NewFromUtf8(isolate, String, String::kInternalizedString);
+		return String::NewFromUtf8(isolate, String, NewStringType::kInternalized).ToLocalChecked();
 	}
 
 	FString StringFromV8(Isolate* isolate, Local<Value> Value)

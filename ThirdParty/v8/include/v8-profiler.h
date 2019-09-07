@@ -5,6 +5,7 @@
 #ifndef V8_V8_PROFILER_H_
 #define V8_V8_PROFILER_H_
 
+#include <limits.h>
 #include <unordered_set>
 #include <vector>
 #include "v8.h"  // NOLINT(build/include)
@@ -48,7 +49,7 @@ template class V8_EXPORT std::vector<v8::CpuProfileDeoptInfo>;
 namespace v8 {
 
 // TickSample captures the information collected for each sample.
-struct TickSample {
+struct V8_EXPORT TickSample {
   // Internal profiling (with --prof + tools/$OS-tick-processor) wants to
   // include the runtime function we're calling. Externally exposed tick
   // samples don't care.
@@ -129,6 +130,20 @@ class V8_EXPORT CpuProfileNode {
     unsigned int hit_count;
   };
 
+  // An annotation hinting at the source of a CpuProfileNode.
+  enum SourceType {
+    // User-supplied script with associated resource information.
+    kScript = 0,
+    // Native scripts and provided builtins.
+    kBuiltin = 1,
+    // Callbacks into native code.
+    kCallback = 2,
+    // VM-internal functions or state.
+    kInternal = 3,
+    // A node that failed to symbolize.
+    kUnresolved = 4,
+  };
+
   /** Returns function name (empty string for anonymous functions.) */
   Local<String> GetFunctionName() const;
 
@@ -151,6 +166,12 @@ class V8_EXPORT CpuProfileNode {
    * profile is deleted. The function is thread safe.
    */
   const char* GetScriptResourceNameStr() const;
+
+  /**
+   * Return true if the script from where the function originates is flagged as
+   * being shared cross-origin.
+   */
+  bool IsScriptSharedCrossOrigin() const;
 
   /**
    * Returns the number, 1-based, of the line where the function originates.
@@ -194,11 +215,19 @@ class V8_EXPORT CpuProfileNode {
   /** Returns id of the node. The id is unique within the tree */
   unsigned GetNodeId() const;
 
+  /**
+   * Gets the type of the source which the node was captured from.
+   */
+  SourceType GetSourceType() const;
+
   /** Returns child nodes count of the node. */
   int GetChildrenCount() const;
 
   /** Retrieves a child node by index. */
   const CpuProfileNode* GetChild(int index) const;
+
+  /** Retrieves the ancestor node, or null if the root. */
+  const CpuProfileNode* GetParent() const;
 
   /** Retrieves deopt infos for the node. */
   const std::vector<CpuProfileDeoptInfo>& GetDeoptInfos() const;
@@ -269,6 +298,53 @@ enum CpuProfilingMode {
   kCallerLineNumbers,
 };
 
+// Determines how names are derived for functions sampled.
+enum CpuProfilingNamingMode {
+  // Use the immediate name of functions at compilation time.
+  kStandardNaming,
+  // Use more verbose naming for functions without names, inferred from scope
+  // where possible.
+  kDebugNaming,
+};
+
+/**
+ * Optional profiling attributes.
+ */
+class V8_EXPORT CpuProfilingOptions {
+ public:
+  // Indicates that the sample buffer size should not be explicitly limited.
+  static const unsigned kNoSampleLimit = UINT_MAX;
+
+  /**
+   * \param mode Type of computation of stack frame line numbers.
+   * \param max_samples The maximum number of samples that should be recorded by
+   *                    the profiler. Samples obtained after this limit will be
+   *                    discarded.
+   * \param sampling_interval_us controls the profile-specific target
+   *                             sampling interval. The provided sampling
+   *                             interval will be snapped to the next lowest
+   *                             non-zero multiple of the profiler's sampling
+   *                             interval, set via SetSamplingInterval(). If
+   *                             zero, the sampling interval will be equal to
+   *                             the profiler's sampling interval.
+   */
+  CpuProfilingOptions(CpuProfilingMode mode = kLeafNodeLineNumbers,
+                      unsigned max_samples = kNoSampleLimit,
+                      int sampling_interval_us = 0)
+      : mode_(mode),
+        max_samples_(max_samples),
+        sampling_interval_us_(sampling_interval_us) {}
+
+  CpuProfilingMode mode() const { return mode_; }
+  unsigned max_samples() const { return max_samples_; }
+  int sampling_interval_us() const { return sampling_interval_us_; }
+
+ private:
+  CpuProfilingMode mode_;
+  unsigned max_samples_;
+  int sampling_interval_us_;
+};
+
 /**
  * Interface for controlling CPU profiling. Instance of the
  * profiler can be created using v8::CpuProfiler::New method.
@@ -280,7 +356,8 @@ class V8_EXPORT CpuProfiler {
    * initialized. The profiler object must be disposed after use by calling
    * |Dispose| method.
    */
-  static CpuProfiler* New(Isolate* isolate);
+  static CpuProfiler* New(Isolate* isolate,
+                          CpuProfilingNamingMode = kDebugNaming);
 
   /**
    * Synchronously collect current stack sample in all profilers attached to
@@ -302,18 +379,35 @@ class V8_EXPORT CpuProfiler {
   void SetSamplingInterval(int us);
 
   /**
-   * Starts collecting CPU profile. Title may be an empty string. It
-   * is allowed to have several profiles being collected at
-   * once. Attempts to start collecting several profiles with the same
-   * title are silently ignored. While collecting a profile, functions
-   * from all security contexts are included in it. The token-based
-   * filtering is only performed when querying for a profile.
+   * Sets whether or not the profiler should prioritize consistency of sample
+   * periodicity on Windows. Disabling this can greatly reduce CPU usage, but
+   * may result in greater variance in sample timings from the platform's
+   * scheduler. Defaults to enabled. This method must be called when there are
+   * no profiles being recorded.
+   */
+  void SetUsePreciseSampling(bool);
+
+  /**
+   * Starts collecting a CPU profile. Title may be an empty string. Several
+   * profiles may be collected at once. Attempts to start collecting several
+   * profiles with the same title are silently ignored.
+   */
+  void StartProfiling(Local<String> title, CpuProfilingOptions options);
+
+  /**
+   * Starts profiling with the same semantics as above, except with expanded
+   * parameters.
    *
    * |record_samples| parameter controls whether individual samples should
    * be recorded in addition to the aggregated tree.
+   *
+   * |max_samples| controls the maximum number of samples that should be
+   * recorded by the profiler. Samples obtained after this limit will be
+   * discarded.
    */
-  void StartProfiling(Local<String> title, CpuProfilingMode mode,
-                      bool record_samples = false);
+  void StartProfiling(
+      Local<String> title, CpuProfilingMode mode, bool record_samples = false,
+      unsigned max_samples = CpuProfilingOptions::kNoSampleLimit);
   /**
    * The same as StartProfiling above, but the CpuProfilingMode defaults to
    * kLeafNodeLineNumbers mode, which was the previous default behavior of the
@@ -353,7 +447,6 @@ class V8_EXPORT CpuProfiler {
   CpuProfiler(const CpuProfiler&);
   CpuProfiler& operator=(const CpuProfiler&);
 };
-
 
 /**
  * HeapSnapshotEdge represents a directed connection between heap
@@ -705,7 +798,6 @@ class V8_EXPORT EmbedderGraph {
      */
     virtual const char* NamePrefix() { return nullptr; }
 
-   private:
     Node(const Node&) = delete;
     Node& operator=(const Node&) = delete;
   };
@@ -755,10 +847,6 @@ class V8_EXPORT HeapProfiler {
   typedef void (*BuildEmbedderGraphCallback)(v8::Isolate* isolate,
                                              v8::EmbedderGraph* graph,
                                              void* data);
-
-  /** TODO(addaleax): Remove */
-  typedef void (*LegacyBuildEmbedderGraphCallback)(v8::Isolate* isolate,
-                                                   v8::EmbedderGraph* graph);
 
   /** Returns the number of snapshots taken. */
   int GetSnapshotCount();
@@ -898,10 +986,6 @@ class V8_EXPORT HeapProfiler {
    */
   void DeleteAllHeapSnapshots();
 
-  V8_DEPRECATED(
-      "Use AddBuildEmbedderGraphCallback to provide info about embedder nodes",
-      void SetBuildEmbedderGraphCallback(
-          LegacyBuildEmbedderGraphCallback callback));
   void AddBuildEmbedderGraphCallback(BuildEmbedderGraphCallback callback,
                                      void* data);
   void RemoveBuildEmbedderGraphCallback(BuildEmbedderGraphCallback callback,
