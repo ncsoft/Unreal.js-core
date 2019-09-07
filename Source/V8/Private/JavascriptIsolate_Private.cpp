@@ -40,6 +40,8 @@ THIRD_PARTY_INCLUDES_START
 #include <libplatform/libplatform.h>
 THIRD_PARTY_INCLUDES_END
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 using namespace v8;
 
 // HACK FOR ACCESS PRIVATE MEMBERS
@@ -1799,8 +1801,11 @@ public:
 			bool bTransient = info.Length() > 1 ? info[1]->BooleanValue(isolate) : false;
 			bool bIsRequired = info.Length() > 2 ? info[2]->BooleanValue(isolate) : true;
 			bool bIsAbstract = info.Length() > 3 ? info[3]->BooleanValue(isolate) : false;
+#if ENGINE_MINOR_VERSION < 23
 			auto Object = ObjectInitializer->CreateDefaultSubobject(ObjectInitializer->GetObj(), *Name, ReturnType, ReturnType, bIsRequired, bIsAbstract, bTransient);
-
+#else
+			auto Object = ObjectInitializer->CreateDefaultSubobject(ObjectInitializer->GetObj(), *Name, ReturnType, ReturnType, bIsRequired, bTransient);
+#endif
 			info.GetReturnValue().Set(Context->ExportObject(Object));
 		};
 
@@ -2549,10 +2554,10 @@ public:
 	{
 		FIsolateHelper I(isolate_);		
 
-		auto MaxEnumValue = Enum->GetMaxEnumValue();
-		auto arr = Array::New(isolate_, MaxEnumValue);
+		auto EnumLength = Enum->NumEnums();
+		auto arr = Array::New(isolate_, EnumLength);
 
-		for (decltype(MaxEnumValue) Index = 0; Index < MaxEnumValue; ++Index)
+		for (decltype(EnumLength) Index = 0; Index < EnumLength; ++Index)
 		{
 			auto value = I.Keyword(Enum->GetNameStringByIndex(Index));
 			arr->Set(Index, value);
@@ -2922,4 +2927,5 @@ void FJavascriptFunction::Execute(UScriptStruct* Struct, void* Buffer)
 	}
 }
 
+PRAGMA_ENABLE_OPTIMIZATION
 PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

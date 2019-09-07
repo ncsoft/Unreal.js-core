@@ -1,5 +1,6 @@
 #include "Translator.h"
 #include "Engine/UserDefinedStruct.h"
+#include "Launch/Resources/Version.h"
 
 namespace v8
 {
@@ -122,7 +123,11 @@ namespace v8
 		{
 			if (auto s = Cast<UUserDefinedStruct>(Struct))
 			{
+#if ENGINE_MINOR_VERSION > 22
+				return s->GetAuthoredNameForField(Property);
+#else
 				return s->PropertyNameToDisplayName(name);
+#endif
 			}
 		}
 		return name.ToString();
@@ -136,7 +141,11 @@ namespace v8
 		{
 			if (auto s = Cast<UUserDefinedStruct>(Struct))
 			{
+#if ENGINE_MINOR_VERSION > 22
+				return s->GetAuthoredNameForField(Property) == NameToMatch.ToString();
+#else
 				return s->PropertyNameToDisplayName(name) == NameToMatch.ToString();
+#endif
 			}
 		}
 		return name == NameToMatch;

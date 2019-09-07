@@ -37,12 +37,12 @@ public:
 	{
 		return SkyComponent;
 	}
-
+#if ENGINE_MINOR_VERSION < 23
 	class USphereReflectionCaptureComponent* GetDefaultSphereReflectionComponent()
 	{
 		return SphereReflectionComponent;
 	}
-
+#endif
 	class UMaterialInstanceConstant* GetDefaultInstancedSkyMaterial()
 	{
 		return InstancedSkyMaterial;
@@ -495,12 +495,12 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 	{
 		return PreviewScene.GetDefaultSkySphereComponent();
 	}
-
+#if ENGINE_MINOR_VERSION < 23
 	class USphereReflectionCaptureComponent* GetDefaultSphereReflectionComponent()
 	{
 		return PreviewScene.GetDefaultSphereReflectionComponent();
 	}
-
+#endif
 	class UMaterialInstanceConstant* GetDefaultInstancedSkyMaterial()
 	{
 		return PreviewScene.GetDefaultInstancedSkyMaterial();
@@ -949,11 +949,12 @@ class UStaticMeshComponent* UJavascriptEditorViewport::GetDefaultSkySphereCompon
 
 class USphereReflectionCaptureComponent* UJavascriptEditorViewport::GetDefaultSphereReflectionComponent()
 {
+#if ENGINE_MINOR_VERSION < 23
 	if (ViewportWidget.IsValid())
 	{
 		return ViewportWidget->GetDefaultSphereReflectionComponent();
 	}
-
+#endif
 	return nullptr;
 }
 

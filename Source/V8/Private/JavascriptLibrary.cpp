@@ -51,6 +51,18 @@ bool UJavascriptLibrary::ResolveIp(FString HostName, FString& OutIp)
 {
 	auto SocketSub = ISocketSubsystem::Get();
 	TSharedRef<FInternetAddr> HostAddr = SocketSub->CreateInternetAddr();
+
+#if ENGINE_MINOR_VERSION > 22
+	FAddressInfoResult GAIResult = SocketSub->GetAddressInfo(*HostName, nullptr, EAddressInfoFlags::Default, NAME_None);
+	if (GAIResult.Results.Num() > 0)
+	{
+		OutIp = GAIResult.Results[0].Address->ToString(false);
+		return true;
+	}
+
+	return false;
+
+#else
 	ESocketErrors HostResolveError = SocketSub->GetHostByName(TCHAR_TO_ANSI(*HostName), *HostAddr);
 	if (HostResolveError == SE_NO_ERROR || HostResolveError == SE_EWOULDBLOCK)
 	{
@@ -58,6 +70,7 @@ bool UJavascriptLibrary::ResolveIp(FString HostName, FString& OutIp)
 		return true;
 	}
 	return false;
+#endif
 }
 
 void UJavascriptLibrary::SetIp(FJavascriptInternetAddr& Addr, FString ResolvedAddress, bool& bValid)

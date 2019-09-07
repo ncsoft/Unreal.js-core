@@ -3,6 +3,7 @@
 #include "Translator.h"
 #include "JavascriptStats.h"
 #include "UObject/GCObject.h"
+#include "../../Launch/Resources/Version.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
@@ -224,8 +225,12 @@ public:
 				FScriptDelegate Delegate;
 				Delegate.BindUFunction(DelegateObject, NAME_Fire);
 
+#if ENGINE_MINOR_VERSION > 22
+				p->AddDelegate(Delegate, WeakObject.Get());
+#else
 				auto Target = p->GetPropertyValuePtr_InContainer(WeakObject.Get());
 				Target->Add(Delegate);
+#endif
 			}
 			else if (auto p = Cast<UDelegateProperty>(Property))
 			{
@@ -250,9 +255,12 @@ public:
 			{
 				FScriptDelegate Delegate;
 				Delegate.BindUFunction(DelegateObject, NAME_Fire);
-
+#if ENGINE_MINOR_VERSION > 22
+				p->RemoveDelegate(Delegate, WeakObject.Get());
+#else
 				auto Target = p->GetPropertyValuePtr_InContainer(WeakObject.Get());
 				Target->Remove(Delegate);
+#endif
 			}
 			else if (auto p = Cast<UDelegateProperty>(Property))
 			{
