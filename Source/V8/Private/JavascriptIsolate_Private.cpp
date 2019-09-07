@@ -40,8 +40,6 @@ THIRD_PARTY_INCLUDES_START
 #include <libplatform/libplatform.h>
 THIRD_PARTY_INCLUDES_END
 
-PRAGMA_DISABLE_OPTIMIZATION
-
 using namespace v8;
 
 // HACK FOR ACCESS PRIVATE MEMBERS
@@ -2958,5 +2956,4 @@ void FJavascriptFunction::Execute(UScriptStruct* Struct, void* Buffer)
 	}
 }
 
-PRAGMA_ENABLE_OPTIMIZATION
 PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
