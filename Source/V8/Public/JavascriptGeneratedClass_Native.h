@@ -33,7 +33,12 @@ public:
 #endif
 	virtual UObject* GetArchetypeForCDO() const override { return UClass::GetArchetypeForCDO();  }
 #endif //WITH_EDITOR
+
+#if ENGINE_MINOR_VERSION < 23
 	virtual bool IsFunctionImplementedInBlueprint(FName InFunctionName) const override { return false;  }
+#else
+	virtual bool IsFunctionImplementedInScript(FName InFunctionName) const override { return false; }
+#endif
 
 #if ENGINE_MINOR_VERSION < 21
 	virtual uint8* GetPersistentUberGraphFrame(UObject* Obj, UFunction* FuncToCheck) const override { return nullptr;  }

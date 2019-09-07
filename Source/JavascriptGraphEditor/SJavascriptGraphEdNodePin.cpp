@@ -94,7 +94,11 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 		}
 	}
 	// Create the widget used for the pin body (status indicator, label, and value)
+#if ENGINE_MINOR_VERSION > 22
+	LabelAndValue =
+#else
 	TSharedRef<SWrapBox> LabelAndValue =
+#endif
 		SNew(SWrapBox)
 		.PreferredWidth(150.f);
 
@@ -168,7 +172,11 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 			.AutoWidth()
 			.VAlign(VAlign_Center)
 			[
+#if ENGINE_MINOR_VERSION > 22
+				LabelAndValue.ToSharedRef()
+#else
 				LabelAndValue
+#endif
 			];
 	}
 	else
@@ -179,7 +187,11 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 			.AutoWidth()
 			.VAlign(VAlign_Center)
 			[
+#if ENGINE_MINOR_VERSION > 22
+				LabelAndValue.ToSharedRef()
+#else
 				LabelAndValue
+#endif			
 			]
 		+ SHorizontalBox::Slot()
 			.AutoWidth()

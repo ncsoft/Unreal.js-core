@@ -230,13 +230,21 @@ FJavascriptArrangedWidget UJavascriptGraphEditorLibrary::FindPinGeometries(FJava
 FJavascriptPinWidget UJavascriptGraphEditorLibrary::FindPinToPinWidgetMap(FJavascriptDetermineLinkGeometryContainer Container, FJavascriptEdGraphPin Pin)
 {
 	FJavascriptPinWidget Widget = FJavascriptPinWidget();
-	
+#if ENGINE_MINOR_VERSION > 22
+	TSharedPtr<SGraphPin>* SGraphPinHandle = Container.PinToPinWidgetMap->Find(Pin);
+	if (SGraphPinHandle)
+	{
+		TSharedRef<SWidget> SWidgetHandle = static_cast<SWidget&>(*SGraphPinHandle->Get()).AsShared();
+		Widget.Handle = &SWidgetHandle;
+	}
+#else
 	TSharedRef<SGraphPin>* SGraphPinHandle = Container.PinToPinWidgetMap->Find(Pin);
 	if (SGraphPinHandle)
 	{
-		TSharedRef<SWidget> SWidgetHandle  = static_cast<SWidget&>(SGraphPinHandle->Get()).AsShared();
+		TSharedRef<SWidget> SWidgetHandle = static_cast<SWidget&>(SGraphPinHandle->Get()).AsShared();
 		Widget.Handle = &SWidgetHandle;
 	}
+#endif
 
 	return Widget;
 }

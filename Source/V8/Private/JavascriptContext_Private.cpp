@@ -63,10 +63,14 @@ static TArray<FString> StringArrayFromV8(Isolate* isolate, Handle<Value> InArray
 	{
 		auto arr = Handle<Array>::Cast(InArray);
 		auto len = arr->Length();
-
+		auto context_ = isolate->GetCurrentContext();
 		for (decltype(len) Index = 0; Index < len; ++Index)
 		{
-			OutArray.Add(StringFromV8(isolate, arr->Get(Index)));
+			auto maybe_value = arr->Get(context_, Index);
+			if (!maybe_value.IsEmpty())
+			{
+				OutArray.Add(StringFromV8(isolate, maybe_value.ToLocalChecked()));
+			}			
 		}
 	}
 	return OutArray;
@@ -1057,10 +1061,14 @@ public:
 
 					MakeFunction();
 
-					auto Decorators = FunctionObj->Get(I.Keyword("Decorators"));
-					if (!Decorators.IsEmpty() && Decorators->IsArray())
+					auto Decorators = FunctionObj->Get(context, I.Keyword("Decorators"));
+					if (!Decorators.IsEmpty())
 					{
-						SetFunctionFlags(Function, StringArrayFromV8(isolate, Decorators));
+						auto CheckedDecorators = Decorators.ToLocalChecked();
+						if (CheckedDecorators->IsArray())
+						{
+							SetFunctionFlags(Function, StringArrayFromV8(isolate, CheckedDecorators));
+						}
 					}
 
 					auto InitializeProperties = [&](UFunction* Function, Handle<Value> Signature) {
@@ -1074,9 +1082,12 @@ public:
 
 							for (decltype(len) Index = 0; Index < len; ++Index)
 							{
-								auto PropertyDecl = arr->Get(Index);
-
-								auto NewProperty = CreatePropertyFromDecl(context, I, Function, PropertyDecl);
+								auto PropertyDecl = arr->Get(context, Index);
+								UProperty* NewProperty = nullptr;
+								if (!PropertyDecl.IsEmpty())
+								{
+									NewProperty = CreatePropertyFromDecl(context, I, Function, PropertyDecl.ToLocalChecked());
+								}
 
 								if (NewProperty)
 								{
@@ -1152,63 +1163,88 @@ public:
 				return true;
 			};
 
-			auto ClassFlags = Opts->Get(I.Keyword("ClassFlags"));
-			if (!ClassFlags.IsEmpty() && ClassFlags->IsArray())
+			auto maybe_ClassFlags = Opts->Get(context, I.Keyword("ClassFlags"));
+			if (!maybe_ClassFlags.IsEmpty())
 			{
-				SetClassFlags(Class,StringArrayFromV8(isolate, ClassFlags));
+				auto ClassFlags = maybe_ClassFlags.ToLocalChecked();
+				if (ClassFlags->IsArray())
+				{
+					SetClassFlags(Class, StringArrayFromV8(isolate, ClassFlags));
+				}
 			}
 
-			auto PropertyDecls = Opts->Get(I.Keyword("Properties"));
-			if (!PropertyDecls.IsEmpty() && PropertyDecls->IsArray())
+			auto maybe_PropertyDecls = Opts->Get(context, I.Keyword("Properties"));
+			if (!maybe_PropertyDecls.IsEmpty())
 			{
-				auto arr = Handle<Array>::Cast(PropertyDecls);
-				auto len = arr->Length();
+				auto PropertyDecls = maybe_PropertyDecls.ToLocalChecked();
 
-				for (decltype(len) Index = 0; Index < len; ++Index)
+				if (PropertyDecls->IsArray())
 				{
-					auto PropertyDecl = arr->Get(len - Index - 1);
-					if (PropertyDecl->IsObject())
+					auto arr = Handle<Array>::Cast(PropertyDecls);
+					auto len = arr->Length();
+
+					for (decltype(len) Index = 0; Index < len; ++Index)
 					{
-						auto Property = CreatePropertyFromDecl(context, I, Class, PropertyDecl);
-
-						if (Property)
+						auto maybe_PropertyDecl = arr->Get(context, len - Index - 1);
+						if (!maybe_PropertyDecl.IsEmpty())
 						{
-							Class->AddCppProperty(Property);
-
-							if (Property->HasAnyPropertyFlags(CPF_Net))
+							auto PropertyDecl = maybe_PropertyDecl.ToLocalChecked();
+							if (PropertyDecl->IsObject())
 							{
-								Class->NumReplicatedProperties++;
+								auto Property = CreatePropertyFromDecl(context, I, Class, PropertyDecl);
+
+								if (Property)
+								{
+									Class->AddCppProperty(Property);
+
+									if (Property->HasAnyPropertyFlags(CPF_Net))
+									{
+										Class->NumReplicatedProperties++;
+									}
+								}
 							}
 						}
 					}
 				}
 			}
 
-			auto Functions = Opts->Get(I.Keyword("Functions"));
+			auto maybe_Functions = Opts->Get(context, I.Keyword("Functions"));
 			TMap<FString,Handle<Value>> Others;
-			if (!Functions.IsEmpty() && Functions->IsObject())
+			if (!maybe_Functions.IsEmpty())
 			{
-				auto FuncMap = Functions->ToObject(context).ToLocalChecked();
-				auto Keys = FuncMap->GetOwnPropertyNames(context).ToLocalChecked();
-
-				auto NumKeys = Keys->Length();
-
-				for (decltype(NumKeys) Index = 0; Index < NumKeys; ++Index)
+				auto Functions = maybe_Functions.ToLocalChecked();
+				if (Functions->IsObject())
 				{
-					auto Name = Keys->Get(Index);
-					auto UName = StringFromV8(isolate, Name);
-					auto Function = FuncMap->Get(Name);
+					auto FuncMap = Functions->ToObject(context).ToLocalChecked();
+					auto Keys = FuncMap->GetOwnPropertyNames(context).ToLocalChecked();
 
-					if (!Function->IsFunction()) continue;
+					auto NumKeys = Keys->Length();
 
-					if (UName != TEXT("prector") && UName != TEXT("ctor") && UName != TEXT("constructor"))
+					for (decltype(NumKeys) Index = 0; Index < NumKeys; ++Index)
 					{
-						if (!AddFunction(*UName, Function))
+						auto maybe_Name = Keys->Get(context, Index);
+						if (!maybe_Name.IsEmpty())
 						{
-							Others.Add(UName, Function);
+							auto Name = maybe_Name.ToLocalChecked();
+							auto UName = StringFromV8(isolate, Name);
+							auto maybe_Function = FuncMap->Get(context, Name);
+
+							if (maybe_Function.IsEmpty()) continue;
+
+							auto Function = maybe_Function.ToLocalChecked();
+							if (!Function->IsFunction()) continue;
+
+							if (UName != TEXT("prector") && UName != TEXT("ctor") && UName != TEXT("constructor"))
+							{
+								if (!AddFunction(*UName, Function))
+								{
+									Others.Add(UName, Function);
+								}
+							}
 						}
 					}
 				}
+
 			}
 
 			Class->Bind();
@@ -1227,7 +1263,10 @@ public:
 			}
 
 			auto FinalClass = Context->ExportObject(Class);
-			FinalClass->ToObject(context).ToLocalChecked()->Set(I.Keyword("proxy"), Functions);
+			if (!maybe_Functions.IsEmpty())
+			{
+				FinalClass->ToObject(context).ToLocalChecked()->Set(context, I.Keyword("proxy"), maybe_Functions.ToLocalChecked());
+			}
 
 			info.GetReturnValue().Set(FinalClass);
 
@@ -1268,26 +1307,35 @@ public:
 			Class->ClassDefaultObject = NULL;
 
 			Class->Children = nullptr;
-			auto PropertyDecls = Opts->Get(I.Keyword("Properties"));
-			if (!PropertyDecls.IsEmpty() && PropertyDecls->IsArray())
+			auto maybe_PropertyDecls = Opts->Get(context, I.Keyword("Properties"));
+
+			if (!maybe_PropertyDecls.IsEmpty())
 			{
-				auto arr = Handle<Array>::Cast(PropertyDecls);
-				auto len = arr->Length();
-
-				for (decltype(len) Index = 0; Index < len; ++Index)
+				auto PropertyDecls = maybe_PropertyDecls.ToLocalChecked();
+				if (PropertyDecls->IsArray())
 				{
-					auto PropertyDecl = arr->Get(len - Index - 1);
-					if (PropertyDecl->IsObject())
+					auto arr = Handle<Array>::Cast(PropertyDecls);
+					auto len = arr->Length();
+
+					for (decltype(len) Index = 0; Index < len; ++Index)
 					{
-						auto Property = CreatePropertyFromDecl(context, I, Class, PropertyDecl);
-
-						if (Property)
+						auto maybe_PropertyDecl = arr->Get(context, len - Index - 1);
+						if (!maybe_PropertyDecl.IsEmpty())
 						{
-							Class->AddCppProperty(Property);
-
-							if (Property->HasAnyPropertyFlags(CPF_Net))
+							auto PropertyDecl = maybe_PropertyDecl.ToLocalChecked();
+							if (PropertyDecl->IsObject())
 							{
-								Class->NumReplicatedProperties++;
+								auto Property = CreatePropertyFromDecl(context, I, Class, PropertyDecl);
+
+								if (Property)
+								{
+									Class->AddCppProperty(Property);
+
+									if (Property->HasAnyPropertyFlags(CPF_Net))
+									{
+										Class->NumReplicatedProperties++;
+									}
+								}
 							}
 						}
 					}
@@ -1301,23 +1349,26 @@ public:
 			auto prev_v8_template = Context->ExportObject(Class);
 			auto ProxyFunctions = prev_v8_template->ToObject(context).ToLocalChecked()->Get(context, I.Keyword("proxy")).ToLocalChecked();
 
-			auto Functions = Opts->Get(I.Keyword("Functions"));
-			TMap<FString, Handle<Value>> Others;
-			if (!Functions.IsEmpty() && Functions->IsObject())
+			auto maybe_Functions = Opts->Get(context, I.Keyword("Functions"));
+			if (!maybe_Functions.IsEmpty())
 			{
-				auto FuncMap = Functions->ToObject(context).ToLocalChecked();
-				auto Function0 = FuncMap->Get(context, I.Keyword("ctor")).ToLocalChecked();
-				auto Function1 = FuncMap->Get(context, I.Keyword("prector")).ToLocalChecked();
+				auto Functions = maybe_Functions.ToLocalChecked();
+				TMap<FString, Handle<Value>> Others;
+				if (!Functions.IsEmpty() && Functions->IsObject())
+				{
+					auto FuncMap = Functions->ToObject(context).ToLocalChecked();
+					auto Function0 = FuncMap->Get(context, I.Keyword("ctor")).ToLocalChecked();
+					auto Function1 = FuncMap->Get(context, I.Keyword("prector")).ToLocalChecked();
 
-				auto ProxyFuncMap = ProxyFunctions->ToObject(context).ToLocalChecked();
-				ProxyFuncMap->Set(context, I.Keyword("ctor"), Function0);
-				ProxyFuncMap->Set(context, I.Keyword("prector"), Function1);
+					auto ProxyFuncMap = ProxyFunctions->ToObject(context).ToLocalChecked();
+					ProxyFuncMap->Set(context, I.Keyword("ctor"), Function0);
+					ProxyFuncMap->Set(context, I.Keyword("prector"), Function1);
+				}
 			}
-
 			Context->Environment->PublicExportUClass(Class);
 
 			auto aftr_v8_template = Context->ExportObject(Class);
-			aftr_v8_template->ToObject(context).ToLocalChecked()->Set(I.Keyword("proxy"), ProxyFunctions);
+			aftr_v8_template->ToObject(context).ToLocalChecked()->Set(context, I.Keyword("proxy"), ProxyFunctions);
 
 			Class->GetDefaultObject(true);
 
@@ -1385,14 +1436,18 @@ public:
 
 				for (decltype(len) Index = 0; Index < len; ++Index)
 				{
-					auto PropertyDecl = arr->Get(len - Index - 1);
-					if (PropertyDecl->IsObject())
+					auto maybe_PropertyDecl = arr->Get(context, len - Index - 1);
+					if (!maybe_PropertyDecl.IsEmpty())
 					{
-						auto Property = CreatePropertyFromDecl(context, I, Struct, PropertyDecl);
-
-						if (Property)
+						auto PropertyDecl = maybe_PropertyDecl.ToLocalChecked();
+						if (PropertyDecl->IsObject())
 						{
-							Struct->AddCppProperty(Property);
+							auto Property = CreatePropertyFromDecl(context, I, Struct, PropertyDecl);
+
+							if (Property)
+							{
+								Struct->AddCppProperty(Property);
+							}
 						}
 					}
 				}
@@ -1433,7 +1488,9 @@ public:
 
 				for (decltype(len) Index = 0; Index < len; ++Index)
 				{
-					auto PropertyDecl = arr->Get(len - Index - 1);
+					auto maybe_PropertyDecl = arr->Get(context, len - Index - 1);
+					if (maybe_PropertyDecl.IsEmpty()) continue;
+					auto PropertyDecl = maybe_PropertyDecl.ToLocalChecked();
 					if (PropertyDecl->IsObject())
 					{
 						auto Property = CreatePropertyFromDecl(context, I, Struct, PropertyDecl);
@@ -1719,18 +1776,19 @@ public:
 
 			auto out = Object::New(isolate);
 
+			auto context_ = isolate->GetCurrentContext();
 			for (auto it = Self->Modules.CreateConstIterator(); it; ++it)
 			{
 				const auto& name = it.Key();
 				const auto& module = it.Value();
 
 				auto FullPath = FPaths::ConvertRelativePathToFull(name);
-				out->Set(V8_String(isolate, name), V8_String(isolate, TCHAR_TO_UTF8(*FullPath)));
+				out->Set(context_, V8_String(isolate, name), V8_String(isolate, TCHAR_TO_UTF8(*FullPath)));
 			}
 
 			info.GetReturnValue().Set(out);
 		};
-		(void)global->SetAccessor(context(), V8_KeywordString(isolate(), "modules"), getter, 0, self);
+		(void)global->SetAccessor(ctx, V8_KeywordString(isolate(), "modules"), getter, 0, self);
 	}
 
 	void ExposeMemory2()
@@ -1830,7 +1888,7 @@ public:
 							{
 								Indices[0] = Index;
 								auto ab = ArrayBuffer::New(info.GetIsolate(), Source->GetMemory(Indices), Inner);
-								out_arr->Set(Index, ab);
+								out_arr->Set(context, Index, ab);
 							}
 
 							(void)function->Call(context, info.This(), 1, argv);

@@ -4,6 +4,7 @@
 #include "Components/Widget.h"
 #include "Framework/Commands/GenericCommands.h"
 #include "JavascriptUICommands.h"
+#include "../../Launch/Resources/Version.h"
 
 FJavascriptUICommandList UJavascriptMenuLibrary::CreateUICommandList()
 {
@@ -242,7 +243,11 @@ FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascript
 	const FString DotOutCommandName = FString::Printf(TEXT(".%s"), *info.Id);
 	const TCHAR* FriendlyName = *info.FriendlyName;
 	const TCHAR* InDescription = *info.Description;
+#if ENGINE_MINOR_VERSION > 22
+	const EUserInterfaceActionType CommandType = EUserInterfaceActionType(info.ActionType.GetValue());
+#else
 	const EUserInterfaceActionType::Type CommandType = EUserInterfaceActionType::Type(info.ActionType.GetValue());
+#endif
 	const FInputChord& InDefaultChord = info.DefaultChord;
 	const FInputChord& InAlternateDefaultChord = FInputChord();
 	const FString IconStyleName = *info.IconStyleName;
