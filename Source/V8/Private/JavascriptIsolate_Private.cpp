@@ -96,6 +96,8 @@ void FArrayBufferAccessor::Discard()
 	GCurrentContents = v8::ArrayBuffer::Contents();
 }
 
+const FName FJavascriptIsolateConstant::MD_BitmaskEnum(TEXT("BitmaskEnum"));
+
 class FJavascriptIsolateImplementation : public FJavascriptIsolate
 {
 public:
@@ -501,7 +503,37 @@ public:
 			return Undefined(isolate_);
 		}
 
-		if (auto p = Cast<UIntProperty>(Property))
+#if WITH_EDITOR
+		const FString& BitmaskEnumName = Property->GetMetaData(FJavascriptIsolateConstant::MD_BitmaskEnum);
+		if (!BitmaskEnumName.IsEmpty())
+		{
+			if (auto p = Cast<UNumericProperty>(Property))
+			{
+				if (p->IsInteger())
+				{
+					const UEnum* BitmaskEnum = FindObject<UEnum>(ANY_PACKAGE, *BitmaskEnumName);
+					int32 EnumCount = BitmaskEnum->NumEnums();
+
+					auto Value = p->GetSignedIntPropertyValue(Property->ContainerPtrToValuePtr<int64>(Buffer));
+
+					TArray<FString> EnumStrings;
+
+					for (int32 i = 0; i < EnumCount-1; ++i)
+					{
+						if (Value & BitmaskEnum->GetValueByIndex(i))
+						{
+							EnumStrings.Add(BitmaskEnum->GetNameStringByIndex(i));
+						}
+					}
+
+					return I.Keyword(FString::Join(EnumStrings, TEXT(",")));
+				}
+			}
+		}		
+#else
+		if (false) {}
+#endif
+		else if (auto p = Cast<UIntProperty>(Property))
 		{
 			return Int32::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
 		}
@@ -681,10 +713,8 @@ public:
 
 			return Out;
 		}
-		else
-		{
-			return I.Keyword("<Unsupported type>");
-		}
+
+		return I.Keyword("<Unsupported type>");
 	}
 
 	void ReadOffStruct(Local<Object> v8_obj, UStruct* Struct, uint8* struct_buffer)
@@ -732,7 +762,33 @@ public:
 
 		if (Value.IsEmpty() || Value->IsUndefined()) return;
 
-		if (auto p = Cast<UIntProperty>(Property))
+#if WITH_EDITOR
+		const FString& BitmaskEnumName = Property->GetMetaData(FJavascriptIsolateConstant::MD_BitmaskEnum);
+		if (!BitmaskEnumName.IsEmpty())
+		{
+			if (auto p = Cast<UNumericProperty>(Property))
+			{
+				if (p->IsInteger())
+				{
+					const UEnum* BitmaskEnum = FindObject<UEnum>(ANY_PACKAGE, *BitmaskEnumName);
+					auto Str = StringFromV8(isolate_, Value);
+					TArray<FString> EnumStrings;
+					Str.ParseIntoArray(EnumStrings, TEXT(","));
+					int64 EnumValue = 0;
+
+					for (int32 i = 0; i < EnumStrings.Num(); ++i)
+					{
+						EnumValue |= BitmaskEnum->GetValueByNameString(*EnumStrings[i], EGetByNameFlags::None);
+					}
+
+					p->SetIntPropertyValue(Property->ContainerPtrToValuePtr<int64>(Buffer), EnumValue);
+				}
+			}
+		}
+#else
+		if (false) {}
+#endif
+		else if (auto p = Cast<UIntProperty>(Property))
 		{
 			p->SetPropertyValue_InContainer(Buffer, Value->Int32Value(isolate_->GetCurrentContext()).ToChecked());
 		}

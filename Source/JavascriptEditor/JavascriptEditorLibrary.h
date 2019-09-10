@@ -377,6 +377,12 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static void ClearActorLabel(AActor* Actor);
 	
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool SetActorLocation(AActor* Actor, FVector NewLocation, bool bSweep, FHitResult& SweepHitResult, bool bTeleport);
+	
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FVector GetActorLocation(AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool IsActorLabelEditable(AActor* Actor);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
@@ -429,7 +435,7 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptUICommandList GetLevelEditorActions();
-
+	
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void AddExtender(FJavascriptExtensibilityManager Manager, FJavascriptExtender Extender);
 	
@@ -531,5 +537,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION()
 	static void NotifyUpdateCurveTable(UCurveTable* InCurveTable);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static bool HasMetaData(UField* Field, const FString& Key);
+
 #endif
 };

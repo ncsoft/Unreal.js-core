@@ -55,3 +55,8 @@ public:
 	virtual void PublicExportStruct(UScriptStruct* StructToExport) = 0;
 	virtual ~FJavascriptIsolate() {}	
 };
+
+struct FJavascriptIsolateConstant
+{
+	static const FName MD_BitmaskEnum;
+};

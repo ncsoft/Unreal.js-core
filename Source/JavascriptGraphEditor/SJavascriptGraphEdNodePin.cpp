@@ -323,10 +323,10 @@ EVisibility SJavascriptGraphPin::GetPinLabelVisibility() const
 		bool bVisible = GraphSchema->OnGetPinLabelVisibility.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) });
 		return bVisible ? EVisibility::Visible : EVisibility::Collapsed;
 	}
-	else if (GraphPinObj->Direction == EGPD_Output)
-	{
-		return EVisibility::Collapsed;
-	}
+// 	else if (GraphPinObj->Direction == EGPD_Output)
+// 	{
+// 		return EVisibility::Collapsed;
+// 	}
 
 	return SGraphPin::GetPinLabelVisibility();
 }

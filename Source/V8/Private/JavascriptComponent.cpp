@@ -80,7 +80,7 @@ void UJavascriptComponent::Deactivate()
 
 void UJavascriptComponent::BeginDestroy()
 {
-	if (!IsRunningCommandlet())
+	if (IsValid(GEngine) && !IsRunningCommandlet())
 	{
 		auto* StaticGameData = Cast<UJavascriptStaticCache>(GEngine->GameSingleton);
 		if (StaticGameData)

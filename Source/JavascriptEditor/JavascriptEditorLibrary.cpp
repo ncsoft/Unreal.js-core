@@ -55,6 +55,7 @@
 #include "Curves/RichCurve.h"
 
 #include "Engine/DataTable.h"
+#include "Engine/EngineTypes.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -552,6 +553,24 @@ void UJavascriptEditorLibrary::SetActorLabel(AActor* Actor, const FString& NewAc
 void UJavascriptEditorLibrary::ClearActorLabel(AActor* Actor)
 {
 	Actor->ClearActorLabel();
+}
+
+bool UJavascriptEditorLibrary::SetActorLocation(AActor* Actor, FVector NewLocation, bool bSweep, FHitResult& SweepHitResult, bool bTeleport)
+{
+	if (IsValid(Actor))
+	{
+		return Actor->SetActorLocation(NewLocation, bSweep, (bSweep ? &SweepHitResult : nullptr), TeleportFlagToEnum(bTeleport));
+	}
+	return false;
+}
+
+FVector UJavascriptEditorLibrary::GetActorLocation(AActor* Actor)
+{
+	if (IsValid(Actor))
+	{
+		return Actor->GetActorLocation();
+	}
+	return FVector::ZeroVector;
 }
 
 bool UJavascriptEditorLibrary::IsActorLabelEditable(AActor* Actor)
@@ -1330,4 +1349,8 @@ void UJavascriptEditorLibrary::NotifyUpdateCurveTable(UCurveTable* InCurveTable)
 	InCurveTable->OnCurveTableChanged().Broadcast();
 }
 
+bool UJavascriptEditorLibrary::HasMetaData(UField* Field, const FString& Key)
+{
+	return Field->HasMetaData(*Key);
+}
 #endif

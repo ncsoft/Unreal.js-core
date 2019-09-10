@@ -231,6 +231,22 @@ static void SetStructFlags(UScriptStruct* Struct, const TArray<FString>& Flags)
 	}
 }
 
+static void SetEnumFlags(UEnum* Enum, const TArray<FString>& Flags)
+{
+	for (const auto& Flag : Flags)
+	{
+		FString Left, Right;
+		if (!Flag.Split(TEXT(":"), &Left, &Right))
+		{
+			Left = Flag;
+		}
+
+#if WITH_EDITOR
+		SetMetaData(Enum, Left, Right);
+#endif
+	}
+}
+
 static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FString>& Decorators, FString Type, bool bIsArray, bool bIsSubclass, bool bIsMap)
 {
 	auto SetupProperty = [&](UProperty* NewProperty) {
@@ -343,6 +359,16 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 			else if (Type == FString("int"))
 			{
 				auto q = NewObject<UIntProperty>(Outer, Name);
+				return q;
+			}
+			else if (Type == FString("uint8"))
+			{
+				auto q = NewObject<UByteProperty>(Outer, Name);
+				return q;
+			}
+			else if (Type == FString("int64"))
+			{
+				auto q = NewObject<UInt64Property>(Outer, Name);
 				return q;
 			}
 			else if (Type == FString("string"))
@@ -968,14 +994,14 @@ public:
 
 					CallClassConstructor(Class->GetSuperClass(), ObjectInitializer);
 
-					{
-						auto func = proxy->ToObject(context).ToLocalChecked()->Get(context, I.Keyword("ctor")).ToLocalChecked();
-
-						if (func->IsFunction())
-						{
-							CallJavascriptFunction(context, This, nullptr, Local<Function>::Cast(func), nullptr);
-						}
-					}
+					// move to javascriptgeneratedclass_*
+// 					{
+// 						auto func = proxy->ToObject(context).ToLocalChecked()->Get(context, I.Keyword("ctor")).ToLocalChecked();
+// 						if (func->IsFunction())
+// 						{
+// 							CallJavascriptFunction(context, This, nullptr, Local<Function>::Cast(func), nullptr);
+// 						}
+// 					}
 
 					Context->ObjectInitializerStack.RemoveAt(Context->ObjectInitializerStack.Num() - 1, 1);
 				}
@@ -2342,6 +2368,27 @@ public:
 		}
 	}
 
+	bool CallProxyFunction(UObject* Holder, UObject* This, const TCHAR* Name, void* Parms)
+	{
+		SCOPE_CYCLE_COUNTER(STAT_JavascriptProxy);
+
+		Isolate::Scope isolate_scope(isolate());
+		HandleScope handle_scope(isolate());
+
+		Context::Scope context_scope(context());
+
+		auto func = GetProxyFunction(context(), Holder, Name);
+		if (!func.IsEmpty() && func->IsFunction())
+		{
+			CallJavascriptFunction(context(), This ? ExportObject(This) : Local<Value>::Cast(context()->Global()), nullptr, Local<Function>::Cast(func), Parms);
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
 	// To tell Unreal engine's GC not to destroy these objects!
 	virtual void AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector) override;
 
@@ -2402,7 +2449,7 @@ inline void FJavascriptContextImplementation::AddReferencedObjects(UObject * InT
 		{
 			It.RemoveCurrent();
 		}
-		else
+		else if (!Object->IsA(AActor::StaticClass()))
 		{
 			Collector.AddReferencedObject(Object, InThis);
 		}
