@@ -26,7 +26,14 @@ namespace v8
 			return nullptr;
 		}
 
-		auto v8_obj = Value->ToObject(context).ToLocalChecked();
+		auto maybe_obj = Value->ToObject(context);
+
+		if (maybe_obj.IsEmpty())
+		{
+			return nullptr;
+		}
+
+		auto v8_obj = maybe_obj.ToLocalChecked();
 		if (v8_obj->InternalFieldCount() == 0)
 		{
 			return nullptr;

@@ -925,7 +925,10 @@ public:
 
 					auto Struct = p->Struct;
 
-					ReadOffStruct(v8_obj.ToLocalChecked(), Struct, struct_buffer);
+					if (!v8_obj.IsEmpty())
+					{
+						ReadOffStruct(v8_obj.ToLocalChecked(), Struct, struct_buffer);
+					}
 				}
 				else
 				{
@@ -2697,7 +2700,12 @@ public:
 		auto arg2 = I.External((void*)&Owner);
 		Handle<Value> args[] = { arg, arg2 };
 
-		auto obj = v8_struct->GetFunction(isolate_->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate_->GetCurrentContext(), 2, args);
+		auto maybe_func = v8_struct->GetFunction(isolate_->GetCurrentContext());
+
+		if (maybe_func.IsEmpty())
+			return Undefined(isolate_);
+
+		auto obj = maybe_func.ToLocalChecked()->NewInstance(isolate_->GetCurrentContext(), 2, args);
 
 		if (obj.IsEmpty())
 			return Undefined(isolate_);
@@ -2716,15 +2724,21 @@ public:
 		auto ObjectPtr = GetContext()->ObjectToObjectMap.Find(Object);
 		if (ObjectPtr == nullptr)
 		{
-			Local<Value> value;
-
 			auto v8_class = ExportUClass(Object->GetClass());
 			auto arg = I.External(Object);
 			Handle<Value> args[] = { arg };
 
-			value = v8_class->GetFunction(isolate_->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate_->GetCurrentContext(), 1, args).ToLocalChecked();
+			auto maybe_func = v8_class->GetFunction(isolate_->GetCurrentContext());
 
-			return value;
+			if (maybe_func.IsEmpty())
+				return Undefined(isolate_);
+
+			auto maybe_value = maybe_func.ToLocalChecked()->NewInstance(isolate_->GetCurrentContext(), 1, args);
+
+			if (maybe_value.IsEmpty())
+				return Undefined(isolate_);
+
+			return maybe_value.ToLocalChecked();
 		}
 		else
 		{
