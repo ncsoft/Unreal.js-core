@@ -17,6 +17,8 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "UObject/PropertyPortFlags.h"
 #include "UObject/ScriptMacros.h"
 #include "UObject/TextProperty.h"
+#include "UObject/ObjectMacros.h"
+#include "UObject/Stack.h"
 
 #if WITH_EDITOR
 #include "TypingGenerator.h"
@@ -556,7 +558,7 @@ static UProperty* DuplicateProperty(UObject* Outer, UProperty* Property, FName N
 	return SetupProperty(Clone());
 };
 
-void UJavascriptGeneratedFunction::Thunk(UObject* Context, FFrame& Stack, RESULT_DECL)
+DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 {
 	auto Function = static_cast<UJavascriptGeneratedFunction*>(Stack.CurrentNativeFunction);
 	auto ProcessInternal = [&](FFrame& Stack, RESULT_DECL)
