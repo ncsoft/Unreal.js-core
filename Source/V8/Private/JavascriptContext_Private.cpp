@@ -2318,14 +2318,44 @@ public:
 
 	Local<Value> GetProxyFunction(Local<Context> Context, UObject* Object, const TCHAR* Name)
 	{
-		auto v8_obj = ExportObject(Object)->ToObject(Context).ToLocalChecked();
-		auto proxy = v8_obj->Get(Context, V8_KeywordString(isolate(), "proxy")).ToLocalChecked();
+		auto exported = ExportObject(Object);
+		if (exported->IsUndefined())
+		{
+			return Undefined(isolate());
+		}
+
+		auto maybe_obj = exported->ToObject(Context);
+		if (maybe_obj.IsEmpty())
+		{
+			return Undefined(isolate());
+		}
+
+		auto maybe_proxy = maybe_obj.ToLocalChecked()->Get(Context, V8_KeywordString(isolate(), "proxy"));
+		if (maybe_proxy.IsEmpty())
+		{
+			return Undefined(isolate());
+		}
+
+		auto proxy = maybe_proxy.ToLocalChecked();
 		if (proxy.IsEmpty() || !proxy->IsObject())
 		{
 			return Undefined(isolate());
 		}
 
-		auto func = proxy->ToObject(Context).ToLocalChecked()->Get(Context, V8_KeywordString(isolate(), Name)).ToLocalChecked();
+		auto maybe_proxyObj = proxy->ToObject(Context);
+		if (maybe_proxyObj.IsEmpty())
+		{
+			return Undefined(isolate());
+		}
+		auto maybe_func = maybe_proxyObj.ToLocalChecked()->Get(Context, V8_KeywordString(isolate(), Name));
+
+		if (maybe_func.IsEmpty())
+		{
+			return Undefined(isolate());
+		}
+		
+		auto func = maybe_func.ToLocalChecked();
+
 		if (func.IsEmpty() || !func->IsFunction())
 		{
 			return Undefined(isolate());
@@ -2401,17 +2431,21 @@ public:
 		HandleScope handle_scope(_isolate);
 		Context::Scope context_scope(context());
 
-		auto global = Local<Value>::Cast(context()->Global())->ToObject(context()).ToLocalChecked();
-		auto func = global->Get(context(), V8_KeywordString(_isolate, "$uncaughtException")).ToLocalChecked();
-		if (!func.IsEmpty() && func->IsFunction())
+		auto maybe_global = Local<Value>::Cast(context()->Global())->ToObject(context());
+		if (!maybe_global.IsEmpty())
 		{
-			auto function = func.As<Function>();
+			auto global = maybe_global.ToLocalChecked();
+			auto func = global->Get(context(), V8_KeywordString(_isolate, "$uncaughtException")).ToLocalChecked();
+			if (!func.IsEmpty() && func->IsFunction())
+			{
+				auto function = func.As<Function>();
 
-			Handle<Value> argv[1];
+				Handle<Value> argv[1];
 
-			argv[0] = V8_String(_isolate, Exception);
+				argv[0] = V8_String(_isolate, Exception);
 
-			(void)function->Call(context(), global, 1, argv);
+				(void)function->Call(context(), global, 1, argv);
+			}
 		}
 	}
 };

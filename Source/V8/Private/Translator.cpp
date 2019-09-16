@@ -48,7 +48,8 @@ namespace v8
 			return nullptr;
 		}
 
-		auto maybe_v8_obj = Value->ToObject(isolate_->GetCurrentContext());
+		auto context = isolate_->GetCurrentContext();
+		auto maybe_v8_obj = Value->ToObject(context);
 		if (maybe_v8_obj.IsEmpty())
 		{
 			return nullptr;
@@ -58,10 +59,14 @@ namespace v8
 
 		if (v8_obj->IsFunction())
 		{
-			auto maybe_vv = v8_obj->Get(isolate_->GetCurrentContext(), V8_KeywordString(isolate_, "StaticClass"));
+			auto maybe_vv = v8_obj->Get(context, V8_KeywordString(isolate_, "StaticClass"));
 			if (!maybe_vv.IsEmpty())
 			{
-				v8_obj = maybe_vv.ToLocalChecked()->ToObject(isolate_->GetCurrentContext()).ToLocalChecked();
+				auto maybe_v8obj = maybe_vv.ToLocalChecked()->ToObject(context);
+				if (!maybe_v8obj.IsEmpty())
+				{
+					v8_obj = maybe_v8obj.ToLocalChecked();
+				}
 			}
 		}
 

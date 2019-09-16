@@ -2029,6 +2029,11 @@ public:
 			auto isolate = info.GetIsolate();
 
 			auto self = info.This();
+
+			if (self->IsUndefined())
+			{
+				return;
+			}
 			auto out = Object::New(isolate);
 
 			auto Instance = FStructMemoryInstance::FromV8(isolate->GetCurrentContext(), self);
@@ -2855,7 +2860,11 @@ public:
 		auto Context = isolate_->GetCurrentContext();
 		if (!Context.IsEmpty())
 		{
-			Context->Global()->Set(Context, name, Template->GetFunction(Context).ToLocalChecked());
+			auto maybe_func = Template->GetFunction(Context);
+			if (!maybe_func.IsEmpty())
+			{
+				Context->Global()->Set(Context, name, maybe_func.ToLocalChecked());
+			}
 		}
 
 		// Register this class to the global template so that any other contexts which will be created later have this function template.
@@ -2892,18 +2901,30 @@ public:
 	void OnGarbageCollectedByV8(FJavascriptContext* Context, FStructMemoryInstance* Memory)
 	{
 		// We should keep ourselves clean
-		Context->MemoryToObjectMap.Remove(Memory->AsShared());
+		v8::UniquePersistent<v8::Value> Persistant;
+		if (Context->MemoryToObjectMap.RemoveAndCopyValue(Memory->AsShared(), Persistant))
+		{
+			Persistant.Reset();
+		}
 	}
 
 	void OnGarbageCollectedByV8(FJavascriptContext* Context, UObject* Object)
 	{
 		if (auto klass = Cast<UClass>(Object))
 		{
-			ClassToFunctionTemplateMap.Remove(klass);
+			v8::UniquePersistent<v8::FunctionTemplate> Template;
+			if (ClassToFunctionTemplateMap.RemoveAndCopyValue(klass, Template))
+			{
+				Template.Reset();
+			}
 		}
 
-		Context->ObjectToObjectMap.Remove(Object);		
-	}	
+		v8::UniquePersistent<v8::Value> Persistant;
+		if (Context->ObjectToObjectMap.RemoveAndCopyValue(Object, Persistant))
+		{
+			Persistant.Reset();
+		}
+	}
 
 	static FJavascriptIsolateImplementation* GetSelf(Isolate* isolate)
 	{
