@@ -116,72 +116,122 @@ void UJavascriptContext::AddReferencedObjects(UObject* InThis, FReferenceCollect
 
 void UJavascriptContext::Expose(FString Name, UObject* Object)
 {
-	JavascriptContext->Expose(Name, Object);
+	if (JavascriptContext.IsValid())
+	{
+		JavascriptContext->Expose(Name, Object);
+	}
 }
 
 FString UJavascriptContext::GetScriptFileFullPath(FString Filename)
 {
-	return JavascriptContext->GetScriptFileFullPath(Filename);
+	if (JavascriptContext.IsValid())
+	{
+		return JavascriptContext->GetScriptFileFullPath(Filename);
+	}
+	return TEXT("");
 }
 
 FString UJavascriptContext::ReadScriptFile(FString Filename)
 {
-	return JavascriptContext->ReadScriptFile(Filename);
+	if (JavascriptContext.IsValid())
+	{
+		return JavascriptContext->ReadScriptFile(Filename);
+	}
+	return TEXT("");
 }
 
 void UJavascriptContext::RunFile(FString Filename)
 {
-	JavascriptContext->Public_RunFile(Filename);
+	if (JavascriptContext.IsValid())
+	{
+		JavascriptContext->Public_RunFile(Filename);
+	}
 }
 
 FString UJavascriptContext::RunScript(FString Script, bool bOutput)
 {
-	return JavascriptContext->Public_RunScript(Script, bOutput);	
+	if (JavascriptContext.IsValid())
+	{
+		return JavascriptContext->Public_RunScript(Script, bOutput);
+	}
+	return TEXT("");
 }
 
 void UJavascriptContext::RequestV8GarbageCollection()
 {
-	JavascriptContext->RequestV8GarbageCollection();
+	if (JavascriptContext.IsValid())
+	{
+		JavascriptContext->RequestV8GarbageCollection();
+	}
 }
 
 void UJavascriptContext::FindPathFile(FString TargetRootPath, FString TargetFileName, TArray<FString>& OutFiles)
 {
-    JavascriptContext->FindPathFile(TargetRootPath, TargetFileName, OutFiles);
+	if (JavascriptContext.IsValid())
+	{
+		JavascriptContext->FindPathFile(TargetRootPath, TargetFileName, OutFiles);
+	}
 }
 
 void UJavascriptContext::CreateInspector(int32 Port)
 {
-	JavascriptContext->CreateInspector(Port);
+	if (JavascriptContext.IsValid())
+	{
+		JavascriptContext->CreateInspector(Port);
+	}
 }
 
 void UJavascriptContext::DestroyInspector()
 {
-	JavascriptContext->DestroyInspector();
+	if (JavascriptContext.IsValid())
+	{
+		JavascriptContext->DestroyInspector();
+	}	
 }
 
 bool UJavascriptContext::IsDebugContext() const
 {
-	return JavascriptContext->IsDebugContext();
+	if (JavascriptContext.IsValid())
+	{
+		return JavascriptContext->IsDebugContext();
+	}
+	return false;
 }
 
 bool UJavascriptContext::WriteAliases(FString Filename)
 {
-	return JavascriptContext->WriteAliases(Filename);
+	if (JavascriptContext.IsValid())
+	{
+		return JavascriptContext->WriteAliases(Filename);
+	}
+	return false;
 }
 
 bool UJavascriptContext::WriteDTS(FString Filename, bool bIncludingTooltip)
 {
-	return JavascriptContext->WriteDTS(Filename, bIncludingTooltip);
+	if (JavascriptContext.IsValid())
+	{
+		return JavascriptContext->WriteDTS(Filename, bIncludingTooltip);
+	}
+	return false;
 }
 
 bool UJavascriptContext::HasProxyFunction(UObject* Holder, UFunction* Function)
 {
-	return JavascriptContext->HasProxyFunction(Holder, Function);
+	if (JavascriptContext.IsValid())
+	{
+		return JavascriptContext->HasProxyFunction(Holder, Function);
+	}
+	return false;
 }
 
 bool UJavascriptContext::CallProxyFunction(UObject* Holder, UObject* This, UFunction* FunctionToCall, void* Parms)
 {
-	return JavascriptContext->CallProxyFunction(Holder, This, FunctionToCall, Parms);
+	if (JavascriptContext.IsValid())
+	{
+		return JavascriptContext->CallProxyFunction(Holder, This, FunctionToCall, Parms);
+	}
+	return false;
 }
 
 void UJavascriptContext::BeginDestroy()

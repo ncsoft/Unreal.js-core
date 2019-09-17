@@ -1707,7 +1707,11 @@ public:
 
 	virtual void PublicExportStruct(UScriptStruct* StructToExport) override
 	{
-		ScriptStructToFunctionTemplateMap.Remove(StructToExport);
+		v8::UniquePersistent<v8::FunctionTemplate> Template;
+		if (ScriptStructToFunctionTemplateMap.RemoveAndCopyValue(StructToExport, Template))
+		{
+			Template.Reset();
+		}
 
 		ExportStruct(StructToExport);
 	}
