@@ -2791,11 +2791,21 @@ public:
 			
 			if (auto Class = Cast<UClass>(Object))
 			{
-				value = ExportUClass(Class)->GetFunction(isolate_->GetCurrentContext()).ToLocalChecked();
+				auto maybe_value = ExportUClass(Class)->GetFunction(isolate_->GetCurrentContext());
+				if (maybe_value.IsEmpty())
+				{
+					return Undefined(isolate_);
+				}
+				value = maybe_value.ToLocalChecked();
 			}
 			else if (auto Struct = Cast<UScriptStruct>(Object))
 			{
-				value = ExportStruct(Struct)->GetFunction(isolate_->GetCurrentContext()).ToLocalChecked();
+				auto maybe_value= ExportStruct(Struct)->GetFunction(isolate_->GetCurrentContext());
+				if (maybe_value.IsEmpty())
+				{
+					return Undefined(isolate_);
+				}
+				value = maybe_value.ToLocalChecked();
 			}
 			else
 			{
@@ -2809,7 +2819,20 @@ public:
 				auto arg = I.External(Object);
 				Handle<Value> args[] = { arg };
 
-				value = v8_class->GetFunction(isolate_->GetCurrentContext()).ToLocalChecked()->NewInstance(isolate_->GetCurrentContext(), 1, args).ToLocalChecked();
+				auto maybe_func = v8_class->GetFunction(isolate_->GetCurrentContext());
+
+				if (maybe_func.IsEmpty())
+				{
+					return Undefined(isolate_);
+				}
+
+				auto maybe_value = maybe_func.ToLocalChecked()->NewInstance(isolate_->GetCurrentContext(), 1, args);
+			
+				if (maybe_value.IsEmpty())
+				{
+					return Undefined(isolate_);
+				}
+				value = maybe_value.ToLocalChecked();
 			}
 
 			return value;
