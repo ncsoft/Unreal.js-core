@@ -1,5 +1,9 @@
 #pragma once
 
+#include "UObject/Class.h"
+#include "UObject/ObjectMacros.h"
+#include "UObject/Stack.h"
+#include "UObject/ScriptMacros.h"
 #include "JavascriptGeneratedFunction.generated.h"
 
 struct FJavascriptContext;

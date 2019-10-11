@@ -430,7 +430,7 @@ public:
 			auto console = InContext->Global()->Get(InContext, I.Keyword("console"));
 			if (!console.IsEmpty())
 			{
-				InContext->Global()->Set(InContext, I.Keyword("$console"), console.ToLocalChecked());
+				(void)InContext->Global()->Set(InContext, I.Keyword("$console"), console.ToLocalChecked());
 			}
 		}
 

@@ -1,5 +1,6 @@
 #include "JavascriptGeneratedFunction.h"
-#include "UObject/Stack.h"
+#include "JavascriptContext_Private.h"
+#include "Engine/BlueprintGeneratedClass.h"
 
 DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 {
@@ -8,10 +9,10 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 	{
 		if (Function->JavascriptContext.IsValid())
 		{
-			auto Ctx = Function->JavascriptContext.Pin();
+			TSharedPtr<FJavascriptContext> Ctx = Function->JavascriptContext.Pin();
 
-			Isolate::Scope isolate_scope(Ctx->isolate());
-			HandleScope handle_scope(Ctx->isolate());
+			v8::Isolate::Scope isolate_scope(Ctx->isolate());
+			v8::HandleScope handle_scope(Ctx->isolate());
 
 			bool bCallRet = Ctx->CallProxyFunction(Function->GetOuter(), P_THIS, Function, Stack.Locals);
 			if (!bCallRet)
@@ -97,7 +98,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 				if (Property->HasAnyPropertyFlags(CPF_ReturnParm))
 				{
 					CA_SUPPRESS(6263)
-						FOutParmRec* RetVal = (FOutParmRec*)FMemory_Alloca(sizeof(FOutParmRec));
+					FOutParmRec* RetVal = (FOutParmRec*)FMemory_Alloca(sizeof(FOutParmRec));
 
 					// Our context should be that we're in a variable assignment to the return value, so ensure that we have a valid property to return to
 					check(RESULT_PARAM != NULL);
@@ -130,7 +131,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 				Stack.Step(Stack.Object, NULL);
 
 				CA_SUPPRESS(6263)
-					FOutParmRec* Out = (FOutParmRec*)FMemory_Alloca(sizeof(FOutParmRec));
+				FOutParmRec* Out = (FOutParmRec*)FMemory_Alloca(sizeof(FOutParmRec));
 				// set the address and property in the out param info
 				// warning: Stack.MostRecentPropertyAddress could be NULL for optional out parameters
 				// if that's the case, we use the extra memory allocated for the out param in the function's locals
