@@ -5,7 +5,7 @@
 DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 {
 	auto Function = static_cast<UJavascriptGeneratedFunction*>(Stack.CurrentNativeFunction);
-	auto ProcessInternal = [&](FFrame& Stack, RESULT_DECL)
+	const auto ProcessInternal = [&](FFrame& Stack, RESULT_DECL)
 	{
 		if (Function->JavascriptContext.IsValid())
 		{
@@ -14,14 +14,14 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 			v8::Isolate::Scope isolate_scope(Ctx->isolate());
 			v8::HandleScope handle_scope(Ctx->isolate());
 
-			bool bCallRet = Ctx->CallProxyFunction(Function->GetOuter(), P_THIS, Function, Stack.Locals);
+			const bool bCallRet = Ctx->CallProxyFunction(Function->GetOuter(), P_THIS, Function, Stack.Locals);
 			if (!bCallRet)
 			{
 				return;
 			}
 
 			UProperty* ReturnProp = ((UFunction*)Stack.Node)->GetReturnProperty();
-			if (ReturnProp != NULL)
+			if (ReturnProp != nullptr)
 			{
 				const bool bHasReturnParam = Function->ReturnValueOffset != MAX_uint16;
 				uint8* ReturnValueAdress = bHasReturnParam ? (Stack.Locals + Function->ReturnValueOffset) : nullptr;
@@ -47,31 +47,33 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 			if (bHasAnyOutParams)
 			{
 				auto OutParm = Stack.OutParms;
-
-				// Iterate over parameters again
-				for (TFieldIterator<UProperty> It(Function); It; ++It)
+				if (OutParm)
 				{
-					UProperty* Param = *It;
-
-					auto PropertyFlags = Param->GetPropertyFlags();
-					if ((PropertyFlags & (CPF_ConstParm | CPF_OutParm)) == CPF_OutParm)
+					// Iterate over parameters again
+					for (TFieldIterator<UProperty> It(Function); It; ++It)
 					{
-						auto Property = OutParm->Property;
-						if (Property != nullptr)
-						{
-							auto ValueAddress = Property->ContainerPtrToValuePtr<uint8>(Stack.Locals);
-							FMemory::Memcpy(OutParm->PropAddr, ValueAddress, Property->ArrayDim * Property->ElementSize);
-						}
-					}
+						UProperty* Param = *It;
 
-					if (PropertyFlags & CPF_OutParm)
-						OutParm = OutParm->NextOutParm;
+						auto PropertyFlags = Param->GetPropertyFlags();
+						if ((PropertyFlags & (CPF_ConstParm | CPF_OutParm)) == CPF_OutParm)
+						{
+							auto Property = OutParm->Property;
+							if (Property != nullptr)
+							{
+								auto ValueAddress = Property->ContainerPtrToValuePtr<uint8>(Stack.Locals);
+								FMemory::Memcpy(OutParm->PropAddr, ValueAddress, Property->ArrayDim * Property->ElementSize);
+							}
+						}
+
+						if (PropertyFlags & CPF_OutParm)
+							OutParm = OutParm->NextOutParm;
+					}
 				}
 			}
 		}
 	};
 
-	bool bIsVMVirtual = Function->GetSuperFunction() && Cast<UBlueprintGeneratedClass>(Function->GetSuperFunction()->GetOuter()) != nullptr;
+	const bool bIsVMVirtual = Function->GetSuperFunction() && Cast<UBlueprintGeneratedClass>(Function->GetSuperFunction()->GetOuter()) != nullptr;
 	if (bIsVMVirtual && *Stack.Code != EX_EndFunctionParms)
 	{
 		uint8* Frame = NULL;
@@ -84,7 +86,14 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 			Frame = (uint8*)FMemory_Alloca(Function->PropertiesSize);
 			FMemory::Memzero(Frame, Function->PropertiesSize);
 		}
+
+// HACK: avoid calling ~FFrame()
+#if PLATFORM_MAC
+		char frameBuffer[sizeof(FFrame)];
+		FFrame& NewStack = *(new (&frameBuffer) FFrame(P_THIS, Function, Frame, &Stack, Function->Children));
+#else
 		FFrame NewStack(P_THIS, Function, Frame, &Stack, Function->Children);
+#endif
 		FOutParmRec** LastOut = &NewStack.OutParms;
 		UProperty* Property;
 
