@@ -87,13 +87,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 			FMemory::Memzero(Frame, Function->PropertiesSize);
 		}
 
-// HACK: avoid calling ~FFrame()
-#if PLATFORM_MAC
-		char frameBuffer[sizeof(FFrame)];
-		FFrame& NewStack = *(new (&frameBuffer) FFrame(P_THIS, Function, Frame, &Stack, Function->Children));
-#else
-		FFrame NewStack(P_THIS, Function, Frame, &Stack, Function->Children);
-#endif
+		FNewFrame NewStack(P_THIS, Function, Frame, &Stack, Function->Children);
 		FOutParmRec** LastOut = &NewStack.OutParms;
 		UProperty* Property;
 
