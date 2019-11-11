@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Components/Widget.h"
 #include "JavascriptGraphEditorLibrary.h"
@@ -112,6 +112,9 @@ class JAVASCRIPTGRAPHEDITOR_API UJavascriptGraphEditorWidget : public UWidget
 
 	UFUNCTION(BlueprintCallable, Category = Content)
 	FVector2D GetPasteLocation();
+
+	UFUNCTION(BlueprintCallable, Category = Content)
+	void NotifyGraphChanged();
 
 protected:
 	// UWidget interface

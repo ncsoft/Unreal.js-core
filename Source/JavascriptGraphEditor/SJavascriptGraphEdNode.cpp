@@ -1,4 +1,4 @@
-#include "SJavascriptGraphEdNode.h"
+﻿#include "SJavascriptGraphEdNode.h"
 #include "SJavascriptGraphEdNodePin.h"
 
 #include "JavascriptGraphEdNode.h"
@@ -10,6 +10,8 @@
 #include "Widgets/SWindow.h"
 #include "Widgets/Images/SImage.h"
 #include "SCommentBubble.h"
+#include "UserWidget.h"
+#include "JavascriptUMGLibrary.h"
 
 TSharedRef<FDragJavascriptGraphNode> FDragJavascriptGraphNode::New(const TSharedRef<SGraphNode>& InDraggedNode)
 {
@@ -175,10 +177,10 @@ TSharedPtr<SWidget> SJavascriptGraphEdNode::GetTitleAreaWidget()
 	auto GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphNode);
 	if (Schema->OnTakeTitleAreaWidget.IsBound())
 	{
-		auto Widget = Schema->OnTakeTitleAreaWidget.Execute(GraphEdNode).Widget;
-		if (Widget.IsValid())
+		UWidget* Widget = Schema->OnTakeTitleAreaWidget.Execute(GraphEdNode);
+		if (Widget)
 		{
-			return Widget;
+			return Widget->TakeWidget();
 		}
 	}
 	return SNew(SBox);
@@ -190,10 +192,10 @@ TSharedPtr<SWidget> SJavascriptGraphEdNode::GetUserWidget()
 	auto GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphNode);
 	if (Schema->OnTakeUserWidget.IsBound())
 	{
-		auto Widget = Schema->OnTakeUserWidget.Execute(GraphEdNode).Widget;
-		if (Widget.IsValid())
+		UWidget* Widget = Schema->OnTakeUserWidget.Execute(GraphEdNode);
+		if (Widget)
 		{
-			return Widget;
+			return Widget->TakeWidget();
 		}
 	}
 	return SNew(SBox);
@@ -210,15 +212,15 @@ TSharedPtr<SWidget> SJavascriptGraphEdNode::GetContentWidget()
 	{
 		if (Schema->OnTakeContentWidget.IsBound())
 		{
-			FJavascriptSlateWidget OutLeftNodeBoxWidget;
-			FJavascriptSlateWidget OutRightNodeBoxWidget;
-			OutLeftNodeBoxWidget.Widget = LeftNodeBoxWidget;
-			OutRightNodeBoxWidget.Widget = RightNodeBoxWidget;
-
-			auto ContentWidget = Schema->OnTakeContentWidget.Execute(GraphEdNode, OutLeftNodeBoxWidget, OutRightNodeBoxWidget).Widget;
-			if (ContentWidget.IsValid())
+			UWidget* OutLeftNodeBoxWidget = UJavascriptUMGLibrary::CreateContainerWidget(LeftNodeBoxWidget.ToSharedRef());
+			UWidget* OutRightNodeBoxWidget = UJavascriptUMGLibrary::CreateContainerWidget(RightNodeBoxWidget.ToSharedRef());
+			if (OutLeftNodeBoxWidget && OutRightNodeBoxWidget)
 			{
-				return ContentWidget;
+				UWidget* ContentWidget = Schema->OnTakeContentWidget.Execute(GraphEdNode, OutLeftNodeBoxWidget, OutRightNodeBoxWidget);
+				if (ContentWidget)
+				{
+					return TSharedPtr<SWidget>(ContentWidget->TakeWidget());
+				}
 			}
 		}
 	}
@@ -260,10 +262,10 @@ TSharedPtr<SWidget> SJavascriptGraphEdNode::ErrorReportingWidget()
 	auto GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphNode);
 	if (Schema->OnTakeErrorReportingWidget.IsBound())
 	{
-		auto Widget = Schema->OnTakeErrorReportingWidget.Execute(GraphEdNode).Widget;
-		if (Widget.IsValid())
+		UWidget* Widget = Schema->OnTakeErrorReportingWidget.Execute(GraphEdNode);
+		if (Widget)
 		{
-			return Widget;
+			return Widget->TakeWidget();
 		}
 	}
 	return SNew(SBox);
@@ -283,7 +285,11 @@ void SJavascriptGraphEdNode::CreatePinWidgets()
 
 			if (Schema->OnCreatePin.IsBound())
 			{
-				NewPin = StaticCastSharedPtr<SGraphPin>(Schema->OnCreatePin.Execute(FJavascriptEdGraphPin{ MyPin }).Widget);
+				UWidget* Widget = Schema->OnCreatePin.Execute(FJavascriptEdGraphPin{ MyPin });
+				if (Widget)
+				{
+					NewPin = StaticCastSharedPtr<SGraphPin>(TSharedPtr<SWidget>(Widget->TakeWidget()));
+				}
 			}
 			if (!NewPin.IsValid())
 			{

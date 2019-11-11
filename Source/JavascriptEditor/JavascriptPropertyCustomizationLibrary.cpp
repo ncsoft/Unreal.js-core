@@ -1,8 +1,10 @@
-#include "JavascriptPropertyCustomizationLibrary.h"
+﻿#include "JavascriptPropertyCustomizationLibrary.h"
 #include "IPropertyTypeCustomization.h"
 #include "IPropertyUtilities.h"
 #include "IDetailChildrenBuilder.h"
 #include "JavascriptPropertyCustomization.h"
+#include "JavascriptUMGLibrary.h"
+#include "Components/Widget.h"
 
 #if WITH_EDITOR
 FJavascriptPropertyHandle UJavascriptPropertyCustomizationLibrary::GetChildHandle(FJavascriptPropertyHandle Parent, FName Name)
@@ -20,13 +22,15 @@ bool UJavascriptPropertyCustomizationLibrary::IsValidHandle(FJavascriptPropertyH
 	return Handle.IsValid();
 }
 
-FJavascriptSlateWidget UJavascriptPropertyCustomizationLibrary::CreatePropertyNameWidget(FJavascriptPropertyHandle Handle, const FText& NameOverride, const FText& ToolTipOverride, bool bDisplayResetToDefault, bool bHideText, bool bHideThumbnail)
+UWidget* UJavascriptPropertyCustomizationLibrary::CreatePropertyNameWidget(FJavascriptPropertyHandle Handle, const FText& NameOverride, const FText& ToolTipOverride, bool bDisplayResetToDefault, bool bHideText, bool bHideThumbnail)
 {
-	return{ Handle->CreatePropertyNameWidget(NameOverride, ToolTipOverride, bDisplayResetToDefault, !bHideText, !bHideThumbnail) };
+	TSharedRef<SWidget> Widget = Handle->CreatePropertyNameWidget(NameOverride, ToolTipOverride, bDisplayResetToDefault, !bHideText, !bHideThumbnail);
+	return UJavascriptUMGLibrary::CreateContainerWidget(Widget);
 }
-FJavascriptSlateWidget UJavascriptPropertyCustomizationLibrary::CreatePropertyValueWidget(FJavascriptPropertyHandle Handle, bool bHideDefaultPropertyButtons)
+UWidget* UJavascriptPropertyCustomizationLibrary::CreatePropertyValueWidget(FJavascriptPropertyHandle Handle, bool bHideDefaultPropertyButtons)
 {
-	return{ Handle->CreatePropertyValueWidget(!bHideDefaultPropertyButtons) };
+	TSharedRef<SWidget> Widget = Handle->CreatePropertyValueWidget(!bHideDefaultPropertyButtons);
+	return UJavascriptUMGLibrary::CreateContainerWidget(Widget);
 }
 FString UJavascriptPropertyCustomizationLibrary::GetMetaData(FJavascriptPropertyHandle Handle, const FName& Key)
 {
@@ -100,9 +104,10 @@ FJavascriptDetailPropertyRow UJavascriptPropertyCustomizationLibrary::AddExterna
 	return { (ChildBuilder->AddExternalObjectProperty(Objects, PropertyName, UniqueIdName, bAllowChildrenOverride, bCreateCategoryNodesOverride)) };
 }
 
-FJavascriptSlateWidget UJavascriptPropertyCustomizationLibrary::GenerateStructValueWidget(FJavascriptDetailChildrenBuilder ChildBuilder, FJavascriptPropertyHandle StructPropertyHandle)
+UWidget* UJavascriptPropertyCustomizationLibrary::GenerateStructValueWidget(FJavascriptDetailChildrenBuilder ChildBuilder, FJavascriptPropertyHandle StructPropertyHandle)
 {
-	return { ChildBuilder->GenerateStructValueWidget(StructPropertyHandle.PropertyHandle.ToSharedRef()) };
+	TSharedRef<SWidget> Widget = ChildBuilder->GenerateStructValueWidget(StructPropertyHandle.PropertyHandle.ToSharedRef());
+	return UJavascriptUMGLibrary::CreateContainerWidget(Widget);
 }
 
 void UJavascriptPropertyCustomizationLibrary::RequestRefresh(FJavascriptPropertyTypeCustomizationUtils CustomizationUtils, bool bForce)
@@ -142,11 +147,11 @@ void UJavascriptPropertyCustomizationLibrary::BindVisibility(FJavascriptDetailPr
 
 
 #pragma region FJavascriptDetailWidgetDecl
-void UJavascriptPropertyCustomizationLibrary::SetContent(FJavascriptDetailWidgetDecl Decl, FJavascriptSlateWidget Widget)
+void UJavascriptPropertyCustomizationLibrary::SetContent(FJavascriptDetailWidgetDecl Decl, UWidget* Widget)
 {
-	if (Widget.Widget.IsValid())
+	if (Widget)
 	{
-		Decl.Get()[Widget.Widget.ToSharedRef()];
+		Decl.Get()[Widget->TakeWidget()];
 	}	
 }
 void UJavascriptPropertyCustomizationLibrary::SetVAlign(FJavascriptDetailWidgetDecl Decl, EVerticalAlignment InAlignment)

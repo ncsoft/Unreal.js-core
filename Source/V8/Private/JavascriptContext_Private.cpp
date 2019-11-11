@@ -1,4 +1,4 @@
-PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+﻿PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptContext_Private.h"
 #include "JavascriptIsolate.h"
@@ -2185,14 +2185,14 @@ public:
 		auto func = GetProxyFunction(context(), Holder, FunctionToCall);
 		if (!func.IsEmpty() && func->IsFunction())
 		{
-			CallJavascriptFunction(context(), This ? ExportObject(This) : Local<Value>::Cast(context()->Global()), FunctionToCall, Local<Function>::Cast(func), Parms);
-
-			return true;
+			auto th = This ? ExportObject(This) : Local<Value>::Cast(context()->Global());
+			if (!th->IsUndefined())
+			{
+				CallJavascriptFunction(context(), th, FunctionToCall, Local<Function>::Cast(func), Parms);
+				return true;
+			}
 		}
-		else
-		{
-			return false;
-		}
+		return false;
 	}
 
 	bool CallProxyFunction(UObject* Holder, UObject* This, const TCHAR* Name, void* Parms)
@@ -2207,13 +2207,14 @@ public:
 		auto func = GetProxyFunction(context(), Holder, Name);
 		if (!func.IsEmpty() && func->IsFunction())
 		{
-			CallJavascriptFunction(context(), This ? ExportObject(This) : Local<Value>::Cast(context()->Global()), nullptr, Local<Function>::Cast(func), Parms);
-			return true;
+			auto th = This ? ExportObject(This) : Local<Value>::Cast(context()->Global());
+			if (!th->IsUndefined())
+			{
+				CallJavascriptFunction(context(), th, nullptr, Local<Function>::Cast(func), Parms);
+				return true;
+			}
 		}
-		else
-		{
-			return false;
-		}
+		return false;
 	}
 
 	// To tell Unreal engine's GC not to destroy these objects!

@@ -1,5 +1,8 @@
-#include "JavascriptProcess.h"
+﻿#include "JavascriptProcess.h"
 
+#if PLATFORM_WINDOWS
+#include "WindowsHWrapper.h"
+#endif
 //PRAGMA_DISABLE_OPTIMIZATION
 
 UJavascriptProcess::UJavascriptProcess(const FObjectInitializer& ObjectInitializer)

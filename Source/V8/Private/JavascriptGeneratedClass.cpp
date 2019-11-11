@@ -1,5 +1,6 @@
-#include "JavascriptGeneratedClass.h"
+﻿#include "JavascriptGeneratedClass.h"
 #include "JavascriptGeneratedClass_Native.h"
+#include "JavascriptContext_Private.h"
 #include "UObject/UnrealType.h"
 
 void UJavascriptGeneratedClass::InitPropertiesFromCustomList(uint8* DataPtr, const uint8* DefaultDataPtr)

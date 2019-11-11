@@ -1,4 +1,4 @@
-using UnrealBuildTool;
+﻿using UnrealBuildTool;
 using System.IO;
 using System;
 
@@ -152,6 +152,8 @@ public class V8 : ModuleRules
             }
 
             PublicDefinitions.Add(string.Format("WITH_V8=1"));
+
+            PublicDefinitions.Add(string.Format("USING_V8_PLATFORM_SHARED=0"));
 
             return true;
         }
@@ -311,6 +313,7 @@ public class V8 : ModuleRules
 
             return true;
         }
+
         PublicDefinitions.Add(string.Format("WITH_V8=0"));
         return false;
     }

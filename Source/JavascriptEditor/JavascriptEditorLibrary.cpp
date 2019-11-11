@@ -1,4 +1,4 @@
-#include "JavascriptEditorLibrary.h"
+﻿#include "JavascriptEditorLibrary.h"
 #include "LandscapeComponent.h"
 
 // WORKAROUND for 4.15
@@ -56,6 +56,7 @@
 
 #include "Engine/DataTable.h"
 #include "Engine/EngineTypes.h"
+#include "JavascriptUMGLibrary.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -637,18 +638,22 @@ UObject* UJavascriptEditorLibrary::GetPrimaryObject(const FJavascriptTransaction
 	return Transaction->GetContext().PrimaryObject;
 }
 
-void UJavascriptEditorLibrary::EditorAddModalWindow(FJavascriptSlateWidget Widget)
+void UJavascriptEditorLibrary::EditorAddModalWindow(UWidget* Widget)
 {
-	auto Window = StaticCastSharedPtr<SWindow>(Widget.Widget);
-	if (Window.IsValid())
+	if (Widget)
 	{
-		GEditor->EditorAddModalWindow(Window.ToSharedRef());
-	}
+		auto Window = StaticCastSharedPtr<SWindow>(TSharedPtr<SWidget>(Widget->TakeWidget()));
+		if (Window.IsValid())
+		{
+			GEditor->EditorAddModalWindow(Window.ToSharedRef());
+		}
+	}	
 }
 
-FJavascriptSlateWidget UJavascriptEditorLibrary::GetRootWindow()
+UWidget* UJavascriptEditorLibrary::GetRootWindow()
 {
-	return {StaticCastSharedPtr<SWidget>(FGlobalTabmanager::Get()->GetRootWindow())};
+	TSharedRef<SWidget> Widget = StaticCastSharedPtr<SWidget>(FGlobalTabmanager::Get()->GetRootWindow()).ToSharedRef();
+	return UJavascriptUMGLibrary::CreateContainerWidget(Widget);
 }
 
 void UJavascriptEditorLibrary::CreatePropertyEditorToolkit(TArray<UObject*> ObjectsForPropertiesMenu)
@@ -944,12 +949,11 @@ void UJavascriptEditorLibrary::CreateLogListing(const FName& InLogName, const FT
 	MessageLogModule.RegisterLogListing(InLogName, InLabel, InitOptions);
 }
 
-FJavascriptSlateWidget UJavascriptEditorLibrary::CreateLogListingWidget(const FName& InLogName)
+UWidget* UJavascriptEditorLibrary::CreateLogListingWidget(const FName& InLogName)
 {
 	FMessageLogModule& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>("MessageLog");
-	FJavascriptSlateWidget Out;
-	Out.Widget = MessageLogModule.CreateLogListingWidget(MessageLogModule.GetLogListing(InLogName));
-	return Out;
+	TSharedRef<SWidget> Widget = MessageLogModule.CreateLogListingWidget(MessageLogModule.GetLogListing(InLogName));
+	return UJavascriptUMGLibrary::CreateContainerWidget(Widget);
 }
 
 void UJavascriptEditorLibrary::AddLogListingMessage(const FName& InLogName, EJavascriptMessageSeverity::Type InSeverity, const FString& LogText)

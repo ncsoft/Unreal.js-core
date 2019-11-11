@@ -1,4 +1,4 @@
-#include "JavascriptWindow.h"
+﻿#include "JavascriptWindow.h"
 #include "Widgets/SWindow.h"
 #include "Launch/Resources/Version.h"
 
@@ -54,10 +54,16 @@ TSharedRef<SWidget> UJavascriptWindow::RebuildWidget()
 		.SaneWindowPlacement(SaneWindowPlacement)
 		.LayoutBorder(LayoutBorder)
 		.UserResizeBorder(UserResizeBorder)
+		.IsTopmostWindow(IsTopmostWindow)
 		.Content()
 			[
 				Content == nullptr ? SNullWidget::NullWidget : Content->TakeWidget()
 			];
+
+	Window->SetOnWindowClosed(FOnWindowClosed::CreateLambda([&](const TSharedRef<SWindow>&)
+	{
+		OnWindowClosed.ExecuteIfBound();
+	}));
 
 	WeakWindow = Window;
 	return Window;

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Components//ContentWidget.h"
 #include "Styling/SlateTypes.h"
@@ -70,6 +70,8 @@ UCLASS(Experimental)
 class JAVASCRIPTUMG_API UJavascriptWindow : public UContentWidget
 {
 	GENERATED_UCLASS_BODY()
+
+	DECLARE_DYNAMIC_DELEGATE(FOnWindowWidgetClosed);
 
 public:		
 	/** Type of this window */
@@ -156,6 +158,14 @@ public:
 	/** The margin around the edges of the window that will be detected as places the user can grab to resize the window. */
 	UPROPERTY()
 	FMargin UserResizeBorder;
+
+	/** Sets the delegate to execute right before the window is closed */
+	UPROPERTY()
+	FOnWindowWidgetClosed OnWindowClosed;
+
+	/** True if this window should always be on top of all other windows */
+	UPROPERTY()
+	bool IsTopmostWindow;
 	
 	// UWidget interface
 	virtual TSharedRef<SWidget> RebuildWidget() override;

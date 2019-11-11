@@ -1,4 +1,4 @@
-#include "JavascriptUMGLibrary.h"
+﻿#include "JavascriptUMGLibrary.h"
 #include "JavascriptWidget.h"
 #include "Components/NativeWidgetHost.h"
 #include "Styling/SlateStyleRegistry.h"
@@ -69,67 +69,80 @@ void UJavascriptUMGLibrary::AddFontInfo(FJavascriptSlateStyle StyleSet, FName Pr
 	StyleSet.Handle->Set(PropertyName, FontInfo);
 }
 
-FJavascriptSlateWidget UJavascriptUMGLibrary::TakeWidget(UWidget* Widget)
-{
-	FJavascriptSlateWidget Out;
-	if (Widget)
-	{
-		Out.Widget = Widget->TakeWidget();
-	}
-	return Out;
-}
-
-UWidget* UJavascriptUMGLibrary::SetContent(UNativeWidgetHost* TargetWidget, FJavascriptSlateWidget SlateWidget)
+UWidget* UJavascriptUMGLibrary::SetContent(UNativeWidgetHost* TargetWidget, UWidget* SourceWidget)
 {
 	UWidget* Widget = nullptr;
-	if (TargetWidget != nullptr && SlateWidget.Widget.IsValid())
+	if (TargetWidget && SourceWidget)
 	{
-		TargetWidget->SetContent(SlateWidget.Widget.ToSharedRef());
+		TargetWidget->SetContent(SourceWidget->TakeWidget());
 		Widget = Cast<UWidget>(TargetWidget);
 	}
 
 	return Widget;
 }
 
-void UJavascriptUMGLibrary::AddWindowAsNativeChild(FJavascriptSlateWidget NewWindow, FJavascriptSlateWidget RootWindow)
+void UJavascriptUMGLibrary::AddWindowAsNativeChild(UWidget* NewWindow, UWidget* RootWindow)
 {
-	auto New = StaticCastSharedPtr<SWindow>(NewWindow.Widget);
-	auto Root = StaticCastSharedPtr<SWindow>(RootWindow.Widget);
-
-	if (New.IsValid() && Root.IsValid())
+	if (NewWindow && RootWindow)
 	{
-		FSlateApplication::Get().AddWindowAsNativeChild(New.ToSharedRef(), Root.ToSharedRef());
-	}
-}
+		auto New = StaticCastSharedPtr<SWindow>(TSharedPtr<SWidget>(NewWindow->TakeWidget()));
+		auto Root = StaticCastSharedPtr<SWindow>(TSharedPtr<SWidget>(RootWindow->TakeWidget()));
 
-void UJavascriptUMGLibrary::AddWindow(FJavascriptSlateWidget NewWindow, const bool bShowImmediately)
-{
-	auto New = StaticCastSharedPtr<SWindow>(NewWindow.Widget);
-
-	if (New.IsValid())
-	{
-		FSlateApplication::Get().AddWindow(New.ToSharedRef(), bShowImmediately);
-	}
-}
-
-void UJavascriptUMGLibrary::ShowWindow(FJavascriptSlateWidget NewWindow)
-{
-	auto New = StaticCastSharedPtr<SWindow>(NewWindow.Widget);
-
-	if (New.IsValid())
-	{
-		auto SlateWindow = New.ToSharedRef();
-		SlateWindow->ShowWindow();
-		//@todo Slate: Potentially dangerous and annoying if all slate windows that are created steal focus.
-		if (SlateWindow->SupportsKeyboardFocus() && SlateWindow->IsFocusedInitially())
+		if (New.IsValid() && Root.IsValid())
 		{
-			SlateWindow->GetNativeWindow()->SetWindowFocus();
+			FSlateApplication::Get().AddWindowAsNativeChild(New.ToSharedRef(), Root.ToSharedRef());
 		}
-	}
+	}	
+}
+
+void UJavascriptUMGLibrary::AddWindow(UWidget* NewWindow, const bool bShowImmediately)
+{
+	if (NewWindow)
+	{
+		auto New = StaticCastSharedPtr<SWindow>(TSharedPtr<SWidget>(NewWindow->TakeWidget()));
+
+		if (New.IsValid())
+		{
+			FSlateApplication::Get().AddWindow(New.ToSharedRef(), bShowImmediately);
+		}
+	}	
+}
+
+void UJavascriptUMGLibrary::ShowWindow(UWidget* NewWindow)
+{
+	if (NewWindow)
+	{
+		auto New = StaticCastSharedPtr<SWindow>(TSharedPtr<SWidget>(NewWindow->TakeWidget()));
+
+		if (New.IsValid())
+		{
+			auto SlateWindow = New.ToSharedRef();
+			SlateWindow->ShowWindow();
+			//@todo Slate: Potentially dangerous and annoying if all slate windows that are created steal focus.
+			if (SlateWindow->SupportsKeyboardFocus() && SlateWindow->IsFocusedInitially())
+			{
+				SlateWindow->GetNativeWindow()->SetWindowFocus();
+			}
+		}
+	}	
 }
 
 FVector2D UJavascriptUMGLibrary::GenerateDynamicImageResource(const FName InDynamicBrushName)
 {
 	FIntPoint Size = FSlateApplication::Get().GetRenderer()->GenerateDynamicImageResource(InDynamicBrushName);
 	return FVector2D(Size.X, Size.Y);
+}
+
+UWidget* UJavascriptUMGLibrary::CreateContainerWidget(TSharedRef<SWidget> Slate)
+{
+	UWidget* Widget = nullptr;
+	UPackage* Package = ::CreatePackage(nullptr, TEXT("/Script/Javascript"));
+	UNativeWidgetHost* NativeWidget = NewObject<UNativeWidgetHost>(Package, UNativeWidgetHost::StaticClass(), NAME_None, RF_Transactional);
+	if (NativeWidget)
+	{
+		NativeWidget->SetContent(Slate);
+		Widget = Cast<UWidget>(NativeWidget);
+	}
+
+	return Widget;
 }

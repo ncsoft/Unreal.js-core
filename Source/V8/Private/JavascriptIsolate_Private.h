@@ -1,6 +1,7 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Translator.h"
 #include "V8PCH.h"
 
 struct FStructMemoryInstance;

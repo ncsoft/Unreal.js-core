@@ -1,6 +1,7 @@
-#include "JavascriptGraphEdNodeWidget.h"
+﻿#include "JavascriptGraphEdNodeWidget.h"
 #include "NodeFactory.h"
 #include "Widgets/Layout/SBox.h"
+#include "JavascriptGraphEdNode.h"
 
 UJavascriptGraphEdNodeWidget::UJavascriptGraphEdNodeWidget(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)

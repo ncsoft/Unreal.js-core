@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "JavascriptGraphEditorLibrary.h"
@@ -77,7 +77,7 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_RetVal_FourParams(bool, FOnDrawSplineWithArrow_Geom, const FGeometry&, A, const FGeometry&, B, const FJavascriptConnectionParams&, Params, FJavascriptGraphConnectionDrawingPolicyContainer, Container);
 
 	/** Delegate for constructing a UWidget based on a UObject */
-	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FJavascriptSlateWidget, FOnTakeWidget, UJavascriptGraphEdNode*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(UWidget*, FOnTakeWidget, UJavascriptGraphEdNode*, Instance);
 
 	/** Delegate for constructing a UWidget based on a UObject */
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FText, FOnGetString, const UJavascriptGraphEdNode*, Instance, EGraphSchemaGetStringQuery, Query);
@@ -96,7 +96,7 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FOnCreateAutomaticConversionNodeAndConnections, FJavascriptEdGraphPin, A, FJavascriptEdGraphPin, B);
 	
 	/** Delegate for constructing a UWidget based on a UObject */
-	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FJavascriptSlateWidget, FOnCreatePin, FJavascriptEdGraphPin, Pin);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(UWidget*, FOnCreatePin, FJavascriptEdGraphPin, Pin);
 	
 	DECLARE_DYNAMIC_DELEGATE_RetVal_FiveParams(bool, FOnDetermineLinkGeometry, FJavascriptEdGraphPin, OutPin, FJavascriptEdGraphPin, InputPin, FJavascriptArrangedWidget&, StartWidgetGeometry, FJavascriptArrangedWidget&, EndWidgetGeometry, FJavascriptDetermineLinkGeometryContainer, Container);
 
@@ -118,7 +118,7 @@ public:
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnGetBoolean_GraphPin, FJavascriptEdGraphPin, Pin);
 
-	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(FJavascriptSlateWidget, FOnTakeContentWidget, UJavascriptGraphEdNode*, Instance, FJavascriptSlateWidget, OutLeftNodeBoxWidget, FJavascriptSlateWidget, OutRightNodeBoxWidget);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(UWidget*, FOnTakeContentWidget, UJavascriptGraphEdNode*, Instance, UWidget*, OutLeftNodeBoxWidget, UWidget*, OutRightNodeBoxWidget);
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FSlateColor, FOnGetPinColor, bool, bHovered, FJavascriptEdGraphPin, Pin);
 

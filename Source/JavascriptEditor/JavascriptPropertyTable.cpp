@@ -1,5 +1,6 @@
-#include "JavascriptPropertyTable.h"
+﻿#include "JavascriptPropertyTable.h"
 #include "IPropertyTableColumn.h"
+#include "PropertyEditorModule.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptPropertyTable"
 

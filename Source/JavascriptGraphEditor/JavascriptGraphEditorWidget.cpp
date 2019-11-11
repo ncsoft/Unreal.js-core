@@ -1,4 +1,4 @@
-#include "JavascriptGraphEditorWidget.h"
+﻿#include "JavascriptGraphEditorWidget.h"
 #include "JavascriptGraphAssetGraphSchema.h"
 #include "JavascriptGraphEdGraph.h"
 #include "Kismet2/BlueprintEditorUtils.h"
@@ -169,4 +169,13 @@ void UJavascriptGraphEditorWidget::HandleDropActors(const TArray< TWeakObjectPtr
 void UJavascriptGraphEditorWidget::HandleDisallowedPinConnection(const UEdGraphPin* A, const UEdGraphPin* B)
 {
 	OnDisallowedPinConnection.ExecuteIfBound(const_cast<UEdGraphPin*>(A), const_cast<UEdGraphPin*>(B));
+}
+
+void UJavascriptGraphEditorWidget::NotifyGraphChanged()
+{
+	auto Widget = StaticCastSharedPtr<SGraphEditor>(GetCachedWidget());
+	if (Widget.IsValid())
+	{
+		Widget->NotifyGraphChanged();
+	}
 }

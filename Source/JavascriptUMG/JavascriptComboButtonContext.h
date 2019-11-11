@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "JavascriptUMGLibrary.h"
 #include "JavascriptComboButtonContext.generated.h"
@@ -15,7 +15,7 @@ public:
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal(FText, FTextDelegate);
 	DECLARE_DYNAMIC_DELEGATE_RetVal(FJavascriptSlateIcon, FIconDelegate);
-	DECLARE_DYNAMIC_DELEGATE_RetVal(FJavascriptSlateWidget, FWidgetDelegate);
+	DECLARE_DYNAMIC_DELEGATE_RetVal(UWidget*, FWidgetDelegate);
 	DECLARE_DYNAMIC_DELEGATE_RetVal(bool, FBoolDelegate);
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))

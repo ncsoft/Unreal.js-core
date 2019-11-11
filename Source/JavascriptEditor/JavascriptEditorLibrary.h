@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "JavascriptEditorGlobalDelegates.h"
 #include "LandscapeProxy.h"
@@ -419,10 +419,10 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static UObject* GetPrimaryObject(const FJavascriptTransaction& Transaction);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void EditorAddModalWindow(FJavascriptSlateWidget Widget);
+	static void EditorAddModalWindow(UWidget* Widget);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static FJavascriptSlateWidget GetRootWindow();
+	static UWidget* GetRootWindow();
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void CreatePropertyEditorToolkit(TArray<UObject*> ObjectsForPropertiesMenu);
@@ -482,7 +482,7 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static void CreateLogListing(const FName& InLogName, const FText& InLabel);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FJavascriptSlateWidget CreateLogListingWidget(const FName& InLogName);
+	static UWidget* CreateLogListingWidget(const FName& InLogName);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddLogListingMessage(const FName& InLogName, EJavascriptMessageSeverity::Type InSeverity, const FString& LogText);

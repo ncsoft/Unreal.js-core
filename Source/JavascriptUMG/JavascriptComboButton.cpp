@@ -1,4 +1,4 @@
-#include "JavascriptComboButton.h"
+﻿#include "JavascriptComboButton.h"
 #include "Widgets/Input/SComboButton.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
@@ -24,8 +24,8 @@ TSharedRef<SWidget> UJavascriptComboButton::RebuildWidget()
 		.OnGetMenuContent_Lambda([this]() {
 			if (OnGetMenuContent.IsBound()) 
 			{
-				auto Content = OnGetMenuContent.Execute();
-				return Content.Widget.IsValid() ? Content.Widget.ToSharedRef() : SNullWidget::NullWidget;
+				UWidget* Content = OnGetMenuContent.Execute();
+				return Content ? Content->TakeWidget() : SNullWidget::NullWidget;
 			}
 			else
 			{
