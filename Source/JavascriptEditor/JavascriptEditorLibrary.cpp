@@ -13,6 +13,7 @@
 #include "BSPOps.h"
 #include "Misc/HotReloadInterface.h"
 #include "JavascriptUMG/JavascriptWindow.h"
+#include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "Editor/PropertyEditor/Public/PropertyEditorModule.h"
 #include "Toolkits/AssetEditorToolkit.h"
 #include "LevelEditor.h"
@@ -56,7 +57,6 @@
 
 #include "Engine/DataTable.h"
 #include "Engine/EngineTypes.h"
-#include "JavascriptUMGLibrary.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)

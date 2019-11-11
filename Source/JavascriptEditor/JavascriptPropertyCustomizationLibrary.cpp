@@ -3,7 +3,7 @@
 #include "IPropertyUtilities.h"
 #include "IDetailChildrenBuilder.h"
 #include "JavascriptPropertyCustomization.h"
-#include "JavascriptUMGLibrary.h"
+#include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "Components/Widget.h"
 
 #if WITH_EDITOR

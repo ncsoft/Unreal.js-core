@@ -3,7 +3,6 @@
 #include "JavascriptEditorGlobalDelegates.h"
 #include "LandscapeProxy.h"
 #include "JavascriptUMG/JavascriptMenuLibrary.h"
-#include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "JavascriptInputEventStateLibrary.h"
 #include "Editor/Transactor.h"
 #include "Engine/Brush.h"

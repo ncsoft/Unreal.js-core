@@ -10,8 +10,8 @@
 #include "Widgets/SWindow.h"
 #include "Widgets/Images/SImage.h"
 #include "SCommentBubble.h"
-#include "UserWidget.h"
-#include "JavascriptUMGLibrary.h"
+#include "Blueprint/UserWidget.h"
+#include "JavascriptUMG/JavascriptUMGLibrary.h"
 
 TSharedRef<FDragJavascriptGraphNode> FDragJavascriptGraphNode::New(const TSharedRef<SGraphNode>& InDraggedNode)
 {
