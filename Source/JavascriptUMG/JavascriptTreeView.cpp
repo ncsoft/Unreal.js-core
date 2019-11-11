@@ -99,15 +99,7 @@ TSharedRef<STableViewBase> UJavascriptTreeView::RebuildListWidget()
 
 void UJavascriptTreeView::ProcessEvent(UFunction* Function, void* Parms)
 {
-	///@hack: "Destruct" does not call the proxy function.
-	bool bDestructCall = false;
-	if (Function)
-	{
-		if (Function->GetFName() == TEXT("Destruct"))
-			bDestructCall = true;
-	}
-
-	if (!bDestructCall && JavascriptContext && JavascriptContext->CallProxyFunction(this, this, Function, Parms))
+	if (JavascriptContext && JavascriptContext->CallProxyFunction(this, this, Function, Parms))
 	{
 		return;
 	}
