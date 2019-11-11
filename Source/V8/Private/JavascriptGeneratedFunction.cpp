@@ -87,7 +87,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 			FMemory::Memzero(Frame, Function->PropertiesSize);
 		}
 
-		FNewFrame NewStack(P_THIS, Function, Frame, &Stack, Function->Children);
+		FFrame NewStack(P_THIS, Function, Frame, &Stack, Function->Children);
 		FOutParmRec** LastOut = &NewStack.OutParms;
 		UProperty* Property;
 

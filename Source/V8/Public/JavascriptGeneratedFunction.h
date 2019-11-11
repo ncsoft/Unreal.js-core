@@ -8,15 +8,6 @@
 
 struct FJavascriptContext;
 
-struct FNewFrame : public FFrame
-{
-	FNewFrame(UObject* InObject, UFunction* InNode, void* InLocals, FFrame* InPreviousFrame,
-		UField* InPropertyChainForCompiledIn)
-		: FFrame(InObject, InNode, InLocals, InPreviousFrame, InPropertyChainForCompiledIn)
-	{
-	}
-};
-
 UCLASS()
 class V8_API UJavascriptGeneratedFunction : public UFunction
 {
