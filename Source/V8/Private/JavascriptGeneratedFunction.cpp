@@ -2,6 +2,8 @@
 #include "JavascriptContext_Private.h"
 #include "Engine/BlueprintGeneratedClass.h"
 
+PRAGMA_DISABLE_MISSING_VIRTUAL_DESTRUCTOR_WARNINGS
+
 DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 {
 	auto Function = static_cast<UJavascriptGeneratedFunction*>(Stack.CurrentNativeFunction);
@@ -209,3 +211,5 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 		ProcessInternal(Stack, RESULT_PARAM);
 	}
 }
+
+PRAGMA_ENABLE_MISSING_VIRTUAL_DESTRUCTOR_WARNINGS

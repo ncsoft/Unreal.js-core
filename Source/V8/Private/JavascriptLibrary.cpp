@@ -22,39 +22,6 @@
 #include "Internationalization/Text.h"
 #include "Internationalization/Internationalization.h"
 
-#if WITH_EDITOR
-template <typename Type>
-static void SetMetaData(Type* Object, const FString& Key, const FString& Value)
-{
-	if (Key.Compare(TEXT("None"), ESearchCase::IgnoreCase) == 0 || Key.Len() == 0) return;
-
-	if (Value.Len() == 0)
-	{
-		Object->SetMetaData(*Key, TEXT("true"));
-	}
-	else
-	{
-		Object->SetMetaData(*Key, *Value);
-	}
-}
-#endif
-
-static void SetEnumFlags(UEnum* Enum, const TArray<FString>& Flags)
-{
-	for (const auto& Flag : Flags)
-	{
-		FString Left, Right;
-		if (!Flag.Split(TEXT(":"), &Left, &Right))
-		{
-			Left = Flag;
-		}
-
-#if WITH_EDITOR
-		SetMetaData(Enum, Left, Right);
-#endif
-	}
-}
-
 struct FPrivateSocketHandle
 {
 	FPrivateSocketHandle(ISocketSubsystem* InSocketSub, FSocket* InSocket)

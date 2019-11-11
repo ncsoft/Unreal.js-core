@@ -77,23 +77,6 @@ static TArray<FString> StringArrayFromV8(Isolate* isolate, Handle<Value> InArray
 	return OutArray;
 };
 
-#if WITH_EDITOR
-template <typename Type>
-static void SetMetaData(Type* Object, const FString& Key, const FString& Value)
-{
-	if (Key.Compare(TEXT("None"), ESearchCase::IgnoreCase) == 0 || Key.Len() == 0) return;
-
-	if (Value.Len() == 0)
-	{
-		Object->SetMetaData(*Key, TEXT("true"));
-	}
-	else
-	{
-		Object->SetMetaData(*Key, *Value);
-	}
-}
-#endif
-
 static void SetFunctionFlags(UFunction* Function, const TArray<FString>& Flags)
 {
 	static struct FKeyword {
@@ -228,22 +211,6 @@ static void SetStructFlags(UScriptStruct* Struct, const TArray<FString>& Flags)
 		{
 			SetMetaData(Struct, Left, Right);
 		}
-#endif
-	}
-}
-
-static void SetEnumFlags(UEnum* Enum, const TArray<FString>& Flags)
-{
-	for (const auto& Flag : Flags)
-	{
-		FString Left, Right;
-		if (!Flag.Split(TEXT(":"), &Left, &Right))
-		{
-			Left = Flag;
-		}
-
-#if WITH_EDITOR
-		SetMetaData(Enum, Left, Right);
 #endif
 	}
 }
