@@ -36,13 +36,15 @@ public class V8 : ModuleRules
     public V8(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+        bLegacyPublicIncludePaths = false;
+        ShadowVariableWarningLevel = WarningLevel.Error;
         PrivateIncludePaths.AddRange(new string[]
         {
             Path.Combine(ThirdPartyPath, "v8", "include")
         });
 
-        PublicDependencyModuleNames.AddRange(new string[] 
-        { 
+        PublicDependencyModuleNames.AddRange(new string[]
+        {
             "Core", "CoreUObject", "Engine", "Sockets", "ApplicationCore", "NavigationSystem", "OpenSSL"
         });
 
@@ -53,13 +55,13 @@ public class V8 : ModuleRules
                 "DirectoryWatcher"
             });
         }
-        
+
         HackWebSocketIncludeDir(Path.Combine(Directory.GetCurrentDirectory(), "ThirdParty", "libWebSockets", "libWebSockets"), Target);
 
         if (Target.bBuildEditor)
         {
-            PrivateDependencyModuleNames.AddRange(new string[] 
-            { 
+            PrivateDependencyModuleNames.AddRange(new string[]
+            {
                 "UnrealEd"
             });
         }
@@ -71,18 +73,16 @@ public class V8 : ModuleRules
 
     private void HackWebSocketIncludeDir(String WebsocketPath, ReadOnlyTargetRules Target)
     {
-        string PlatformSubdir = (Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32") ? "Win32" :
-        	Target.Platform.ToString();
+        string PlatformSubdir = Target.Platform.ToString();
 
         bool bHasZlib = false;
 
-        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Win32 ||
-			(Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32"))
+        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Win32)
         {
             PlatformSubdir = Path.Combine(PlatformSubdir, "VS" + Target.WindowsPlatform.GetVisualStudioCompilerVersionName());
             bHasZlib = true;
 
-        }        
+        }
 		else if (Target.Platform == UnrealTargetPlatform.Linux)
         {
             PlatformSubdir = Path.Combine(PlatformSubdir, Target.Architecture);
@@ -161,8 +161,8 @@ public class V8 : ModuleRules
         {
             string LibrariesPath = Path.Combine(ThirdPartyPath, "v8", "lib", "Android");
 
-            PublicLibraryPaths.Add(Path.Combine(LibrariesPath, "ARM64"));
-            PublicLibraryPaths.Add(Path.Combine(LibrariesPath, "ARMv7"));
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "ARM64"));
+            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "ARMv7"));
 
             PublicAdditionalLibraries.Add("v8_init");
             PublicAdditionalLibraries.Add("v8_initializers");

@@ -37,13 +37,11 @@ public class JavascriptWebSocket : ModuleRules
 
     private void HackWebSocketIncludeDir(String WebsocketPath, ReadOnlyTargetRules Target)
     {
-        string PlatformSubdir = (Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32") ? "Win32" :
-        	Target.Platform.ToString();
+        string PlatformSubdir = Target.Platform.ToString();
 
         bool bHasZlib = false;
 
-        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Win32 ||
-			(Target.Platform == UnrealTargetPlatform.HTML5 && Target.Architecture == "-win32"))
+        if (Target.Platform == UnrealTargetPlatform.Win64 || Target.Platform == UnrealTargetPlatform.Win32)
         {
             PlatformSubdir = Path.Combine(PlatformSubdir, "VS" + Target.WindowsPlatform.GetVisualStudioCompilerVersionName());
             bHasZlib = true;
