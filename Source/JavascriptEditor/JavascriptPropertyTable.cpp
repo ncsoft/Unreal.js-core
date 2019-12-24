@@ -1,6 +1,8 @@
 ﻿#include "JavascriptPropertyTable.h"
 #include "IPropertyTableColumn.h"
+#include "IPropertyTableCustomColumn.h"
 #include "PropertyEditorModule.h"
+#include "JavascriptCustomColumn.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptPropertyTable"
 
@@ -52,7 +54,17 @@ TSharedRef<SWidget> UJavascriptPropertyTable::RebuildWidget()
 			}
 		}
 
-		return PropertyEditorModule.CreatePropertyTableWidget(PropertyTable.ToSharedRef());
+		if (bUseCustomColumns)
+		{
+			TArray< TSharedRef<class IPropertyTableCustomColumn>> CustomColumns;
+			CustomColumns.Add(MakeShareable(new FJavascriptCustomColumn(this)));
+
+			return PropertyEditorModule.CreatePropertyTableWidget(PropertyTable.ToSharedRef(), CustomColumns);
+		}
+		else
+		{
+			return PropertyEditorModule.CreatePropertyTableWidget(PropertyTable.ToSharedRef());			
+		}
 	}
 }
 

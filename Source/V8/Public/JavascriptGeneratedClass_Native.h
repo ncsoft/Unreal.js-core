@@ -54,9 +54,13 @@ public:
 	virtual void Link(FArchive& Ar, bool bRelinkExistingProperties) override { UClass::Link(Ar, bRelinkExistingProperties); }
 	virtual void PurgeClass(bool bRecompilingOnLoad) override { UClass::PurgeClass(bRecompilingOnLoad);  }
 	virtual void Bind() override { UClass::Bind(); }
+#if ENGINE_MINOR_VERSION < 24
 	virtual UObject* FindArchetype(UClass* ArchetypeClass, const FName ArchetypeName) const override { return UClass::FindArchetype(ArchetypeClass, ArchetypeName);  }
+#else
+	virtual UObject* FindArchetype(const UClass* ArchetypeClass, const FName ArchetypeName) const override { return UClass::FindArchetype(ArchetypeClass, ArchetypeName); }
+#endif
 	// End UClass interface
 
-public:		
-	TWeakPtr<FJavascriptContext> JavascriptContext;	
+public:
+	TWeakPtr<FJavascriptContext> JavascriptContext;
 };

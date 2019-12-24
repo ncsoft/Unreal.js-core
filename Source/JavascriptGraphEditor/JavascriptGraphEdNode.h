@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "JavascriptGraphEdGraph.h"
 #include "JavascriptGraphEditorLibrary.h"
@@ -46,15 +46,19 @@ public:
 	UPROPERTY()
 	bool IsTitleOnly;
 
+	UPROPERTY()
+	bool IsCustomNode;
+
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnWidgetFinalized OnWidgetFinalized;
-	
+
 public:
 	virtual void AllocateDefaultPins() override;
 	virtual void NodeConnectionListChanged() override;
 	virtual void PinConnectionListChanged(UEdGraphPin* Pin) override;
 
 	UJavascriptGraphEdGraph* GetGenericGraphEdGraph();
+	TSharedPtr<SJavascriptGraphEdNode> GetNodeSlateWidget() const;
 
 	virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const;
 	virtual FText GetDescription() const;
@@ -110,7 +114,7 @@ public:
 	UPROPERTY()
 	int32 PriorityOrder;
 
-	SJavascriptGraphEdNode* SlateGraphNode;
+	TWeakPtr<SJavascriptGraphEdNode> SlateGraphNode;
 
 	bool bTitleSelectionOnly;
 	float TitleHeight;

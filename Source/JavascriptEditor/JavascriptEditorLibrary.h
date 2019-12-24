@@ -529,6 +529,15 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static FString GetKeyNameByKeyEvent(const FKeyEvent& Event);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool GetIsControlDownByKeyEvent(const FKeyEvent& Event);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool GetIsShiftDownByKeyEvent(const FKeyEvent& Event);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool GetIsAltDownByKeyEvent(const FKeyEvent& Event);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FString GetDataTableAsJSON(UDataTable* InDataTable, uint8 InDTExportFlags = 0);
 
 	UFUNCTION()
@@ -539,6 +548,15 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static bool HasMetaData(UField* Field, const FString& Key);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static UWorld* GetEditorPlayWorld();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static bool ToggleIsExecuteTestModePIE();
+
+	UFUNCTION(BlueprintPure, Category = "Scripting|Javascript")
+	static bool GetIsExecuteTestModePIE();
 
 #endif
 };

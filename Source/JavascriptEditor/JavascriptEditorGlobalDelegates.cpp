@@ -1,4 +1,4 @@
-#include "JavascriptEditorGlobalDelegates.h"
+﻿#include "JavascriptEditorGlobalDelegates.h"
 #include "AssetRegistryModule.h"
 #include "EditorSupportDelegates.h"
 #include "Editor/EditorEngine.h"
@@ -30,6 +30,7 @@ OP_REFLECT(LoadSelectedAssetsIfNeeded)\
 OP_REFLECT(DisplayLoadErrors)\
 OP_REFLECT(PreBeginPIE)\
 OP_REFLECT(BeginPIE)\
+OP_REFLECT(PostPIEStarted)\
 OP_REFLECT(EndPIE)\
 OP_REFLECT(ResumePIE)\
 OP_REFLECT(SingleStepPIE)\
@@ -40,9 +41,6 @@ OP_REFLECT(PostSaveWorld)\
 OP_REFLECT(OnFinishPickingBlueprintClass)\
 OP_REFLECT(OnConfigureNewAssetProperties)\
 OP_REFLECT(OnNewAssetCreated)\
-OP_REFLECT(OnAssetPreImport)\
-OP_REFLECT(OnAssetPostImport)\
-OP_REFLECT(OnAssetReimport)\
 OP_REFLECT(OnNewActorsDropped)\
 OP_REFLECT(OnGridSnappingChanged)\
 OP_REFLECT(OnLightingBuildStarted)\
@@ -57,6 +55,13 @@ OP_REFLECT(OnAssetsPreDelete)\
 OP_REFLECT(OnAssetsDeleted)\
 OP_REFLECT(OnActionAxisMappingsChanged)\
 OP_REFLECT(OnAddLevelToWorld)
+
+// UEditorEngine::OnObjectReimported is integrated with UImportSubsystem::OnAssetReimport
+#define DO_REFLECT_IMPORT_SUBSYS() \
+OP_REFLECT_IMPORT_SUBSYS(OnAssetPreImport)\
+OP_REFLECT_IMPORT_SUBSYS(OnAssetPostImport)\
+OP_REFLECT_IMPORT_SUBSYS(OnAssetReimport)\
+OP_REFLECT_IMPORT_SUBSYS_FORWARD(OnAssetReimport, OnObjectReimported)
 
 #define DO_REFLECT_ASSETREGISTRY() \
 OP_REFLECT_ASSETREGISTRY(OnPathAdded)\
@@ -73,8 +78,7 @@ OP_REFLECT_ASSETREGISTRY(OnFileLoadProgressUpdated)
 OP_REFLECT_EDITORENGINE(OnBlueprintPreCompile)\
 OP_REFLECT_EDITORENGINE(OnBlueprintCompiled)\
 OP_REFLECT_EDITORENGINE(OnBlueprintReinstanced)\
-OP_REFLECT_EDITORENGINE(OnClassPackageLoadedOrUnloaded)\
-OP_REFLECT_EDITORENGINE(OnObjectReimported)
+OP_REFLECT_EDITORENGINE(OnClassPackageLoadedOrUnloaded)
 
 #define DO_REFLECT_SUPPORT() \
 OP_REFLECT_SUPPORT(RedrawAllViewports)\
@@ -95,12 +99,15 @@ void UJavascriptEditorGlobalDelegates::Bind(FString Key)
 
 	auto& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();
 #define OP_REFLECT(x) else if (Key == #x) { Handle = FEditorDelegates::x.AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
+#define OP_REFLECT_IMPORT_SUBSYS(x) else if (Key == #x) { Handle = GEditor->GetEditorSubsystem<UImportSubsystem>()->x.AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
+#define OP_REFLECT_IMPORT_SUBSYS_FORWARD(DelegateName, HandlerFunc) else if (Key == #HandlerFunc) { Handle = GEditor->GetEditorSubsystem<UImportSubsystem>()->DelegateName.AddUObject(this, &UJavascriptEditorGlobalDelegates::HandlerFunc); }
 #define OP_REFLECT_ASSETREGISTRY(x) else if (Key == #x) { Handle = AssetRegistry.x().AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
 #define OP_REFLECT_EDITORENGINE(x) else if (Key == #x) { Handle = Cast<UEditorEngine>(GEngine)->x().AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
 #define OP_REFLECT_SUPPORT(x) else if (Key == #x) { Handle = FEditorSupportDelegates::x.AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
 #define OP_REFLECT_GAME(x) else if (Key == #x) { Handle = FGameDelegates::Get().Get##x().AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
 	if (false) {}
 		DO_REFLECT()
+		DO_REFLECT_IMPORT_SUBSYS()
 		DO_REFLECT_ASSETREGISTRY()
 		DO_REFLECT_EDITORENGINE()
 		DO_REFLECT_SUPPORT()
@@ -112,6 +119,8 @@ void UJavascriptEditorGlobalDelegates::Bind(FString Key)
 		Handles.Add(Key, Handle);
 	}
 #undef OP_REFLECT
+#undef OP_REFLECT_IMPORT_SUBSYS
+#undef OP_REFLECT_IMPORT_SUBSYS_FORWARD
 #undef OP_REFLECT_ASSETREGISTRY
 #undef OP_REFLECT_EDITORENGINE
 #undef OP_REFLECT_SUPPORT
@@ -131,12 +140,15 @@ void UJavascriptEditorGlobalDelegates::Unbind(FString Key)
 	auto Handle = Handles[Key];
 	
 #define OP_REFLECT(x) else if (Key == #x) { FEditorDelegates::x.Remove(Handle); }
+#define OP_REFLECT_IMPORT_SUBSYS(x) else if (Key == #x) { if (GEditor != nullptr) { GEditor->GetEditorSubsystem<UImportSubsystem>()->x.Remove(Handle); } }
+#define OP_REFLECT_IMPORT_SUBSYS_FORWARD(DelegateName, HandlerFunc) else if (Key == #HandlerFunc) { if (GEditor != nullptr) { GEditor->GetEditorSubsystem<UImportSubsystem>()->DelegateName.Remove(Handle); } }
 #define OP_REFLECT_ASSETREGISTRY(x) else if (Key == #x) { if (FModuleManager::Get().IsModuleLoaded(TEXT("AssetRegistry"))) { FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get().x().Remove(Handle); } }
 #define OP_REFLECT_EDITORENGINE(x) else if (Key == #x) { Cast<UEditorEngine>(GEngine)->x().Remove(Handle); }
 #define OP_REFLECT_SUPPORT(x) else if (Key == #x) { FEditorSupportDelegates::x.Remove(Handle); }
-#define OP_REFLECT_GAME(x) else if (Key == #x) { Handle = FGameDelegates::Get().Get##x().AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
+#define OP_REFLECT_GAME(x) else if (Key == #x) { FGameDelegates::Get().Get##x().Remove(Handle); }
 	if (false) {}
 		DO_REFLECT()
+		DO_REFLECT_IMPORT_SUBSYS()
 		DO_REFLECT_ASSETREGISTRY()
 		DO_REFLECT_EDITORENGINE()
 		DO_REFLECT_SUPPORT()
@@ -145,6 +157,8 @@ void UJavascriptEditorGlobalDelegates::Unbind(FString Key)
 
 	Handles.Remove(Key);
 #undef OP_REFLECT
+#undef OP_REFLECT_IMPORT_SUBSYS
+#undef OP_REFLECT_IMPORT_SUBSYS_FORWARD
 #undef OP_REFLECT_ASSETREGISTRY
 #undef OP_REFLECT_EDITORENGINE
 #undef OP_REFLECT_SUPPORT

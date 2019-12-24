@@ -1,4 +1,4 @@
-#include "JavascriptTreeView.h"
+﻿#include "JavascriptTreeView.h"
 #include "JavascriptContext.h"
 #include "SlateOptMacros.h"
 #include "Brushes/SlateColorBrush.h"

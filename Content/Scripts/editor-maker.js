@@ -93,6 +93,7 @@ module.exports = {
             
             $inner.splice($inner.indexOf(widget.GetChildAt(0)),1)
             opened.splice(opened.indexOf(widget),1)     
+            widget.RemoveChildAt(0);
         })
         tab.Commit()
         

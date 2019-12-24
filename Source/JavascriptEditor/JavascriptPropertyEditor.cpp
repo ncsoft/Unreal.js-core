@@ -1,4 +1,4 @@
-#include "PropertyEditor.h"
+﻿#include "JavascriptPropertyEditor.h"
 #if WITH_EDITOR
 #include "IDetailsView.h"
 #include "Containers/Queue.h"
@@ -19,7 +19,7 @@ void UPropertyEditor::SetObject(UObject* Object, bool bForceRefresh)
 	BuildPropertyPathMap((Object != nullptr) ? Object->GetClass() : nullptr);
 
 	ObjectsToInspect.Empty();
-	ObjectsToInspect.Add(Object);	
+	ObjectsToInspect.Add(Object);
 
 	if (View.IsValid())
 	{
@@ -41,6 +41,14 @@ void UPropertyEditor::SetObjects(TArray<UObject*> Objects, bool bForceRefresh, b
 	if (View.IsValid())
 	{
 		View->SetObjects(Objects, bForceRefresh, bOverrideLock);
+	}
+}
+
+void UPropertyEditor::ForceRefresh()
+{
+	if (View.IsValid())
+	{
+		View->ForceRefresh();
 	}
 }
 
@@ -71,7 +79,7 @@ TSharedRef<SWidget> UPropertyEditor::RebuildWidget()
 		FPropertyEditorModule& EditModule = FModuleManager::Get().GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
 		FDetailsViewArgs DetailsViewArgs(bUpdateFromSelection, bLockable, bAllowSearch, (FDetailsViewArgs::ENameAreaSettings)NameAreaSettings, bHideSelectionTip);
 		View = EditModule.CreateDetailView(DetailsViewArgs);
-				
+
 		{
 			TArray<UObject*> Objects;
 			for (auto Object : ObjectsToInspect)
@@ -106,7 +114,7 @@ void UPropertyEditor::OnWidgetRebuilt()
 
 void UPropertyEditor::ReleaseSlateResources(bool bReleaseChildren)
 {
-	if (View.IsValid()) 
+	if (View.IsValid())
 	{
 		if (CanSafelyRouteEvent())
 		{
@@ -133,7 +141,7 @@ bool UPropertyEditor::NativeIsPropertyReadOnly(const FPropertyAndParent& InPrope
 	const TArray<FString>* PropertyPaths = PropertyPathMap.Find(&InPropertyAndParent.Property);
 
 	return IsPropertyReadOnly(InPropertyAndParent.Property.GetName(),
-		(InPropertyAndParent.ParentProperty != nullptr) ? InPropertyAndParent.ParentProperty->GetName() : EmptyString,
+		(InPropertyAndParent.ParentProperties.Num() > 0) ? InPropertyAndParent.ParentProperties[0]->GetName() : EmptyString,
 		(PropertyPaths != nullptr) ? *PropertyPaths : EmptyStringArray);
 }
 
@@ -142,7 +150,7 @@ bool UPropertyEditor::NativeIsPropertyVisible(const FPropertyAndParent& InProper
 	const TArray<FString>* PropertyPaths = PropertyPathMap.Find(&InPropertyAndParent.Property);
 
 	return IsPropertyVisible(InPropertyAndParent.Property.GetName(),
-		(InPropertyAndParent.ParentProperty != nullptr) ? InPropertyAndParent.ParentProperty->GetName() : EmptyString,
+		(InPropertyAndParent.ParentProperties.Num() > 0) ? InPropertyAndParent.ParentProperties[0]->GetName() : EmptyString,
 		(PropertyPaths != nullptr) ? *PropertyPaths : EmptyStringArray);
 }
 

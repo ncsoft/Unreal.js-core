@@ -1,4 +1,4 @@
-#include "JavascriptWidget.h"
+﻿#include "JavascriptWidget.h"
 #include "JavascriptContext.h"
 #include "Blueprint/WidgetTree.h"
 #include "Runtime/Launch/Resources/Version.h"
@@ -18,10 +18,10 @@ void UJavascriptWidget::SetRootWidget(UWidget* Widget)
 void UJavascriptWidget::ProcessEvent(UFunction* Function, void* Parms)
 {
 	if (JavascriptContext && JavascriptContext->CallProxyFunction(this, this, Function, Parms))
-	{		
+	{
 		return;
 	}
-	
+
 	Super::ProcessEvent(Function, Parms);	
 }
 
@@ -183,10 +183,10 @@ void UJavascriptWidget::OnInputAxisByName_Implementation(float Axis, FName AxisN
 
 void UJavascriptWidget::ReleaseSlateResources(bool bReleaseChildren)
 {
-	Super::ReleaseSlateResources(bReleaseChildren);
-
 	if (CanSafelyRouteEvent())
 	{
 		OnDestroy(bReleaseChildren);
 	}
+
+	Super::ReleaseSlateResources(bReleaseChildren);
 }

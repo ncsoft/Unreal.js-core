@@ -24,11 +24,11 @@ static UCanvas* GetCanvasByName(FName CanvasName)
             CanvasObject = NewObject<UCanvas>(GetTransientPackage(), CanvasName);
             CanvasObject->AddToRoot();
         }
-        
+
         CanvasMap.Add(CanvasName, CanvasObject);
         return CanvasObject;
     }
-    
+
     return *FoundCanvas;
 }
 
@@ -89,8 +89,8 @@ public:
 		else
 		{
 			return SNullWidget::NullWidget;
-		}		
-	}	
+		}
+	}
 
 private:
 	/** Geometry tools widget */
@@ -175,7 +175,7 @@ public:
 		{
 			return FEdMode::GetWidgetLocation();
 		}
-	} 
+	}
 
 #define QUERY_BOOL(X,Y) virtual bool X() Y{ static FName NAME(#X); return Process(NAME,FEdMode::X()); }
 	QUERY_BOOL(ShowModeWidgets, const override)
@@ -195,13 +195,13 @@ public:
 			Proxy.HitProxy = HitProxy;
 			if (Parent->OnClick.Execute(FJavascriptViewportClick(&Click), Proxy, this)) return true;
 		}
-		
+
 		return FEdMode::HandleClick(InViewportClient, HitProxy, Click);
 	}
 
 	/** Handling SelectActor */
-	virtual bool Select( AActor* InActor, bool bInSelected ) 
-	{ 
+	virtual bool Select( AActor* InActor, bool bInSelected )
+	{
 		if (Parent->OnSelect.IsBound())
 		{
 			return Parent->OnSelect.Execute(InActor, bInSelected, this);
@@ -254,7 +254,7 @@ public:
 			Parent->OnDrawHUD.Execute(CanvasObject, this);
 
 			CanvasObject->PopSafeZoneTransform();
-		}		
+		}
 	}
 
 	/*virtual EAxisList::Type GetWidgetAxisToDraw(FWidget::EWidgetMode InWidgetMode) const override
@@ -262,9 +262,9 @@ public:
 
 	}*/
 
-	virtual void ActorMoveNotify() 
+	virtual void ActorMoveNotify()
 	{
-		Parent->OnActorMoved.ExecuteIfBound(this);		
+		Parent->OnActorMoved.ExecuteIfBound(this);
 	}
 
 	virtual void ActorsDuplicatedNotify(TArray<AActor*>& PreDuplicateSelection, TArray<AActor*>& PostDuplicateSelection, bool bOffsetLocations)
@@ -312,9 +312,9 @@ public:
 		else
 		{
 			return bDefaultValue;
-		}		
+		}
 	}
-	
+
 	virtual void Enter() override
 	{
 		FEdMode::Enter();
@@ -370,6 +370,16 @@ public:
 	virtual TSharedRef<FEdMode> CreateMode() const override
 	{
 		return MakeShareable(new FJavascriptEdModeInstance(Parent));
+	}
+
+	virtual UEdMode* CreateScriptableMode() const override
+	{
+		return nullptr;
+	}
+
+	virtual bool ForScriptableMode() const override
+	{
+		return false;
 	}
 
 	UJavascriptEdMode* Parent;

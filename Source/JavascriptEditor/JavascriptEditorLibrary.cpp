@@ -77,7 +77,7 @@ void UJavascriptEditorLibrary::SetHeightmapDataFromMemory(ULandscapeInfo* Landsc
 	{
 		FHeightmapAccessor<false> Accessor(LandscapeInfo);
 		Accessor.SetData(MinX, MinY, MaxX, MaxY, (uint16*)FArrayBufferAccessor::GetData());
-	}	
+	}
 }
 
 void UJavascriptEditorLibrary::GetHeightmapDataToMemory(ULandscapeInfo* LandscapeInfo, int32 MinX, int32 MinY, int32 MaxX, int32 MaxY)
@@ -150,7 +150,7 @@ void UJavascriptEditorLibrary::GetAlphamapDataToMemory(ULandscapeInfo* Landscape
 	}
 }
 
-bool UJavascriptEditorLibrary::GetLandscapeExtent(ULandscapeInfo* LandscapeInfo, int32& MinX, int32& MinY, int32& MaxX, int32& MaxY) 
+bool UJavascriptEditorLibrary::GetLandscapeExtent(ULandscapeInfo* LandscapeInfo, int32& MinX, int32& MinY, int32& MaxX, int32& MaxY)
 {
 	if (!LandscapeInfo) return false;
 
@@ -323,7 +323,7 @@ FJavascriptWorkspaceItem UJavascriptEditorLibrary::GetGroup(const FString& Name)
 	if (Name == TEXT("Root"))
 	{
 		Out.Handle = WorkspaceMenu::GetMenuStructure().GetStructureRoot();
-	} 
+	}
 	else if (Name == TEXT("DeveloperToolsMisc"))
 	{
 		Out.Handle = WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory();
@@ -433,7 +433,7 @@ void UJavascriptEditorLibrary::DrawDirectionalArrow(const FJavascriptPDI& PDI, c
 	::DrawDirectionalArrow(PDI.PDI, ArrowToWorld.ToMatrixWithScale(), InColor, Length, ArrowSize, DepthPriority, Thickness);
 }
 void UJavascriptEditorLibrary::DrawConnectedArrow(const FJavascriptPDI& PDI, const FTransform& ArrowToWorld, const FLinearColor& Color, float ArrowHeight, float ArrowWidth, ESceneDepthPriorityGroup DepthPriority, float Thickness, int32 NumSpokes)
-{	
+{
 	::DrawConnectedArrow(PDI.PDI, ArrowToWorld.ToMatrixWithScale(), Color, ArrowHeight, ArrowWidth, DepthPriority, Thickness, NumSpokes);
 }
 void UJavascriptEditorLibrary::DrawWireStar(const FJavascriptPDI& PDI, const FVector& Position, float Size, const FLinearColor& Color, ESceneDepthPriorityGroup DepthPriority)
@@ -461,9 +461,9 @@ void UJavascriptEditorLibrary::DrawPolygon(const FJavascriptPDI& PDI, const TArr
 
 	for (int32 Index = 0; Index < Verts.Num() - 2; ++Index)
 	{
-		MeshBuilder.AddTriangle(0, Index + 1, Index + 2);		
+		MeshBuilder.AddTriangle(0, Index + 1, Index + 2);
 	}
-	
+
 	static auto TransparentPlaneMaterialXY = (UMaterial*)StaticLoadObject(UMaterial::StaticClass(), NULL, TEXT("/Engine/EditorMaterials/WidgetVertexColorMaterial.WidgetVertexColorMaterial"), NULL, LOAD_None, NULL);
 #if ENGINE_MINOR_VERSION < 22
 	MeshBuilder.Draw(PDI.PDI, FMatrix::Identity, TransparentPlaneMaterialXY->GetRenderProxy(false), DepthPriority, 0.f);
@@ -477,7 +477,7 @@ struct HJavascriptHitProxy : public HHitProxy
 	DECLARE_HIT_PROXY(JAVASCRIPTEDITOR_API);
 
 	FName Name;
-	
+
 	HJavascriptHitProxy(FName InName) :
 		HHitProxy(HPP_UI),
 		Name(InName)
@@ -535,7 +535,7 @@ FName UJavascriptEditorLibrary::GetName(const FJavascriptHitProxy& Proxy)
 	if (Proxy.HitProxy && Proxy.HitProxy->IsA(HJavascriptHitProxy::StaticGetType()))
 	{
 		HJavascriptHitProxy* ActorHit = static_cast<HJavascriptHitProxy*>(Proxy.HitProxy);
-		return ActorHit->Name;		
+		return ActorHit->Name;
 	}
 
 	return FName();
@@ -647,13 +647,12 @@ void UJavascriptEditorLibrary::EditorAddModalWindow(UWidget* Widget)
 		{
 			GEditor->EditorAddModalWindow(Window.ToSharedRef());
 		}
-	}	
+	}
 }
 
 UWidget* UJavascriptEditorLibrary::GetRootWindow()
 {
-	TSharedRef<SWidget> Widget = StaticCastSharedPtr<SWidget>(FGlobalTabmanager::Get()->GetRootWindow()).ToSharedRef();
-	return UJavascriptUMGLibrary::CreateContainerWidget(Widget);
+	return { StaticCastSharedPtr<SWidget>(FGlobalTabmanager::Get()->GetRootWindow()) };
 }
 
 void UJavascriptEditorLibrary::CreatePropertyEditorToolkit(TArray<UObject*> ObjectsForPropertiesMenu)
@@ -722,7 +721,7 @@ FJavascriptUICommandList UJavascriptEditorLibrary::GetLevelEditorActions()
 {
 	FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
 	TSharedRef<FUICommandList> LevelEditorActions = LevelEditor.GetGlobalLevelEditorActions();
-	
+
 	FJavascriptUICommandList CommandList;
 	CommandList.Handle = LevelEditorActions;
 	return CommandList;
@@ -778,7 +777,7 @@ bool UJavascriptEditorLibrary::SavePackage(UPackage* Package, FString FileName)
 	UWorld* World = UWorld::FindWorldInPackage(Package);
 	bool bSavedCorrectly;
 
-	if (World) 
+	if (World)
 	{
 		bSavedCorrectly = UPackage::SavePackage(Package, World, RF_NoFlags, *FileName, GError, NULL, false, true);
 	}
@@ -1044,7 +1043,7 @@ void UJavascriptEditorLibrary::OpenEditorForAssetByPath(const FString& AssetPath
 TArray<FAssetData> UJavascriptEditorLibrary::GetAssetsByType(const TArray<FString>& Types, bool bRecursiveClasses)
 {
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
-	
+
 	FARFilter Filter;
 	for (auto& Type : Types)
 	{
@@ -1188,8 +1187,7 @@ int32 UJavascriptEditorLibrary::ReplaceAnimNotifyClass(UAnimSequenceBase* Sequen
 static void WriteRawToTexture_RenderThread(FTexture2DDynamicResource* TextureResource, const TArray<uint8>& RawData, bool bUseSRGB = true)
 {
 	check(IsInRenderingThread());
-
-	FTexture2DRHIParamRef TextureRHI = TextureResource->GetTexture2DRHI();
+	auto* TextureRHI = TextureResource->GetTexture2DRHI().GetReference();
 
 	int32 Width = TextureRHI->GetSizeX();
 	int32 Height = TextureRHI->GetSizeY();
@@ -1271,8 +1269,8 @@ bool UJavascriptEditorLibrary::LoadImageFromDiskAsync(const FString& ImagePath, 
 		}
 
 	}
-	
-	Callback->OnFail.Broadcast(nullptr);	
+
+	Callback->OnFail.Broadcast(nullptr);
 	return false;
 }
 
@@ -1287,9 +1285,9 @@ bool UJavascriptEditorLibrary::OpenFileDialog(const UJavascriptWindow* SubWindow
 		const void* ParentWindowWindowHandle = nullptr;
 		if (SubWindow)
 			ParentWindowWindowHandle = nullptr;
-		else			
+		else
 			ParentWindowWindowHandle = FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr);
-		
+
 		int OutFilterIndex = 0;
 		return DesktopPlatform->OpenFileDialog(
 			ParentWindowWindowHandle,
@@ -1319,6 +1317,21 @@ bool UJavascriptEditorLibrary::LoadFileToString(FString Path, FString& Data)
 FString UJavascriptEditorLibrary::GetKeyNameByKeyEvent(const FKeyEvent& Event)
 {
 	return Event.GetKey().GetFName().ToString();
+}
+
+bool UJavascriptEditorLibrary::GetIsControlDownByKeyEvent(const FKeyEvent& Event)
+{
+	return Event.IsControlDown();
+}
+
+bool UJavascriptEditorLibrary::GetIsShiftDownByKeyEvent(const FKeyEvent& Event)
+{
+	return Event.IsShiftDown();
+}
+
+bool UJavascriptEditorLibrary::GetIsAltDownByKeyEvent(const FKeyEvent& Event)
+{
+	return Event.IsAltDown();
 }
 
 FString UJavascriptEditorLibrary::GetDataTableAsJSON(UDataTable* InDataTable, uint8 InDTExportFlags)
@@ -1357,4 +1370,36 @@ bool UJavascriptEditorLibrary::HasMetaData(UField* Field, const FString& Key)
 {
 	return Field->HasMetaData(*Key);
 }
+<<<<<<< HEAD
+
+UWorld* UJavascriptEditorLibrary::GetEditorPlayWorld()
+{
+	return GEditor->PlayWorld;
+}
+
+bool UJavascriptEditorLibrary::ToggleIsExecuteTestModePIE()
+{
+	auto* StaticGameData = Cast<UJavascriptStaticCache>(GEngine->GameSingleton);
+	if (StaticGameData)
+	{
+		StaticGameData->bExecuteTestModePIE ^= true;
+		return StaticGameData->bExecuteTestModePIE;
+	}
+
+	return false;
+}
+
+bool UJavascriptEditorLibrary::GetIsExecuteTestModePIE()
+{
+	auto* StaticGameData = Cast<UJavascriptStaticCache>(GEngine->GameSingleton);
+	if (StaticGameData)
+	{
+		return StaticGameData->bExecuteTestModePIE;
+	}
+
+	return false;
+}
+
+=======
+>>>>>>> c7ee22b6133a854af22d43b6ebe6185ab92404bb
 #endif

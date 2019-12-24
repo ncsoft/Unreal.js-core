@@ -22,12 +22,12 @@ class FJavascriptEditorModule : public IJavascriptEditorModule
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 	// End IModuleInterface
-	
+
 	virtual void AddExtension(IEditorExtension* Extension) override;
 	virtual void RemoveExtension(IEditorExtension* Extension) override;
 
 	void Bootstrap();
-	
+
 private:
 #if WITH_EDITOR
 	TArray<IEditorExtension*> Extensions;
@@ -89,7 +89,7 @@ void FJavascriptEditorModule::RemoveExtension(IEditorExtension* Extension)
 }
 
 #if WITH_EDITOR
-static void PatchReimportRule() 
+static void PatchReimportRule()
 {
 	FAutoReimportWildcard WildcardToInject;
 	WildcardToInject.Wildcard = TEXT("Scripts/**.json");
@@ -123,7 +123,7 @@ static void PatchReimportRule()
 
 void FJavascriptEditorModule::Bootstrap()
 {
-#if WITH_EDITOR	
+#if WITH_EDITOR
 	if (!IsRunningCommandlet())
 	{
 		// Register to be notified when properties are edited
@@ -164,7 +164,7 @@ void FJavascriptEditorModule::StartupModule()
 
 void FJavascriptEditorModule::ShutdownModule()
 {
-#if WITH_EDITOR	
+#if WITH_EDITOR
 	if (!IsRunningCommandlet())
 	{
 		Unregister();
@@ -180,7 +180,7 @@ void FJavascriptEditorModule::ShutdownModule()
 #endif
 }
 
-#if WITH_EDITOR	
+#if WITH_EDITOR
 void FJavascriptEditorModule::Unregister()
 {
 	if (!bRegistered) return;
