@@ -1,4 +1,4 @@
-#include "IV8.h"
+﻿#include "IV8.h"
 #include "V8PCH.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
@@ -11,6 +11,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "Containers/Queue.h"
 #include "Misc/Paths.h"
 #include "UObject/UObjectIterator.h"
+#include "UObject/UObjectGlobals.h"
 
 DEFINE_STAT(STAT_V8IdleTask);
 DEFINE_STAT(STAT_JavascriptDelegate);
@@ -187,6 +188,8 @@ public:
 		const UJavascriptSettings& Settings = *GetDefault<UJavascriptSettings>();
 		Settings.Apply();
 
+		FCoreUObjectDelegates::GetPreGarbageCollectDelegate().AddRaw(this, &FV8Module::OnPreGarbageCollection);
+
 		V8::InitializeICUDefaultLocation(nullptr);
 		V8::InitializePlatform(&platform_);
 		V8::Initialize();
@@ -196,7 +199,9 @@ public:
 	}
 
 	virtual void ShutdownModule() override
-	{		
+	{
+		FCoreUObjectDelegates::GetPreGarbageCollectDelegate().RemoveAll(this);
+
 		platform_.Shutdown();
 
 		V8::Dispose();
@@ -342,6 +347,15 @@ public:
 	virtual void* GetV8Platform() override
 	{
 		return platform_.platform();
+	}
+
+	void OnPreGarbageCollection()
+	{
+		for (TObjectIterator<UJavascriptContext> It; It; ++It)
+		{
+			UJavascriptContext* Context = *It;
+			Context->RequestV8GarbageCollection();
+		}
 	}
 };
 

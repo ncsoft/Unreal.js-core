@@ -17,6 +17,26 @@ FJavascriptPropertyHandle UJavascriptPropertyCustomizationLibrary::GetChildHandl
 	return Out;
 }
 
+FJavascriptPropertyHandle UJavascriptPropertyCustomizationLibrary::GetParentHandle(FJavascriptPropertyHandle Handle)
+{
+	FJavascriptPropertyHandle Out;
+	if (Handle.IsValid())
+	{
+		Out.PropertyHandle = Handle->GetParentHandle();
+	}
+	return Out;
+}
+
+FJavascriptPropertyHandle UJavascriptPropertyCustomizationLibrary::GetKeyHandle(FJavascriptPropertyHandle Handle)
+{
+	FJavascriptPropertyHandle Out;
+	if (Handle.IsValid())
+	{
+		Out.PropertyHandle = Handle->GetKeyHandle();
+	}
+	return Out;
+}
+
 bool UJavascriptPropertyCustomizationLibrary::IsValidHandle(FJavascriptPropertyHandle Handle)
 {
 	return Handle.IsValid();
@@ -36,6 +56,7 @@ FString UJavascriptPropertyCustomizationLibrary::GetMetaData(FJavascriptProperty
 {
 	return Handle->GetMetaData(Key);
 }
+
 EPropertyAccessResult UJavascriptPropertyCustomizationLibrary::GetValueAsFormattedString(FJavascriptPropertyHandle Handle, FString& OutValue)
 {
 	return EPropertyAccessResult(Handle->GetValueAsFormattedString(OutValue));
@@ -44,6 +65,85 @@ EPropertyAccessResult UJavascriptPropertyCustomizationLibrary::SetValueFromForma
 {
 	return EPropertyAccessResult(Handle->SetValueFromFormattedString(InValue));
 }
+
+EPropertyAccessResult UJavascriptPropertyCustomizationLibrary::GetObjectValue(FJavascriptPropertyHandle Handle, UObject*& OutValue)
+{
+	return EPropertyAccessResult(Handle->GetValue(OutValue));
+}
+
+EPropertyAccessResult UJavascriptPropertyCustomizationLibrary::SetObjectValue(FJavascriptPropertyHandle Handle, const UObject* InValue)
+{
+	return EPropertyAccessResult(Handle->SetValue(InValue));
+}
+
+namespace
+{
+	template<typename T>
+	EPropertyAccessResult GetStructPropertyValue(FJavascriptPropertyHandle Handle, T& OutValue)
+	{
+		UStructProperty* StructProperty = Cast<UStructProperty>(Handle->GetProperty());
+		if (StructProperty != nullptr && StructProperty->Struct == T::StaticStruct())
+		{
+			TArray<const void*> RawDataArray;
+			Handle->AccessRawData(RawDataArray);
+			int32 NumOfData = RawDataArray.Num();
+			if (NumOfData == 0)
+			{
+				return EPropertyAccessResult::Fail;
+			}
+
+			const void* RawData = RawDataArray[0];
+			for (int32 i = 1; i < NumOfData; ++i)
+			{
+				if (RawDataArray[i] != RawData)
+				{
+					return EPropertyAccessResult::MultipleValues;
+				}
+			}
+
+			OutValue = *static_cast<const T*>(RawData);
+			return EPropertyAccessResult::Success;
+		}
+
+		return EPropertyAccessResult::Fail;
+	}
+
+	template<typename T>
+	EPropertyAccessResult SetStructPropertyValue(FJavascriptPropertyHandle Handle, const T& InValue)
+	{
+		UStructProperty* StructProperty = Cast<UStructProperty>(Handle->GetProperty());
+		if (StructProperty != nullptr && StructProperty->Struct == T::StaticStruct())
+		{
+			TArray<void*> RawDataArray;
+			Handle->AccessRawData(RawDataArray);
+			int32 NumOfData = RawDataArray.Num();
+			if (NumOfData == 0)
+			{
+				return EPropertyAccessResult::Fail;
+			}
+
+			for (int32 i = 0; i < NumOfData; ++i)
+			{
+				*static_cast<T*>(RawDataArray[i]) = InValue;
+			}
+
+			return EPropertyAccessResult::Success;
+		}
+
+		return EPropertyAccessResult::Fail;
+	}
+}
+
+EPropertyAccessResult UJavascriptPropertyCustomizationLibrary::GetJavascriptRefValue(FJavascriptPropertyHandle Handle, FJavascriptRef& OutValue)
+{
+	return GetStructPropertyValue(Handle, OutValue);
+}
+
+EPropertyAccessResult UJavascriptPropertyCustomizationLibrary::SetJavascriptRefValue(FJavascriptPropertyHandle Handle, const FJavascriptRef& InValue)
+{
+	return SetStructPropertyValue(Handle, InValue);
+}
+
 UProperty* UJavascriptPropertyCustomizationLibrary::GetProperty(FJavascriptPropertyHandle Handle)
 {
 	return Handle->GetProperty();
@@ -60,6 +160,37 @@ void UJavascriptPropertyCustomizationLibrary::SetOnPropertyValueChanged(FJavascr
 bool UJavascriptPropertyCustomizationLibrary::IsEditConst(FJavascriptPropertyHandle Handle)
 {
 	return Handle.IsValid() && Handle->IsEditConst();
+}
+
+bool UJavascriptPropertyCustomizationLibrary::IsArrayProperty(FJavascriptPropertyHandle Handle)
+{
+	return Handle.IsValid() && Handle->GetPropertyClass()->IsChildOf(UArrayProperty::StaticClass());
+}
+
+bool UJavascriptPropertyCustomizationLibrary::IsArrayPropertyWithValueType(FJavascriptPropertyHandle Handle)
+{
+	auto ArrayProperty = Handle.IsValid() ? Cast<UArrayProperty>(Handle->GetProperty()) : nullptr;
+	auto InnerProperty = (ArrayProperty != nullptr) ? ArrayProperty->Inner : nullptr;
+	return (InnerProperty != nullptr) && InnerProperty->IsA(UStructProperty::StaticClass());
+}
+
+int32 UJavascriptPropertyCustomizationLibrary::GetIndexInArray(FJavascriptPropertyHandle Handle)
+{
+	return Handle.IsValid() ? Handle->GetIndexInArray() : INDEX_NONE;
+}
+
+TArray<UObject*> UJavascriptPropertyCustomizationLibrary::GetOuterObjects(FJavascriptPropertyHandle Handle)
+{
+	TArray<UObject*> OuterObjects;
+	if (Handle.IsValid())
+	{
+		Handle->GetOuterObjects(OuterObjects);
+	}
+	return OuterObjects;
+}
+FString UJavascriptPropertyCustomizationLibrary::GeneratePathToProperty(FJavascriptPropertyHandle Handle)
+{
+	return Handle.IsValid() ? Handle->GeneratePathToProperty() : FString();
 }
 
 FJavascriptDetailWidgetDecl UJavascriptPropertyCustomizationLibrary::WholeRowContent(FJavascriptDetailWidgetRow Row)
@@ -151,8 +282,8 @@ void UJavascriptPropertyCustomizationLibrary::SetContent(FJavascriptDetailWidget
 {
 	if (Widget)
 	{
-		Decl.Get()[Widget->TakeWidget()];
-	}	
+		Decl.Get()[Widget.Widget.ToSharedRef()];
+	}
 }
 void UJavascriptPropertyCustomizationLibrary::SetVAlign(FJavascriptDetailWidgetDecl Decl, EVerticalAlignment InAlignment)
 {

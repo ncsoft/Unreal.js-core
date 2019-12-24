@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #if WITH_EDITOR
 #include "AssetData.h"
 #include "IAssetRegistry.h"
@@ -204,6 +204,9 @@ public:
 	void BeginPIE(const bool bIsSimulating);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void PostPIEStarted(const bool bIsSimulating);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void EndPIE(const bool bIsSimulating);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
@@ -274,8 +277,8 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void OnClassPackageLoadedOrUnloaded();
-	
-	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript", meta = (DeprecatedFunction, DeprecationMessage = "OnObjectReimported is deprecated with UEditorEngine::OnObjectReimported. Use OnAssetReimport instead."))
 	void OnObjectReimported(UObject* Object);
 
 		//GetActorRecordingState

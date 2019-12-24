@@ -557,7 +557,7 @@ class FJavascriptContextImplementation : public FJavascriptContext
 	TMap<FString, UObject*> WKOs;
 
 public:
-	Isolate* isolate() { return Environment->isolate_; }
+	Isolate* isolate() { return Environment.IsValid() ? Environment->isolate_ : nullptr; }
 	Local<Context> context() { return Local<Context>::New(isolate(), context_); }
 	bool IsValid() const { return Magic == MagicNumber; }
 
@@ -2237,8 +2237,6 @@ FJavascriptContext* FJavascriptContext::Create(TSharedPtr<FJavascriptIsolate> In
 
 inline void FJavascriptContextImplementation::AddReferencedObjects(UObject * InThis, FReferenceCollector & Collector)
 {
-	RequestV8GarbageCollection();
-
 	// All objects
 	for (auto It = ObjectToObjectMap.CreateIterator(); It; ++It)
 	{
@@ -2257,7 +2255,7 @@ inline void FJavascriptContextImplementation::AddReferencedObjects(UObject * InT
 	// All structs
 	for (auto It = MemoryToObjectMap.CreateIterator(); It; ++It)
 	{
-		TSharedPtr<FStructMemoryInstance> StructScript = It.Key();
+		TSharedPtr<FStructMemoryInstance> StructScript = It.Value().Instance;
 		if (!StructScript.IsValid() || StructScript->Struct->IsPendingKill())
 		{
 			It.RemoveCurrent();

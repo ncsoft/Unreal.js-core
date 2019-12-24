@@ -1,4 +1,4 @@
-#include "JavascriptGraphEdGraph.h"
+﻿#include "JavascriptGraphEdGraph.h"
 #include "JavascriptGraphEdNode.h"
 
 UJavascriptGraphEdGraph::UJavascriptGraphEdGraph()
@@ -72,3 +72,51 @@ void UJavascriptGraphEdGraph::PostEditUndo()
 }
 #endif
 
+void UJavascriptGraphEdGraph::AddCustomNode(UJavascriptGraphEdNode* NodeToAdd, bool bUserAction /*= false*/)
+{
+	check(NodeToAdd->GetOuter() == this);
+
+	NodeToAdd->IsCustomNode = true;
+	this->CustomNodes.Add(NodeToAdd);
+
+	// Skip notifying graph action to prevent generating and adding node widget to SGraphPanel.
+	// TODO: To prevent only generating and adding node widget but still notify changement of graph,
+	//       we need to do following tasks.
+	//       - Add a new class, SJavascriptGraphPanel which is inherited from SGraphPanel.
+	//       - Implement SJavascriptGraphPanel::Construct like SGraphPanel::Construct
+	//         but call UJavascriptGraphEdGraph.AddOnGraphChangedHandler to add a custom handler
+	//         instead of SGraphPanel::OnGraphChanged.
+	//       - Make a new custom handler provide chance to skip creating and adding node widget.
+	//       Because SGraphPanel::AddNode doesn't provide chance to override its implementation,
+	//       we have no choice other than inheriting SGraphPanel not to modify UE code.
+
+	// Current implementation does not use bUserAction because there's no notification.
+}
+
+bool UJavascriptGraphEdGraph::RemoveCustomNode(UJavascriptGraphEdNode* NodeToRemove)
+{
+	Modify();
+
+	int32 NumTimesNodeRemoved = CustomNodes.Remove(NodeToRemove);
+#if WITH_EDITOR
+	NodeToRemove->BreakAllNodeLinks();
+#endif	//#if WITH_EDITOR
+
+	// Skip notifying graph action to prevent removing node widget from SGraphPanel.
+	// TODO: Refer to description in AddCustomNode.
+
+	return NumTimesNodeRemoved > 0;
+}
+
+UJavascriptGraphEdNode* UJavascriptGraphEdGraph::CreateCustomNode(TSubclassOf<UJavascriptGraphEdNode> NewNodeClass, bool bFromUI)
+{
+	UJavascriptGraphEdNode* NewNode = NewObject<UJavascriptGraphEdNode>(this, NewNodeClass, NAME_None, RF_Transactional);
+
+	if (HasAnyFlags(RF_Transient))
+	{
+		NewNode->SetFlags(RF_Transient);
+	}
+
+	AddCustomNode(NewNode, bFromUI);
+	return NewNode;
+}

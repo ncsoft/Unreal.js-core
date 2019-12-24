@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "JavascriptEditorLibrary.h"
 #include "Components/PanelWidget.h"
@@ -121,6 +121,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void RestoreRealtime(bool bAllowDisable);
+
+	UFUNCTION(BlueprintCallable, Category = "Viewport")
+	void SetLightLocation(const FVector& InLightPos);
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void SetLightDirection(const FRotator& InLightDir);

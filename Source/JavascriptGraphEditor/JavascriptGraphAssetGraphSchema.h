@@ -118,7 +118,9 @@ public:
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnGetBoolean_GraphPin, FJavascriptEdGraphPin, Pin);
 
-	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(UWidget*, FOnTakeContentWidget, UJavascriptGraphEdNode*, Instance, UWidget*, OutLeftNodeBoxWidget, UWidget*, OutRightNodeBoxWidget);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FJavascriptSlateWidget, FOnGetCustomPinBoxWidget, FJavascriptEdGraphPin, Pin);
+
+	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(FJavascriptSlateWidget, FOnTakeContentWidget, UJavascriptGraphEdNode*, Instance, FJavascriptSlateWidget, OutLeftNodeBoxWidget, FJavascriptSlateWidget, OutRightNodeBoxWidget);
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FSlateColor, FOnGetPinColor, bool, bHovered, FJavascriptEdGraphPin, Pin);
 
@@ -191,10 +193,7 @@ public:
 	FOnGetBoolean_GraphPin OnGetPinLabelVisibility;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnGetBoolean_GraphPin OnUsingAlternativeInputPinBox;
-
-	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnGetBoolean_GraphPin OnUsingAlternativeOutputPinBox;
+	FOnGetCustomPinBoxWidget OnGetCustomPinBoxWidget;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetBoolean OnUsingNodeWidgetMap;
@@ -307,4 +306,3 @@ public:
 	virtual bool ShouldAlwaysPurgeOnModification() const override;
 	//~ End EdGraphSchema Interface
 };
-

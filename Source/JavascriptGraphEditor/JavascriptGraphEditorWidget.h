@@ -41,6 +41,16 @@ struct FJavascriptGraphAppearanceInfo
 		return Out;
 	}
 };
+
+// UEnum for SGraphEditor::EPinVisibility
+UENUM()
+enum class EPinVisibility : uint8
+{
+	Pin_Show,
+	Pin_HideNoConnection,
+	Pin_HideNoConnectionNoDefault
+};
+
 /**
 *
 */
@@ -109,6 +119,9 @@ class JAVASCRIPTGRAPHEDITOR_API UJavascriptGraphEditorWidget : public UWidget
 
 	UFUNCTION(BlueprintCallable, Category = Content)
 	void JumpToPin(FJavascriptEdGraphPin JumpToMe);
+
+	UFUNCTION(BlueprintCallable, Category = Content)
+	void SetPinVisibility(EPinVisibility InVisibility);
 
 	UFUNCTION(BlueprintCallable, Category = Content)
 	FVector2D GetPasteLocation();

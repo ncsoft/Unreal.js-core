@@ -35,7 +35,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 				.BorderBackgroundColor(this, &SJavascriptGraphPin::GetPinColor)
 				.OnMouseButtonDown(this, &ThisClass::OnPinMouseDown)
 				.Cursor(this, &ThisClass::GetPinCursor)
-				);
+			);
 			return;
 		}
 	}
@@ -121,12 +121,12 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 			.Padding(bIsInput ? FMargin(InArgs._SideToSideMargin, 0, 0, 0) : FMargin(0, 0, InArgs._SideToSideMargin, 0))
 			.VAlign(VAlign_Center)
 			[
-				SNew(SBox) 
+				SNew(SBox)
 				.Padding(0.0f)
-				.IsEnabled(this, &ThisClass::IsEditingEnabled)
-				[
-					InValueWidget
-				]
+			.IsEnabled(this, &ThisClass::IsEditingEnabled)
+			[
+				InValueWidget
+			]
 			];
 	}
 	else
@@ -143,10 +143,10 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 			[
 				SNew(SBox)
 				.Padding(0.0f)
-				.IsEnabled(this, &ThisClass::IsEditingEnabled)
-				[
-					InValueWidget
-				]
+			.IsEnabled(this, &ThisClass::IsEditingEnabled)
+			[
+				InValueWidget
+			]
 			];
 
 		LabelAndValue->AddSlot()
@@ -202,7 +202,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 				ActualPinWidget
 			];
 	}
-	
+
 	// Set up a hover for pins that is tinted the color of the pin.
 	SBorder::Construct(SBorder::FArguments()
 		.BorderImage(this, &SJavascriptGraphPin::GetPinBorder)
@@ -252,7 +252,10 @@ const FSlateBrush* SJavascriptGraphPin::GetPinBorder() const
 	if (GraphSchema->OnGetSlateBrushName.IsBound())
 	{
 		FName SlateBrushName = GraphSchema->OnGetSlateBrushName.Execute(IsHovered(), FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) });
-		return FEditorStyle::GetBrush(SlateBrushName);
+		if (SlateBrushName.IsNone() == false)
+		{
+			return FEditorStyle::GetBrush(SlateBrushName);
+		}
 	}
 
 	return SGraphPin::GetPinBorder();
@@ -324,10 +327,10 @@ EVisibility SJavascriptGraphPin::GetPinLabelVisibility() const
 		bool bVisible = GraphSchema->OnGetPinLabelVisibility.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) });
 		return bVisible ? EVisibility::Visible : EVisibility::Collapsed;
 	}
-// 	else if (GraphPinObj->Direction == EGPD_Output)
-// 	{
-// 		return EVisibility::Collapsed;
-// 	}
+	// 	else if (GraphPinObj->Direction == EGPD_Output)
+	// 	{
+	// 		return EVisibility::Collapsed;
+	// 	}
 
 	return SGraphPin::GetPinLabelVisibility();
 }

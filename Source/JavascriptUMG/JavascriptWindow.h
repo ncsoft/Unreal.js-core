@@ -72,6 +72,7 @@ class JAVASCRIPTUMG_API UJavascriptWindow : public UContentWidget
 	GENERATED_UCLASS_BODY()
 
 	DECLARE_DYNAMIC_DELEGATE(FOnWindowWidgetClosed);
+	DECLARE_DYNAMIC_DELEGATE(FOnWindowDeactivated);
 
 public:		
 	/** Type of this window */
@@ -163,10 +164,15 @@ public:
 	UPROPERTY()
 	FOnWindowWidgetClosed OnWindowClosed;
 
+	UPROPERTY()
+	FOnWindowDeactivated OnWindowDeactivated;
+
 	/** True if this window should always be on top of all other windows */
 	UPROPERTY()
 	bool IsTopmostWindow;
-	
+
+	void OnWindowDeactivatedEvent();
+
 	// UWidget interface
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 	// End of UWidget interface
@@ -201,4 +207,5 @@ public:
 
 protected:
 	TWeakPtr<SWindow> WeakWindow;
+	bool bIsCloseRequested;
 };

@@ -1,6 +1,7 @@
-#pragma once
+﻿#pragma once
 
 #include "Components/Widget.h"
+#include "Input/Reply.h"
 #include "JavascriptSearchBox.generated.h"
 
 class SSearchBox;
@@ -14,7 +15,10 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEditableTextChangedEvent, const FText&, Text);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnEditableTextCommittedEvent, const FText&, Text, ETextCommit::Type, CommitMethod);
 
-public:		
+public:
+	UPROPERTY(BlueprintReadWrite, Category = "Javascript")
+	class UJavascriptContext* JavascriptContext;
+
 	/** Called whenever the text is changed interactively by the user */
 	UPROPERTY(BlueprintAssignable, Category = "Widget Event", meta = (DisplayName = "OnTextChanged (Search Box)"))
 	FOnEditableTextChangedEvent OnTextChanged;
@@ -22,6 +26,16 @@ public:
 	/** Called whenever the text is committed.  This happens when the user presses enter or the text box loses focus. */
 	UPROPERTY(BlueprintAssignable, Category = "Widget Event", meta = (DisplayName = "OnTextCommitted (Search Box)"))
 	FOnEditableTextCommittedEvent OnTextCommitted;
+
+	/**
+	 * Called after a key (keyboard, controller, ...) is pressed when this widget has focus (this event bubbles if not handled)
+	 *
+	 * @param MyGeometry The Geometry of the widget receiving the event
+	 * @param  InKeyEvent  Key event
+	 * @return  Returns whether the event was handled, along with other possible actions
+	 */
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "Input")
+	FEventReply OnKeyDown(FGeometry MyGeometry, FKeyEvent InKeyEvent);
 
 	/** The text content for this editable text box widget */
 	UPROPERTY(EditAnywhere, Category = Content)
@@ -49,6 +63,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Widget")
 	void SetHintText(FText InHintText);
+
+	virtual void ProcessEvent(UFunction* Function, void* Parms) override;
 
 protected:
 	TSharedPtr<SSearchBox> MySearchBox;

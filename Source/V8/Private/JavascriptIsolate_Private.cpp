@@ -1,4 +1,4 @@
-PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+﻿PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #ifndef THIRD_PARTY_INCLUDES_START
 #	define THIRD_PARTY_INCLUDES_START
@@ -44,13 +44,46 @@ using namespace v8;
 
 struct FPrivateJavascriptFunction
 {
+	~FPrivateJavascriptFunction()
+	{
+		if (UnrealJSContext.IsValid())
+		{
+			UnrealJSContext.Reset();
+
+			context.Reset();
+			Function.Reset();
+		}
+		else
+		{
+			// v8 context is already destroyed.
+			context.Empty();
+			Function.Empty();
+		}
+	}
+
 	Isolate* isolate;
+	TWeakPtr<FJavascriptContext> UnrealJSContext;
 	UniquePersistent<Context> context;
 	UniquePersistent<Function> Function;
 };
 
 struct FPrivateJavascriptRef
 {
+	~FPrivateJavascriptRef()
+	{
+		if (UnrealJSContext.IsValid())
+		{
+			UnrealJSContext.Reset();
+			Object.Reset();
+		}
+		else
+		{
+			// v8 context is already destroyed.
+			Object.Empty();
+		}
+	}
+
+	TWeakPtr<FJavascriptContext> UnrealJSContext;
 	UniquePersistent<Object> Object;
 };
 
@@ -603,7 +636,7 @@ public:
 
 			auto Inner = p->Inner;
 
-			if (Inner->IsA(UStructProperty::StaticClass()))
+			if (Inner->IsA(UStructProperty::StaticClass()) && (Flags.Alternative == false))
 			{
 				uint8* ElementBuffer = (uint8*)FMemory_Alloca(Inner->GetSize());
 				for (decltype(len) Index = 0; Index < len; ++Index)
@@ -861,8 +894,8 @@ public:
 			{
 				auto Instance = FStructMemoryInstance::FromV8(isolate_->GetCurrentContext(), Value);
 
-				// If given value is an instance
-				if (Instance)
+				// If given value is an exported struct memory instance
+				if (Instance != nullptr && GetContext()->MemoryToObjectMap.Contains(Instance))
 				{
 					auto GivenStruct = Instance->Struct;
 
@@ -885,6 +918,7 @@ public:
 						auto jsfunc = Value.As<Function>();
 						func.Handle = MakeShareable(new FPrivateJavascriptFunction);
 						func.Handle->isolate = isolate_;
+						func.Handle->UnrealJSContext = GetContext()->AsShared();
 						func.Handle->context.Reset(isolate_, isolate_->GetCurrentContext());
 						func.Handle->Function.Reset(isolate_, jsfunc);
 					}
@@ -899,6 +933,7 @@ public:
 					{
 						auto jsobj = Value.As<Object>();
 						ref.Handle = MakeShareable(new FPrivateJavascriptRef);
+						ref.Handle->UnrealJSContext = GetContext()->AsShared();
 						ref.Handle->Object.Reset(isolate_, jsobj);
 					}
 
@@ -1735,23 +1770,36 @@ public:
 		};
 
 		auto Name = PropertyNameToString(PropertyToExport, !bIsEditor);
-		Template->PrototypeTemplate()->SetAccessor(
-			I.Keyword(Name),
-			Getter,
-			Setter,
-			I.External(PropertyToExport),
-			DEFAULT,
-			(PropertyAttribute)(DontDelete | (FV8Config::IsWriteDisabledProperty(PropertyToExport) ? ReadOnly : 0))
-		);
 
-		Template->PrototypeTemplate()->SetAccessor(
-			I.Keyword("$"+Name),
-			Getter,
-			Setter,
-			I.External(PropertyToExport),
-			DEFAULT,
-			(PropertyAttribute)(DontDelete | (FV8Config::IsWriteDisabledProperty(PropertyToExport) ? ReadOnly : 0))
+		EPropertyAccessorAvailability AccessorAvailability = FV8Config::GetPropertyAccessorAvailability(PropertyToExport);
+		if (EnumHasAllFlags(AccessorAvailability, EPropertyAccessorAvailability::Default))
+		{
+			Template->PrototypeTemplate()->SetAccessor(
+				I.Keyword(Name),
+				Getter,
+				Setter,
+				I.External(PropertyToExport),
+				DEFAULT,
+				(PropertyAttribute)(DontDelete | (FV8Config::IsWriteDisabledProperty(PropertyToExport) ? ReadOnly : 0))
 			);
+		}
+
+		if (EnumHasAnyFlags(AccessorAvailability, EPropertyAccessorAvailability::AltAccessor))
+		{
+			Template->PrototypeTemplate()->SetAccessor(
+				I.Keyword("$" + Name),
+				Getter,
+				Setter,
+				I.External(PropertyToExport),
+				DEFAULT,
+				(PropertyAttribute)(DontDelete | (FV8Config::IsWriteDisabledProperty(PropertyToExport) ? ReadOnly : 0))
+			);
+		}
+
+		if (EnumHasAnyFlags(AccessorAvailability, EPropertyAccessorAvailability::StructRefArray))
+		{
+			AddMemberFunction_GetStructRefArray<PropertyAccessors>(Template, PropertyToExport);
+		}
 	}
 
 	void ExportHelperFunctions(UStruct* ClassToExport, Local<FunctionTemplate> Template)
@@ -2023,7 +2071,6 @@ public:
 			{
 				return;
 			}
-			auto out = Object::New(isolate);
 
 			auto Instance = FStructMemoryInstance::FromV8(isolate->GetCurrentContext(), self);
 
@@ -2317,6 +2364,32 @@ public:
 		Template->PrototypeTemplate()->Set(I.Keyword("$memaccess"), I.FunctionTemplate(fn, ClassToExport));
 	}
 
+	template <typename PropertyAccessor>
+	void AddMemberFunction_GetStructRefArray(Handle<FunctionTemplate> Template, UProperty* PropertyToExport)
+	{
+		auto fn = [](const FunctionCallbackInfo<Value>& info)
+		{
+			auto isolate = info.GetIsolate();
+			FIsolateHelper I(isolate);
+
+			auto self = info.This();
+			auto Context = Context::New(isolate);
+			auto Instance = PropertyAccessor::This(Context, self);
+
+			auto PropertyToExport = reinterpret_cast<UProperty*>((Local<External>::Cast(info.Data()))->Value());
+
+			// Depends on alternative implementation of InternalReadProperty for UArrayProperty containing UStructProperty.
+			auto Flags = FPropertyAccessorFlags();
+			Flags.Alternative = true;
+			auto value = PropertyAccessor::Get(isolate, self, PropertyToExport, Flags);
+			info.GetReturnValue().Set(value);
+		};
+
+		FIsolateHelper I(isolate_);
+		FString StructRefArrayAccessorName = FString::Printf(TEXT("$getStructRefArray_%s"), *PropertyToExport->GetName());
+		Template->PrototypeTemplate()->Set(I.Keyword(StructRefArrayAccessorName), I.FunctionTemplate(fn, PropertyToExport));
+	}
+
 	Local<FunctionTemplate> InternalExportUClass(UClass* ClassToExport)
 	{
 		FIsolateHelper I(isolate_);
@@ -2544,8 +2617,6 @@ public:
 
 			auto isolate = info.GetIsolate();
 
-			FIsolateHelper I(isolate);
-
 			if (info.IsConstructCall())
 			{
 				auto self = info.This();
@@ -2681,7 +2752,7 @@ public:
 		}
 	}
 
-	Local<Value> ExportStructInstance(UScriptStruct* Struct, uint8* Buffer, const IPropertyOwner& Owner)
+	Local<Value> ExportStructInstance(UScriptStruct* Struct, uint8* Buffer, const IPropertyOwner& Owner) override
 	{
 		FIsolateHelper I(isolate_);
 		if (!Struct || !Buffer)
@@ -2905,19 +2976,16 @@ public:
 
 	void RegisterScriptStructInstance(TSharedPtr<FStructMemoryInstance> MemoryObject, Local<Value> value)
 	{
-		auto context = GetContext();
-		auto& result = context->MemoryToObjectMap.Add(MemoryObject, UniquePersistent<Value>(isolate_, value));
-		SetWeak(result, MemoryObject.Get());
+		auto MemoryObjectPtr = MemoryObject.Get();
+		auto Info = FJavascriptContext::FExportedStructMemoryInfo(MemoryObject, UniquePersistent<Value>(isolate_, value));
+		auto& result = GetContext()->MemoryToObjectMap.Add(MemoryObjectPtr, MoveTemp(Info));
+		SetWeak(result.Value, MemoryObjectPtr);
 	}
 
 	void OnGarbageCollectedByV8(FJavascriptContext* Context, FStructMemoryInstance* Memory)
 	{
 		// We should keep ourselves clean
-		v8::UniquePersistent<v8::Value> Persistant;
-		if (Context->MemoryToObjectMap.RemoveAndCopyValue(Memory->AsShared(), Persistant))
-		{
-			Persistant.Reset();
-		}
+		Context->MemoryToObjectMap.Remove(Memory);
 	}
 
 	void OnGarbageCollectedByV8(FJavascriptContext* Context, UObject* Object)

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "V8PCH.h"
 
@@ -15,8 +15,30 @@ struct FJavascriptContext : TSharedFromThis<FJavascriptContext>
 	/** A map from Unreal UObject to V8 Object */
 	TMap< UObject*, v8::UniquePersistent<v8::Value> > ObjectToObjectMap;
 
+	struct FExportedStructMemoryInfo
+	{
+		FExportedStructMemoryInfo() = default;
+		FExportedStructMemoryInfo(TSharedPtr<FStructMemoryInstance> InInstance, v8::UniquePersistent<v8::Value>&& InValue)
+			: Instance(InInstance)
+			, Value(MoveTemp(InValue))
+		{}
+		FExportedStructMemoryInfo(const FExportedStructMemoryInfo& Other) = default;
+		FExportedStructMemoryInfo(FExportedStructMemoryInfo&& TempOther) = default;
+
+		~FExportedStructMemoryInfo()
+		{
+			Instance.Reset();
+			Value.Reset();
+		}
+
+		// Keeps one reference count for FStructMemoryInstance
+		TSharedPtr<FStructMemoryInstance> Instance;
+		// Keeps one reference count for V8 Object
+		v8::UniquePersistent<v8::Value> Value;
+	};
+
 	/** A map from Struct buffer to V8 Object */
-	TMap< TSharedPtr<FStructMemoryInstance>, v8::UniquePersistent<v8::Value> > MemoryToObjectMap;
+	TMap<FStructMemoryInstance*, FExportedStructMemoryInfo> MemoryToObjectMap;
 
 	virtual ~FJavascriptContext() {}
 	virtual void Expose(FString RootName, UObject* Object) = 0;

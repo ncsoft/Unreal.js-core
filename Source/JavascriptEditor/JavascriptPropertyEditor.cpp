@@ -1,4 +1,4 @@
-#include "PropertyEditor.h"
+﻿#include "JavascriptPropertyEditor.h"
 #if WITH_EDITOR
 #include "IDetailsView.h"
 #include "Containers/Queue.h"
@@ -41,6 +41,14 @@ void UPropertyEditor::SetObjects(TArray<UObject*> Objects, bool bForceRefresh, b
 	if (View.IsValid())
 	{
 		View->SetObjects(Objects, bForceRefresh, bOverrideLock);
+	}
+}
+
+void UPropertyEditor::ForceRefresh()
+{
+	if (View.IsValid())
+	{
+		View->ForceRefresh();
 	}
 }
 

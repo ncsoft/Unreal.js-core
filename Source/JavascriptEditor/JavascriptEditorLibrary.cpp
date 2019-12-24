@@ -652,8 +652,7 @@ void UJavascriptEditorLibrary::EditorAddModalWindow(UWidget* Widget)
 
 UWidget* UJavascriptEditorLibrary::GetRootWindow()
 {
-	TSharedRef<SWidget> Widget = StaticCastSharedPtr<SWidget>(FGlobalTabmanager::Get()->GetRootWindow()).ToSharedRef();
-	return UJavascriptUMGLibrary::CreateContainerWidget(Widget);
+	return { StaticCastSharedPtr<SWidget>(FGlobalTabmanager::Get()->GetRootWindow()) };
 }
 
 void UJavascriptEditorLibrary::CreatePropertyEditorToolkit(TArray<UObject*> ObjectsForPropertiesMenu)
@@ -1188,7 +1187,7 @@ int32 UJavascriptEditorLibrary::ReplaceAnimNotifyClass(UAnimSequenceBase* Sequen
 static void WriteRawToTexture_RenderThread(FTexture2DDynamicResource* TextureResource, const TArray<uint8>& RawData, bool bUseSRGB = true)
 {
 	check(IsInRenderingThread());
-	auto TextureRHI = TextureResource->GetTexture2DRHI();
+	auto* TextureRHI = TextureResource->GetTexture2DRHI().GetReference();
 
 	int32 Width = TextureRHI->GetSizeX();
 	int32 Height = TextureRHI->GetSizeY();
@@ -1320,6 +1319,21 @@ FString UJavascriptEditorLibrary::GetKeyNameByKeyEvent(const FKeyEvent& Event)
 	return Event.GetKey().GetFName().ToString();
 }
 
+bool UJavascriptEditorLibrary::GetIsControlDownByKeyEvent(const FKeyEvent& Event)
+{
+	return Event.IsControlDown();
+}
+
+bool UJavascriptEditorLibrary::GetIsShiftDownByKeyEvent(const FKeyEvent& Event)
+{
+	return Event.IsShiftDown();
+}
+
+bool UJavascriptEditorLibrary::GetIsAltDownByKeyEvent(const FKeyEvent& Event)
+{
+	return Event.IsAltDown();
+}
+
 FString UJavascriptEditorLibrary::GetDataTableAsJSON(UDataTable* InDataTable, uint8 InDTExportFlags)
 {
 	if (InDataTable == nullptr)
@@ -1356,4 +1370,33 @@ bool UJavascriptEditorLibrary::HasMetaData(UField* Field, const FString& Key)
 {
 	return Field->HasMetaData(*Key);
 }
+
+UWorld* UJavascriptEditorLibrary::GetEditorPlayWorld()
+{
+	return GEditor->PlayWorld;
+}
+
+bool UJavascriptEditorLibrary::ToggleIsExecuteTestModePIE()
+{
+	auto* StaticGameData = Cast<UJavascriptStaticCache>(GEngine->GameSingleton);
+	if (StaticGameData)
+	{
+		StaticGameData->bExecuteTestModePIE ^= true;
+		return StaticGameData->bExecuteTestModePIE;
+	}
+
+	return false;
+}
+
+bool UJavascriptEditorLibrary::GetIsExecuteTestModePIE()
+{
+	auto* StaticGameData = Cast<UJavascriptStaticCache>(GEngine->GameSingleton);
+	if (StaticGameData)
+	{
+		return StaticGameData->bExecuteTestModePIE;
+	}
+
+	return false;
+}
+
 #endif

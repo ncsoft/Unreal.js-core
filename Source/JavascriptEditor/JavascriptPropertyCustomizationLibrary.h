@@ -143,6 +143,10 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptPropertyHandle GetChildHandle(FJavascriptPropertyHandle Parent, FName Name);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FJavascriptPropertyHandle GetParentHandle(FJavascriptPropertyHandle Handle);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FJavascriptPropertyHandle GetKeyHandle(FJavascriptPropertyHandle Handle);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool IsValidHandle(FJavascriptPropertyHandle Handle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static UWidget* CreatePropertyNameWidget(FJavascriptPropertyHandle Handle, const FText& NameOverride, const FText& ToolTipOverride, bool bDisplayResetToDefault, bool bHideText, bool bHideThumbnail);
@@ -155,11 +159,29 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static EPropertyAccessResult SetValueFromFormattedString(FJavascriptPropertyHandle Handle, const FString& InValue);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static EPropertyAccessResult GetObjectValue(FJavascriptPropertyHandle Handle, UObject*& OutValue);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static EPropertyAccessResult SetObjectValue(FJavascriptPropertyHandle Handle, const UObject* InValue);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static EPropertyAccessResult GetJavascriptRefValue(FJavascriptPropertyHandle Handle, FJavascriptRef& OutValue);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static EPropertyAccessResult SetJavascriptRefValue(FJavascriptPropertyHandle Handle, const FJavascriptRef& InValue);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static UProperty* GetProperty(FJavascriptPropertyHandle Handle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, UJavascriptPropertyCustomization* Custom);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool IsEditConst(FJavascriptPropertyHandle Handle);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool IsArrayProperty(FJavascriptPropertyHandle Handle);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool IsArrayPropertyWithValueType(FJavascriptPropertyHandle Handle);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static int32 GetIndexInArray(FJavascriptPropertyHandle Handle);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static TArray<UObject*> GetOuterObjects(FJavascriptPropertyHandle Handle);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FString GeneratePathToProperty(FJavascriptPropertyHandle Handle);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptDetailWidgetDecl WholeRowContent(FJavascriptDetailWidgetRow Row);

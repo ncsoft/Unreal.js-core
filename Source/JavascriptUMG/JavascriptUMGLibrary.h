@@ -89,7 +89,10 @@ class JAVASCRIPTUMG_API UJavascriptUMGLibrary : public UBlueprintFunctionLibrary
 	static UWidget* SetContent(UNativeWidgetHost* TargetWidget, UWidget* SlateWidget);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void AddWindowAsNativeChild(UWidget* NewWindow, UWidget* RootWindow);
+	static FJavascriptSlateWidget GetRootWindow();
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void AddWindowAsNativeChild(FJavascriptSlateWidget NewWindow, FJavascriptSlateWidget RootWindow);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void AddWindow(UWidget* NewWindow, const bool bShowImmediately = true);

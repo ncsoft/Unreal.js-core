@@ -1,4 +1,4 @@
-#include "JavascriptRawMeshLibrary.h"
+﻿#include "JavascriptRawMeshLibrary.h"
 
 #if WITH_EDITOR
 void UJavascriptRawMeshLibrary::Empty(FJavascriptRawMesh& RawMesh)
@@ -28,12 +28,12 @@ void UJavascriptRawMeshLibrary::CompactMaterialIndices(FJavascriptRawMesh& RawMe
 
 void UJavascriptRawMeshLibrary::SaveRawMesh(UStaticMesh* StaticMesh, int32 SourceModelIndex, FJavascriptRawMesh& InMesh)
 {
-	StaticMesh->SourceModels[SourceModelIndex].RawMeshBulkData->SaveRawMesh(*InMesh);
+	StaticMesh->GetSourceModel(SourceModelIndex).RawMeshBulkData->SaveRawMesh(*InMesh);
 }
 
 void UJavascriptRawMeshLibrary::LoadRawMesh(UStaticMesh* StaticMesh, int32 SourceModelIndex, FJavascriptRawMesh& OutMesh)
 {
-	StaticMesh->SourceModels[SourceModelIndex].RawMeshBulkData->LoadRawMesh(*OutMesh);
+	StaticMesh->GetSourceModel(SourceModelIndex).RawMeshBulkData->LoadRawMesh(*OutMesh);
 }
 
 void UJavascriptRawMeshLibrary::Build(UStaticMesh* StaticMesh)
@@ -43,11 +43,11 @@ void UJavascriptRawMeshLibrary::Build(UStaticMesh* StaticMesh)
 
 FMeshSectionInfo UJavascriptRawMeshLibrary::GetSectionInfo(UStaticMesh* StaticMesh, int32 LODIndex, int32 SectionIndex)
 {
-	return StaticMesh->SectionInfoMap.Get(0, SectionIndex);
+	return StaticMesh->GetSectionInfoMap().Get(0, SectionIndex);
 }
 
 void UJavascriptRawMeshLibrary::SetSectionInfo(UStaticMesh* StaticMesh, int32 LODIndex, int32 SectionIndex, const FMeshSectionInfo& Info)
 {
-	StaticMesh->SectionInfoMap.Set(LODIndex, SectionIndex, Info);
+	StaticMesh->GetSectionInfoMap().Set(LODIndex, SectionIndex, Info);
 }
 #endif
