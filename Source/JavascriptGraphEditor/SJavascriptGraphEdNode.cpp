@@ -6,7 +6,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "JavascriptGraphAssetGraphSchema.h"
 #include "JavascriptGraphEdNode.h"
-#include "JavascriptUMGLibrary.h"
+#include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "SCommentBubble.h"
 #include "SlateOptMacros.h"
 #include "Widgets/Images/SImage.h"
@@ -213,15 +213,15 @@ TSharedPtr<SWidget> SJavascriptGraphEdNode::GetContentWidget()
 	{
 		if (Schema->OnTakeContentWidget.IsBound())
 		{
-			UWidget* OutLeftNodeBoxWidget = UJavascriptUMGLibrary::CreateContainerWidget(LeftNodeBoxWidget.ToSharedRef());
-			UWidget* OutRightNodeBoxWidget = UJavascriptUMGLibrary::CreateContainerWidget(RightNodeBoxWidget.ToSharedRef());
-			if (OutLeftNodeBoxWidget && OutRightNodeBoxWidget)
+			FJavascriptSlateWidget OutLeftNodeBoxWidget;
+			FJavascriptSlateWidget OutRightNodeBoxWidget;
+			OutLeftNodeBoxWidget.Widget = LeftNodeBoxWidget;
+			OutRightNodeBoxWidget.Widget = RightNodeBoxWidget;
+
+			auto ContentWidget = Schema->OnTakeContentWidget.Execute(GraphEdNode, OutLeftNodeBoxWidget, OutRightNodeBoxWidget).Widget;
+			if (ContentWidget.IsValid())
 			{
-				UWidget* ContentWidget = Schema->OnTakeContentWidget.Execute(GraphEdNode, OutLeftNodeBoxWidget, OutRightNodeBoxWidget);
-				if (ContentWidget)
-				{
-					return TSharedPtr<SWidget>(ContentWidget->TakeWidget());
-				}
+				return ContentWidget;
 			}
 		}
 	}

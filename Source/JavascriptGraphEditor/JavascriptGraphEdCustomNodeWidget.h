@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include "Components/Widget.h"
-#include "JavascriptUMGLibrary.h"
 #include "SJavascriptGraphEdNode.h"
 #include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "JavascriptGraphEdCustomNodeWidget.generated.h"

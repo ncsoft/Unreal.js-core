@@ -149,9 +149,9 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool IsValidHandle(FJavascriptPropertyHandle Handle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static UWidget* CreatePropertyNameWidget(FJavascriptPropertyHandle Handle, const FText& NameOverride, const FText& ToolTipOverride, bool bDisplayResetToDefault, bool bHideText, bool bHideThumbnail);
+	static FJavascriptSlateWidget CreatePropertyNameWidget(FJavascriptPropertyHandle Handle, const FText& NameOverride, const FText& ToolTipOverride, bool bDisplayResetToDefault, bool bHideText, bool bHideThumbnail);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static UWidget* CreatePropertyValueWidget(FJavascriptPropertyHandle Handle, bool bHideDefaultPropertyButtons);
+	static FJavascriptSlateWidget CreatePropertyValueWidget(FJavascriptPropertyHandle Handle, bool bHideDefaultPropertyButtons);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FString GetMetaData(FJavascriptPropertyHandle Handle, const FName& Key);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
@@ -201,7 +201,7 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptDetailPropertyRow AddExternalObjectProperty(FJavascriptDetailChildrenBuilder ChildBuilder, TArray<UObject*>& Objects, FName PropertyName, FName UniqueIdName = NAME_None, bool bAllowChildrenOverride = false, bool bCreateCategoryNodesOverride = false);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static UWidget* GenerateStructValueWidget(FJavascriptDetailChildrenBuilder ChildBuilder, FJavascriptPropertyHandle StructPropertyHandle);
+	static FJavascriptSlateWidget GenerateStructValueWidget(FJavascriptDetailChildrenBuilder ChildBuilder, FJavascriptPropertyHandle StructPropertyHandle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void RequestRefresh(FJavascriptPropertyTypeCustomizationUtils CustomizationUtils, bool bForce);
 
@@ -223,7 +223,7 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 
 #pragma region FJavascriptDetailWidgetDecl
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void SetContent(FJavascriptDetailWidgetDecl Decl, UWidget* Widget);
+	static void SetContent(FJavascriptDetailWidgetDecl Decl, FJavascriptSlateWidget Widget);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void SetVAlign(FJavascriptDetailWidgetDecl Decl, EVerticalAlignment InAlignment);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")

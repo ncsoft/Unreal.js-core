@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/Widget.h"
 #include "IPropertyTable.h"
-#include "JavascriptUMGLibrary.h"
+#include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "JavascriptPropertyTable.generated.h"
 
 DECLARE_DYNAMIC_DELEGATE_RetVal(FJavascriptSlateWidget, FOnGenerateInvalidCellWidget);
