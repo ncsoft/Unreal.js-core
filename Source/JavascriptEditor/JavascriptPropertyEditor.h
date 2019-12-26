@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "Components/Widget.h"
 #include "Editor/PropertyEditor/Public/PropertyEditorModule.h"
-#include "PropertyEditor.generated.h"
+#include "JavascriptPropertyEditor.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPropertyEditorPropertyChanged, FName, PropertyName, FName, MemberPropertyName);
 
@@ -37,6 +37,9 @@ class JAVASCRIPTEDITOR_API UPropertyEditor : public UWidget
 
 	UFUNCTION(BlueprintCallable, Category = "PropertyEditor")
 	void SetObjects(TArray<UObject*> Objects, bool bForceRefresh, bool bOverrideLock);
+
+	UFUNCTION(BlueprintCallable, Category = "PropertyEditor")
+	void ForceRefresh();
 
 	// Note the comment in implementation of BuildPropertyPathMap for the reason
 	// why the parameter PropertyPaths is array of strings instead of unique string.

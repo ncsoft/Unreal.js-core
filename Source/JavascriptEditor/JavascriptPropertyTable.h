@@ -1,8 +1,12 @@
-#pragma once
+﻿#pragma once
 
+#include "CoreMinimal.h"
 #include "Components/Widget.h"
 #include "IPropertyTable.h"
+#include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "JavascriptPropertyTable.generated.h"
+
+DECLARE_DYNAMIC_DELEGATE_RetVal(FJavascriptSlateWidget, FOnGenerateInvalidCellWidget);
 
 UCLASS()
 class JAVASCRIPTEDITOR_API UJavascriptPropertyTable : public UWidget
@@ -18,6 +22,12 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "JavascriptPropertyTable")
 	void SetEditingObjects(TArray<UObject*> InEditingObjects) { EditingObjects = InEditingObjects; };
+	
+	UPROPERTY(EditAnywhere, Category = "JavascriptPropertyTable")
+	FOnGenerateInvalidCellWidget OnGenerateInvalidCellWidget;
+
+	UPROPERTY(EditAnywhere, Category = "JavascriptPropertyTable")
+	bool bUseCustomColumns;
 
 protected:
 

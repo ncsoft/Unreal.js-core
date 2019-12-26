@@ -1,4 +1,4 @@
-#include "JavascriptEditorViewport.h"
+﻿#include "JavascriptEditorViewport.h"
 #include "SEditorViewport.h"
 #include "AdvancedPreviewScene.h"
 #include "Runtime/Engine/Public/Slate/SceneViewport.h"
@@ -7,6 +7,7 @@
 #include "Components/OverlaySlot.h"
 #include "AssetViewerSettings.h"
 #include "Launch/Resources/Version.h"
+#include "Components/DirectionalLightComponent.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptEditor"
 
@@ -405,6 +406,18 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 		EditorViewportClient->PostProcessSettingsWeight = Weight;
 	}
 
+	void SetLightLocation(const FVector& InLightPos)
+	{
+#if WITH_EDITOR
+		PreviewScene.DirectionalLight->PreEditChange(NULL);
+#endif // WITH_EDITOR
+		PreviewScene.DirectionalLight->SetAbsolute(true, true, true);
+		PreviewScene.DirectionalLight->SetRelativeLocation(InLightPos);
+#if WITH_EDITOR
+		PreviewScene.DirectionalLight->PostEditChange();
+#endif // WITH_EDITOR
+	}
+
 	void SetLightDirection(const FRotator& InLightDir)
 	{
 		PreviewScene.SetLightDirection(InLightDir);
@@ -733,6 +746,14 @@ int32 UJavascriptEditorViewport::GetCameraSpeedSetting()
 	}
 
 	return -1;
+}
+
+void UJavascriptEditorViewport::SetLightLocation(const FVector& InLightPos)
+{
+	if (ViewportWidget.IsValid())
+	{
+		ViewportWidget->SetLightLocation(InLightPos);
+	}
 }
 
 void UJavascriptEditorViewport::SetLightDirection(const FRotator& InLightDir)

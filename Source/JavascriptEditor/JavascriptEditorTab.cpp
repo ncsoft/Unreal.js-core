@@ -1,4 +1,4 @@
-PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+﻿PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptEditorTab.h"
 #if WITH_EDITOR
@@ -48,7 +48,7 @@ void UJavascriptEditorTab::Discard()
 void UJavascriptEditorTab::ForceCommit()
 {
 	const TSharedRef<FGlobalTabmanager>& GlobalTabManager = FGlobalTabmanager::Get();
-	if (bIsNomad && GlobalTabManager->CanSpawnTab(TabId))
+	if (bIsNomad && GlobalTabManager->HasTabSpawner(TabId))
 	{
 		GlobalTabManager->UnregisterNomadTabSpawner(TabId);
 	}

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "JavascriptUMG/JavascriptMenuLibrary.h"
 #include "SJavascriptGraphEdNode.h"
@@ -208,7 +208,7 @@ struct FJavascriptNodeCreator
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
 	UJavascriptGraphEdNode* Node;
 
-	TSharedPtr<FGraphNodeCreator<UEdGraphNode>> Instance;
+	TSharedPtr<class IJavascriptGraphNodeCreator> Instance;
 };
 
 USTRUCT(BlueprintType)
@@ -234,10 +234,10 @@ public:
 	static FJavascriptNodeCreator NodeCreator(UJavascriptGraphEdGraph* Graph, bool bSelectNewNode = true);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void Finalize(FJavascriptNodeCreator& Creator);
+	static FJavascriptNodeCreator CustomNodeCreator(UJavascriptGraphEdGraph* Graph);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static UJavascriptGraphEdNode* CreateEmptyNode(UJavascriptGraphEdGraph* Graph);
+	static void Finalize(FJavascriptNodeCreator& Creator);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool SetNodeMetaData(UEdGraphSchema* Schema, UEdGraphNode* Node, FName KeyValue);
@@ -263,6 +263,9 @@ public:
 	UFUNCTION(BlueprintInternalUseOnly, Category = "Scripting | Javascript")
 	static void SetPinType(FJavascriptEdGraphPin Pin, FEdGraphPinType PinType);
 	
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void SetPinContainerType(FJavascriptEdGraphPin A, EJavascriptPinContainerType::Type ContainerType);
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptEdGraphPin FindPin(UEdGraphNode* Node, const FString& PinName, EEdGraphPinDirection Direction);
 
@@ -373,6 +376,19 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void ResizeNode(UEdGraphNode* Node, const FVector2D& NewSize);
+
+	// HACK: Accessing slate widget from UJavascriptGraphEdNode(or UEdGraphNode) is deprecated manner in UE4.
+	//       Implementation of UE4 uses UEdGraph::OnGraphChanged delegate to dispatch events to slate widgets,
+	//       but because Unreal.JS cannot provide customization of slate widgets, we cannot follow it.
+	//       Only what Unreal.JS can provide is a chance to generate customized widget
+	//       by using delegates of UJavascriptGraphAssetGraphSchema.
+	//       So we need another way to make UJavascriptGraphEdNode communicatable with slate widgets.
+	//       This is one of ways to do that, although not recommended.
+	//       * Currently, what we can do with this is only calling UJavascriptGraphEdCustomNodeWidget::SetGraphPanel.
+	//         Calling it with return value of this function will set the owner of that custom node widget.
+	//         It will help to simulate sub-node functionality although slate widget itself is still not customizable.
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptSlateWidget GetOwnerPanel(UJavascriptGraphEdNode* Node);
 
 private:
 	static TArray<FJavascriptEdGraphPin> TransformPins(const TArray<UEdGraphPin*>& Pins);

@@ -1,4 +1,4 @@
-#include "JavascriptGraphEdNode.h"
+﻿#include "JavascriptGraphEdNode.h"
 #include "JavascriptGraphAssetGraphSchema.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptGraphEdNode"
@@ -28,6 +28,11 @@ void UJavascriptGraphEdNode::PinConnectionListChanged(UEdGraphPin* Pin)
 UJavascriptGraphEdGraph* UJavascriptGraphEdNode::GetGenericGraphEdGraph()
 {
 	return Cast<UJavascriptGraphEdGraph>(GetGraph());
+}
+
+TSharedPtr<SJavascriptGraphEdNode> UJavascriptGraphEdNode::GetNodeSlateWidget() const
+{
+	return SlateGraphNode.Pin();
 }
 
 FText UJavascriptGraphEdNode::GetNodeTitle(ENodeTitleType::Type TitleType) const
@@ -103,18 +108,20 @@ bool UJavascriptGraphEdNode::RemovePin(FJavascriptEdGraphPin Pin)
 
 void UJavascriptGraphEdNode::UpdateSlate()
 {
-	if (SlateGraphNode)
+	auto MyWidget = SlateGraphNode.Pin();
+	if (MyWidget.IsValid())
 	{
-		SlateGraphNode->UpdateGraphNode();
+		MyWidget->UpdateGraphNode();
 	}
 }
 
 FVector2D UJavascriptGraphEdNode::GetDesiredSize()
 {
 	FVector2D Size;
-	if (SlateGraphNode)
+	auto MyWidget = SlateGraphNode.Pin();
+	if (MyWidget.IsValid())
 	{
-		Size = SlateGraphNode->GetDesiredSize();
+		Size = MyWidget->GetDesiredSize();
 	}
 	else
 	{
@@ -149,25 +156,28 @@ int32 UJavascriptGraphEdNode::GetNumOfPins(EEdGraphPinDirection Direction /*= EG
 
 void UJavascriptGraphEdNode::SetEnable(bool bEnable)
 {
-	if (SlateGraphNode)
+	auto MyWidget = SlateGraphNode.Pin();
+	if (MyWidget.IsValid())
 	{
-		SlateGraphNode->SetEnabled(bEnable);
+		MyWidget->SetEnabled(bEnable);
 	}
 }
 
 void UJavascriptGraphEdNode::SetVisible(bool bVisible)
 {
-	if (SlateGraphNode)
+	auto MyWidget = SlateGraphNode.Pin();
+	if (MyWidget.IsValid())
 	{
-		SlateGraphNode->SetVisibility(bVisible ? EVisibility::Visible : EVisibility::Hidden);
+		MyWidget->SetVisibility(bVisible ? EVisibility::Visible : EVisibility::Hidden);
 	}
 }
 
 bool UJavascriptGraphEdNode::GetVisible()
 {
-	if (SlateGraphNode)
+	auto MyWidget = SlateGraphNode.Pin();
+	if (MyWidget.IsValid())
 	{
-		return (SlateGraphNode->GetVisibility() == EVisibility::Visible);
+		return (MyWidget->GetVisibility() == EVisibility::Visible);
 	}
 	return false;
 }

@@ -332,7 +332,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static bool HasAnyPackageFlags(UPackage* Package, int32 Flags);
 
-	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript", meta = (BlueprintInternalUseOnly = "true"))
 	static FString GetName(UObject* Object);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")

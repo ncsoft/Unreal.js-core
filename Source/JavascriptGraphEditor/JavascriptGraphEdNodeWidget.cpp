@@ -21,7 +21,6 @@ TSharedRef<SWidget> UJavascriptGraphEdNodeWidget::RebuildWidget()
 	NewNode->UpdateGraphNode();
 	// TODO:
 	//NewNode->SetOwner();
-	EdNode->SlateGraphNode = static_cast<SJavascriptGraphEdNode*>(NewNode.Get());
 
 	return StaticCastSharedRef<SWidget>(NewNode.ToSharedRef());
 }

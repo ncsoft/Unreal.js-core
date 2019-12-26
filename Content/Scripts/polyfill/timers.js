@@ -38,7 +38,9 @@
         argv: [],
         argc: 0,
         platform: 'UnrealJS',
-        env: {},
+        env: {
+            NODE_ENV: 'production'
+        },
         cwd: $cwd
     }
 

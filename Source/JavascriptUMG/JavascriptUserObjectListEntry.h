@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Blueprint/IUserObjectListEntry.h"
 #include "Blueprint/UserWidget.h"
@@ -12,6 +12,4 @@ class JAVASCRIPTUMG_API UJavascriptUserObjectListEntry : public UUserWidget, pub
 public:
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript")
 	UObject* Item;
-
-	virtual UObject* GetListItemObject_Implementation() const override;
 };

@@ -2,6 +2,7 @@
 #include "JavascriptWidget.h"
 #include "Components/NativeWidgetHost.h"
 #include "Styling/SlateStyleRegistry.h"
+#include "Framework/Docking/TabManager.h"
 
 FJavascriptSlateStyle UJavascriptUMGLibrary::CreateSlateStyle(FName InStyleSetName)
 {
@@ -11,11 +12,11 @@ FJavascriptSlateStyle UJavascriptUMGLibrary::CreateSlateStyle(FName InStyleSetNa
 }
 
 void UJavascriptUMGLibrary::Register(FJavascriptSlateStyle StyleSet)
-{	
+{
 	if (FSlateStyleRegistry::FindSlateStyle(StyleSet.Handle->GetStyleSetName()))
 	{
 		FSlateStyleRegistry::UnRegisterSlateStyle(*StyleSet.Handle.Get());
-	}	
+	}
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet.Handle.Get());
 }
 
@@ -69,80 +70,75 @@ void UJavascriptUMGLibrary::AddFontInfo(FJavascriptSlateStyle StyleSet, FName Pr
 	StyleSet.Handle->Set(PropertyName, FontInfo);
 }
 
-UWidget* UJavascriptUMGLibrary::SetContent(UNativeWidgetHost* TargetWidget, UWidget* SourceWidget)
+FJavascriptSlateWidget UJavascriptUMGLibrary::TakeWidget(UWidget* Widget)
+{
+	FJavascriptSlateWidget Out;
+	if (Widget)
+	{
+		Out.Widget = Widget->TakeWidget();
+	}
+	return Out;
+}
+
+UWidget* UJavascriptUMGLibrary::SetContent(UNativeWidgetHost* TargetWidget, FJavascriptSlateWidget SlateWidget)
 {
 	UWidget* Widget = nullptr;
-	if (TargetWidget && SourceWidget)
+	if (TargetWidget != nullptr && SlateWidget.Widget.IsValid())
 	{
-		TargetWidget->SetContent(SourceWidget->TakeWidget());
+		TargetWidget->SetContent(SlateWidget.Widget.ToSharedRef());
 		Widget = Cast<UWidget>(TargetWidget);
 	}
 
 	return Widget;
 }
 
-void UJavascriptUMGLibrary::AddWindowAsNativeChild(UWidget* NewWindow, UWidget* RootWindow)
+FJavascriptSlateWidget UJavascriptUMGLibrary::GetRootWindow()
 {
-	if (NewWindow && RootWindow)
-	{
-		auto New = StaticCastSharedPtr<SWindow>(TSharedPtr<SWidget>(NewWindow->TakeWidget()));
-		auto Root = StaticCastSharedPtr<SWindow>(TSharedPtr<SWidget>(RootWindow->TakeWidget()));
+	FJavascriptSlateWidget Out;
+	Out.Widget = FGlobalTabmanager::Get()->GetRootWindow();
 
-		if (New.IsValid() && Root.IsValid())
-		{
-			FSlateApplication::Get().AddWindowAsNativeChild(New.ToSharedRef(), Root.ToSharedRef());
-		}
-	}	
+	return Out;
 }
 
-void UJavascriptUMGLibrary::AddWindow(UWidget* NewWindow, const bool bShowImmediately)
+void UJavascriptUMGLibrary::AddWindowAsNativeChild(FJavascriptSlateWidget NewWindow, FJavascriptSlateWidget RootWindow)
 {
-	if (NewWindow)
-	{
-		auto New = StaticCastSharedPtr<SWindow>(TSharedPtr<SWidget>(NewWindow->TakeWidget()));
+	auto New = StaticCastSharedPtr<SWindow>(NewWindow.Widget);
+	auto Root = StaticCastSharedPtr<SWindow>(RootWindow.Widget);
 
-		if (New.IsValid())
-		{
-			FSlateApplication::Get().AddWindow(New.ToSharedRef(), bShowImmediately);
-		}
-	}	
+	if (New.IsValid() && Root.IsValid())
+	{
+		FSlateApplication::Get().AddWindowAsNativeChild(New.ToSharedRef(), Root.ToSharedRef());
+	}
 }
 
-void UJavascriptUMGLibrary::ShowWindow(UWidget* NewWindow)
+void UJavascriptUMGLibrary::AddWindow(FJavascriptSlateWidget NewWindow, const bool bShowImmediately)
 {
-	if (NewWindow)
-	{
-		auto New = StaticCastSharedPtr<SWindow>(TSharedPtr<SWidget>(NewWindow->TakeWidget()));
+	auto New = StaticCastSharedPtr<SWindow>(NewWindow.Widget);
 
-		if (New.IsValid())
+	if (New.IsValid())
+	{
+		FSlateApplication::Get().AddWindow(New.ToSharedRef(), bShowImmediately);
+	}
+}
+
+void UJavascriptUMGLibrary::ShowWindow(FJavascriptSlateWidget NewWindow)
+{
+	auto New = StaticCastSharedPtr<SWindow>(NewWindow.Widget);
+
+	if (New.IsValid())
+	{
+		auto SlateWindow = New.ToSharedRef();
+		SlateWindow->ShowWindow();
+		//@todo Slate: Potentially dangerous and annoying if all slate windows that are created steal focus.
+		if (SlateWindow->SupportsKeyboardFocus() && SlateWindow->IsFocusedInitially())
 		{
-			auto SlateWindow = New.ToSharedRef();
-			SlateWindow->ShowWindow();
-			//@todo Slate: Potentially dangerous and annoying if all slate windows that are created steal focus.
-			if (SlateWindow->SupportsKeyboardFocus() && SlateWindow->IsFocusedInitially())
-			{
-				SlateWindow->GetNativeWindow()->SetWindowFocus();
-			}
+			SlateWindow->GetNativeWindow()->SetWindowFocus();
 		}
-	}	
+	}
 }
 
 FVector2D UJavascriptUMGLibrary::GenerateDynamicImageResource(const FName InDynamicBrushName)
 {
 	FIntPoint Size = FSlateApplication::Get().GetRenderer()->GenerateDynamicImageResource(InDynamicBrushName);
 	return FVector2D(Size.X, Size.Y);
-}
-
-UWidget* UJavascriptUMGLibrary::CreateContainerWidget(TSharedRef<SWidget> Slate)
-{
-	UWidget* Widget = nullptr;
-	UPackage* Package = ::CreatePackage(nullptr, TEXT("/Script/Javascript"));
-	UNativeWidgetHost* NativeWidget = NewObject<UNativeWidgetHost>(Package, UNativeWidgetHost::StaticClass(), NAME_None, RF_Transactional);
-	if (NativeWidget)
-	{
-		NativeWidget->SetContent(Slate);
-		Widget = Cast<UWidget>(NativeWidget);
-	}
-
-	return Widget;
 }

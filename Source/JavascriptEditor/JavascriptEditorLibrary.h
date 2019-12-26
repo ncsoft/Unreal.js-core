@@ -104,7 +104,7 @@ public:
 	}
 
 	TSharedPtr<FExtensibilityManager> Handle;
-	TArray<UJavascriptLazyExtenderDelegates*> LazyExtenders;
+	TArray<class UJavascriptLazyExtenderDelegates*> LazyExtenders;
 #endif
 };
 
@@ -418,10 +418,10 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static UObject* GetPrimaryObject(const FJavascriptTransaction& Transaction);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void EditorAddModalWindow(UWidget* Widget);
+	static void EditorAddModalWindow(FJavascriptSlateWidget Widget);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static UWidget* GetRootWindow();
+	static FJavascriptSlateWidget GetRootWindow();
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void CreatePropertyEditorToolkit(TArray<UObject*> ObjectsForPropertiesMenu);
@@ -481,7 +481,7 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static void CreateLogListing(const FName& InLogName, const FText& InLabel);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static UWidget* CreateLogListingWidget(const FName& InLogName);
+	static FJavascriptSlateWidget CreateLogListingWidget(const FName& InLogName);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddLogListingMessage(const FName& InLogName, EJavascriptMessageSeverity::Type InSeverity, const FString& LogText);
@@ -511,13 +511,13 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static TArray<FAssetData> GetAssetsByType(const TArray<FString>& Types, bool bRecursiveClasses = true);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static int32 ReplaceAnimNotifyClass(UAnimSequenceBase* Sequence, FString NotifyName, FString NewNotifyName, UObject* NewNotifyClass);
+	static int32 ReplaceAnimNotifyClass(class UAnimSequenceBase* Sequence, FString NotifyName, FString NewNotifyName, UObject* NewNotifyClass);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static bool LoadImageFromDiskAsync(const FString& ImagePath, UAsyncTaskDownloadImage* Callback);
+	static bool LoadImageFromDiskAsync(const FString& ImagePath, class UAsyncTaskDownloadImage* Callback);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static bool OpenFileDialog(const UJavascriptWindow* WindowHandle, const FString& DialogTitle, const FString& DefaultPath, const FString& DefaultFile, const FString& FileTypes, int32 Flags, TArray<FString>& OutFilenames);
+	static bool OpenFileDialog(const class UJavascriptWindow* WindowHandle, const FString& DialogTitle, const FString& DefaultPath, const FString& DefaultFile, const FString& FileTypes, int32 Flags, TArray<FString>& OutFilenames);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool LoadFileToIntArray(FString Path, TArray<uint8>& FileData);
@@ -529,7 +529,16 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static FString GetKeyNameByKeyEvent(const FKeyEvent& Event);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static FString GetDataTableAsJSON(UDataTable* InDataTable, uint8 InDTExportFlags = 0);
+	static bool GetIsControlDownByKeyEvent(const FKeyEvent& Event);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool GetIsShiftDownByKeyEvent(const FKeyEvent& Event);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool GetIsAltDownByKeyEvent(const FKeyEvent& Event);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FString GetDataTableAsJSON(class UDataTable* InDataTable, uint8 InDTExportFlags = 0);
 
 	UFUNCTION()
 	static void AddRichCurve(UCurveTable* InCurveTable, const FName& Key, const FRichCurve& InCurve);
@@ -539,6 +548,15 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static bool HasMetaData(UField* Field, const FString& Key);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static UWorld* GetEditorPlayWorld();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static bool ToggleIsExecuteTestModePIE();
+
+	UFUNCTION(BlueprintPure, Category = "Scripting|Javascript")
+	static bool GetIsExecuteTestModePIE();
 
 #endif
 };

@@ -142,6 +142,16 @@ void UJavascriptGraphEditorWidget::JumpToPin(FJavascriptEdGraphPin JumpToMe)
 	}
 }
 
+void UJavascriptGraphEditorWidget::SetPinVisibility(EPinVisibility InVisibility)
+{
+	auto Widget = StaticCastSharedPtr<SGraphEditor>(GetCachedWidget());
+	if (Widget.IsValid())
+	{
+		auto pinVisibility = (SGraphEditor::EPinVisibility)(uint8)InVisibility;
+		Widget->SetPinVisibility(pinVisibility);
+	}
+}
+
 FVector2D UJavascriptGraphEditorWidget::GetPasteLocation()
 {
 	auto Widget = StaticCastSharedPtr<SGraphEditor>(GetCachedWidget());

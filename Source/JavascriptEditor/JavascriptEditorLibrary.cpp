@@ -57,6 +57,7 @@
 
 #include "Engine/DataTable.h"
 #include "Engine/EngineTypes.h"
+#include "Toolkits/AssetEditorManager.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -638,22 +639,18 @@ UObject* UJavascriptEditorLibrary::GetPrimaryObject(const FJavascriptTransaction
 	return Transaction->GetContext().PrimaryObject;
 }
 
-void UJavascriptEditorLibrary::EditorAddModalWindow(UWidget* Widget)
+void UJavascriptEditorLibrary::EditorAddModalWindow(FJavascriptSlateWidget Widget)
 {
-	if (Widget)
+	auto Window = StaticCastSharedPtr<SWindow>(Widget.Widget);
+	if (Window.IsValid())
 	{
-		auto Window = StaticCastSharedPtr<SWindow>(TSharedPtr<SWidget>(Widget->TakeWidget()));
-		if (Window.IsValid())
-		{
-			GEditor->EditorAddModalWindow(Window.ToSharedRef());
-		}
-	}	
+		GEditor->EditorAddModalWindow(Window.ToSharedRef());
+	}
 }
 
-UWidget* UJavascriptEditorLibrary::GetRootWindow()
+FJavascriptSlateWidget UJavascriptEditorLibrary::GetRootWindow()
 {
-	TSharedRef<SWidget> Widget = StaticCastSharedPtr<SWidget>(FGlobalTabmanager::Get()->GetRootWindow()).ToSharedRef();
-	return UJavascriptUMGLibrary::CreateContainerWidget(Widget);
+	return { StaticCastSharedPtr<SWidget>(FGlobalTabmanager::Get()->GetRootWindow()) };
 }
 
 void UJavascriptEditorLibrary::CreatePropertyEditorToolkit(TArray<UObject*> ObjectsForPropertiesMenu)
@@ -949,11 +946,12 @@ void UJavascriptEditorLibrary::CreateLogListing(const FName& InLogName, const FT
 	MessageLogModule.RegisterLogListing(InLogName, InLabel, InitOptions);
 }
 
-UWidget* UJavascriptEditorLibrary::CreateLogListingWidget(const FName& InLogName)
+FJavascriptSlateWidget UJavascriptEditorLibrary::CreateLogListingWidget(const FName& InLogName)
 {
 	FMessageLogModule& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>("MessageLog");
-	TSharedRef<SWidget> Widget = MessageLogModule.CreateLogListingWidget(MessageLogModule.GetLogListing(InLogName));
-	return UJavascriptUMGLibrary::CreateContainerWidget(Widget);
+	FJavascriptSlateWidget Out;
+	Out.Widget = MessageLogModule.CreateLogListingWidget(MessageLogModule.GetLogListing(InLogName));
+	return Out;
 }
 
 void UJavascriptEditorLibrary::AddLogListingMessage(const FName& InLogName, EJavascriptMessageSeverity::Type InSeverity, const FString& LogText)
@@ -1022,7 +1020,11 @@ void UJavascriptEditorLibrary::CompileBlueprint(UBlueprint* Blueprint)
 
 bool UJavascriptEditorLibrary::OpenEditorForAsset(UObject* Asset)
 {
-	return FAssetEditorManager::Get().OpenEditorForAsset(Asset);
+	if (auto* SubSystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>())
+	{
+		return SubSystem->OpenEditorForAsset(Asset);
+	}
+	return false;
 }
 
 void UJavascriptEditorLibrary::OpenEditorForAssetByPath(const FString& AssetPathName, const FString& ObjectName)
@@ -1036,7 +1038,10 @@ void UJavascriptEditorLibrary::OpenEditorForAssetByPath(const FString& AssetPath
 		UObject* Object = FindObject<UObject>(Package, *ObjectName);
 		if (Object != NULL)
 		{
-			FAssetEditorManager::Get().OpenEditorForAsset(Object);
+			if (auto* SubSystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>())
+			{
+				SubSystem->OpenEditorForAsset(Object);
+			}
 		}
 	}
 }
@@ -1189,7 +1194,7 @@ static void WriteRawToTexture_RenderThread(FTexture2DDynamicResource* TextureRes
 {
 	check(IsInRenderingThread());
 
-	FTexture2DRHIParamRef TextureRHI = TextureResource->GetTexture2DRHI();
+	FRHITexture2D* TextureRHI = TextureResource->GetTexture2DRHI().GetReference();
 
 	int32 Width = TextureRHI->GetSizeX();
 	int32 Height = TextureRHI->GetSizeY();
@@ -1321,6 +1326,21 @@ FString UJavascriptEditorLibrary::GetKeyNameByKeyEvent(const FKeyEvent& Event)
 	return Event.GetKey().GetFName().ToString();
 }
 
+bool UJavascriptEditorLibrary::GetIsControlDownByKeyEvent(const FKeyEvent& Event)
+{
+	return Event.IsControlDown();
+}
+
+bool UJavascriptEditorLibrary::GetIsShiftDownByKeyEvent(const FKeyEvent& Event)
+{
+	return Event.IsShiftDown();
+}
+
+bool UJavascriptEditorLibrary::GetIsAltDownByKeyEvent(const FKeyEvent& Event)
+{
+	return Event.IsAltDown();
+}
+
 FString UJavascriptEditorLibrary::GetDataTableAsJSON(UDataTable* InDataTable, uint8 InDTExportFlags)
 {
 	if (InDataTable == nullptr)
@@ -1357,4 +1377,33 @@ bool UJavascriptEditorLibrary::HasMetaData(UField* Field, const FString& Key)
 {
 	return Field->HasMetaData(*Key);
 }
+
+UWorld* UJavascriptEditorLibrary::GetEditorPlayWorld()
+{
+	return GEditor->PlayWorld;
+}
+
+bool UJavascriptEditorLibrary::ToggleIsExecuteTestModePIE()
+{
+	auto* StaticGameData = Cast<UJavascriptStaticCache>(GEngine->GameSingleton);
+	if (StaticGameData)
+	{
+		StaticGameData->bExecuteTestModePIE ^= true;
+		return StaticGameData->bExecuteTestModePIE;
+	}
+
+	return false;
+}
+
+bool UJavascriptEditorLibrary::GetIsExecuteTestModePIE()
+{
+	auto* StaticGameData = Cast<UJavascriptStaticCache>(GEngine->GameSingleton);
+	if (StaticGameData)
+	{
+		return StaticGameData->bExecuteTestModePIE;
+	}
+
+	return false;
+}
+
 #endif

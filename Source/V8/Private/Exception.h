@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Translator.h"
 #include "V8PCH.h"
@@ -22,7 +22,7 @@ struct FV8Exception
 			{
 				auto filename = StringFromV8(isolate, message->GetScriptResourceName());
 				auto linenum = message->GetLineNumber(isolate->GetCurrentContext()).ToChecked();
-				auto line = StringFromV8(isolate, message->GetSourceLine(isolate->GetCurrentContext()).ToLocalChecked());
+				auto sourceline = StringFromV8(isolate, message->GetSourceLine(isolate->GetCurrentContext()).ToLocalChecked());
 
 				UE_LOG(Javascript, Error, TEXT("%s:%d: %s"), *filename, linenum, *exception);
 

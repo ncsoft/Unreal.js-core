@@ -15,6 +15,14 @@ struct FJavascriptSlateStyle
 	TSharedPtr<FSlateStyleSet> Handle;
 };
 
+USTRUCT(BlueprintType)
+struct FJavascriptSlateWidget
+{
+	GENERATED_BODY()
+
+	TSharedPtr<SWidget> Widget;
+};
+
 USTRUCT()
 struct FJavascriptSlateIcon
 {
@@ -86,20 +94,23 @@ class JAVASCRIPTUMG_API UJavascriptUMGLibrary : public UBlueprintFunctionLibrary
 	static void AddFontInfo(FJavascriptSlateStyle StyleSet, FName PropertyName, const FSlateFontInfo& FontInfo);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static UWidget* SetContent(UNativeWidgetHost* TargetWidget, UWidget* SlateWidget);
+	static FJavascriptSlateWidget TakeWidget(class UWidget* Widget);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static class UWidget* SetContent(class UNativeWidgetHost* TargetWidget, FJavascriptSlateWidget SlateWidget);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void AddWindowAsNativeChild(UWidget* NewWindow, UWidget* RootWindow);
+	static FJavascriptSlateWidget GetRootWindow();
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void AddWindow(UWidget* NewWindow, const bool bShowImmediately = true);
+	static void AddWindowAsNativeChild(FJavascriptSlateWidget NewWindow, FJavascriptSlateWidget RootWindow);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void ShowWindow(UWidget* NewWindow);
+	static void AddWindow(FJavascriptSlateWidget NewWindow, const bool bShowImmediately = true);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void ShowWindow(FJavascriptSlateWidget NewWindow);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FVector2D GenerateDynamicImageResource(const FName InDynamicBrushName);
-
-public:
-	static UWidget* CreateContainerWidget(TSharedRef<SWidget> Slate);
 };
