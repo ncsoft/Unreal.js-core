@@ -56,7 +56,7 @@ public class V8 : ModuleRules
             });
         }
 
-        HackWebSocketIncludeDir(Path.Combine(Directory.GetCurrentDirectory(), "ThirdParty", "libWebSockets", "libWebSockets"), Target);
+        HackWebSocketIncludeDir(Path.Combine(Directory.GetCurrentDirectory(), "ThirdParty", "libWebSockets", "libwebsockets"), Target);
 
         if (Target.bBuildEditor)
         {
