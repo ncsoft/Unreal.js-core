@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Components/WIdget.h"
+#include "Components/Widget.h"
 #include "JavascriptEditorLibrary.h"
 #include "JavascriptEditorToolbar.generated.h"
 

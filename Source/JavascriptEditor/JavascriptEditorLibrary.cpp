@@ -31,7 +31,7 @@
 #include "Components/BrushComponent.h"
 
 #include "../../Launch/Resources/Version.h"
-#include "HAL/PlatformFileManager.h"
+#include "HAL/PlatformFilemanager.h"
 #include "HAL/FileManager.h"
 #include "AI/NavDataGenerator.h"
 #include "Framework/Application/SlateApplication.h"
