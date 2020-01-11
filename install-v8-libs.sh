@@ -1,9 +1,9 @@
 #!/bin/sh
 
 VersionHeader=ThirdParty/v8/include/v8-version.h
-Major=$(cat $VersionHeader | grep MAJOR | awk -e '{ print $3 }')
-Minor=$(cat $VersionHeader | grep MINOR | awk -e '{ print $3 }')
-Build=$(cat $VersionHeader | grep BUILD_NUMBER | awk -e '{ print $3 }')
+Major=$(cat $VersionHeader | grep MAJOR | awk '{ print int($3) }')
+Minor=$(cat $VersionHeader | grep MINOR | awk '{ print int($3) }')
+Build=$(cat $VersionHeader | grep BUILD_NUMBER | awk '{ print int($3) }')
 Version=$Major.$Minor.$Build
 Tag=V8-$Version
 ZipFile=v8-$Version-libs.zip
