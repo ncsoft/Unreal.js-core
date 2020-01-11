@@ -1,4 +1,4 @@
-﻿PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #ifndef THIRD_PARTY_INCLUDES_START
 #	define THIRD_PARTY_INCLUDES_START
@@ -1186,7 +1186,7 @@ public:
 				if (!function.IsEmpty())
 				{
 					auto isolate = info.GetIsolate();
-					function->Call(isolate->GetCurrentContext(), info.This(), 0, nullptr);
+					auto ret = function->Call(isolate->GetCurrentContext(), info.This(), 0, nullptr);
 				}
 			}
 		};
@@ -1203,7 +1203,7 @@ public:
 				auto function = info[1].As<Function>();
 				if (!function.IsEmpty())
 				{
-					function->Call(isolate->GetCurrentContext(), info.This(), 0, nullptr);
+					auto ret = function->Call(isolate->GetCurrentContext(), info.This(), 0, nullptr);
 				}
 			}
 		};
