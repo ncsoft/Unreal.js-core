@@ -568,23 +568,6 @@ public:
 
 	void runIfWaitingForDebugger(int contextGroupId) override
 	{
-		HandleScope handle_scope(isolate());
-		FIsolateHelper I(isolate());
-		
-		auto maybeGlobal = Local<Value>::Cast(context()->Global())->ToObject(context());
-		if (maybeGlobal.IsEmpty())
-			return;
-		auto global = maybeGlobal.ToLocalChecked();
-		
-		auto maybeMyFunctionValue = global->Get(context(), I.Keyword("$debuggerDidAttach"));
-		if (maybeMyFunctionValue.IsEmpty())
-			return; 
-		auto myFunctionValue = maybeMyFunctionValue.ToLocalChecked();
-		if (myFunctionValue->IsNullOrUndefined())
-			return;
-		
-		auto myFunction = myFunctionValue.As<v8::Function>(); 
-		auto result = myFunction->Call(context(), global, 0, nullptr); 
 	}
 
 	v8::Local<v8::Context> ensureDefaultContextInGroup(int) override
