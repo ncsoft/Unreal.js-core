@@ -1,4 +1,4 @@
-#include "JavascriptGraphAssetGraphSchema.h"
+﻿#include "JavascriptGraphAssetGraphSchema.h"
 #include "JavascriptGraphEdNode.h"
 #include "JavascriptGraphConnectionDrawingPolicy.h"
 
@@ -99,6 +99,20 @@ void UJavascriptGraphAssetGraphSchema::GetContextMenuActions(const UEdGraph* Cur
 void UJavascriptGraphAssetGraphSchema::GetContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const
 {
 	//@ Todo
+	
+	if (OnBuildMenu.IsBound())
+	{
+		FJavascriptGraphMenuBuilder Builder;
+		Builder.ToolMenu = Menu;
+		Builder.Graph = Context->Graph;
+		Builder.GraphNode = Context->Node;
+		Builder.GraphPin.GraphPin = const_cast<UEdGraphPin*>(Context->Pin);
+		Builder.bIsDebugging = Context->bIsDebugging;
+
+		OnBuildMenu.Execute(Builder);
+		return;
+	}
+
 	Super::GetContextMenuActions(Menu, Context);
 }
 #endif

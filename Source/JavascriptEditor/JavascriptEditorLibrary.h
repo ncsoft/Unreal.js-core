@@ -558,5 +558,7 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	UFUNCTION(BlueprintPure, Category = "Scripting|Javascript")
 	static bool GetIsExecuteTestModePIE();
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static int32 GetUniqueID(UObject* InObject);
 #endif
 };

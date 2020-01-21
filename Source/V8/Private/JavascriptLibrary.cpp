@@ -21,6 +21,9 @@
 #include "Internationalization/TextLocalizationManager.h"
 #include "Internationalization/Text.h"
 #include "Internationalization/Internationalization.h"
+#include "HAL/Runnable.h"
+#include "HAL/RunnableThread.h"
+#include "Async/Async.h"
 
 struct FPrivateSocketHandle
 {
@@ -198,7 +201,6 @@ UPackage* UJavascriptLibrary::LoadPackage(UPackage* InOuter, FString PackageName
 	return ::LoadPackage(InOuter, *PackageName, LOAD_None);
 }
 
-
 void UJavascriptLibrary::AddDynamicBinding(UClass* Outer, UDynamicBlueprintBinding* BindingObject)
 {
 	if (Cast<UBlueprintGeneratedClass>(Outer) && BindingObject)
@@ -268,6 +270,69 @@ bool UJavascriptLibrary::WriteFile(UObject* Object, FString Filename)
 		
 	Writer->Serialize(FArrayBufferAccessor::GetData(), FArrayBufferAccessor::GetSize());
 	return Writer->Close();
+}
+
+class FReadStringFromFileThread : public FRunnable
+{
+public:
+	FReadStringFromFileThread(FString InFilename, TSharedPtr<FJavascriptFunction> InFunction)
+		: Filename(InFilename), Function(InFunction), Thread(nullptr)
+	{
+		Start();
+		UE_LOG(Javascript, Warning, TEXT("ReadStringFromFileAsync Thread, started %s"), *Filename);
+	}
+
+	~FReadStringFromFileThread()
+	{
+		if (Thread != nullptr)
+		{
+			Thread->Kill();
+			delete Thread;
+			UE_LOG(Javascript, Warning, TEXT("ReadStringFromFileAsync Thread, killed %s"), *Filename);
+		}
+	}
+
+	/// FRunnable inherites
+public:
+
+	void Start()
+	{
+		check(Thread == nullptr);
+		Thread = FRunnableThread::Create(this, TEXT("ReadStringFromFileThread"), 512 * 1024, TPri_Normal, FPlatformAffinity::GetPoolThreadMask());
+	}
+
+private:
+	virtual uint32 Run() override
+	{
+		FString Result;
+		FFileHelper::LoadFileToString(Result, *Filename);
+		TSharedPtr<FJavascriptFunction> Copy = Function;
+
+		AsyncTask(ENamedThreads::GameThread, [Copy, Result]()
+			{
+				FReadStringFromFileAsyncData Out;
+				Out.String = Result;
+				Copy->Execute(FReadStringFromFileAsyncData::StaticStruct(), &Out);
+			});
+
+		return 0;
+	}
+
+private:
+	/** thread should continue running. */
+	FString Filename;
+	FRunnableThread* Thread;
+	TSharedPtr<FJavascriptFunction> Function;
+};
+
+FReadStringFromFileHandle UJavascriptLibrary::ReadStringFromFileAsync(UObject* Object, FString Filename, FJavascriptFunction Function)
+{
+	TSharedPtr<FJavascriptFunction> Copy(new FJavascriptFunction);
+	*(Copy.Get()) = Function;
+
+	FReadStringFromFileHandle Handle;
+	Handle.Runnable	= MakeShareable<FReadStringFromFileThread>(new FReadStringFromFileThread(Filename, Copy));
+	return Handle;
 }
 
 FString UJavascriptLibrary::ReadStringFromFile(UObject* Object, FString Filename)

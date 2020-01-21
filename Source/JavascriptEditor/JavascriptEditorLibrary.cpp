@@ -1406,4 +1406,16 @@ bool UJavascriptEditorLibrary::GetIsExecuteTestModePIE()
 	return false;
 }
 
+int32 UJavascriptEditorLibrary::GetUniqueID(UObject * InObject)
+{
+	if (InObject != NULL)
+	{
+		return InObject->GetUniqueID();
+	}
+	else
+	{
+		return -1;
+	}
+}
+
 #endif

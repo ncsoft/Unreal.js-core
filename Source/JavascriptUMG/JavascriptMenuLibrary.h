@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "JavascriptUMGLibrary.h"
 #include "JavascriptObject.h"
@@ -54,6 +54,7 @@ struct FJavascriptMenuBuilder
 {
 	GENERATED_BODY()
 
+	UToolMenu* ToolMenu = nullptr;
 	FMultiBoxBuilder* MultiBox = nullptr;
 	FMenuBuilder* Menu = nullptr;
 	FMenuBarBuilder* MenuBar = nullptr;

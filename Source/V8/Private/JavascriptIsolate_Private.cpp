@@ -169,7 +169,7 @@ public:
 			}
 			else
 			{
-				return Undefined(isolate);
+				return v8::Undefined(isolate);
 			}
 		}
 
@@ -265,7 +265,7 @@ public:
 			}
 			else
 			{
-				return Undefined(isolate);
+				return v8::Undefined(isolate);
 			}
 		}
 
@@ -520,7 +520,7 @@ public:
 		if (!Buffer)
 		{
 			I.Throw(TEXT("Read property from invalid memory"));
-			return Undefined(isolate_);
+			return v8::Undefined(isolate_);
 		}
 
 #if WITH_EDITOR
@@ -623,10 +623,10 @@ public:
 			else
 			{
 				UE_LOG(Javascript, Warning, TEXT("Non ScriptStruct found : %s"), *p->Struct->GetName());
-
-				return Undefined(isolate_);
-			}
-		}
+				
+				return v8::Undefined(isolate_);
+			}			
+		}		
 		else if (auto p = Cast<UArrayProperty>(Property))
 		{
 			FScriptArrayHelper_InContainer helper(p, Buffer);
@@ -1574,7 +1574,7 @@ public:
 		}
 
 		// No return value available
-		return handle_scope.Escape(Undefined(isolate));
+		return handle_scope.Escape(v8::Undefined(isolate));
 	}
 
 	void ExportFunction(Handle<FunctionTemplate> Template, UFunction* FunctionToExport)
@@ -1614,7 +1614,7 @@ public:
 					// Otherwise, just return undefined.
 					else
 					{
-						return Undefined(isolate);
+						return v8::Undefined(isolate);
 					}
 				})
 			);
@@ -1665,7 +1665,7 @@ public:
 					}
 					else
 					{
-						return Undefined(isolate);
+						return v8::Undefined(isolate);
 					}
 				})
 			);
@@ -1706,7 +1706,7 @@ public:
 					// Otherwise, just return undefined.
 					else
 					{
-						return Undefined(isolate);
+						return v8::Undefined(isolate);
 					}
 				})
 			);
@@ -2757,7 +2757,7 @@ public:
 		FIsolateHelper I(isolate_);
 		if (!Struct || !Buffer)
 		{
-			return Undefined(isolate_);
+			return v8::Undefined(isolate_);
 		}
 
 		auto v8_struct = ExportStruct(Struct);
@@ -2768,12 +2768,12 @@ public:
 		auto maybe_func = v8_struct->GetFunction(isolate_->GetCurrentContext());
 
 		if (maybe_func.IsEmpty())
-			return Undefined(isolate_);
+			return v8::Undefined(isolate_);
 
 		auto obj = maybe_func.ToLocalChecked()->NewInstance(isolate_->GetCurrentContext(), 2, args);
 
 		if (obj.IsEmpty())
-			return Undefined(isolate_);
+			return v8::Undefined(isolate_);
 
 		return obj.ToLocalChecked();
 	}
@@ -2783,7 +2783,7 @@ public:
 		FIsolateHelper I(isolate_);
 		if (!Object)
 		{
-			return Undefined(isolate_);
+			return v8::Undefined(isolate_);
 		}
 
 		auto ObjectPtr = GetContext()->ObjectToObjectMap.Find(Object);
@@ -2796,12 +2796,12 @@ public:
 			auto maybe_func = v8_class->GetFunction(isolate_->GetCurrentContext());
 
 			if (maybe_func.IsEmpty())
-				return Undefined(isolate_);
+				return v8::Undefined(isolate_);
 
 			auto maybe_value = maybe_func.ToLocalChecked()->NewInstance(isolate_->GetCurrentContext(), 1, args);
 
 			if (maybe_value.IsEmpty())
-				return Undefined(isolate_);
+				return v8::Undefined(isolate_);
 
 			return maybe_value.ToLocalChecked();
 		}
@@ -2818,13 +2818,13 @@ public:
 		FIsolateHelper I(isolate_);
 		if (!Object)
 		{
-			return Undefined(isolate_);
+			return v8::Undefined(isolate_);
 		}
 
 		auto Context = GetContext();
 		if (!Context)
 		{
-			return Undefined(isolate_);
+			return v8::Undefined(isolate_);
 		}
 
 		auto ObjectPtr = Context->ObjectToObjectMap.Find(Object);
@@ -2850,7 +2850,7 @@ public:
 				auto maybe_value = ExportUClass(Class)->GetFunction(isolate_->GetCurrentContext());
 				if (maybe_value.IsEmpty())
 				{
-					return Undefined(isolate_);
+					return v8::Undefined(isolate_);
 				}
 				value = maybe_value.ToLocalChecked();
 			}
@@ -2859,7 +2859,7 @@ public:
 				auto maybe_value= ExportStruct(Struct)->GetFunction(isolate_->GetCurrentContext());
 				if (maybe_value.IsEmpty())
 				{
-					return Undefined(isolate_);
+					return v8::Undefined(isolate_);
 				}
 				value = maybe_value.ToLocalChecked();
 			}
@@ -2879,14 +2879,14 @@ public:
 
 				if (maybe_func.IsEmpty())
 				{
-					return Undefined(isolate_);
+					return v8::Undefined(isolate_);
 				}
 
 				auto maybe_value = maybe_func.ToLocalChecked()->NewInstance(isolate_->GetCurrentContext(), 1, args);
 
 				if (maybe_value.IsEmpty())
 				{
-					return Undefined(isolate_);
+					return v8::Undefined(isolate_);
 				}
 				value = maybe_value.ToLocalChecked();
 			}

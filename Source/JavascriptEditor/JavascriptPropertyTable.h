@@ -21,8 +21,11 @@ public:
 	TArray<UObject*> GetEditingObjects() { return EditingObjects; };
 	
 	UFUNCTION(BlueprintCallable, Category = "JavascriptPropertyTable")
-	void SetEditingObjects(TArray<UObject*> InEditingObjects) { EditingObjects = InEditingObjects; };
-	
+	void SetEditingObjects(TArray<UObject*> InEditingObjects);
+
+	UFUNCTION(BlueprintCallable, Category = "JavascriptPropertyTable")
+	TArray<UObject*> GetSelectedTableObjects();
+
 	UPROPERTY(EditAnywhere, Category = "JavascriptPropertyTable")
 	FOnGenerateInvalidCellWidget OnGenerateInvalidCellWidget;
 

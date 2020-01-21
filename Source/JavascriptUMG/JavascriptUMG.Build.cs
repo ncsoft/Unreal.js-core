@@ -1,4 +1,4 @@
-using UnrealBuildTool;
+﻿using UnrealBuildTool;
 
 public class JavascriptUMG : ModuleRules
 {
@@ -17,5 +17,9 @@ public class JavascriptUMG : ModuleRules
             "UMG",
             "V8"
         });
-	}
+
+        PrivateDependencyModuleNames.AddRange(new string[] {
+            "ToolMenus"
+        });
+    }
 }
