@@ -22,7 +22,6 @@ struct FJavascriptContext : TSharedFromThis<FJavascriptContext>
 			: Instance(InInstance)
 			, Value(MoveTemp(InValue))
 		{}
-		FExportedStructMemoryInfo(const FExportedStructMemoryInfo& Other) = default;
 		FExportedStructMemoryInfo(FExportedStructMemoryInfo&& TempOther) = default;
 
 		~FExportedStructMemoryInfo()
