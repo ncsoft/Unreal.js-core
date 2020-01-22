@@ -5,7 +5,7 @@
 #include "JavascriptUIExtender.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
-#include "JavascriptUMG/JavascriptUICommands.h"
+#include "JavascriptUICommands.h"
 #endif
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
@@ -15,7 +15,7 @@ UJavascriptAssetEditorToolkit::UJavascriptAssetEditorToolkit(const FObjectInitia
 #if WITH_EDITOR
 , bRegistered(false)
 #endif
-{	
+{
 }
 
 #if WITH_EDITOR
@@ -31,7 +31,7 @@ void UJavascriptAssetEditorToolkit::Commit()
 	Discard();
 
 	IJavascriptEditorModule::Get().AddExtension(this);
-	
+
 	bRegistered = true;
 }
 
@@ -72,7 +72,7 @@ public:
 	}
 
 	virtual void RegisterTabSpawners(const TSharedRef<class FTabManager>& TabManager) override
-	{		
+	{
 		FAssetEditorToolkit::RegisterTabSpawners(TabManager);
 
 		for (auto Tab : Outer->Tabs)
@@ -106,7 +106,7 @@ public:
 	virtual FString GetWorldCentricTabPrefix() const override
 	{
 		return Outer->WorldCentricTabPrefix;
-	}	
+	}
 	virtual FLinearColor GetWorldCentricTabColorScale() const
 	{
 		return Outer->WorldCentricTabColorScale;
@@ -121,7 +121,7 @@ public:
 		{
 			Outer->Commands->Bind(&(GetToolkitCommands().Get()));
 		}
-				
+
 		TSharedPtr<FTabManager::FLayout> StandaloneDefaultLayout = FTabManager::FLayout::NewFromString(Outer->Layout.Replace(TEXT("#toolbartab"), *(GetToolbarTabId().ToString())));
 
 		// Initialize the asset editor and spawn nothing (dummy layout)
@@ -150,7 +150,7 @@ public:
 };
 
 void UJavascriptAssetEditorToolkit::Register()
-{	
+{
 }
 
 void UJavascriptAssetEditorToolkit::Unregister()

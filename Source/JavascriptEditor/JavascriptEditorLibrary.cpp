@@ -37,7 +37,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "Engine/LevelStreaming.h"
 #include "VisualLogger/VisualLogger.h"
-#include "JavascriptUMG/JavascriptUICommands.h"
+#include "JavascriptUICommands.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
 #include "Engine/SimpleConstructionScript.h"
@@ -78,7 +78,7 @@ void UJavascriptEditorLibrary::SetHeightmapDataFromMemory(ULandscapeInfo* Landsc
 	{
 		FHeightmapAccessor<false> Accessor(LandscapeInfo);
 		Accessor.SetData(MinX, MinY, MaxX, MaxY, (uint16*)FArrayBufferAccessor::GetData());
-	}	
+	}
 }
 
 void UJavascriptEditorLibrary::GetHeightmapDataToMemory(ULandscapeInfo* LandscapeInfo, int32 MinX, int32 MinY, int32 MaxX, int32 MaxY)
@@ -151,7 +151,7 @@ void UJavascriptEditorLibrary::GetAlphamapDataToMemory(ULandscapeInfo* Landscape
 	}
 }
 
-bool UJavascriptEditorLibrary::GetLandscapeExtent(ULandscapeInfo* LandscapeInfo, int32& MinX, int32& MinY, int32& MaxX, int32& MaxY) 
+bool UJavascriptEditorLibrary::GetLandscapeExtent(ULandscapeInfo* LandscapeInfo, int32& MinX, int32& MinY, int32& MaxX, int32& MaxY)
 {
 	if (!LandscapeInfo) return false;
 
@@ -324,7 +324,7 @@ FJavascriptWorkspaceItem UJavascriptEditorLibrary::GetGroup(const FString& Name)
 	if (Name == TEXT("Root"))
 	{
 		Out.Handle = WorkspaceMenu::GetMenuStructure().GetStructureRoot();
-	} 
+	}
 	else if (Name == TEXT("DeveloperToolsMisc"))
 	{
 		Out.Handle = WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory();
@@ -434,7 +434,7 @@ void UJavascriptEditorLibrary::DrawDirectionalArrow(const FJavascriptPDI& PDI, c
 	::DrawDirectionalArrow(PDI.PDI, ArrowToWorld.ToMatrixWithScale(), InColor, Length, ArrowSize, DepthPriority, Thickness);
 }
 void UJavascriptEditorLibrary::DrawConnectedArrow(const FJavascriptPDI& PDI, const FTransform& ArrowToWorld, const FLinearColor& Color, float ArrowHeight, float ArrowWidth, ESceneDepthPriorityGroup DepthPriority, float Thickness, int32 NumSpokes)
-{	
+{
 	::DrawConnectedArrow(PDI.PDI, ArrowToWorld.ToMatrixWithScale(), Color, ArrowHeight, ArrowWidth, DepthPriority, Thickness, NumSpokes);
 }
 void UJavascriptEditorLibrary::DrawWireStar(const FJavascriptPDI& PDI, const FVector& Position, float Size, const FLinearColor& Color, ESceneDepthPriorityGroup DepthPriority)
@@ -462,9 +462,9 @@ void UJavascriptEditorLibrary::DrawPolygon(const FJavascriptPDI& PDI, const TArr
 
 	for (int32 Index = 0; Index < Verts.Num() - 2; ++Index)
 	{
-		MeshBuilder.AddTriangle(0, Index + 1, Index + 2);		
+		MeshBuilder.AddTriangle(0, Index + 1, Index + 2);
 	}
-	
+
 	static auto TransparentPlaneMaterialXY = (UMaterial*)StaticLoadObject(UMaterial::StaticClass(), NULL, TEXT("/Engine/EditorMaterials/WidgetVertexColorMaterial.WidgetVertexColorMaterial"), NULL, LOAD_None, NULL);
 #if ENGINE_MINOR_VERSION < 22
 	MeshBuilder.Draw(PDI.PDI, FMatrix::Identity, TransparentPlaneMaterialXY->GetRenderProxy(false), DepthPriority, 0.f);
@@ -478,7 +478,7 @@ struct HJavascriptHitProxy : public HHitProxy
 	DECLARE_HIT_PROXY(JAVASCRIPTEDITOR_API);
 
 	FName Name;
-	
+
 	HJavascriptHitProxy(FName InName) :
 		HHitProxy(HPP_UI),
 		Name(InName)
@@ -536,7 +536,7 @@ FName UJavascriptEditorLibrary::GetName(const FJavascriptHitProxy& Proxy)
 	if (Proxy.HitProxy && Proxy.HitProxy->IsA(HJavascriptHitProxy::StaticGetType()))
 	{
 		HJavascriptHitProxy* ActorHit = static_cast<HJavascriptHitProxy*>(Proxy.HitProxy);
-		return ActorHit->Name;		
+		return ActorHit->Name;
 	}
 
 	return FName();
@@ -719,7 +719,7 @@ FJavascriptUICommandList UJavascriptEditorLibrary::GetLevelEditorActions()
 {
 	FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(NAME_LevelEditor);
 	TSharedRef<FUICommandList> LevelEditorActions = LevelEditor.GetGlobalLevelEditorActions();
-	
+
 	FJavascriptUICommandList CommandList;
 	CommandList.Handle = LevelEditorActions;
 	return CommandList;
@@ -775,7 +775,7 @@ bool UJavascriptEditorLibrary::SavePackage(UPackage* Package, FString FileName)
 	UWorld* World = UWorld::FindWorldInPackage(Package);
 	bool bSavedCorrectly;
 
-	if (World) 
+	if (World)
 	{
 		bSavedCorrectly = UPackage::SavePackage(Package, World, RF_NoFlags, *FileName, GError, NULL, false, true);
 	}
@@ -1049,7 +1049,7 @@ void UJavascriptEditorLibrary::OpenEditorForAssetByPath(const FString& AssetPath
 TArray<FAssetData> UJavascriptEditorLibrary::GetAssetsByType(const TArray<FString>& Types, bool bRecursiveClasses)
 {
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
-	
+
 	FARFilter Filter;
 	for (auto& Type : Types)
 	{
@@ -1276,8 +1276,8 @@ bool UJavascriptEditorLibrary::LoadImageFromDiskAsync(const FString& ImagePath, 
 		}
 
 	}
-	
-	Callback->OnFail.Broadcast(nullptr);	
+
+	Callback->OnFail.Broadcast(nullptr);
 	return false;
 }
 
@@ -1292,9 +1292,9 @@ bool UJavascriptEditorLibrary::OpenFileDialog(const UJavascriptWindow* SubWindow
 		const void* ParentWindowWindowHandle = nullptr;
 		if (SubWindow)
 			ParentWindowWindowHandle = nullptr;
-		else			
+		else
 			ParentWindowWindowHandle = FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr);
-		
+
 		int OutFilterIndex = 0;
 		return DesktopPlatform->OpenFileDialog(
 			ParentWindowWindowHandle,

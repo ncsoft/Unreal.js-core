@@ -30,7 +30,7 @@ public class JavascriptEditor : ModuleRules
 					"Core",
 					"CoreUObject",
 					"Engine",
-					"Slate",                    
+					"Slate",
                     "Landscape",
                     "JavascriptUMG",
                     "RawMesh",
@@ -39,7 +39,8 @@ public class JavascriptEditor : ModuleRules
                     "AppFramework",
                     "KismetWidgets",
                     "EditorStyle",
-                    "UnrealEd"
+                    "UnrealEd",
+                    "JavascriptUMG"
 
                 }
             );	// @todo Mac: for some reason CoreUObject and Engine are needed to link in debug on Mac
@@ -73,7 +74,7 @@ public class JavascriptEditor : ModuleRules
                         "AdvancedPreviewScene",
                         "Slate",
 					    "SlateCore",
-                        "EditorStyle",                    
+                        "EditorStyle",
 					    "MainFrame",
 					    "UnrealEd",
                         "WorkspaceMenuStructure",
@@ -89,13 +90,14 @@ public class JavascriptEditor : ModuleRules
                         "RenderCore",
                         "RHI",
 				        "DesktopPlatform",
+                        "ToolMenus"
                     }
             );
         }
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-		
+
 		// Uncomment if you are using online features
 		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
 		// if ((Target.Platform == UnrealTargetPlatform.Win32) || (Target.Platform == UnrealTargetPlatform.Win64))

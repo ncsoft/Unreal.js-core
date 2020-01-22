@@ -119,7 +119,7 @@ void UJavascriptMenuLibrary::AddToolBarButtonByContext(FJavascriptMenuBuilder& B
 		DefaultAction.CanExecuteAction = FCanExecuteAction::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnCanExecuteAction, EditingObject);
 		DefaultAction.IsActionVisibleDelegate = FCanExecuteAction::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnIsActionButtonVisible, EditingObject);
 		Builder.ToolBar->AddToolBarButton(
-			DefaultAction, 
+			DefaultAction,
 			NAME_None,
 			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnGetLabel)),
 			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Context, &UJavascriptToolbarButtonContext::Public_OnGetTooltip)),
@@ -135,7 +135,7 @@ void UJavascriptMenuLibrary::AddComboButton(FJavascriptMenuBuilder& Builder, UJa
 		FUIAction DefaultAction;
 		DefaultAction.CanExecuteAction = FCanExecuteAction::CreateUObject(Object, &UJavascriptComboButtonContext::Public_CanExecute);
 		Builder.ToolBar->AddComboButton(
-			DefaultAction, 
+			DefaultAction,
 			FOnGetContent::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetWidget),
 			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetLabel)),
 			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetTooltip)),
@@ -246,7 +246,7 @@ void UJavascriptMenuLibrary::AddMenuByCommands(FJavascriptMenuBuilder& Builder, 
 		{
 			FToolMenuSection& Section = Builder.ToolMenu->Sections.Num() > 0 ? Builder.ToolMenu->Sections.Top() : Builder.ToolMenu->AddSection(FName());
 			Section.AddMenuEntry(CommandInfo.Handle);
-		}		
+		}
 	}
 }
 
@@ -269,7 +269,7 @@ void UJavascriptMenuLibrary::AddWidget(FJavascriptMenuBuilder& Builder, UWidget*
 			bSearchable
 			);
 	}
-	
+
 }
 
 void UJavascriptMenuLibrary::PushCommandList(FJavascriptMenuBuilder& Builder, FJavascriptUICommandList List)
@@ -386,7 +386,7 @@ void UJavascriptMenuLibrary::RemoveExtension(FJavascriptExtender Extender, FJava
 
 void UJavascriptMenuLibrary::Apply(FJavascriptExtender Extender, FName ExtensionHook, EJavascriptExtensionHook::Type HookPosition, FJavascriptMenuBuilder& MenuBuilder)
 {
-	if (MenuBuilder.ToolBar) 
+	if (MenuBuilder.ToolBar)
 	{
 		Extender->Apply(ExtensionHook, (EExtensionHook::Position)HookPosition, *MenuBuilder.ToolBar);
 	}
@@ -397,7 +397,7 @@ void UJavascriptMenuLibrary::Apply(FJavascriptExtender Extender, FName Extension
 	else if (MenuBuilder.MenuBar)
 	{
 		Extender->Apply(ExtensionHook, (EExtensionHook::Position)HookPosition, *MenuBuilder.MenuBar);
-	}	
+	}
 }
 
 FJavascriptExtender UJavascriptMenuLibrary::Combine(const TArray<FJavascriptExtender>& Extenders)
@@ -427,7 +427,7 @@ void UJavascriptMenuLibrary::AddPullDownMenu(FJavascriptMenuBuilder& MenuBuilder
 		auto Delegate = FNewMenuDelegate::CreateLambda([=](class FMenuBuilder& Builder) {
 			FJavascriptMenuBuilder Out;
 			Out.MultiBox = Out.Menu = &Builder;
-			Copy->Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);			
+			Copy->Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
 		});
 		MenuBuilder.MenuBar->AddPullDownMenu(InMenuLabel, InToolTip, Delegate, InExtensionHook, InTutorialHighlightName);
 	}

@@ -7,14 +7,14 @@
 
 
 /**
- * 
+ *
  */
 UCLASS()
-class JAVASCRIPTUMG_API UJavascriptMultiBox : public UWidget
+class JAVASCRIPTEDITOR_API UJavascriptMultiBox : public UWidget
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnHook, FName, Id, UJavascriptMultiBox*, Self, FJavascriptMenuBuilder, CurrentBuilder);
 
 	UPROPERTY()
@@ -22,7 +22,7 @@ public:
 
 	UFUNCTION(BlueprintInternalUseOnly, Category = "Scripting | Javascript")
 	void AddPullDownMenu(FJavascriptMenuBuilder& Builder, FName Id, const FText& Label, const FText& ToolTip);
-	
+
 	UFUNCTION(BlueprintInternalUseOnly, Category = "Scripting | Javascript")
 	void AddSubMenu(FJavascriptMenuBuilder& Builder, FName Id, const FText& Label, const FText& ToolTip, const bool bInOpenSubMenuOnClick);
 
@@ -30,6 +30,6 @@ public:
 
 	UFUNCTION(BlueprintInternalUseOnly, Category = "Scripting | Javascript")
 	static void Bind(FJavascriptMenuBuilder Builder);
-	
+
 	virtual TSharedRef<SWidget> RebuildWidget();
 };

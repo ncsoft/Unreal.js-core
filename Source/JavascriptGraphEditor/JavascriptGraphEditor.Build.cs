@@ -4,7 +4,7 @@ namespace UnrealBuildTool.Rules
 {
 	public class JavascriptGraphEditor : ModuleRules
 	{
-		public JavascriptGraphEditor(ReadOnlyTargetRules Target) 
+		public JavascriptGraphEditor(ReadOnlyTargetRules Target)
             : base(Target)
 		{
             PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
@@ -17,6 +17,7 @@ namespace UnrealBuildTool.Rules
                     "Engine",
                     "UnrealEd",
                     "UMG",
+                    "JavascriptEditor",
                 }
             );
 
@@ -30,6 +31,7 @@ namespace UnrealBuildTool.Rules
                     "EditorStyle",
                     "KismetWidgets",
                     "JavascriptUMG",
+                    "JavascriptEditor",
                     "InputCore"
                 }
 				);

@@ -323,7 +323,7 @@ public:
 			}
 		};
 
-		for (int32 Index = 0; Index < ARRAY_COUNT(Counter); ++Index)
+		for (int32 Index = 0; Index < UE_ARRAY_COUNT(Counter); ++Index)
 		{
 			if (type & (1 << Index))
 			{
@@ -623,10 +623,10 @@ public:
 			else
 			{
 				UE_LOG(Javascript, Warning, TEXT("Non ScriptStruct found : %s"), *p->Struct->GetName());
-				
+
 				return v8::Undefined(isolate_);
-			}			
-		}		
+			}
+		}
 		else if (auto p = Cast<UArrayProperty>(Property))
 		{
 			FScriptArrayHelper_InContainer helper(p, Buffer);

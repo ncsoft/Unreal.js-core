@@ -1,16 +1,21 @@
 #pragma once
 #include "JavascriptEditorGlobalDelegates.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
+#include "Engine/BrushBuilder.h"
+#include "Engine/Brush.h"
 #include "JavascriptEditorEngineLibrary.generated.h"
 
+class UEditorEngine;
+class UEngine;
 /**
- * 
+ *
  */
 UCLASS()
 class JAVASCRIPTEDITOR_API UJavascriptEditorEngineLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
-#if WITH_EDITOR	
+#if WITH_EDITOR
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static UWorld* GetEditorWorld(UEngine* Engine);
 
@@ -22,7 +27,7 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorEngineLibrary : public UBlueprintFun
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool Exec(UEditorEngine* Engine, UWorld* InWorld, const FString& Command, FString& Out);
-		
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static UBrushBuilder* FindBrushBuilder(UEditorEngine* Engine, UClass* BrushBuilderClass);
 
@@ -44,19 +49,19 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorEngineLibrary : public UBlueprintFun
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static class USelection* GetSelectedComponents(UEditorEngine* Engine);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static class USelection* GetSelectedObjects(UEditorEngine* Engine);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static class USelection* GetSelectedSet(UEditorEngine* Engine, const UClass* Class);	
+	static class USelection* GetSelectedSet(UEditorEngine* Engine, const UClass* Class);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void RebuildLevel(UEditorEngine* Engine, ULevel* Level);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static int32 bspBrushCSG(UEditorEngine* Engine, ABrush* Actor, UModel* Model, int32 PolyFlags, EBrushType BrushType, ECsgOper CSGOper, bool bBuildBounds, bool bMergePolys, bool bReplaceNULLMaterialRefs, bool bShowProgressBar = true);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void RebuildStaticNavigableGeometry(UEditorEngine* Engine, ULevel* Level);
 

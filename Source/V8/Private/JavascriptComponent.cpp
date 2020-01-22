@@ -42,7 +42,7 @@ void UJavascriptComponent::OnRegister()
 				Isolate = NewObject<UJavascriptIsolate>();
 				Isolate->Init(false);
 				Isolate->AddToRoot();
-			}			
+			}
 
 			auto* Context = Isolate->CreateContext();
 			JavascriptContext = Context;
@@ -65,14 +65,14 @@ void UJavascriptComponent::Activate(bool bReset)
 	{
 		JavascriptContext->RunFile(*ScriptSourceFile);
 
-		SetComponentTickEnabled(OnTick.IsBound());	
+		SetComponentTickEnabled(OnTick.IsBound());
 	}
 
 	OnBeginPlay.ExecuteIfBound();
 }
 
 void UJavascriptComponent::Deactivate()
-{	
+{
 	OnEndPlay.ExecuteIfBound();
 
 	Super::Deactivate();
@@ -94,7 +94,7 @@ void UJavascriptComponent::BeginDestroy()
 			JavascriptContext = nullptr;
 		}
 	}
-	if (bIsActive)
+	if (IsActive())
 	{
 		Deactivate();
 	}
@@ -152,7 +152,7 @@ UObject* UJavascriptComponent::ResolveAsset(FName Name, bool bTryLoad)
 }
 
 UClass* UJavascriptComponent::ResolveClass(FName Name)
-{	
+{
 	for (const auto& Item : ClassAssets)
 	{
 		if (Item.Name == Name)

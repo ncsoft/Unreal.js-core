@@ -5,21 +5,17 @@ public class JavascriptUMG : ModuleRules
 	public JavascriptUMG(ReadOnlyTargetRules Target) : base(Target)
 	{
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-        PublicDependencyModuleNames.AddRange(new string[] { 
-            "Core", 
-            "CoreUObject", 
-            "Engine", 
-            "InputCore", 
+        PublicDependencyModuleNames.AddRange(new string[] {
+            "Core",
+            "CoreUObject",
+            "Engine",
+            "InputCore",
             "Slate",
 			"SlateCore",
 			"RenderCore",
-			"RHI", 
+			"RHI",
             "UMG",
             "V8"
-        });
-
-        PrivateDependencyModuleNames.AddRange(new string[] {
-            "ToolMenus"
         });
     }
 }

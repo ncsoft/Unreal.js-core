@@ -1,7 +1,7 @@
 #include "JavascriptUIExtender.h"
 
 #if WITH_EDITOR
-#include "JavascriptUMG/JavascriptUICommands.h"
+#include "JavascriptUICommands.h"
 
 namespace
 {
@@ -13,7 +13,7 @@ namespace
 
 UJavascriptUIExtender::UJavascriptUIExtender(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
-{	
+{
 }
 
 #if WITH_EDITOR
@@ -53,15 +53,15 @@ void UJavascriptUIExtender::AddMenuEntry(UJavascriptUICommands* Commands, FStrin
 		if (Action.IsValid())
 		{
 			CurrentMenuBuilder->AddMenuEntry(Action);
-		}		
+		}
 	}
 }
 
 void UJavascriptUIExtender::AddMenuSeparator()
-{	
+{
 	if (CurrentMenuBuilder)
 	{
-		CurrentMenuBuilder->AddMenuSeparator();		
+		CurrentMenuBuilder->AddMenuSeparator();
 	}
 }
 
@@ -83,7 +83,7 @@ FJavascriptUICommandList UJavascriptUIExtender::GetTopCommandList()
 	if (CurrentMenuBuilder)
 	{
 		Out.Handle = const_cast<FUICommandList*>(CurrentMenuBuilder->GetTopCommandList().Get())->AsShared();
-	}	
+	}
 	return Out;
 }
 
@@ -95,7 +95,7 @@ void UJavascriptUIExtender::Bind(UJavascriptUICommands* Commands)
 		if (List.IsValid())
 		{
 			Commands->Bind(const_cast<FUICommandList*>(List.Get()));
-		}		
+		}
 	}
 }
 
@@ -138,7 +138,7 @@ void UJavascriptUIExtender::BuildMenu(FMenuBuilder& MenuBuilder)
 		for (const auto& Extension : MenuExtensions)
 		{
 			auto Hook = Extension.ExtensionHook;
-			
+
 			PushMenuBuilder(MenuBuilder);
 			OnHook.Execute(Hook);
 			Reset();

@@ -7,7 +7,7 @@
 *
 */
 UCLASS()
-class JAVASCRIPTUMG_API UJavascriptUICommands : public UObject
+class JAVASCRIPTEDITOR_API UJavascriptUICommands : public UObject
 {
 	GENERATED_UCLASS_BODY()
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "JavascriptUMG/JavascriptMenuLibrary.h"
+#include "JavascriptMenuLibrary.h"
 #include "JavascriptUIExtender.generated.h"
 
 USTRUCT(BlueprintType)
@@ -34,13 +34,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
 	TArray<FJavascriptMenuExtension> ToolbarExtensions;
 
-	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnHook,FName,Hook);	
+	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnHook,FName,Hook);
 
 	UPROPERTY()
 	FOnHook OnHook;
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void BeginSection(FName Name, FText Text);	
+	static void BeginSection(FName Name, FText Text);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void EndSection();
@@ -64,7 +64,7 @@ public:
 
 	TSharedPtr<FExtender> TakeMenuExtender( const TSharedPtr<FUICommandList>& CommandList );
 	TSharedPtr<FExtender> TakeToolbarExtender(const TSharedPtr<FUICommandList>& CommandList);
-	
+
 	static void PushMenuBuilder(FMenuBuilder& MenuBuilder);
 	static void Reset();
 

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "JavascriptUMG/JavascriptMenuLibrary.h"
+#include "JavascriptEditor/JavascriptMenuLibrary.h"
 #include "SJavascriptGraphEdNode.h"
 #include "ConnectionDrawingPolicy.h"
 #include "EdGraph/EdGraph.h"
@@ -32,8 +32,8 @@ struct FJavascriptEdGraphPin
 	GENERATED_BODY()
 
 	FJavascriptEdGraphPin() : GraphPin(nullptr) {}
-	FJavascriptEdGraphPin(UEdGraphPin* InPin) 
-		: GraphPin(InPin) 
+	FJavascriptEdGraphPin(UEdGraphPin* InPin)
+		: GraphPin(InPin)
 	{}
 
 	UEdGraphPin* GraphPin;
@@ -48,7 +48,7 @@ struct FJavascriptEdGraphPin
 		return GraphPin;
 	}
 
-	bool IsValid() const 
+	bool IsValid() const
 	{
 		return GraphPin != nullptr;
 	}
@@ -101,9 +101,9 @@ struct FJavascriptDetermineLinkGeometryContainer
 
 	FJavascriptDetermineLinkGeometryContainer() {}
 	FJavascriptDetermineLinkGeometryContainer(
-		FArrangedChildren* InArrangedNodes, 
-		TSharedRef<SWidget>* InOutputPinWidget, 
-		TMap<UEdGraphNode*, int32>* InNodeWidgetMap, 
+		FArrangedChildren* InArrangedNodes,
+		TSharedRef<SWidget>* InOutputPinWidget,
+		TMap<UEdGraphNode*, int32>* InNodeWidgetMap,
 		TMap<TSharedRef<SWidget>, FArrangedWidget>* InPinGeometries,
 #if ENGINE_MINOR_VERSION > 22
 		TMap< UEdGraphPin*, TSharedPtr<SGraphPin> >* InPinToPinWidgetMap
@@ -262,7 +262,7 @@ public:
 
 	UFUNCTION(BlueprintInternalUseOnly, Category = "Scripting | Javascript")
 	static void SetPinType(FJavascriptEdGraphPin Pin, FEdGraphPinType PinType);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void SetPinContainerType(FJavascriptEdGraphPin A, EJavascriptPinContainerType::Type ContainerType);
 
@@ -325,7 +325,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AutowireNewNode(UEdGraphNode* Node, FJavascriptEdGraphPin FromPin);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptArrangedWidget FindPinGeometries(FJavascriptDetermineLinkGeometryContainer Container, FJavascriptPinWidget PinWidget);
 
