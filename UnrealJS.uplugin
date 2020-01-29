@@ -2,7 +2,7 @@
   "FileVersion": 3,
   "FriendlyName": "Unreal.js - Javascript Runtime",
   "Version": 2,
-  "VersionName": "0.3.8",
+  "VersionName": "0.3.9",
   "FriendlyVersion": "0.3.9",
   "EngineVersion": "4.24.0",
   "Description": "Javascript powered UnrealEngine",
