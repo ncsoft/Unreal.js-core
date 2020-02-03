@@ -1,6 +1,6 @@
 ﻿#include "JavascriptMenuLibrary.h"
-#include "SJavascriptBox.h"
-#include "JavascriptToolbarButtonContext.h"
+#include "JavascriptUMG/SJavascriptBox.h"
+#include "JavascriptUMG/JavascriptToolbarButtonContext.h"
 #include "Components/Widget.h"
 #include "Framework/Commands/GenericCommands.h"
 #include "JavascriptUICommands.h"
