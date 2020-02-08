@@ -1,9 +1,9 @@
 ﻿#pragma once
 
-#include "JavascriptUMGLibrary.h"
+#include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "JavascriptIsolate.h"
-#include "JavascriptComboButtonContext.h"
-#include "JavascriptMenuContext.h"
+#include "../JavascriptUMG/JavascriptComboButtonContext.h"
+#include "JavascriptUMG/JavascriptMenuContext.h"
 #include "Framework/Commands/UICommandInfo.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Framework/MultiBox/MultiBoxExtender.h"
