@@ -7,7 +7,7 @@ PRAGMA_DISABLE_MISSING_VIRTUAL_DESTRUCTOR_WARNINGS
 DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 {
 	auto Function = static_cast<UJavascriptGeneratedFunction*>(Stack.CurrentNativeFunction);
-	const auto ProcessInternal = [&](FFrame& Stack, RESULT_DECL)
+	const auto ProcessInternalFunc = [&](FFrame& Stack, RESULT_DECL)
 	{
 		if (Function->JavascriptContext.IsValid())
 		{
@@ -190,7 +190,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 		// Execute the code.
 		if (bIsValidFunction)
 		{
-			ProcessInternal(NewStack, RESULT_PARAM);
+			ProcessInternalFunc(NewStack, RESULT_PARAM);
 		}
 
 		if (!bUsePersistentFrame)
@@ -208,7 +208,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 	else
 	{
 		P_FINISH;
-		ProcessInternal(Stack, RESULT_PARAM);
+		ProcessInternalFunc(Stack, RESULT_PARAM);
 	}
 }
 
