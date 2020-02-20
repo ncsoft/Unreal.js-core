@@ -36,8 +36,8 @@ public class V8 : ModuleRules
     public V8(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-        bLegacyPublicIncludePaths = false;
-        ShadowVariableWarningLevel = WarningLevel.Error;
+        //bLegacyPublicIncludePaths = false;
+        //ShadowVariableWarningLevel = WarningLevel.Error;
         PrivateIncludePaths.AddRange(new string[]
         {
             Path.Combine(ThirdPartyPath, "v8", "include")

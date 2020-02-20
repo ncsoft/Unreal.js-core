@@ -90,7 +90,7 @@ public class JavascriptEditor : ModuleRules
                         "RenderCore",
                         "RHI",
 				        "DesktopPlatform",
-                        "ToolMenus"
+                        // "ToolMenus"
                     }
             );
         }

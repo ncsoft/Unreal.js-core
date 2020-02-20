@@ -4,7 +4,7 @@
   "Version": 2,
   "VersionName": "0.3.9",
   "FriendlyVersion": "0.3.9",
-  "EngineVersion": "4.24.0",
+  "EngineVersion": "4.23.0",
   "Description": "Javascript powered UnrealEngine",
   "Category": "Programming",
   "CreatedBy": "NCSOFT Corporation",

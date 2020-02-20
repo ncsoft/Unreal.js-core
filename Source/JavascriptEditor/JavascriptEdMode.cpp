@@ -372,6 +372,7 @@ public:
 		return MakeShareable(new FJavascriptEdModeInstance(Parent));
 	}
 
+#if	ENGINE_MINOR_VERSION > 23
 	virtual UEdMode* CreateScriptableMode() const override
 	{
 		return nullptr;
@@ -381,6 +382,7 @@ public:
 	{
 		return false;
 	}
+#endif
 
 	UJavascriptEdMode* Parent;
 };

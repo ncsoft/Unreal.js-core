@@ -1020,11 +1020,15 @@ void UJavascriptEditorLibrary::CompileBlueprint(UBlueprint* Blueprint)
 
 bool UJavascriptEditorLibrary::OpenEditorForAsset(UObject* Asset)
 {
+#if ENGINE_MINOR_VERSION > 23
 	if (auto* SubSystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>())
 	{
 		return SubSystem->OpenEditorForAsset(Asset);
 	}
 	return false;
+#else
+	return FAssetEditorManager::Get().OpenEditorForAsset(Asset);
+#endif
 }
 
 void UJavascriptEditorLibrary::OpenEditorForAssetByPath(const FString& AssetPathName, const FString& ObjectName)
@@ -1038,10 +1042,14 @@ void UJavascriptEditorLibrary::OpenEditorForAssetByPath(const FString& AssetPath
 		UObject* Object = FindObject<UObject>(Package, *ObjectName);
 		if (Object != NULL)
 		{
+#if ENGINE_MINOR_VERSION > 23
 			if (auto* SubSystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>())
 			{
 				SubSystem->OpenEditorForAsset(Object);
 			}
+#else
+			FAssetEditorManager::Get().OpenEditorForAsset(Object);
+#endif
 		}
 	}
 }
