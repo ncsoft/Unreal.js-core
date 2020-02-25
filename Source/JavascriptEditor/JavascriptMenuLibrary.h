@@ -2,7 +2,7 @@
 
 #include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "JavascriptIsolate.h"
-#include "../JavascriptUMG/JavascriptComboButtonContext.h"
+#include "JavascriptUMG/JavascriptComboButtonContext.h"
 #include "JavascriptUMG/JavascriptMenuContext.h"
 #include "Framework/Commands/UICommandInfo.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
