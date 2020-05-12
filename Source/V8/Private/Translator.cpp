@@ -130,7 +130,7 @@ namespace v8
 		return FString::Join(ArgStrings, TEXT(" "));
 	}
 
-	FString PropertyNameToString(UProperty* Property, bool bConvertComparisionIndex)
+	FString PropertyNameToString(FProperty* Property, bool bConvertComparisionIndex)
 	{
 		auto Struct = Property->GetOwnerStruct();
 		auto displayName = Property->GetFName();
@@ -149,7 +149,7 @@ namespace v8
 		return name.ToString();
 	}
 
-	bool MatchPropertyName(UProperty* Property, FName NameToMatch)
+	bool MatchPropertyName(FProperty* Property, FName NameToMatch)
 	{
 		auto Struct = Property->GetOwnerStruct();
 		auto name = Property->GetFName();

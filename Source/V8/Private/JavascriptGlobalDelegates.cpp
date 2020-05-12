@@ -1,4 +1,4 @@
-#include "JavascriptGlobalDelegates.h"
+﻿#include "JavascriptGlobalDelegates.h"
 #include "../../Launch/Resources/Version.h"
 
 void UJavascriptGlobalDelegates::BeginDestroy()
@@ -12,6 +12,9 @@ void UJavascriptGlobalDelegates::BeginDestroy()
 OP_REFLECT(PostLoadMapWithWorld)\
 OP_REFLECT(PostDemoPlay)\
 OP_REFLECT(PackageCreatedForLoad)
+
+#define DO_REFLECT_CORE() \
+OP_REFLECT_CORE(OnActorLabelChanged)
 
 #define DO_REFLECT_WORLD() \
 OP_REFLECT_WORLD(OnPostWorldCreation)\
@@ -44,12 +47,14 @@ void UJavascriptGlobalDelegates::Bind(FString Key)
 	FDelegateHandle Handle;
 	
 #define OP_REFLECT(x) else if (Key == #x) { Handle = FCoreUObjectDelegates::x.AddUObject(this, &UJavascriptGlobalDelegates::x); }
+#define OP_REFLECT_CORE(x) else if (Key == #x) { Handle = FCoreDelegates::x.AddUObject(this, &UJavascriptGlobalDelegates::x); }
 #define OP_REFLECT_WORLD(x) else if (Key == #x) { Handle = FWorldDelegates::x.AddUObject(this, &UJavascriptGlobalDelegates::x); }
 #define OP_REFLECT_OLD(x) else if (Key == #x) { Handle = FCoreUObjectDelegates::x.AddUObject(this, &UJavascriptGlobalDelegates::x##_Old); }
 #define OP_REFLECT_FUNCTION(x) else if (Key == #x) { Handle = FCoreUObjectDelegates::Get##x().AddUObject(this, &UJavascriptGlobalDelegates::x); }
 
 	if (false) {}
 	DO_REFLECT()
+	DO_REFLECT_CORE()
 	DO_REFLECT_WORLD()
 	DO_REFLECT_EDITOR_ONLY()
 	DO_REFLECT_FUNCTION()
@@ -65,6 +70,7 @@ void UJavascriptGlobalDelegates::Bind(FString Key)
 		Handles.Add(Key, Handle);
 	}
 #undef OP_REFLECT
+#undef OP_REFLECT_CORE
 #undef OP_REFLECT_WORLD
 #undef OP_REFLECT_OLD
 #undef OP_REFLECT_FUNCTION
@@ -83,10 +89,12 @@ void UJavascriptGlobalDelegates::Unbind(FString Key)
 	auto Handle = Handles[Key];
 
 #define OP_REFLECT(x) else if (Key == #x) { FCoreUObjectDelegates::x.Remove(Handle); }
+#define OP_REFLECT_CORE(x) else if (Key == #x) { FCoreDelegates::x.Remove(Handle); }
 #define OP_REFLECT_WORLD(x) else if (Key == #x) { FWorldDelegates::x.Remove(Handle); }
 #define OP_REFLECT_FUNCTION(x) else if (Key == #x) { FCoreUObjectDelegates::Get##x().Remove(Handle); }
 	if (false) {}
 	DO_REFLECT()
+	DO_REFLECT_CORE()
 	DO_REFLECT_WORLD()
 	DO_REFLECT_FUNCTION()
 	DO_REFLECT_EDITOR_ONLY()
@@ -94,6 +102,7 @@ void UJavascriptGlobalDelegates::Unbind(FString Key)
 
 	Handles.Remove(Key);
 #undef OP_REFLECT
+#undef OP_REFLECT_CORE
 #undef OP_REFLECT_WORLD
 #undef OP_REFLECT_FUNCTION
 }

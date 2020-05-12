@@ -215,9 +215,10 @@ static void SetStructFlags(UScriptStruct* Struct, const TArray<FString>& Flags)
 	}
 }
 
-static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FString>& Decorators, FString Type, bool bIsArray, bool bIsSubclass, bool bIsMap)
+template<typename T>
+static FProperty* CreateProperty(T* Outer, FName Name, const TArray<FString>& Decorators, FString Type, bool bIsArray, bool bIsSubclass, bool bIsMap)
 {
-	auto SetupProperty = [&](UProperty* NewProperty) {
+	auto SetupProperty = [&](FProperty* NewProperty) {
 		static struct FKeyword {
 			const TCHAR* Keyword;
 			uint64 Flags;
@@ -295,8 +296,9 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 		return NewProperty;
 	};
 
-	auto Create = [&]() -> UProperty* {
-		auto Inner = [&](UObject* Outer, const FString& Type) -> UProperty* {
+	auto Create = [&]() -> FProperty* {
+		auto ObjectFlags = EObjectFlags::RF_Public;
+		auto Inner = [&](auto* Outer, const FString& Type) -> FProperty* {
 			// Find TypeObject (to make UObjectHash happy)
 			auto FindTypeObject = [](const TCHAR* ObjectName) -> UObject* {
 				const TCHAR* PackagesToSearch[] = {
@@ -321,37 +323,37 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 
 			if (Type == FString("bool"))
 			{
-				auto q = NewObject<UBoolProperty>(Outer, Name);
+				auto q = new FBoolProperty(FFieldVariant(Outer), Name, ObjectFlags);
 				return q;
 			}
 			else if (Type == FString("int"))
 			{
-				auto q = NewObject<UIntProperty>(Outer, Name);
+				auto q = new FIntProperty(FFieldVariant(Outer), Name, ObjectFlags);
 				return q;
 			}
 			else if (Type == FString("uint8"))
 			{
-				auto q = NewObject<UByteProperty>(Outer, Name);
+				auto q = new FByteProperty(FFieldVariant(Outer), Name, ObjectFlags);
 				return q;
 			}
 			else if (Type == FString("int64"))
 			{
-				auto q = NewObject<UInt64Property>(Outer, Name);
+				auto q = new FInt64Property(FFieldVariant(Outer), Name, ObjectFlags);
 				return q;
 			}
 			else if (Type == FString("string"))
 			{
-				auto q = NewObject<UStrProperty>(Outer, Name);
+				auto q = new FStrProperty(FFieldVariant(Outer), Name, ObjectFlags);
 				return q;
 			}
 			else if (Type == FString("float"))
 			{
-				auto q = NewObject<UFloatProperty>(Outer, Name);
+				auto q = new FFloatProperty(FFieldVariant(Outer), Name, ObjectFlags);
 				return q;
 			}
 			else if (Type == FString("text"))
 			{
-				auto q = NewObject<UTextProperty>(Outer, Name);
+				auto q = new FTextProperty(FFieldVariant(Outer), Name, ObjectFlags);
 				return q;
 			}
 			else
@@ -362,14 +364,14 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 				{
 					if (bIsSubclass)
 					{
-						auto q = NewObject<UClassProperty>(Outer, Name);
+						auto q = new FClassProperty(FFieldVariant(Outer), Name, ObjectFlags);
 						q->SetPropertyClass(UClass::StaticClass());
 						q->SetMetaClass(p);
 						return q;
 					}
 					else
 					{
-						auto q = NewObject<UObjectProperty>(Outer, Name);
+						auto q = new FObjectProperty(FFieldVariant(Outer), Name, ObjectFlags);
 						q->SetPropertyClass(p);
 						return q;
 					}
@@ -378,33 +380,33 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 				{
 					if (bIsSubclass)
 					{
-						auto q = NewObject<UClassProperty>(Outer, Name);
+						auto q = new FClassProperty(Outer, Name, ObjectFlags);
 						q->SetPropertyClass(UClass::StaticClass());
 						q->SetMetaClass(p->GeneratedClass);
 						return q;
 					}
 					else
 					{
-						auto q = NewObject<UObjectProperty>(Outer, Name);
+						auto q = new FObjectProperty(FFieldVariant(Outer), Name, ObjectFlags);
 						q->SetPropertyClass(p->GeneratedClass);
 						return q;
 					}
 				}
 				else if (auto p = Cast<UScriptStruct>(TypeObject))
 				{
-					auto q = NewObject<UStructProperty>(Outer, Name);
+					auto q = new FStructProperty(FFieldVariant(Outer), Name, ObjectFlags);
 					q->Struct = p;
 					return q;
 				}
 				else if (auto p = Cast<UEnum>(TypeObject))
 				{
-					auto q = NewObject<UByteProperty>(Outer, Name);
+					auto q = new FByteProperty(FFieldVariant(Outer), Name, ObjectFlags);
 					q->Enum = p;
 					return q;
 				}
 				else
 				{
-					auto q = NewObject<UInt64Property>(Outer, Name);
+					auto q = new FInt64Property(FFieldVariant(Outer), Name, ObjectFlags);
 					return q;
 				}
 			}
@@ -412,7 +414,7 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 
 		if (bIsMap)
 		{
-			auto q = NewObject<UMapProperty>(Outer, Name);
+			FMapProperty* q = new FMapProperty(FFieldVariant(Outer), Name, ObjectFlags);
 			FString Left, Right;
 			if (Type.Split(TEXT("::"), &Left, &Right))
 			{
@@ -426,18 +428,18 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 					{
 						q->ValueProp = ValueProperty;
 					}
-					else
-						q->MarkPendingKill();
+					//else
+					//	q->MarkPendingKill();
 				}
-				else
-					q->MarkPendingKill();
+				//else
+				//	q->MarkPendingKill();
 			}
 
 			return q;
 		}
 		else if (bIsArray)
 		{
-			auto q = NewObject<UArrayProperty>(Outer, Name);
+			FArrayProperty* q = new FArrayProperty(FFieldVariant(Outer), Name, ObjectFlags);
 			q->Inner = SetupProperty(Inner(q, Type));
 			return q;
 		}
@@ -450,7 +452,7 @@ static UProperty* CreateProperty(UObject* Outer, FName Name, const TArray<FStrin
 	return SetupProperty(Create());
 }
 
-static UProperty* CreatePropertyFromDecl(Local<Context> context, FIsolateHelper& I, UObject* Outer, Handle<Value> PropertyDecl)
+static FProperty* CreatePropertyFromDecl(Local<Context> context, FIsolateHelper& I, UObject* Outer, Handle<Value> PropertyDecl)
 {
 	auto Decl = PropertyDecl->ToObject(context).ToLocalChecked();
 	auto Name = Decl->Get(context, I.Keyword("Name")).ToLocalChecked();
@@ -470,54 +472,57 @@ static UProperty* CreatePropertyFromDecl(Local<Context> context, FIsolateHelper&
 		);
 }
 
-static UProperty* DuplicateProperty(UObject* Outer, UProperty* Property, FName Name)
+template<typename T>
+static FProperty* DuplicateProperty(T* Outer, FProperty* Property, FName Name)
 {
-	auto SetupProperty = [&](UProperty* NewProperty) {
+	auto SetupProperty = [&](FProperty* NewProperty) {
 		NewProperty->SetPropertyFlags(Property->GetPropertyFlags());
 		return NewProperty;
 	};
 
-	auto Clone = [&]() -> UProperty* {
-		if (auto p = Cast<UStructProperty>(Property))
+	auto Clone = [&]() -> FProperty* {
+		auto ObjectFlags = Property->GetFlags();
+		if (auto p = CastField<FStructProperty>(Property))
 		{
-			auto q = NewObject<UStructProperty>(Outer, Name);
+			auto q = new FStructProperty(Outer, Name, ObjectFlags);
 			q->Struct = p->Struct;
 			return q;
 		}
-		else if (auto p = Cast<UArrayProperty>(Property))
+		else if (auto p = CastField<FArrayProperty>(Property))
 		{
-			auto q = NewObject<UArrayProperty>(Outer, Name);
+			auto q = new FArrayProperty(Outer, Name, ObjectFlags);
 			q->Inner = DuplicateProperty(q, p->Inner, p->Inner->GetFName());
 			return q;
 		}
-		else if (auto p = Cast<UByteProperty>(Property))
+		else if (auto p = CastField<FByteProperty>(Property))
 		{
-			auto q = NewObject<UByteProperty>(Outer, Name);
+			auto q = new FByteProperty(Outer, Name, ObjectFlags);
 			q->Enum = p->Enum;
 			return q;
 		}
-		else if (auto p = Cast<UBoolProperty>(Property))
+		else if (auto p = CastField<FBoolProperty>(Property))
 		{
-			auto q = NewObject<UBoolProperty>(Outer, Name);
+			auto q = new FBoolProperty(Outer, Name, ObjectFlags);
 			q->SetBoolSize(sizeof(bool), true);
 			return q;
 		}
-		else if (auto p = Cast<UClassProperty>(Property))
+		else if (auto p = CastField<FClassProperty>(Property))
 		{
-			auto q = NewObject<UClassProperty>(Outer, Name);
+			auto q = new FClassProperty(Outer, Name, ObjectFlags);
 			q->SetMetaClass(p->MetaClass);
 			q->PropertyClass = UClass::StaticClass();
 			return q;
 		}
-		else if (auto p = Cast<UObjectProperty>(Property))
+		else if (auto p = CastField<FObjectProperty>(Property))
 		{
-			auto q = NewObject<UObjectProperty>(Outer, Name);
+			auto q = new FObjectProperty(Outer, Name, ObjectFlags);
 			q->SetPropertyClass(p->PropertyClass);
 			return q;
 		}
 		else
 		{
-			return static_cast<UProperty*>(StaticDuplicateObject(Property, Outer, *(Name.ToString())));
+			//return static_cast<UProperty*>(StaticDuplicateObject(Property, Outer, *(Name.ToString())));
+			return static_cast<FProperty*>(FProperty::Duplicate(Property, FFieldVariant(Outer), *(Name.ToString()), ObjectFlags));
 		}
 	};
 
@@ -645,6 +650,8 @@ public:
 	{
 		Modules.Empty();
 	}
+
+
 
 	void ExportUnrealEngineClasses()
 	{
@@ -809,15 +816,15 @@ public:
 					Function->SetSuperStruct(ParentFunction);
 
 					auto InitializeProperties = [](UFunction* Function, UFunction* ParentFunction) {
-						UField** Storage = &Function->Children;
-						UProperty** PropertyStorage = &Function->PropertyLink;
+						FField** Storage = &Function->ChildProperties;
+						FProperty** PropertyStorage = &Function->PropertyLink;
 
-						for (TFieldIterator<UProperty> PropIt(ParentFunction, EFieldIteratorFlags::ExcludeSuper); PropIt; ++PropIt)
+						for (TFieldIterator<FProperty> PropIt(ParentFunction, EFieldIteratorFlags::ExcludeSuper); PropIt; ++PropIt)
 						{
-							UProperty* Property = *PropIt;
+							FProperty* Property = *PropIt;
 							if (Property->HasAnyPropertyFlags(CPF_Parm))
 							{
-								UProperty* NewProperty = DuplicateProperty(Function, Property, Property->GetFName());
+								FProperty* NewProperty = DuplicateProperty(Function, Property, Property->GetFName());
 
 								*Storage = NewProperty;
 								Storage = &NewProperty->Next;
@@ -862,8 +869,8 @@ public:
 					}
 
 					auto InitializeProperties = [&](UFunction* Function, Handle<Value> Signature) {
-						UField** Storage = &Function->Children;
-						UProperty** PropertyStorage = &Function->PropertyLink;
+						FField** Storage = &Function->ChildProperties;
+						FProperty** PropertyStorage = &Function->PropertyLink;
 
 						if (!Signature.IsEmpty() && Signature->IsArray())
 						{
@@ -873,7 +880,7 @@ public:
 							for (decltype(len) Index = 0; Index < len; ++Index)
 							{
 								auto PropertyDecl = arr->Get(context, Index);
-								UProperty* NewProperty = nullptr;
+								FProperty* NewProperty = nullptr;
 								if (!PropertyDecl.IsEmpty())
 								{
 									NewProperty = CreatePropertyFromDecl(context, I, Function, PropertyDecl.ToLocalChecked());
@@ -904,9 +911,9 @@ public:
 
 					Function->FunctionFlags |= FUNC_Native;
 
-					for (TFieldIterator<UProperty> PropIt(Function, EFieldIteratorFlags::ExcludeSuper); PropIt; ++PropIt)
+					for (TFieldIterator<FProperty> PropIt(Function, EFieldIteratorFlags::ExcludeSuper); PropIt; ++PropIt)
 					{
-						UProperty* Property = *PropIt;
+						FProperty* Property = *PropIt;
 						if (Property->HasAnyPropertyFlags(CPF_Parm))
 						{
 							++Function->NumParms;
@@ -1175,8 +1182,8 @@ public:
 		auto global = ctx->Global();
 		auto self = External::New(isolate(), this);
 
-		(void)global->Set(ctx, V8_KeywordString(isolate(), "CreateClass"), FunctionTemplate::New(isolate(), fn, self)->GetFunction(ctx).ToLocalChecked());
-		(void)global->Set(ctx, V8_KeywordString(isolate(), "RebindClassProperties"), FunctionTemplate::New(isolate(), fn1, self)->GetFunction(ctx).ToLocalChecked());
+		(void)global->Set(ctx, V8_KeywordString(isolate(), "CreateClass"), FunctionTemplate::New(isolate(), FV8Exception::GuardLambda(fn), self)->GetFunction(ctx).ToLocalChecked());
+		(void)global->Set(ctx, V8_KeywordString(isolate(), "RebindClassProperties"), FunctionTemplate::New(isolate(), FV8Exception::GuardLambda(fn1), self)->GetFunction(ctx).ToLocalChecked());
 	}
 
 	void ExportUnrealEngineStructs()
@@ -1313,8 +1320,8 @@ public:
 		auto global = ctx->Global();
 		auto self = External::New(isolate(), this);
 
-		(void)global->Set(ctx, V8_KeywordString(isolate(), "CreateStruct"), FunctionTemplate::New(isolate(), fn, self)->GetFunction(ctx).ToLocalChecked());
-		(void)global->Set(ctx, V8_KeywordString(isolate(), "RebindStructProperties"), FunctionTemplate::New(isolate(), fn1, self)->GetFunction(ctx).ToLocalChecked());
+		(void)global->Set(ctx, V8_KeywordString(isolate(), "CreateStruct"), FunctionTemplate::New(isolate(), FV8Exception::GuardLambda(fn), self)->GetFunction(ctx).ToLocalChecked());
+		(void)global->Set(ctx, V8_KeywordString(isolate(), "RebindStructProperties"), FunctionTemplate::New(isolate(), FV8Exception::GuardLambda(fn1), self)->GetFunction(ctx).ToLocalChecked());
 	}
 
 	void ExposeRequire()
@@ -1555,8 +1562,8 @@ public:
 		auto global = ctx->Global();
 		auto self = External::New(isolate(), this);
 
-		(void)global->Set(ctx, V8_KeywordString(isolate(), "require"), FunctionTemplate::New(isolate(), fn, self)->GetFunction(ctx).ToLocalChecked());
-		(void)global->Set(ctx, V8_KeywordString(isolate(), "purge_modules"), FunctionTemplate::New(isolate(), fn2, self)->GetFunction(ctx).ToLocalChecked());
+		(void)global->Set(ctx, V8_KeywordString(isolate(), "require"), FunctionTemplate::New(isolate(), FV8Exception::GuardLambda(fn), self)->GetFunction(ctx).ToLocalChecked());
+		(void)global->Set(ctx, V8_KeywordString(isolate(), "purge_modules"), FunctionTemplate::New(isolate(), FV8Exception::GuardLambda(fn2), self)->GetFunction(ctx).ToLocalChecked());
 
 		AccessorNameGetterCallback getter = [](Local<Name> property, const PropertyCallbackInfo<Value>& info) {
 			auto isolate = info.GetIsolate();
@@ -1590,7 +1597,7 @@ public:
 		Local<FunctionTemplate> Template = I.FunctionTemplate();
 
 		auto add_fn = [&](const char* name, FunctionCallback fn) {
-			(void)global->Set(ctx, I.Keyword(name), I.FunctionTemplate(fn)->GetFunction(ctx).ToLocalChecked());
+			(void)global->Set(ctx, I.Keyword(name), I.FunctionTemplate(FV8Exception::GuardLambda(fn))->GetFunction(ctx).ToLocalChecked());
 		};
 
 		add_fn("$memaccess", [](const FunctionCallbackInfo<Value>& info)
@@ -1896,7 +1903,7 @@ public:
 					bool bHasDefault = false;
 					TArray<FString> Parameters, ParametersWithDefaults;
 
-					for (TFieldIterator<UProperty> It(Function); It && (It->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == CPF_Parm; ++It)
+					for (TFieldIterator<FProperty> It(Function); It && (It->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == CPF_Parm; ++It)
 					{
 						auto Property = *It;
 						const FName MetadataCppDefaultValueKey(*(FString(TEXT("CPP_Default_")) + Property->GetName()));
@@ -2211,6 +2218,47 @@ public:
 			}
 		}
 	}
+
+	virtual bool IsExcludeGCObjectTarget(UObject* TargetObj) override
+	{
+		if (TargetObj == NULL)
+		{
+			return true;
+		}
+
+		if (TargetObj->GetOutermost()->HasAnyPackageFlags(PKG_PlayInEditor))
+		{
+			return true;
+		}
+
+		if (TargetObj->IsA(AActor::StaticClass()) || TargetObj->IsA(UWorld::StaticClass()) || TargetObj->IsA(ULevel::StaticClass()) || TargetObj->IsA(UActorComponent::StaticClass()))
+		{
+			return true;
+		}
+		else if (TargetObj->IsA(UBlueprint::StaticClass()))
+		{
+			UBlueprint* Blueprint = Cast<UBlueprint>(TargetObj);
+
+			if ((Blueprint && Blueprint->BlueprintType == BPTYPE_LevelScript))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	virtual bool IsExcludeGCStructTarget(UStruct* TargetStruct) override
+	{
+		UClass* Class = Cast<UClass>(TargetStruct);
+
+		if (Class && Class->ClassGeneratedBy && Cast<UBlueprint>(Class->ClassGeneratedBy)->BlueprintType == EBlueprintType::BPTYPE_LevelScript)
+		{
+			return true;
+		}
+
+		return false;
+	}
 };
 
 FJavascriptContext* FJavascriptContext::FromV8(v8::Local<v8::Context> Context)
@@ -2242,11 +2290,11 @@ inline void FJavascriptContextImplementation::AddReferencedObjects(UObject * InT
 	{
 //		UE_LOG(Javascript, Log, TEXT("JavascriptContext referencing %s %s"), *(It.Key()->GetClass()->GetName()), *(It.Key()->GetName()));
 		auto Object = It.Key();
-		if (Object->IsPendingKill())
+		if (!(::IsValid(Object)) || !Object->IsValidLowLevelFast() || Object->HasAnyFlags(RF_BeginDestroyed) || Object->HasAnyFlags(RF_FinishDestroyed))
 		{
 			It.RemoveCurrent();
 		}
-		else if (!Object->IsA(AActor::StaticClass()))
+		else if (!IsExcludeGCObjectTarget(Object))
 		{
 			Collector.AddReferencedObject(Object, InThis);
 		}
@@ -2260,7 +2308,7 @@ inline void FJavascriptContextImplementation::AddReferencedObjects(UObject * InT
 		{
 			It.RemoveCurrent();
 		}
-		else
+		else if (!IsExcludeGCStructTarget(StructScript->Struct))
 		{
 			Collector.AddReferencedObject(StructScript->Struct, InThis);
 		}

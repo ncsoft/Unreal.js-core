@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Translator.h"
 #include "V8PCH.h"

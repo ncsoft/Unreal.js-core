@@ -70,4 +70,7 @@ struct FJavascriptContext : TSharedFromThis<FJavascriptContext>
 	virtual void AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector) = 0;
 
 	virtual const FObjectInitializer* GetObjectInitializer() = 0;
+
+	virtual bool IsExcludeGCObjectTarget(UObject* TargetObj) { return false; }
+	virtual bool IsExcludeGCStructTarget(UStruct* TargetStruct) { return false; }
 };

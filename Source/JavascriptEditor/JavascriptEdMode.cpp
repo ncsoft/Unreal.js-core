@@ -1,4 +1,4 @@
-PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+﻿PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptEdMode.h"
 
@@ -115,6 +115,10 @@ public:
 
 	virtual bool UsesToolkits() const override
 	{
+		if (Parent->OnUsesToolkits.IsBound())
+		{
+			return Parent->OnUsesToolkits.Execute();
+		}
 		return true;
 	}
 
@@ -262,6 +266,15 @@ public:
 
 	}*/
 
+	virtual bool IsCompatibleWith(FEditorModeID OtherModeID) const override
+	{
+		if (Parent->OnIsCompatibleWith.IsBound())
+		{
+			return Parent->OnIsCompatibleWith.Execute(OtherModeID);
+		}
+		return false;
+	}
+
 	virtual void ActorMoveNotify()
 	{
 		Parent->OnActorMoved.ExecuteIfBound(this);
@@ -321,7 +334,7 @@ public:
 
 		Process(FName("Enter"));
 
-		if (!Toolkit.IsValid())
+		if (!Toolkit.IsValid() && UsesToolkits())
 		{
 			Toolkit = MakeShareable(new FJavascriptEdToolkit(Parent));
 			Toolkit->Init(Owner->GetToolkitHost());
@@ -332,8 +345,11 @@ public:
 	{
 		Process(FName("Exit"));
 
-		FToolkitManager::Get().CloseToolkit(Toolkit.ToSharedRef());
-		Toolkit.Reset();
+		if (Toolkit.IsValid())
+		{
+			FToolkitManager::Get().CloseToolkit(Toolkit.ToSharedRef());
+			Toolkit.Reset();
+		}
 
 		FEdMode::Exit();
 	}

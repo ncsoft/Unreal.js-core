@@ -1,10 +1,12 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "UObject/ObjectMacros.h"
 #include "UObject/Object.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/ScriptMacros.h"
+#include "UObject/UnrealType.h"
+#include "UObject/FieldPath.h"
 #include "Engine/World.h"
 #include "JavascriptGlobalDelegates.generated.h"
 
@@ -17,7 +19,7 @@ public:
 	virtual void BeginDestroy() override;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-	void OnPreObjectPropertyChanged_Friendly(UObject* InObject, UProperty* Property, UProperty* MemberProperty);
+	void OnPreObjectPropertyChanged_Friendly(UObject* InObject, const TFieldPath<FProperty>& Property, const TFieldPath<FProperty>& MemberProperty);
 
 	void OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& Chain)
 	{
@@ -25,7 +27,7 @@ public:
 	}
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-	void OnObjectPropertyChanged_Friendly(UObject* InObject, UProperty* Property, UProperty* MemberProperty, int32 ChangeType);
+	void OnObjectPropertyChanged_Friendly(UObject* InObject, const TFieldPath<FProperty>& Property, const TFieldPath<FProperty>& MemberProperty, int32 ChangeType);
 
 	void OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& Event)
 	{
@@ -60,6 +62,9 @@ public:
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void PackageCreatedForLoad(class UPackage* InPackage);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnActorLabelChanged(AActor* Actor);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void OnObjectModified(UObject* Object);

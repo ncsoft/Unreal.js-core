@@ -167,7 +167,7 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static EPropertyAccessResult SetJavascriptRefValue(FJavascriptPropertyHandle Handle, const FJavascriptRef& InValue);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static UProperty* GetProperty(FJavascriptPropertyHandle Handle);
+	static TFieldPath<FProperty> GetProperty(FJavascriptPropertyHandle Handle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static void SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, UJavascriptPropertyCustomization* Custom);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")

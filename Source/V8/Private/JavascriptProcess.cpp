@@ -74,6 +74,11 @@ FString UJavascriptProcess::GetApplicationName(int32 ProcessId)
 	return FPlatformProcess::GetApplicationName(ProcessId);
 }
 
+int32 UJavascriptProcess::GetCurrentProcessId()
+{
+	return (int32)FPlatformProcess::GetCurrentProcessId();
+}
+
 bool UJavascriptProcess::IsApplicationRunning_PID(int32 ProcessId)
 {
 	return FPlatformProcess::IsApplicationRunning(ProcessId);

@@ -4,6 +4,7 @@
 #include "JavascriptGraphEditorLibrary.h"
 #include "SGraphPin.h"
 #include "SJavascriptGraphEdNode.h"
+#include "JavascriptIsolate.h"
 #include "JavascriptGraphEdNode.generated.h"
 
 USTRUCT(BlueprintType)
@@ -34,8 +35,6 @@ class UJavascriptGraphEdNode : public UEdGraphNode
 {
 	GENERATED_BODY()
 
-	DECLARE_DYNAMIC_DELEGATE(FOnWidgetFinalized);
-
 public:
 	UPROPERTY()
 	FSlateColor BackgroundColor;
@@ -49,8 +48,8 @@ public:
 	UPROPERTY()
 	bool IsCustomNode;
 
-	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnWidgetFinalized OnWidgetFinalized;
+	UPROPERTY()
+	FJavascriptFunction WidgetFinalized;
 
 public:
 	virtual void AllocateDefaultPins() override;

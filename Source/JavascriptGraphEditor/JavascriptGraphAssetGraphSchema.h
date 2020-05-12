@@ -13,7 +13,7 @@ struct FJavascriptGraphAction_NewNode : public FEdGraphSchemaAction
 	GENERATED_USTRUCT_BODY();
 
 	UPROPERTY()
-	const UJavascriptGraphAssetGraphSchema* Schema;
+	const UJavascriptGraphAssetGraphSchema* Schema = nullptr;
 
 	FJavascriptGraphAction_NewNode() {}
 	FJavascriptGraphAction_NewNode(const FEdGraphSchemaAction& Template, const UJavascriptGraphAssetGraphSchema* InSchema);
@@ -77,7 +77,7 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_RetVal_FourParams(bool, FOnDrawSplineWithArrow_Geom, const FGeometry&, A, const FGeometry&, B, const FJavascriptConnectionParams&, Params, FJavascriptGraphConnectionDrawingPolicyContainer, Container);
 
 	/** Delegate for constructing a UWidget based on a UObject */
-	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(UWidget*, FOnTakeWidget, UJavascriptGraphEdNode*, Instance);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FJavascriptSlateWidget, FOnTakeWidget, UJavascriptGraphEdNode*, Instance);
 
 	/** Delegate for constructing a UWidget based on a UObject */
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FText, FOnGetString, const UJavascriptGraphEdNode*, Instance, EGraphSchemaGetStringQuery, Query);
@@ -96,7 +96,7 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FOnCreateAutomaticConversionNodeAndConnections, FJavascriptEdGraphPin, A, FJavascriptEdGraphPin, B);
 
 	/** Delegate for constructing a UWidget based on a UObject */
-	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(UWidget*, FOnCreatePin, FJavascriptEdGraphPin, Pin);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FJavascriptSlateWidget, FOnCreatePin, FJavascriptEdGraphPin, Pin);
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_FiveParams(bool, FOnDetermineLinkGeometry, FJavascriptEdGraphPin, OutPin, FJavascriptEdGraphPin, InputPin, FJavascriptArrangedWidget&, StartWidgetGeometry, FJavascriptArrangedWidget&, EndWidgetGeometry, FJavascriptDetermineLinkGeometryContainer, Container);
 
@@ -135,6 +135,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetPinColor OnGetPinColor;
 
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnGetPinColor OnGetPinTextColor;
+	
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetBoolean_GraphPin OnGetDefaultValueVisibility;
 

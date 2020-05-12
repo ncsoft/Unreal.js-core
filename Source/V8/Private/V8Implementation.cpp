@@ -1,4 +1,4 @@
-#include "V8PCH.h"
+﻿#include "V8PCH.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
 #include "JavascriptComponent.h"
@@ -157,6 +157,45 @@ FString UJavascriptContext::RunScript(FString Script, bool bOutput)
 	return TEXT("");
 }
 
+void UJavascriptContext::RegisterConsoleCommand(FString Command, FString Help, FJavascriptFunction Function)
+{
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	if (JavascriptContext.IsValid())
+	{
+		auto& ConsoleManager = IConsoleManager::Get();
+
+		if (ConsoleManager.IsNameRegistered(*Command) || JavascriptConsoleCommands.Contains(*Command))
+		{
+			UE_LOG(Javascript, Warning, TEXT("RegisterConsoleCommand: Command '%s' is already registered."), *Command);
+			return;
+		}
+
+		TSharedPtr<FJavascriptFunction> FunctionPtr(new FJavascriptFunction);
+		*(FunctionPtr.Get()) = Function;
+		auto ConsoleCommand = ConsoleManager.RegisterConsoleCommand(*Command, *Help,
+			FConsoleCommandDelegate::CreateLambda([FunctionPtr, this]()
+				{
+					FunctionPtr->Execute();
+				}));
+		if (ConsoleCommand != nullptr)
+		{
+			JavascriptConsoleCommands.Add(Command, MakeShareable(new FConsoleCommandInfo(ConsoleCommand, FunctionPtr)));
+		}
+	}
+#endif
+}
+
+void UJavascriptContext::UnregisterConsoleCommand(FString Command)
+{
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	if (JavascriptContext.IsValid() && JavascriptConsoleCommands.Contains(Command))
+	{
+		IConsoleManager::Get().UnregisterConsoleObject(*Command, false);
+		JavascriptConsoleCommands.Remove(Command);
+	}
+#endif
+}
+
 void UJavascriptContext::RequestV8GarbageCollection()
 {
 	if (JavascriptContext.IsValid())
@@ -225,6 +264,19 @@ bool UJavascriptContext::HasProxyFunction(UObject* Holder, UFunction* Function)
 	return false;
 }
 
+bool UJavascriptContext::RemoveObjectInJavacontext(UObject* TargetObj)
+{
+	if (JavascriptContext.IsValid())
+	{
+		if (JavascriptContext->ObjectToObjectMap.Contains(TargetObj))
+		{
+			JavascriptContext->ObjectToObjectMap.Remove(TargetObj);
+		}
+	}
+
+	return false;
+}
+
 bool UJavascriptContext::CallProxyFunction(UObject* Holder, UObject* This, UFunction* FunctionToCall, void* Parms)
 {
 	if (JavascriptContext.IsValid())
@@ -239,5 +291,15 @@ void UJavascriptContext::BeginDestroy()
 	Super::BeginDestroy();
 
 	JavascriptContext.Reset();
+
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	auto& ConsoleManager = IConsoleManager::Get();
+	for (auto& pair : JavascriptConsoleCommands)
+	{
+		ConsoleManager.UnregisterConsoleObject(*pair.Key, false);
+	}
+	JavascriptConsoleCommands.Empty();
+#endif
+
 	ContextId.Reset();
 }

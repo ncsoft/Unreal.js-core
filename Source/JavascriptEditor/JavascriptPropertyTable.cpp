@@ -26,15 +26,18 @@ void UJavascriptPropertyTable::SetEditingObjects(TArray<UObject*> InEditingObjec
 
 	if (PropertyTable.IsValid())
 	{
+		TSet<TSharedRef<IPropertyTableRow>> empty;
+		PropertyTable->SetSelectedRows(empty);
+
 		PropertyTable->SetObjects(EditingObjects);
 
 		if (EditingObjects.Num() > 0)
 		{
 			UObject* Object = EditingObjects[0];
 			UClass* Class = Object->GetClass();
-			for (TFieldIterator<UProperty> PropertyIterator(Class); PropertyIterator; ++PropertyIterator)
+			for (TFieldIterator<FProperty> PropertyIterator(Class); PropertyIterator; ++PropertyIterator)
 			{
-				TWeakObjectPtr< UProperty > Property = *PropertyIterator;
+				TWeakFieldPtr< FProperty > Property = *PropertyIterator;
 				if (!Property->HasMetaData(TEXT("Hidden")))
 				{
 					PropertyTable->AddColumn(Property);
@@ -93,9 +96,9 @@ TSharedRef<SWidget> UJavascriptPropertyTable::RebuildWidget()
 		{
 			UObject* Object = EditingObjects[0];
 			UClass* Class = Object->GetClass();
-			for (TFieldIterator<UProperty> PropertyIterator(Class); PropertyIterator; ++PropertyIterator)
+			for (TFieldIterator<FProperty> PropertyIterator(Class); PropertyIterator; ++PropertyIterator)
 			{
-				TWeakObjectPtr< UProperty > Property = *PropertyIterator;
+				TWeakFieldPtr< FProperty > Property = *PropertyIterator;
 				if (!Property->HasMetaData(TEXT("Hidden")))
 				{
 					PropertyTable->AddColumn(Property);

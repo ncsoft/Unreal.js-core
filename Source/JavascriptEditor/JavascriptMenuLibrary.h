@@ -2,7 +2,7 @@
 
 #include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "JavascriptIsolate.h"
-#include "JavascriptUMG/JavascriptComboButtonContext.h"
+#include "../JavascriptUMG/JavascriptComboButtonContext.h"
 #include "JavascriptUMG/JavascriptMenuContext.h"
 #include "Framework/Commands/UICommandInfo.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
@@ -188,7 +188,7 @@ public:
 	static void AddToolBarButtonByContext(FJavascriptMenuBuilder& Builder, UJavascriptToolbarButtonContext* Context, UObject* EditingObject);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptComboButtonContext* Object);
+	static void AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptComboButtonContext* Object, UObject* EditingObject);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void AddMenuEntry(FJavascriptMenuBuilder& Builder, UJavascriptMenuContext* Object);

@@ -24,8 +24,8 @@ TSharedRef<SWidget> UJavascriptComboButton::RebuildWidget()
 		.OnGetMenuContent_Lambda([this]() {
 			if (OnGetMenuContent.IsBound()) 
 			{
-				UWidget* Content = OnGetMenuContent.Execute();
-				return Content ? Content->TakeWidget() : SNullWidget::NullWidget;
+				auto Content = OnGetMenuContent.Execute();
+				return Content.Widget.IsValid() ? Content.Widget.ToSharedRef() : SNullWidget::NullWidget;
 			}
 			else
 			{

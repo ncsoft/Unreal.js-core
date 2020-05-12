@@ -52,10 +52,10 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 		.Cursor(this, &ThisClass::GetPinCursor);
 	if (GraphSchema->OnGetActualPinWidget.IsBound())
 	{
-		UWidget* Widget = GraphSchema->OnGetActualPinWidget.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) });
-		if (Widget)
+		auto Widget = GraphSchema->OnGetActualPinWidget.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) }).Widget;
+		if (Widget.IsValid())
 		{
-			ActualPinWidget = Widget->TakeWidget();
+			ActualPinWidget = Widget.ToSharedRef();
 		}
 	}
 
@@ -73,10 +73,10 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 		];
 	if (GraphSchema->OnGetPinStatusIndicator.IsBound())
 	{
-		UWidget* Widget = GraphSchema->OnGetPinStatusIndicator.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) });
-		if (Widget)
+		auto Widget = GraphSchema->OnGetPinStatusIndicator.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) }).Widget;
+		if (Widget.IsValid())
 		{
-			PinStatusIndicator = Widget->TakeWidget();
+			PinStatusIndicator = Widget.ToSharedRef();
 		}
 	}
 
@@ -88,10 +88,10 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 	TSharedRef<SWidget> InValueWidget = SNew(SBox);
 	if (GraphSchema->OnGetValueWidget.IsBound())
 	{
-		UWidget* Widget = GraphSchema->OnGetValueWidget.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) });
-		if (Widget)
+		auto Widget = GraphSchema->OnGetValueWidget.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) }).Widget;
+		if (Widget.IsValid())
 		{
-			InValueWidget = Widget->TakeWidget();
+			InValueWidget = Widget.ToSharedRef();
 		}
 	}
 	// Create the widget used for the pin body (status indicator, label, and value)
@@ -274,6 +274,44 @@ FSlateColor SJavascriptGraphPin::GetPinColor() const
 	}
 
 	return SGraphPin::GetPinColor();
+}
+
+FSlateColor SJavascriptGraphPin::GetPinTextColor() const
+{
+	// SGraphPin::GetPinTextColor()
+	if (UEdGraphNode* GraphNode = GraphPinObj->GetOwningNodeUnchecked())
+	{
+		const bool bDisabled = (!GraphNode->IsNodeEnabled() || GraphNode->IsDisplayAsDisabledForced() || !IsEditingEnabled() || GraphNode->IsNodeUnrelated());
+		if (GraphPinObj->bOrphanedPin)
+		{
+			FLinearColor PinColor = FLinearColor::Red;
+			if (bDisabled)
+			{
+				PinColor.A = .25f;
+			}
+			return PinColor;
+		}
+		else if (bDisabled)
+		{
+			return FLinearColor(1.0f, 1.0f, 1.0f, 0.5f);
+		}
+		if (bUsePinColorForText)
+		{
+			return GetPinColor();
+		}
+	}
+	// else
+	const UEdGraphSchema* Schema = GraphPinObj->GetSchema();
+	check(Schema);
+
+	auto GraphSchema = CastChecked<UJavascriptGraphAssetGraphSchema>(Schema);
+
+	if (GraphSchema->OnGetPinTextColor.IsBound())
+	{
+		return GraphSchema->OnGetPinTextColor.Execute(IsHovered(), FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) });
+	}
+
+	return FLinearColor::White;
 }
 
 void SJavascriptGraphPin::OnMouseLeave(const FPointerEvent& MouseEvent)

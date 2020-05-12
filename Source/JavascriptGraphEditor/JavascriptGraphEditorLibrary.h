@@ -65,7 +65,7 @@ struct FJavascriptConnectionParams
 	FJavascriptConnectionParams(const FConnectionParams& In);
 
 	UPROPERTY()
-	FLinearColor WireColor;
+	FLinearColor WireColor = FLinearColor::Black;
 
 	UPROPERTY()
 	FJavascriptEdGraphPin AssociatedPin1;
@@ -74,22 +74,22 @@ struct FJavascriptConnectionParams
 	FJavascriptEdGraphPin AssociatedPin2;
 
 	UPROPERTY()
-	float WireThickness;
+	float WireThickness = 1;
 
 	UPROPERTY()
-	bool bDrawBubbles;
+	bool bDrawBubbles = false;
 
 	UPROPERTY()
-	bool bUserFlag1;
+	bool bUserFlag1 = false;
 
 	UPROPERTY()
-	bool bUserFlag2;
+	bool bUserFlag2 = false;
 
 	UPROPERTY()
-	TEnumAsByte<EEdGraphPinDirection> StartDirection;
+	TEnumAsByte<EEdGraphPinDirection> StartDirection = EGPD_Input;
 
 	UPROPERTY()
-	TEnumAsByte<EEdGraphPinDirection> EndDirection;
+	TEnumAsByte<EEdGraphPinDirection> EndDirection = EGPD_Input;
 
 	operator FConnectionParams () const;
 };

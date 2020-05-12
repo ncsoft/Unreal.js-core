@@ -14,7 +14,7 @@ class JAVASCRIPTUMG_API UJavascriptComboButton : public UContentWidget
 	GENERATED_UCLASS_BODY()
 
 public:
-	DECLARE_DYNAMIC_DELEGATE_RetVal(UWidget*, FOnGetContent);
+	DECLARE_DYNAMIC_DELEGATE_RetVal(FJavascriptSlateWidget, FOnGetContent);
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnIsOpenChanged, bool, Value);
 	DECLARE_DYNAMIC_DELEGATE(FOnComboBoxOpened);
 

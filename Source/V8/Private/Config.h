@@ -5,7 +5,7 @@
 
 class UClass;
 class UFunction;
-class UProperty;
+class FProperty;
 
 
 enum class EPropertyAccessorAvailability : uint8
@@ -34,10 +34,10 @@ public:
 
 	bool CanExportClass(const UClass* Class) const;
 	bool CanExportFunction(const UClass* Class, const UFunction* Function) const;
-	bool CanExportProperty(const UStruct* Class, const UProperty* Property) const;
+	bool CanExportProperty(const UStruct* Class, const FProperty* Property) const;
 
-	bool IsWriteDisabledProperty(UProperty* Property) const { return false; }
-	EPropertyAccessorAvailability GetPropertyAccessorAvailability(UProperty* Property) const;
+	bool IsWriteDisabledProperty(FProperty* Property) const { return false; }
+	EPropertyAccessorAvailability GetPropertyAccessorAvailability(FProperty* Property) const;
 
 	FString GetAlias(UFunction* Function, bool no_empty = false) const;
 
@@ -73,10 +73,10 @@ struct FV8Config
 
 	static bool CanExportClass(const UClass* Class)												{ return UV8Config::Get().CanExportClass(Class); }
 	static bool CanExportFunction(const UClass* Class, const UFunction* Function)				{ return UV8Config::Get().CanExportFunction(Class, Function); }
-	static bool CanExportProperty(const UStruct* Class, const UProperty* Property)				{ return UV8Config::Get().CanExportProperty(Class, Property); }
+	static bool CanExportProperty(const UStruct* Class, const FProperty* Property)				{ return UV8Config::Get().CanExportProperty(Class, Property); }
 
-	static bool IsWriteDisabledProperty(UProperty* Property)									{ return UV8Config::Get().IsWriteDisabledProperty(Property); }
-	static EPropertyAccessorAvailability GetPropertyAccessorAvailability(UProperty* Property)	{ return UV8Config::Get().GetPropertyAccessorAvailability(Property); }
+	static bool IsWriteDisabledProperty(FProperty* Property)									{ return UV8Config::Get().IsWriteDisabledProperty(Property); }
+	static EPropertyAccessorAvailability GetPropertyAccessorAvailability(FProperty* Property)	{ return UV8Config::Get().GetPropertyAccessorAvailability(Property); }
 
 	static FString GetAlias(UFunction* Function, bool no_empty = false)							{ return UV8Config::Get().GetAlias(Function, no_empty); }
 

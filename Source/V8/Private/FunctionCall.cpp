@@ -26,17 +26,17 @@ namespace v8
 		Handle<Value> argv[MaxArgs];
 		int argc = 0;
 
-		TFieldIterator<UProperty> Iter(SignatureFunction);
+		TFieldIterator<FProperty> Iter(SignatureFunction);
 		for (; Iter && argc < MaxArgs && (Iter->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == CPF_Parm; ++Iter)
 		{
-			UProperty* Param = *Iter;
+			FProperty* Param = *Iter;
 			argv[argc++] = ReadProperty(isolate, Param, Buffer, FNoPropertyOwner());
 		}
 
-		UProperty* ReturnParam = nullptr;
+		FProperty* ReturnParam = nullptr;
 		for (; Iter; ++Iter)
 		{
-			UProperty* Param = *Iter;
+			FProperty* Param = *Iter;
 			if (Param->GetPropertyFlags() & CPF_ReturnParm)
 			{
 				ReturnParam = Param;
@@ -67,7 +67,7 @@ namespace v8
 		if (SignatureFunction && SignatureFunction->HasAnyFunctionFlags(FUNC_HasOutParms))
 		{
 			// Iterate over input parameters
-			for (TFieldIterator<UProperty> It(SignatureFunction); It && (It->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == CPF_Parm; ++It)
+			for (TFieldIterator<FProperty> It(SignatureFunction); It && (It->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == CPF_Parm; ++It)
 			{
 				// This is 'out ref'!
 				if ((It->PropertyFlags & (CPF_ConstParm | CPF_OutParm)) == CPF_OutParm)
@@ -91,9 +91,9 @@ namespace v8
 			auto Object = value->ToObject(context).ToLocalChecked();
 
 			// Iterate over parameters again
-			for (TFieldIterator<UProperty> It(SignatureFunction); It; ++It)
+			for (TFieldIterator<FProperty> It(SignatureFunction); It; ++It)
 			{
-				UProperty* Param = *It;
+				FProperty* Param = *It;
 
 				auto PropertyFlags = Param->GetPropertyFlags();					
 

@@ -128,7 +128,7 @@ void UJavascriptMenuLibrary::AddToolBarButtonByContext(FJavascriptMenuBuilder& B
 	}
 }
 
-void UJavascriptMenuLibrary::AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptComboButtonContext* Object)
+void UJavascriptMenuLibrary::AddComboButton(FJavascriptMenuBuilder& Builder, UJavascriptComboButtonContext* Object, UObject* EditingObject)
 {
 	if (Builder.ToolBar)
 	{
@@ -136,7 +136,7 @@ void UJavascriptMenuLibrary::AddComboButton(FJavascriptMenuBuilder& Builder, UJa
 		DefaultAction.CanExecuteAction = FCanExecuteAction::CreateUObject(Object, &UJavascriptComboButtonContext::Public_CanExecute);
 		Builder.ToolBar->AddComboButton(
 			DefaultAction,
-			FOnGetContent::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetWidget),
+			FOnGetContent::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetWidget, EditingObject),
 			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetLabel)),
 			TAttribute< FText >::Create(TAttribute< FText >::FGetter::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetTooltip)),
 			TAttribute< FSlateIcon >::Create(TAttribute< FSlateIcon >::FGetter::CreateUObject(Object, &UJavascriptComboButtonContext::Public_OnGetSlateIcon))

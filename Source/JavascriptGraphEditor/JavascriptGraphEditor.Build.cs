@@ -32,7 +32,8 @@ namespace UnrealBuildTool.Rules
                     "KismetWidgets",
                     "JavascriptUMG",
                     "JavascriptEditor",
-                    "InputCore"
+                    "InputCore",
+                    "V8"
                 }
 				);
 

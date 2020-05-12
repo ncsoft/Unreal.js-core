@@ -1,4 +1,4 @@
-#include "JavascriptEditorModule.h"
+﻿#include "JavascriptEditorModule.h"
 #include "AssetToolsModule.h"
 #include "JavascriptSettings.h"
 #include "JavascriptIsolate.h"
@@ -27,6 +27,11 @@ class FJavascriptEditorModule : public IJavascriptEditorModule
 	virtual void RemoveExtension(IEditorExtension* Extension) override;
 
 	void Bootstrap();
+
+#if WITH_EDITOR
+	virtual UJavascriptContext* GetJavascriptContext() override { return JavascriptContext; }
+
+#endif
 
 private:
 #if WITH_EDITOR
