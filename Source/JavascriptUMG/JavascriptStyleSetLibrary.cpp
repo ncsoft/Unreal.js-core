@@ -19,7 +19,7 @@ void Prepare()
 
 	auto prepare = [&](UStruct*& Out, const TCHAR* Name)
 	{
-		UStructProperty* Prop = FindField<UStructProperty>(UJavascriptStyleSetLibrary::StaticClass(), Name);
+		FStructProperty* Prop = FindFProperty<FStructProperty>(UJavascriptStyleSetLibrary::StaticClass(), Name);
 		Out = Prop->Struct;
 	};
 
@@ -57,10 +57,10 @@ void FixupStruct(UStruct* Struct, void* Dest, const void* Src)
 		return;
 	}
 
-	for (TFieldIterator<UProperty> PropertyIt(Struct, EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
+	for (TFieldIterator<FProperty> PropertyIt(Struct, EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
 	{
 		auto Property = *PropertyIt;
-		if (UStructProperty* p = Cast<UStructProperty>(Property))
+		if (FStructProperty* p = CastField<FStructProperty>(Property))
 		{
 			FixupStruct(p->Struct, p->ContainerPtrToValuePtr<void>(Dest), p->ContainerPtrToValuePtr<void>(Src));
 		}

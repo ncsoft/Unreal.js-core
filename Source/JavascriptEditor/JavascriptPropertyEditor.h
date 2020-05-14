@@ -99,7 +99,7 @@ protected:
 	TSharedPtr<class IDetailsView> View;
 
 	TWeakObjectPtr<UStruct> PropertyRootType;
-	TMap<UProperty*, TArray<FString>> PropertyPathMap;
+	TMap<FProperty*, TArray<FString>> PropertyPathMap;
 
 	static const FString EmptyString;
 	static const TArray<FString> EmptyStringArray;

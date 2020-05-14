@@ -81,7 +81,7 @@ namespace
 	template<typename T>
 	EPropertyAccessResult GetStructPropertyValue(FJavascriptPropertyHandle Handle, T& OutValue)
 	{
-		UStructProperty* StructProperty = Cast<UStructProperty>(Handle->GetProperty());
+		FStructProperty* StructProperty = CastField<FStructProperty>(Handle->GetProperty());
 		if (StructProperty != nullptr && StructProperty->Struct == T::StaticStruct())
 		{
 			TArray<const void*> RawDataArray;
@@ -111,7 +111,7 @@ namespace
 	template<typename T>
 	EPropertyAccessResult SetStructPropertyValue(FJavascriptPropertyHandle Handle, const T& InValue)
 	{
-		UStructProperty* StructProperty = Cast<UStructProperty>(Handle->GetProperty());
+		FStructProperty* StructProperty = CastField<FStructProperty>(Handle->GetProperty());
 		if (StructProperty != nullptr && StructProperty->Struct == T::StaticStruct())
 		{
 			TArray<void*> RawDataArray;
@@ -144,7 +144,7 @@ EPropertyAccessResult UJavascriptPropertyCustomizationLibrary::SetJavascriptRefV
 	return SetStructPropertyValue(Handle, InValue);
 }
 
-UProperty* UJavascriptPropertyCustomizationLibrary::GetProperty(FJavascriptPropertyHandle Handle)
+TFieldPath<FProperty> UJavascriptPropertyCustomizationLibrary::GetProperty(FJavascriptPropertyHandle Handle)
 {
 	return Handle->GetProperty();
 }
@@ -164,14 +164,14 @@ bool UJavascriptPropertyCustomizationLibrary::IsEditConst(FJavascriptPropertyHan
 
 bool UJavascriptPropertyCustomizationLibrary::IsArrayProperty(FJavascriptPropertyHandle Handle)
 {
-	return Handle.IsValid() && Handle->GetPropertyClass()->IsChildOf(UArrayProperty::StaticClass());
+	return Handle.IsValid() && Handle->GetPropertyClass()->IsChildOf(FArrayProperty::StaticClass());
 }
 
 bool UJavascriptPropertyCustomizationLibrary::IsArrayPropertyWithValueType(FJavascriptPropertyHandle Handle)
 {
-	auto ArrayProperty = Handle.IsValid() ? Cast<UArrayProperty>(Handle->GetProperty()) : nullptr;
+	auto ArrayProperty = Handle.IsValid() ? CastField<FArrayProperty>(Handle->GetProperty()) : nullptr;
 	auto InnerProperty = (ArrayProperty != nullptr) ? ArrayProperty->Inner : nullptr;
-	return (InnerProperty != nullptr) && InnerProperty->IsA(UStructProperty::StaticClass());
+	return (InnerProperty != nullptr) && InnerProperty->IsA(FStructProperty::StaticClass());
 }
 
 int32 UJavascriptPropertyCustomizationLibrary::GetIndexInArray(FJavascriptPropertyHandle Handle)
@@ -232,7 +232,11 @@ FJavascriptDetailPropertyRow UJavascriptPropertyCustomizationLibrary::AddExterna
 
 FJavascriptDetailPropertyRow UJavascriptPropertyCustomizationLibrary::AddExternalObjectProperty(FJavascriptDetailChildrenBuilder ChildBuilder, TArray<UObject*>& Objects, FName PropertyName, FName UniqueIdName, bool bAllowChildrenOverride, bool bCreateCategoryNodesOverride)
 {
-	return { (ChildBuilder->AddExternalObjectProperty(Objects, PropertyName, UniqueIdName, bAllowChildrenOverride, bCreateCategoryNodesOverride)) };
+	FAddPropertyParams Params;
+	Params.UniqueId(UniqueIdName);
+	Params.AllowChildren(bAllowChildrenOverride);
+	Params.CreateCategoryNodes(bCreateCategoryNodesOverride);
+	return { (ChildBuilder->AddExternalObjectProperty(Objects, PropertyName, Params)) };
 }
 
 FJavascriptSlateWidget UJavascriptPropertyCustomizationLibrary::GenerateStructValueWidget(FJavascriptDetailChildrenBuilder ChildBuilder, FJavascriptPropertyHandle StructPropertyHandle)

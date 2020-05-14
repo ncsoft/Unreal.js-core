@@ -2,9 +2,35 @@
 
 #include "Translator.h"
 #include "V8PCH.h"
+#include "HAL/ExceptionHandling.h"
+#include "HAL/PlatformMallocCrash.h"
 
 struct FV8Exception
 {
+	//typename std::enable_if<std::is_class<T>::value, T>::type
+	template <typename T>
+	static auto GuardLambda(T&& f)
+	{
+		static T fn = std::forward<T>(f); //@hack: exploiting lambda signature's uniqueness
+		return [](const FunctionCallbackInfo<Value>& info)
+		{
+#if !PLATFORM_SEH_EXCEPTIONS_DISABLED
+			__try
+#endif
+			{
+				fn(info);
+			}
+#if !PLATFORM_SEH_EXCEPTIONS_DISABLED
+			__except (ReportCrash(GetExceptionInformation()))
+			{
+				FPlatformMallocCrash::Get().PrintPoolsUsage();
+				FPlatformMisc::RequestExit(true);
+			}
+#endif
+		};
+	};
+
+
 	static FString Report(v8::Isolate* isolate, v8::TryCatch& try_catch)
 	{
 		using namespace v8;

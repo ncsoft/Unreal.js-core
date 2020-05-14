@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Components/Widget.h"
 #if WITH_EDITOR
@@ -57,7 +57,7 @@ protected:
 
 protected:
 	TSharedPtr<SJavascriptCurveTableEditor> CurveTableEditor;
-	TSharedPtr<UCurveTable> CurveTable;
+	TWeakObjectPtr<UCurveTable> CurveTable;
 
 #endif	
 };

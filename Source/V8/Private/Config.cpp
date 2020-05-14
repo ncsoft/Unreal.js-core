@@ -57,13 +57,13 @@ bool UV8Config::CanExportFunction(const UClass* Class, const UFunction* Function
 	}
 
 	// Skip unsupported type or delegate properties which are handled in dedicated code path.
-	for (TFieldIterator<UProperty> ParamIt(Function); ParamIt; ++ParamIt)
+	for (TFieldIterator<FProperty> ParamIt(Function); ParamIt; ++ParamIt)
 	{
-		UProperty* Param = *ParamIt;
+		FProperty* Param = *ParamIt;
 		if (Param->ArrayDim > 1 ||
-			Param->IsA(UDelegateProperty::StaticClass()) ||
-			Param->IsA(UMulticastDelegateProperty::StaticClass()) ||
-			Param->IsA(UInterfaceProperty::StaticClass()))
+			Param->IsA(FDelegateProperty::StaticClass()) ||
+			Param->IsA(FMulticastDelegateProperty::StaticClass()) ||
+			Param->IsA(FInterfaceProperty::StaticClass()))
 		{
 			return false;
 		}
@@ -72,11 +72,11 @@ bool UV8Config::CanExportFunction(const UClass* Class, const UFunction* Function
 	return true;
 }
 
-bool UV8Config::CanExportProperty(const UStruct* Class, const UProperty* Property) const
+bool UV8Config::CanExportProperty(const UStruct* Class, const FProperty* Property) const
 {
 	// Skip unsupported static array and interface.
 	if (Property->ArrayDim > 1 ||
-		Property->IsA(UInterfaceProperty::StaticClass()))
+		Property->IsA(FInterfaceProperty::StaticClass()))
 	{
 		return false;
 	}
@@ -84,24 +84,24 @@ bool UV8Config::CanExportProperty(const UStruct* Class, const UProperty* Propert
 	return true;
 }
 
-EPropertyAccessorAvailability UV8Config::GetPropertyAccessorAvailability(UProperty* Property) const
+EPropertyAccessorAvailability UV8Config::GetPropertyAccessorAvailability(FProperty* Property) const
 {
 	if (Property == nullptr)
 		return EPropertyAccessorAvailability::None;
 
 	EPropertyAccessorAvailability Availability = EPropertyAccessorAvailability::Default;
 
-	UClass* PropClass = Property->GetClass();
+	auto* PropClass = Property->GetClass();
 	if (bGenAltPropAccessorForAllProp ||
-		PropClass == UTextProperty::StaticClass())
+		PropClass == FTextProperty::StaticClass())
 	{
 		Availability |= EPropertyAccessorAvailability::AltAccessor;
 	}
 
-	UArrayProperty* ArrayProp = Cast<UArrayProperty>(Property);
+	auto* ArrayProp = CastField<FArrayProperty>(Property);
 	if (ArrayProp != nullptr &&
 		ArrayProp->Inner != nullptr &&
-		ArrayProp->Inner->GetClass() == UStructProperty::StaticClass())
+		ArrayProp->Inner->GetClass() == FStructProperty::StaticClass())
 	{
 		Availability |= EPropertyAccessorAvailability::AltAccessor;
 

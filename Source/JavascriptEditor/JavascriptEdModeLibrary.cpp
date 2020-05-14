@@ -1,8 +1,9 @@
-#include "JavascriptEdModeLibrary.h"
+﻿#include "JavascriptEdModeLibrary.h"
 
 #if WITH_EDITOR
 #include "EditorModeManager.h"
 #include "EdMode.h"
+#include "Editor.h"
 
 void UJavascriptEdModeLibrary::SetDefaultMode(FJavascriptEditorModeTools& Tools, FName DefaultID)
 {
@@ -64,6 +65,11 @@ FJavascriptHitProxy UJavascriptEdModeLibrary::GetHitProxy(FJavascriptEdViewport 
 	FJavascriptHitProxy Proxy;
 	Proxy.HitProxy = HitProxy;
 	return Proxy;
+}
+
+FJavascriptEditorModeTools UJavascriptEdModeLibrary::GetLevelEditorModeTools()
+{
+	return FJavascriptEditorModeTools(&GLevelEditorModeTools());
 }
 
 FJavascriptEditorModeTools UJavascriptEdModeLibrary::GetModeManager(FJavascriptEditorMode Mode)

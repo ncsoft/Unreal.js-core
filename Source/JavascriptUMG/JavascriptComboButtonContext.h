@@ -15,7 +15,8 @@ public:
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal(FText, FTextDelegate);
 	DECLARE_DYNAMIC_DELEGATE_RetVal(FJavascriptSlateIcon, FIconDelegate);
-	DECLARE_DYNAMIC_DELEGATE_RetVal(UWidget*, FWidgetDelegate);
+	//DECLARE_DYNAMIC_DELEGATE_RetVal(FJavascriptSlateWidget, FWidgetDelegate);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FJavascriptSlateWidget, FJavascriptGetWidgetWithEditingObject, UObject*, EditingObject);
 	DECLARE_DYNAMIC_DELEGATE_RetVal(bool, FBoolDelegate);
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
@@ -28,12 +29,12 @@ public:
 	FIconDelegate OnGetIcon;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FWidgetDelegate OnGetWidget;
+	FJavascriptGetWidgetWithEditingObject OnGetWidget;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FBoolDelegate OnCanExecute;
 
-	TSharedRef<SWidget> Public_OnGetWidget();
+	TSharedRef<SWidget> Public_OnGetWidget(UObject* EditingObject);
 	FSlateIcon Public_OnGetSlateIcon();
 	bool Public_CanExecute();
 	FText Public_OnGetTooltip();

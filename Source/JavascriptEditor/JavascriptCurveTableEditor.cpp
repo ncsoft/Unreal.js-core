@@ -1,4 +1,4 @@
-#include "JavascriptCurveTableEditor.h"
+﻿#include "JavascriptCurveTableEditor.h"
 #include "Engine/CurveTable.h"
 #include "Widgets/Layout/SBox.h"
 
@@ -17,7 +17,7 @@ void UJavascriptCurveTableEditor::SetObject(UCurveTable* Object, bool bForceRefr
 	
 	if (CurveTable.Get() != Object)
 	{
-		CurveTable = TSharedPtr<UCurveTable>(Object);
+		CurveTable = Object;
 	}
 
 	if (CurveTableEditor.IsValid())

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "SGraphPin.h"
 
 class UEdGraphPin;
@@ -22,6 +22,7 @@ protected:
 
 	virtual const FSlateBrush* GetPinIcon() const override;
 	virtual FSlateColor GetPinColor() const override;
+	virtual FSlateColor GetPinTextColor() const override;
 	// SWidget interface
 	virtual void OnMouseLeave(const FPointerEvent& MouseEvent) override;
 	// End of SWidget interface

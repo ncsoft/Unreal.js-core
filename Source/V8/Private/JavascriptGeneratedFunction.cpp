@@ -22,7 +22,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 				return;
 			}
 
-			UProperty* ReturnProp = ((UFunction*)Stack.Node)->GetReturnProperty();
+			FProperty* ReturnProp = ((UFunction*)Stack.Node)->GetReturnProperty();
 			if (ReturnProp != nullptr)
 			{
 				const bool bHasReturnParam = Function->ReturnValueOffset != MAX_uint16;
@@ -35,7 +35,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 			if (Function && Function->HasAnyFunctionFlags(FUNC_HasOutParms))
 			{
 				// Iterate over input parameters
-				for (TFieldIterator<UProperty> It(Function); It && (It->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == CPF_Parm; ++It)
+				for (TFieldIterator<FProperty> It(Function); It && (It->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == CPF_Parm; ++It)
 				{
 					// This is 'out ref'!
 					if ((It->PropertyFlags & (CPF_ConstParm | CPF_OutParm)) == CPF_OutParm)
@@ -52,9 +52,9 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 				if (OutParm)
 				{
 					// Iterate over parameters again
-					for (TFieldIterator<UProperty> It(Function); It; ++It)
+					for (TFieldIterator<FProperty> It(Function); It; ++It)
 					{
-						UProperty* Param = *It;
+						FProperty* Param = *It;
 
 						auto PropertyFlags = Param->GetPropertyFlags();
 						if ((PropertyFlags & (CPF_ConstParm | CPF_OutParm)) == CPF_OutParm)
@@ -89,15 +89,15 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 			FMemory::Memzero(Frame, Function->PropertiesSize);
 		}
 
-		FFrame NewStack(P_THIS, Function, Frame, &Stack, Function->Children);
+		FFrame NewStack(P_THIS, Function, Frame, &Stack, Function->ChildProperties);
 		FOutParmRec** LastOut = &NewStack.OutParms;
-		UProperty* Property;
+		FProperty* Property;
 
 		// Check to see if we need to handle a return value for this function.  We need to handle this first, because order of return parameters isn't always first.
 		if (Function->HasAnyFunctionFlags(FUNC_HasOutParms))
 		{
 			// Iterate over the function parameters, searching for the ReturnValue
-			for (TFieldIterator<UProperty> ParmIt(Function); ParmIt; ++ParmIt)
+			for (TFieldIterator<FProperty> ParmIt(Function); ParmIt; ++ParmIt)
 			{
 				Property = *ParmIt;
 				if (Property->HasAnyPropertyFlags(CPF_ReturnParm))
@@ -117,7 +117,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 			}
 		}
 
-		for (Property = (UProperty*)Function->Children; *Stack.Code != EX_EndFunctionParms; Property = (UProperty*)Property->Next)
+		for (Property = (FProperty*)Function->ChildProperties; *Stack.Code != EX_EndFunctionParms; Property = (FProperty*)Property->Next)
 		{
 			checkfSlow(Property, TEXT("NULL Property in Function %s"), *Function->GetPathName());
 
@@ -179,7 +179,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 		if (!bUsePersistentFrame)
 		{
 			// Initialize any local struct properties with defaults
-			for (UProperty* LocalProp = Function->FirstPropertyToInit; LocalProp != NULL; LocalProp = (UProperty*)LocalProp->Next)
+			for (FProperty* LocalProp = Function->FirstPropertyToInit; LocalProp != NULL; LocalProp = (FProperty*)LocalProp->Next)
 			{
 				LocalProp->InitializeValue_InContainer(NewStack.Locals);
 			}
@@ -196,7 +196,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 		if (!bUsePersistentFrame)
 		{
 			// destruct properties on the stack, except for out params since we know we didn't use that memory
-			for (UProperty* Destruct = Function->DestructorLink; Destruct; Destruct = Destruct->DestructorLinkNext)
+			for (FProperty* Destruct = Function->DestructorLink; Destruct; Destruct = Destruct->DestructorLinkNext)
 			{
 				if (!Destruct->HasAnyPropertyFlags(CPF_OutParm))
 				{

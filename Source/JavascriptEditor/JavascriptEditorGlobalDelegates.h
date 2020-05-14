@@ -3,6 +3,7 @@
 #include "AssetData.h"
 #include "IAssetRegistry.h"
 #include "Editor/UnrealEdTypes.h"
+#include "Widgets/SWindow.h"
 #endif
 #include "UObject/ScriptMacros.h"
 #include "JavascriptEditorGlobalDelegates.generated.h"
@@ -45,7 +46,7 @@ struct FJavascriptAssetData
 	UPROPERTY()
 	TArray<int32> ChunkIDs;	
 	UPROPERTY()
-	int32 PackageFlags;
+	int32 PackageFlags = 0;
 
 #if WITH_EDITOR
 	FAssetData SourceAssetData;
@@ -136,6 +137,14 @@ public:
 	void OnFinishPickingBlueprintClass(UClass* InClass);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnMainFrameCreationFinished_Friendly();
+
+	void OnMainFrameCreationFinished(TSharedPtr<SWindow> InRootWindow, bool bIsNewProjectWindow)
+	{
+		OnMainFrameCreationFinished_Friendly();
+	}
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void OnConfigureNewAssetProperties(UFactory* InFactory);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
@@ -196,6 +205,36 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void OnAddLevelToWorld(ULevel* Level);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnEditCutActorsBegin();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnEditCutActorsEnd();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnEditCopyActorsBegin();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnEditCopyActorsEnd();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnEditPasteActorsBegin();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnEditPasteActorsEnd();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnDeleteActorsBegin();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnDeleteActorsEnd();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnDuplicateActorsBegin();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnDuplicateActorsEnd();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void PreBeginPIE(const bool bIsSimulating);
@@ -272,7 +311,7 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void OnBlueprintReinstanced();
-	
+
 	//OnObjectsReplaced
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
@@ -280,8 +319,8 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript", meta = (DeprecatedFunction, DeprecationMessage = "OnObjectReimported is deprecated with UEditorEngine::OnObjectReimported. Use OnAssetReimport instead."))
 	void OnObjectReimported(UObject* Object);
-
-		//GetActorRecordingState
+	
+	//GetActorRecordingState
 
 	// FEditorSupportDelegates
 

@@ -76,9 +76,12 @@ void SJavascriptGraphEdNode::Construct(const FArguments& InArgs, UJavascriptGrap
 	UpdateGraphNode();
 
 	auto GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphNode);
-	if(GraphEdNode)
+	if (GraphEdNode)
 	{
-		GraphEdNode->OnWidgetFinalized.ExecuteIfBound();
+		// TSharedPtr<FJavascriptFunction> Copy(new FJavascriptFunction);
+		// *(Copy.Get()) = GraphEdNode->WidgetFinalized;
+		// Copy->Execute();
+		GraphEdNode->WidgetFinalized.Execute();
 	}
 }
 
@@ -178,10 +181,10 @@ TSharedPtr<SWidget> SJavascriptGraphEdNode::GetTitleAreaWidget()
 	auto GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphNode);
 	if (Schema->OnTakeTitleAreaWidget.IsBound())
 	{
-		UWidget* Widget = Schema->OnTakeTitleAreaWidget.Execute(GraphEdNode);
-		if (Widget)
+		auto Widget = Schema->OnTakeTitleAreaWidget.Execute(GraphEdNode).Widget;
+		if (Widget.IsValid())
 		{
-			return Widget->TakeWidget();
+			return Widget;
 		}
 	}
 	return SNew(SBox);
@@ -193,10 +196,10 @@ TSharedPtr<SWidget> SJavascriptGraphEdNode::GetUserWidget()
 	auto GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphNode);
 	if (Schema->OnTakeUserWidget.IsBound())
 	{
-		UWidget* Widget = Schema->OnTakeUserWidget.Execute(GraphEdNode);
-		if (Widget)
+		auto Widget = Schema->OnTakeUserWidget.Execute(GraphEdNode).Widget;
+		if (Widget.IsValid())
 		{
-			return Widget->TakeWidget();
+			return Widget;
 		}
 	}
 	return SNew(SBox);
@@ -263,10 +266,10 @@ TSharedPtr<SWidget> SJavascriptGraphEdNode::ErrorReportingWidget()
 	auto GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphNode);
 	if (Schema->OnTakeErrorReportingWidget.IsBound())
 	{
-		UWidget* Widget = Schema->OnTakeErrorReportingWidget.Execute(GraphEdNode);
-		if (Widget)
+		auto Widget = Schema->OnTakeErrorReportingWidget.Execute(GraphEdNode).Widget;
+		if (Widget.IsValid())
 		{
-			return Widget->TakeWidget();
+			return Widget;
 		}
 	}
 	return SNew(SBox);
@@ -297,11 +300,7 @@ void SJavascriptGraphEdNode::CreatePinWidgets()
 
 			if (Schema->OnCreatePin.IsBound())
 			{
-				UWidget* Widget = Schema->OnCreatePin.Execute(FJavascriptEdGraphPin{ MyPin });
-				if (Widget)
-				{
-					NewPin = StaticCastSharedPtr<SGraphPin>(TSharedPtr<SWidget>(Widget->TakeWidget()));
-				}
+				NewPin = StaticCastSharedPtr<SGraphPin>(Schema->OnCreatePin.Execute(FJavascriptEdGraphPin{ MyPin }).Widget);
 			}
 			if (!NewPin.IsValid())
 			{

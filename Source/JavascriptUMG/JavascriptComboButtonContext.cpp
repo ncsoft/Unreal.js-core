@@ -1,14 +1,14 @@
 ﻿#include "JavascriptComboButtonContext.h"
 #include "Components/Widget.h"
 
-TSharedRef<SWidget> UJavascriptComboButtonContext::Public_OnGetWidget()
+TSharedRef<SWidget> UJavascriptComboButtonContext::Public_OnGetWidget(UObject* EditingObject)
 {
 	if (OnGetWidget.IsBound())
 	{
-		UWidget* Widget = OnGetWidget.Execute();
-		if (Widget)
+		auto Widget = OnGetWidget.Execute(EditingObject);
+		if (Widget.Widget.IsValid())
 		{
-			return Widget->TakeWidget();
+			return Widget.Widget.ToSharedRef();
 		}
 	}
 	return SNullWidget::NullWidget;

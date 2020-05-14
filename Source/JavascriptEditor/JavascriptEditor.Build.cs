@@ -1,4 +1,4 @@
-using UnrealBuildTool;
+﻿using UnrealBuildTool;
 
 public class JavascriptEditor : ModuleRules
 {
@@ -90,7 +90,9 @@ public class JavascriptEditor : ModuleRules
                         "RenderCore",
                         "RHI",
 				        "DesktopPlatform",
-                        "ToolMenus"
+                        "ToolMenus",
+                        "SkeletalMeshEditor",
+                        "StaticMeshEditor"
                     }
             );
         }

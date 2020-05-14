@@ -19,6 +19,36 @@ struct TypingGeneratorBase
 		return (visited.Find(obj) != nullptr);
 	}
 
+	void Export(FProperty* source)
+	{
+		//UE_LOG(Javascript, Log, TEXT("Export %s"), *(source->GetName()));
+
+		if (auto s = CastField<FClassProperty>(source))
+		{
+			UClass* MetaClass = s->MetaClass;
+			if (has_visited(MetaClass)) return;
+			mark_visited(MetaClass);
+
+			ExportClass(MetaClass);
+		}
+		else if (auto s = CastField<FStructProperty>(source))
+		{
+			UStruct* Struct = s->Struct;
+			if (has_visited(Struct)) return;
+			mark_visited(Struct);
+
+			ExportStruct(Struct);
+		}
+		else if (auto s = CastField<FEnumProperty>(source))
+		{
+			UEnum* Enum = s->GetEnum();
+			if (has_visited(Enum)) return;
+			mark_visited(Enum);
+
+			ExportEnum(Enum);
+		}
+	}
+
 	void Export(UObject* source)
 	{
 		if (has_visited(source)) return;
@@ -70,52 +100,52 @@ struct TokenWriter
 		return *Text;
 	}
 	
-	void push(UProperty* Property)
+	void push(FProperty* Property)
 	{
-		if (auto p = Cast<UIntProperty>(Property))
+		if (auto p = CastField<FIntProperty>(Property))
 		{
 			push("number");
 		}
-		else if (auto p = Cast<UFloatProperty>(Property))
+		else if (auto p = CastField<FFloatProperty>(Property))
 		{
 			push("number");
 		}
-		else if (auto p = Cast<UBoolProperty>(Property))
+		else if (auto p = CastField<FBoolProperty>(Property))
 		{
 			push("boolean");
 		}
-		else if (auto p = Cast<UNameProperty>(Property))
+		else if (auto p = CastField<FNameProperty>(Property))
 		{
 			push("string");
 		}
-		else if (auto p = Cast<UStrProperty>(Property))
+		else if (auto p = CastField<FStrProperty>(Property))
 		{
 			push("string");
 		}
-		else if (auto p = Cast<UTextProperty>(Property))
+		else if (auto p = CastField<FTextProperty>(Property))
 		{
 			push("string");
 		}
-		else if (auto p = Cast<UClassProperty>(Property))
+		else if (auto p = CastField<FClassProperty>(Property))
 		{
 			generator.Export(p->MetaClass);
 
 			// @HACK
 			push("UnrealEngineClass");
 		}
-		else if (auto p = Cast<UStructProperty>(Property))
+		else if (auto p = CastField<FStructProperty>(Property))
 		{
 			generator.Export(p->Struct);
 			push(FV8Config::Safeify(p->Struct->GetName()));
 		}
-		else if (auto p = Cast<UArrayProperty>(Property))
+		else if (auto p = CastField<FArrayProperty>(Property))
 		{
 			generator.Export(p->Inner);
 
 			push(p->Inner);
 			push("[]");
 		}
-		else if (auto p = Cast<UByteProperty>(Property))
+		else if (auto p = CastField<FByteProperty>(Property))
 		{
 			if (p->Enum)
 			{
@@ -127,29 +157,29 @@ struct TokenWriter
 				push("number");
 			}
 		}
-		else if (auto p = Cast<UEnumProperty>(Property))
+		else if (auto p = CastField<FEnumProperty>(Property))
 		{
 			generator.Export(p->GetEnum());
 			push(FV8Config::Safeify(p->GetEnum()->GetName()));
 		}
-		else if (auto p = Cast<UMulticastDelegateProperty>(Property))
+		else if (auto p = CastField<FMulticastDelegateProperty>(Property))
 		{
 			push("UnrealEngineMulticastDelegate<");
 			push(p->SignatureFunction);
 			push(">");
 		}
-		else if (auto p = Cast<UDelegateProperty>(Property))
+		else if (auto p = CastField<FDelegateProperty>(Property))
 		{
 			push("UnrealEngineDelegate<");
 			push(p->SignatureFunction);
 			push(">");
 		}
-		else if (auto p = Cast<UObjectProperty>(Property))
+		else if (auto p = CastField<FObjectProperty>(Property))
 		{
 			generator.Export(p->PropertyClass);
 			push(FV8Config::Safeify(p->PropertyClass->GetName()));
 		}
-		else if (auto p = Cast<USoftObjectProperty>(Property))
+		else if (auto p = CastField<FSoftObjectProperty>(Property))
 		{
 			generator.Export(p->PropertyClass);
 			push(FV8Config::Safeify(p->PropertyClass->GetName()));
@@ -164,7 +194,7 @@ struct TokenWriter
 	{
 		push("(");
 		bool first = true;
-		TFieldIterator<UProperty> It(SignatureFunction);
+		TFieldIterator<FProperty> It(SignatureFunction);
 		for (; It && (It->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == CPF_Parm; ++It)
 		{
 			auto Prop = *It;
@@ -178,7 +208,7 @@ struct TokenWriter
 		bool has_return_value = false;
 		for (; It; ++It)
 		{
-			UProperty* Param = *It;
+			FProperty* Param = *It;
 			if (Param->GetPropertyFlags() & CPF_ReturnParm)
 			{
 				has_return_value = true;
@@ -189,7 +219,8 @@ struct TokenWriter
 		if (!has_return_value) push("void");
 	}
 
-	void tooltip(const char* indent, UField* source)
+	template<typename T>
+	void tooltip(const char* indent, T* source)
 	{
 		if (generator.no_tooltip) return;
 
@@ -212,7 +243,7 @@ struct TokenWriter
 			push(indent);
 			push("*/\n");
 		}
-	}	
+	}
 };
 
 struct TypingGenerator : TypingGeneratorBase
@@ -328,7 +359,7 @@ struct TypingGenerator : TypingGeneratorBase
 		}
 		w.push(" { \n");
 
-		for (TFieldIterator<UProperty> PropertyIt(source, EFieldIteratorFlags::ExcludeSuper); PropertyIt; ++PropertyIt)
+		for (TFieldIterator<FProperty> PropertyIt(source, EFieldIteratorFlags::ExcludeSuper); PropertyIt; ++PropertyIt)
 		{
 			auto Property = *PropertyIt;
 			auto PropertyName = FV8Config::Safeify(v8::PropertyNameToString(Property));
@@ -357,7 +388,7 @@ struct TypingGenerator : TypingGeneratorBase
 			bool is_optional = false;
 
 			TArray<FString> Arguments;
-			for (TFieldIterator<UProperty> ParamIt(Function); ParamIt && (ParamIt->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == CPF_Parm; ++ParamIt)
+			for (TFieldIterator<FProperty> ParamIt(Function); ParamIt && (ParamIt->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == CPF_Parm; ++ParamIt)
 			{
 				TokenWriter w2(*this);
 
@@ -392,7 +423,7 @@ struct TypingGenerator : TypingGeneratorBase
 			if (has_out_ref)
 			{
 				TArray<FString> Arguments;
-				for (TFieldIterator<UProperty> ParamIt(Function); ParamIt; ++ParamIt)
+				for (TFieldIterator<FProperty> ParamIt(Function); ParamIt; ++ParamIt)
 				{
 					TokenWriter w2(*this);
 
@@ -419,7 +450,7 @@ struct TypingGenerator : TypingGeneratorBase
 			else
 			{
 				bool has_return = false;
-				for (TFieldIterator<UProperty> ParamIt(Function); ParamIt; ++ParamIt)
+				for (TFieldIterator<FProperty> ParamIt(Function); ParamIt; ++ParamIt)
 				{
 					if ((ParamIt->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == (CPF_Parm | CPF_ReturnParm))
 					{

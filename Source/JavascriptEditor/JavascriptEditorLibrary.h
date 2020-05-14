@@ -252,6 +252,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static bool EditorDestroyActor(UWorld* World, AActor* Actor, bool bShouldModifyLevel);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool ConditionalBeginDestroybyUObject(UObject* TargetObject);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void SetIsTemporarilyHiddenInEditor(AActor* Actor, bool bIsHidden);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -380,6 +383,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FVector GetActorLocation(AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FRotator GetActorRotation(AActor* Actor);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool IsActorLabelEditable(AActor* Actor);
@@ -520,6 +526,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static bool OpenFileDialog(const class UJavascriptWindow* WindowHandle, const FString& DialogTitle, const FString& DefaultPath, const FString& DefaultFile, const FString& FileTypes, int32 Flags, TArray<FString>& OutFilenames);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool OpenDirectoryDialog(const class UJavascriptWindow* WindowHandle, const FString& DialogTitle, const FString& DefaultPath, FString& OutFolderName);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool LoadFileToIntArray(FString Path, TArray<uint8>& FileData);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -560,5 +569,8 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static int32 GetUniqueID(UObject* InObject);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void SetActorLabelUnique(AActor* Actor, const FString& NewActorLabel, const TArray<FString>& InExistingActorLabels);
 #endif
 };

@@ -184,19 +184,19 @@ void UPropertyEditor::BuildPropertyPathMap(UStruct* InPropertyRootType)
 			: Field(nullptr)
 			, bIsInArray(false)
 		{}
-		FFieldInfo(UField* InField, const FString& InParentPath, bool InIsInArray)
+		FFieldInfo(FField* InField, const FString& InParentPath, bool InIsInArray)
 			: Field(InField)
 			, ParentPath(InParentPath)
 			, bIsInArray(InIsInArray)
 		{}
 
-		UField* Field;
+		FField* Field;
 		FString ParentPath;
 		bool bIsInArray;
 	};
 
 	TQueue<FFieldInfo> FieldInfoQueue;
-	FieldInfoQueue.Enqueue(FFieldInfo(InPropertyRootType->Children, FString(), false));
+	FieldInfoQueue.Enqueue(FFieldInfo(InPropertyRootType->ChildProperties, FString(), false));
 
 	TSet<UStruct*> ResolvedTypeStructSet;
 	ResolvedTypeStructSet.Add(InPropertyRootType);
@@ -204,9 +204,9 @@ void UPropertyEditor::BuildPropertyPathMap(UStruct* InPropertyRootType)
 	FFieldInfo FieldInfo;
 	while (FieldInfoQueue.Dequeue(FieldInfo))
 	{
-		for (UField* Field = FieldInfo.Field; Field != nullptr; Field = Field->Next)
+		for (FField* Field = FieldInfo.Field; Field != nullptr; Field = Field->Next)
 		{
-			if (UProperty* Property = Cast<UProperty>(Field))
+			if (FProperty* Property = CastField<FProperty>(Field))
 			{
 				FString PropPath;
 				if (FieldInfo.ParentPath.Len() > 0)
@@ -224,28 +224,28 @@ void UPropertyEditor::BuildPropertyPathMap(UStruct* InPropertyRootType)
 				}
 				PropertyPathMap.FindOrAdd(Property).AddUnique(PropPath);
 
-				UField* ChildField = nullptr;
+				FField* ChildField = nullptr;
 				bool bIsChildInArray = false;
 
-				if (UStructProperty* StructProp = Cast<UStructProperty>(Property))
+				if (FStructProperty* StructProp = CastField<FStructProperty>(Property))
 				{
 					bool bWasAlreadyInSet = false;
 					ResolvedTypeStructSet.Add(StructProp->Struct, &bWasAlreadyInSet);
 					if (bWasAlreadyInSet == false)
 					{
-						ChildField = StructProp->Struct->Children;
+						ChildField = StructProp->Struct->ChildProperties;
 					}
 				}
-				else if (UObjectProperty* ObjectProp = Cast<UObjectProperty>(Property))
+				else if (FObjectProperty* ObjectProp = CastField<FObjectProperty>(Property))
 				{
 					bool bWasAlreadyInSet = false;
 					ResolvedTypeStructSet.Add(ObjectProp->PropertyClass, &bWasAlreadyInSet);
 					if (bWasAlreadyInSet == false)
 					{
-						ChildField = ObjectProp->PropertyClass->Children;
+						ChildField = ObjectProp->PropertyClass->ChildProperties;
 					}
 				}
-				else if (UArrayProperty* ArrayProp = Cast<UArrayProperty>(Property))
+				else if (FArrayProperty* ArrayProp = CastField<FArrayProperty>(Property))
 				{
 					// ArrayProp->Inner is a pointer to UProperty and ArrayProp->Inner->Next is always nullptr.
 					// So, we don't need to deal with ResolvedTypeStructSet here.

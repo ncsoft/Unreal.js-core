@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "JavascriptEditorLibrary.h"
 #include "JavascriptEdModeLibrary.generated.h"
@@ -99,6 +99,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEdModeLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
 	static FJavascriptHitProxy GetHitProxy(FJavascriptEdViewport Viewport);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
+	static FJavascriptEditorModeTools GetLevelEditorModeTools();
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
 	static FJavascriptEditorModeTools GetModeManager(FJavascriptEditorMode Mode);

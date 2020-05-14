@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "JavascriptEdModeLibrary.h"
 #include "JavascriptEditorLibrary.h"
@@ -28,7 +28,10 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSelectionChanged, FJavascriptEditorModeTools&, Tools, UObject*, Item);
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FOnProcess, FName, Request, FJavascriptEditorMode, Instance);
-	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(EJavascriptEditAction, FOnGetAction, FName, Request, FJavascriptEditorMode, Instance);	
+	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(EJavascriptEditAction, FOnGetAction, FName, Request, FJavascriptEditorMode, Instance);
+	
+	DECLARE_DYNAMIC_DELEGATE_RetVal(bool, FOnUsesToolkits);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnIsCompatibleWith, FName, bIsCompatibleWith);
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FSimpleDelegate, FJavascriptEditorMode, Instance);	
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FVector,FQueryVector, FJavascriptEditorMode, Instance);
 	DECLARE_DYNAMIC_DELEGATE_FourParams(FActorDuplicated, TArray<AActor*>&, PreDuplicateSelection, TArray<AActor*>&, PostDuplicateSelection, bool, bOffsetLocations, FJavascriptEditorMode, Instance);
@@ -107,6 +110,12 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetAction OnGetAction;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnUsesToolkits OnUsesToolkits;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnIsCompatibleWith OnIsCompatibleWith;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FSimpleDelegate OnActorMoved;

@@ -480,6 +480,47 @@ void UJavascriptLibrary::GetAllActorsOfClassAndTags(UObject* WorldContextObject,
 	}
 }
 
+void UJavascriptLibrary::GetAllActorsOfClassAndTagsInCurrentLevel(UObject* WorldContextObject, TSubclassOf<AActor> ActorClass, const TArray<FName>& Tags_Accept, const TArray<FName>& Tags_Deny, TArray<AActor*>& OutActors)
+{
+	OutActors.Empty();
+
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::ReturnNull);
+
+	// We do nothing if not class provided, rather than giving ALL actors!
+	if (ActorClass != NULL && World != nullptr)
+	{
+		ULevel* CurrentLevel = World->GetCurrentLevel();
+
+		// Only persistent world can iterate actor list
+		UWorld* PersistentWorld = World->PersistentLevel->OwningWorld;
+		for (TActorIterator<AActor> It(PersistentWorld, ActorClass); It; ++It)
+		{
+			AActor* Actor = *It;
+			if (!Actor->IsPendingKill() && Actor->GetLevel() == CurrentLevel)
+			{
+				bool bReject{ false };
+				bool bAccept{ false };
+				for (const auto& Tag : Actor->Tags)
+				{
+					if (Tags_Deny.Contains(Tag))
+					{
+						bReject = true;
+						break;
+					}
+					if (!bAccept && Tags_Accept.Contains(Tag))
+					{
+						bAccept = true;
+					}
+				}
+				if (bAccept && !bReject)
+				{
+					OutActors.Add(Actor);
+				}
+			}
+		}
+	}
+}
+
 int32 UJavascriptLibrary::GetCurrentProcessId()
 {
 	return FPlatformProcess::GetCurrentProcessId();
@@ -759,17 +800,17 @@ TArray<FJavscriptProperty> UJavascriptLibrary::GetStructProperties(const FString
 	if (Struct != nullptr)
 	{
 		// Make sure each field gets allocated into the array
-		for (TFieldIterator<UField> FieldIt(Struct, bIncludeSuper ? EFieldIteratorFlags::IncludeSuper : EFieldIteratorFlags::ExcludeSuper); FieldIt; ++FieldIt)
+		for (TFieldIterator<FField> FieldIt(Struct, bIncludeSuper ? EFieldIteratorFlags::IncludeSuper : EFieldIteratorFlags::ExcludeSuper); FieldIt; ++FieldIt)
 		{
-			UField* Field = *FieldIt;
+			FField* Field = *FieldIt;
 
 			// Make sure functions also do their parameters and children first
-			if (UProperty* Property = dynamic_cast<UProperty*>(Field))
+			if (FProperty* Property = CastField<FProperty>(Field))
 			{
 				FJavscriptProperty JavascriptProperty;
 
 				FString Type = Property->GetCPPType();
-				if (auto p = Cast<UArrayProperty>(Property))
+				if (auto p = CastField<FArrayProperty>(Property))
 				{
 					Type += TEXT("/") + p->Inner->GetCPPType();
 				}
@@ -1013,4 +1054,18 @@ FText UJavascriptLibrary::UpdateLocalizationText(const FJavascriptText& JText, c
 #else
 	return FText::FromString(JText.String);
 #endif
+}
+
+
+TArray<UActorComponent*> UJavascriptLibrary::GetComponentsByClass(AActor* Actor, TSubclassOf<UActorComponent> ComponentClass)
+{
+	if (::IsValid(Actor))
+	{
+		return Actor->K2_GetComponentsByClass(ComponentClass);
+	}
+	else
+	{
+		TArray<UActorComponent*> Components;
+		return Components;
+	}
 }

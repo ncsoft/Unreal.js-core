@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "JavascriptProcess.generated.h"
 
@@ -27,6 +27,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
 	static FString GetApplicationName(int32 ProcessId);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
+	static int32 GetCurrentProcessId();
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Scripting")
 	static bool IsApplicationRunning_PID(int32 ProcessId);

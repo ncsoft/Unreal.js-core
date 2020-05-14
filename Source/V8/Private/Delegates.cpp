@@ -14,7 +14,7 @@ class FJavascriptDelegate : public FGCObject, public TSharedFromThis<FJavascript
 {
 public:
 	FWeakObjectPtr WeakObject;
-	UProperty* Property;
+	FProperty* Property;
 	Persistent<Context> context_;
 	TMap<int32, UniquePersistent<Function>> functions;
 	Persistent<Object> WrappedObject;
@@ -32,7 +32,7 @@ public:
 		Collector.AddReferencedObjects(DelegateObjects);
 	}
 
-	FJavascriptDelegate(UObject* InObject, UProperty* InProperty)
+	FJavascriptDelegate(UObject* InObject, FProperty* InProperty)
 		: WeakObject(InObject), Property(InProperty)
 	{}
 
@@ -112,7 +112,7 @@ public:
 			auto isolate_ = info.GetIsolate();
 			auto context_ = isolate_->GetCurrentContext();
 			auto arr = Array::New(isolate_, payload->DelegateObjects.Num());
-			const bool bIsMulticastDelegate = payload->Property->IsA(UMulticastDelegateProperty::StaticClass());
+			const bool bIsMulticastDelegate = payload->Property->IsA(FMulticastDelegateProperty::StaticClass());
 
 			for (auto DelegateObject : payload->DelegateObjects)
 			{
@@ -223,7 +223,7 @@ public:
 
 		if (WeakObject.IsValid())
 		{
-			if (auto p = Cast<UMulticastDelegateProperty>(Property))
+			if (auto p = CastField<FMulticastDelegateProperty>(Property))
 			{
 				FScriptDelegate Delegate;
 				Delegate.BindUFunction(DelegateObject, NAME_Fire);
@@ -235,7 +235,7 @@ public:
 				Target->Add(Delegate);
 #endif
 			}
-			else if (auto p = Cast<UDelegateProperty>(Property))
+			else if (auto p = CastField<FDelegateProperty>(Property))
 			{
 				auto Target = p->GetPropertyValuePtr_InContainer(WeakObject.Get());
 				Target->BindUFunction(DelegateObject, NAME_Fire);
@@ -254,7 +254,7 @@ public:
 
 		if (WeakObject.IsValid())
 		{
-			if (auto p = Cast<UMulticastDelegateProperty>(Property))
+			if (auto p = CastField<FMulticastDelegateProperty>(Property))
 			{
 				FScriptDelegate Delegate;
 				Delegate.BindUFunction(DelegateObject, NAME_Fire);
@@ -265,7 +265,7 @@ public:
 				Target->Remove(Delegate);
 #endif
 			}
-			else if (auto p = Cast<UDelegateProperty>(Property))
+			else if (auto p = CastField<FDelegateProperty>(Property))
 			{
 				auto Target = p->GetPropertyValuePtr_InContainer(WeakObject.Get());
 				Target->Clear();
@@ -283,11 +283,11 @@ public:
 
 	UFunction* GetSignatureFunction()
 	{
-		if (auto p = Cast<UMulticastDelegateProperty>(Property))
+		if (auto p = CastField<FMulticastDelegateProperty>(Property))
 		{
 			return p->SignatureFunction;
 		}
-		else if (auto p = Cast<UDelegateProperty>(Property))
+		else if (auto p = CastField<FDelegateProperty>(Property))
 		{
 			return p->SignatureFunction;
 		}
@@ -369,7 +369,7 @@ struct FDelegateManager : IDelegateManager
 		Delegates.Empty();
 	}
 
-	Local<Object> CreateDelegate(UObject* Object, UProperty* Property)
+	Local<Object> CreateDelegate(UObject* Object, FProperty* Property)
 	{
 		//@HACK
 		CollectGarbageDelegates();
@@ -382,7 +382,7 @@ struct FDelegateManager : IDelegateManager
 		return created;
 	}
 
-	virtual Local<Value> GetProxy(Local<Object> This, UObject* Object, UProperty* Property) override
+	virtual Local<Value> GetProxy(Local<Object> This, UObject* Object, FProperty* Property) override
 	{
 		auto cache_id = V8_KeywordString(isolate_, FString::Printf(TEXT("$internal_%s"), *(Property->GetName())));
 		auto context_ = isolate_->GetCurrentContext();

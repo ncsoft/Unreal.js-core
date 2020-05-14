@@ -19,7 +19,7 @@ bool FJavascriptCustomColumn::Supports(const TSharedRef< IPropertyTableColumn >&
 		if (PropertyPath.IsValid() && PropertyPath->GetNumProperties() > 0)
 		{
 			const FPropertyInfo& PropertyInfo = PropertyPath->GetRootProperty();
-			UProperty* Property = PropertyInfo.Property.Get();
+			FProperty* Property = PropertyInfo.Property.Get();
 			if (!Property->HasMetaData(TEXT("IgnoreCustomColumn")))
 			{
 				return true;

@@ -90,8 +90,8 @@ static void SetEnumFlags(UEnum* Enum, const TArray<FString>& Flags)
 
 namespace v8
 {
-	Local<Value> ReadProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags = FPropertyAccessorFlags());
-	void WriteProperty(Isolate* isolate, UProperty* Property, uint8* Buffer, Local<Value> value, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags = FPropertyAccessorFlags());
+	Local<Value> ReadProperty(Isolate* isolate, FProperty* Property, uint8* Buffer, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags = FPropertyAccessorFlags());
+	void WriteProperty(Isolate* isolate, FProperty* Property, uint8* Buffer, Local<Value> value, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags = FPropertyAccessorFlags());
 	void ReportException(Isolate* isolate, TryCatch& try_catch);
 	Local<String> V8_String(Isolate* isolate, const FString& String);
 	Local<String> V8_String(Isolate* isolate, const char* String);
@@ -103,6 +103,6 @@ namespace v8
 	UObject* UObjectFromV8(Local<Context> context, Local<Value> Value);
 	uint8* RawMemoryFromV8(Local<Context> context, Local<Value> Value);
 	FString StringFromArgs(const FunctionCallbackInfo<v8::Value>& args, int StartIndex = 0);
-	FString PropertyNameToString(UProperty* Property, bool bConvertComparisionIndex = true);
-	bool MatchPropertyName(UProperty* Property, FName NameToMatch);
+	FString PropertyNameToString(FProperty* Property, bool bConvertComparisionIndex = true);
+	bool MatchPropertyName(FProperty* Property, FName NameToMatch);
 }

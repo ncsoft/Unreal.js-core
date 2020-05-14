@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Modules/ModuleManager.h"
 #include "Modules/ModuleInterface.h"
@@ -39,6 +39,8 @@ public:
 	{
 		return FModuleManager::Get().IsModuleLoaded( "JavascriptEditor" );
 	}
+
+	virtual class UJavascriptContext* GetJavascriptContext() { return nullptr; }
 
 	virtual void AddExtension(IEditorExtension* Extension) = 0;
 	virtual void RemoveExtension(IEditorExtension* Extension) = 0;
