@@ -14,13 +14,13 @@ struct FV8Exception
 		static T fn = std::forward<T>(f); //@hack: exploiting lambda signature's uniqueness
 		return [](const FunctionCallbackInfo<Value>& info)
 		{
-#if !PLATFORM_SEH_EXCEPTIONS_DISABLED
+#if PLATFORM_WINDOWS && !PLATFORM_SEH_EXCEPTIONS_DISABLED
 			__try
 #endif
 			{
 				fn(info);
 			}
-#if !PLATFORM_SEH_EXCEPTIONS_DISABLED
+#if PLATFORM_WINDOWS && !PLATFORM_SEH_EXCEPTIONS_DISABLED
 			__except (ReportCrash(GetExceptionInformation()))
 			{
 				FPlatformMallocCrash::Get().PrintPoolsUsage();
