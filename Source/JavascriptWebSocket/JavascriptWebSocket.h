@@ -39,10 +39,10 @@ public:
 	void CopyBuffer();
 
 	UFUNCTION(BlueprintPure, Category = "Scripting | Javascript")
-	FString RemoteEndPoint();
+	FString RemoteEndPoint(bool bAppendPort = true);
 
 	UFUNCTION(BlueprintPure, Category = "Scripting | Javascript")
-	FString LocalEndPoint();
+	FString LocalEndPoint(bool bAppendPort = true);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void Flush();
@@ -62,5 +62,5 @@ private:
 	void OnReceivedCallback(void* InData, int32 Count);
 	void OnConnectedCallback();
 	void OnErrorCallback();
-#endif	
+#endif
 };

@@ -17,7 +17,7 @@ UJavascriptWebSocket* UJavascriptWebSocket::Connect(const FString& EndpointStrin
 	{
 		return nullptr;
 	}
-	
+
 	auto addr = Endpoint.ToInternetAddr();
 	return CreateFrom(new FJavascriptWebSocket(*addr), (UObject*)GetTransientPackage());
 #else
@@ -115,23 +115,23 @@ void UJavascriptWebSocket::SendMemory(int32 NumBytes)
 #endif
 }
 
-FString UJavascriptWebSocket::RemoteEndPoint()
+FString UJavascriptWebSocket::RemoteEndPoint(bool bAppendPort)
 {
 #if WITH_JSWEBSOCKET
 	if (!WebSocket.IsValid()) return TEXT("Invalid");
 
-	return WebSocket->RemoteEndPoint();
+	return WebSocket->RemoteEndPoint(bAppendPort);
 #else
 	return TEXT("Invalid");
 #endif
 }
 
-FString UJavascriptWebSocket::LocalEndPoint()
+FString UJavascriptWebSocket::LocalEndPoint(bool bAppendPort)
 {
 #if WITH_JSWEBSOCKET
 	if (!WebSocket.IsValid()) return TEXT("Invalid");
 
-	return WebSocket->LocalEndPoint();
+	return WebSocket->LocalEndPoint(bAppendPort);
 #else
 	return TEXT("Invalid");
 #endif

@@ -430,6 +430,7 @@ public:
 		Delegates = nullptr;
 
 		FTicker::GetCoreTicker().RemoveTicker(TickHandle);
+		FWorldDelegates::OnWorldCleanup.Remove(OnWorldCleanupHandle);
 		v8::debug::SetConsoleDelegate(isolate_, nullptr);
 
 		isolate_->Dispose();
@@ -1274,7 +1275,7 @@ public:
 		Local<FunctionTemplate> Template = I.FunctionTemplate();
 
 		auto add_fn = [&](const char* name, FunctionCallback fn) {
-			Template->PrototypeTemplate()->Set(I.Keyword(name), I.FunctionTemplate(FV8Exception::GuardLambda(fn)));
+			Template->PrototypeTemplate()->Set(I.Keyword(name), I.FunctionTemplate(fn));
 		};
 
 		add_fn("access", [](const FunctionCallbackInfo<Value>& info)
