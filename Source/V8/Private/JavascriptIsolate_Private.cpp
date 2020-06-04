@@ -366,6 +366,9 @@ public:
 
 	void OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources)
 	{
+		if (World->IsGameWorld())
+			return;
+
 		for (auto It = ClassToFunctionTemplateMap.CreateIterator(); It; ++It)
 		{
 			UClass* Class = It.Key();
@@ -1272,7 +1275,7 @@ public:
 
 		auto add_fn = [&](const char* name, FunctionCallback fn) {
 			Template->PrototypeTemplate()->Set(I.Keyword(name), I.FunctionTemplate(FV8Exception::GuardLambda(fn)));
-		};		
+		};
 
 		add_fn("access", [](const FunctionCallbackInfo<Value>& info)
 		{
@@ -1699,7 +1702,7 @@ public:
 
 		auto function_name = I.Keyword(FunctionToExport->GetName());
 		auto function = I.FunctionTemplate(FV8Exception::GuardLambda(FunctionBody), FunctionToExport);
-		
+
 		// Register the function to prototype template
 		Template->PrototypeTemplate()->Set(function_name, function);
 	}
@@ -1879,7 +1882,7 @@ public:
 		};
 
 		Template->Set(I.Keyword("GetClassObject"), I.FunctionTemplate(FV8Exception::GuardLambda(fn), ClassToExport));
-	}	
+	}
 
 	void AddMemberFunction_Class_SetDefaultSubobjectClass(Local<FunctionTemplate> Template, UStruct* ClassToExport)
 	{
