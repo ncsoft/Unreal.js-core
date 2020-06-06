@@ -40,8 +40,8 @@ public class JavascriptEditor : ModuleRules
                     "KismetWidgets",
                     "EditorStyle",
                     "UnrealEd",
-                    "JavascriptUMG"
-
+                    "JavascriptUMG",
+                    "DetailCustomizations"
                 }
             );	// @todo Mac: for some reason CoreUObject and Engine are needed to link in debug on Mac
 
