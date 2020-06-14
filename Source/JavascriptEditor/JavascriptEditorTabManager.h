@@ -22,6 +22,14 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
 	TArray<UJavascriptEditorTab*> Tabs;
+
+	TSharedPtr<FTabManager> TabManager;
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	void InsertNewTab(FName PlaceholderId, FName SearchForTabId, UJavascriptEditorTab* NewTab);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	void InvokeTab(FName SearchForTabId);
 	
 	void Commit();
 	void Setup(TSharedRef<SBox> VerticalBox);

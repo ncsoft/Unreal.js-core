@@ -65,6 +65,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
 	FText DisplayName;
 
+	UPROPERTY(EditAnywhere, Category = "Javascript | UMG")
+	FJavascriptSlateIcon Icon;
+
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
 	bool bIsNomad;
 
@@ -96,6 +99,7 @@ public:
 
 	void Register(TSharedRef<FTabManager> TabManager, UObject* Context, TSharedRef<FWorkspaceItem> Group);
 	void Unregister(TSharedRef<FTabManager> TabManager);
+	void InsertTo(TSharedRef<FTabManager> TabManager, UObject* Context, FName PlaceholderId, FName SearchForTabId);
 
 	static TSharedPtr<SDockTab> MajorTab;
 	static TSharedPtr<SDockTab> FindDocktab(UWidget* Widget);
