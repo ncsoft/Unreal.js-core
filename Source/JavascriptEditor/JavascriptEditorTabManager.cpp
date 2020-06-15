@@ -34,14 +34,14 @@ void UJavascriptEditorTabManager::Setup(TSharedRef<SBox> Box)
 	TSharedRef<SDockTab> ConstructUnderMajorTab = DockArea->DockTab.Pin().ToSharedRef();
 	TSharedPtr<SWindow> ConstructUnderWindow;
 
-	auto TabManager = FGlobalTabmanager::Get()->NewTabManager(ConstructUnderMajorTab);
+	TabManager = FGlobalTabmanager::Get()->NewTabManager(ConstructUnderMajorTab);
 	auto AppMenuGroup = TabManager->AddLocalWorkspaceMenuCategory(LOCTEXT("DeviceManagerMenuGroupName", "Device Manager"));
 
 	TabManager->UnregisterAllTabSpawners();
 
 	for (auto Tab : Tabs)
 	{
-		Tab->Register(TabManager, nullptr, AppMenuGroup);
+		Tab->Register(TabManager.ToSharedRef(), nullptr, AppMenuGroup);
 	}
 
 	auto CachedLayout = FTabManager::FLayout::NewFromString(Layout);		
@@ -74,6 +74,26 @@ TSharedRef<SWidget> UJavascriptEditorTabManager::RebuildWidget()
 		return SNew(SButton);
 	}	
 }
+
+void UJavascriptEditorTabManager::InsertNewTab(FName PlaceholderId, FName SearchForTabId, UJavascriptEditorTab* NewTab)
+{
+	if (TabManager.IsValid())
+	{
+		if (NewTab)
+		{
+			NewTab->InsertTo(TabManager.ToSharedRef(), nullptr, PlaceholderId, SearchForTabId);
+		}
+	}
+}
+
+void UJavascriptEditorTabManager::InvokeTab(FName SearchForTabId)
+{
+	if (TabManager.IsValid())
+	{
+		TabManager->InvokeTab(SearchForTabId);
+	}
+}
+
 #endif
 
 #undef LOCTEXT_NAMESPACE

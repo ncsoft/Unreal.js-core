@@ -192,7 +192,11 @@ void UJavascriptEditorTab::CloseTab(UWidget* Widget)
 
 void UJavascriptEditorTab::Register(TSharedRef<FTabManager> TabManager, UObject* Context, TSharedRef<FWorkspaceItem> Group)
 {
-	FSlateIcon Icon(FEditorStyle::GetStyleSetName(), "DeviceDetails.Tabs.ProfileEditor");
+	if (Icon.StyleSetName.IsNone())
+	{
+		Icon.StyleSetName = FEditorStyle::GetStyleSetName();
+		Icon.StyleName = "DeviceDetails.Tabs.ProfileEditor";
+	}
 
 	const bool bGlobal = TabManager == FGlobalTabmanager::Get();
 
@@ -222,8 +226,41 @@ void UJavascriptEditorTab::Register(TSharedRef<FTabManager> TabManager, UObject*
 	auto& SpawnerEntry = bIsNomad && TabManager == FGlobalTabmanager::Get() ? FGlobalTabmanager::Get()->RegisterNomadTabSpawner(TabId, Lambda) : TabManager->RegisterTabSpawner(TabId, Lambda);
 	SpawnerEntry
 		.SetDisplayName(DisplayName)
-		.SetIcon(Icon)
-		.SetGroup(Group);	
+		.SetIcon(Icon.GetSlateIcon())
+		.SetGroup(Group);
+}
+
+void UJavascriptEditorTab::InsertTo(TSharedRef<FTabManager> TabManager, UObject* Context, FName PlaceholderId, FName SearchForTabId)
+{
+	if (Icon.StyleSetName.IsNone())
+	{
+		Icon.StyleSetName = FEditorStyle::GetStyleSetName();
+		Icon.StyleName = "DeviceDetails.Tabs.ProfileEditor";
+	}
+
+	auto Widget = this->TakeWidget(Context);
+
+	const TSharedRef<SDockTab> MajorTab = SNew(SDockTab)
+		.TabRole(ETabRole(Role.GetValue()))
+		.Icon(Icon.GetSlateIcon().GetIcon())
+		.Label(DisplayName)
+		.OnTabClosed_Lambda([](TSharedRef<SDockTab> ClosedTab) {
+			GEditorTabTracker.OnTabClosed(ClosedTab);
+		});
+
+	GEditorTabTracker.Add(this, Widget, MajorTab);
+
+	auto OldTab = UJavascriptEditorTab::MajorTab;
+	UJavascriptEditorTab::MajorTab = MajorTab;		 
+		
+	MajorTab->SetContent(Widget->TakeWidget());
+	MajorTab->SetOnTabActivated(FOnTabActivatedCallback::CreateLambda([this](TSharedRef<SDockTab> Tab, ETabActivationCause Cause) {
+		this->TabActivatedCallback(Tab, Cause);
+	}));
+	UJavascriptEditorTab::MajorTab = OldTab;
+
+	TSharedPtr<FTabManager::FSearchPreference> SearchPreference = MakeShareable(new FTabManager::FLiveTabSearch(SearchForTabId));
+	TabManager->InsertNewDocumentTab(PlaceholderId, *SearchPreference, MajorTab);
 }
 
 void UJavascriptEditorTab::Unregister(TSharedRef<FTabManager> TabManager)
