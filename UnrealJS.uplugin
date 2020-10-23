@@ -14,25 +14,25 @@
   "Modules": [
     {
       "Name": "V8",
-      "Type": "Editor",
+      "Type": "Runtime",
       "LoadingPhase": "PreDefault",
       "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux", "Android", "IOS" ]
     },
     {
       "Name": "JavascriptUMG",
-      "Type": "Editor",
+      "Type": "Runtime",
       "LoadingPhase": "PreDefault",
       "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux", "Android", "IOS" ]
     },
     {
       "Name": "JavascriptHttp",
-      "Type": "Editor",
+      "Type": "Runtime",
       "LoadingPhase": "PreDefault",
       "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux", "Android", "IOS" ]
     },
     {
       "Name": "JavascriptWebSocket",
-      "Type": "Editor",
+      "Type": "Runtime",
       "LoadingPhase": "PreDefault",
       "WhitelistPlatforms": [ "Win64" ]
     },
