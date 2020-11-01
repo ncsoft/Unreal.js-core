@@ -29,8 +29,6 @@ namespace EJavascriptHttpRequestStatus
 	};
 }
 
-struct FHttpProcessor;
-
 /**
  * 
  */
@@ -38,6 +36,10 @@ UCLASS()
 class JAVASCRIPTHTTP_API UJavascriptHttpRequest : public UObject
 {
 	GENERATED_UCLASS_BODY()
+
+private:
+
+	bool IsProcessing;
 
 public:	
 	TSharedPtr<IHttpRequest> Request;
@@ -180,10 +182,8 @@ public:
 	float GetElapsedTime();
 
 	virtual void BeginDestroy() override;
-
-	FHttpProcessor* Processor{nullptr};
-
-	bool IsProcessing() { return Processor != nullptr; }
+	
+	bool GetIsProcessing() const { return IsProcessing; }
 
 	void BeginProcessing();
 	void EndProcessing();

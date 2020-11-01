@@ -4,38 +4,6 @@
 #include "Misc/Base64.h"
 #include "Misc/Paths.h"
 
-#if WITH_EDITOR
-#include "TickableEditorObject.h"
-typedef FTickableEditorObject FTickableRequest;
-#else
-#include "Tickable.h"
-typedef FTickableGameObject FTickableRequest;
-#endif
-
-struct FHttpProcessor : public FTickableRequest
-{
-public:
-	FHttpProcessor(TSharedPtr<IHttpRequest> InRef)
-		: Ref(InRef)
-	{}
-
-	TSharedPtr<IHttpRequest> Ref;
-
-	virtual void Tick(float DeltaTime) override
-	{
-		Ref->Tick(DeltaTime);
-	}
-
-	virtual bool IsTickable() const override
-	{
-		return true;
-	}
-
-	virtual TStatId GetStatId() const override
-	{
-		RETURN_QUICK_DECLARE_CYCLE_STAT(JavascriptHttpRequest, STATGROUP_Tickables);
-	}	
-};
 
 UJavascriptHttpRequest::UJavascriptHttpRequest(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -50,7 +18,7 @@ void UJavascriptHttpRequest::BeginDestroy()
 {
 	Super::BeginDestroy();
 
-	if (IsProcessing())
+	if (GetIsProcessing())
 	{
 		EndProcessing();
 	}
@@ -60,14 +28,11 @@ void UJavascriptHttpRequest::BeginDestroy()
 
 void UJavascriptHttpRequest::BeginProcessing()
 {
-	Processor = new FHttpProcessor(Request);
+	IsProcessing = true;
 }
 
 void UJavascriptHttpRequest::EndProcessing()
 {
-	delete Processor;
-	Processor = nullptr;
-
 	Request->OnProcessRequestComplete().Unbind();
 	Request->OnRequestProgress().Unbind();
 }
@@ -161,7 +126,7 @@ void UJavascriptHttpRequest::SetHeader(const FString& HeaderName, const FString&
 
 bool UJavascriptHttpRequest::ProcessRequest()
 {
-	if (IsProcessing()) return false;
+	if (GetIsProcessing()) return false;
 
 	Request->OnProcessRequestComplete().BindLambda([&](FHttpRequestPtr, FHttpResponsePtr, bool status){
 		OnComplete.ExecuteIfBound(status);
