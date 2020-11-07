@@ -131,7 +131,9 @@ static void SetClassFlags(UClass* Class, const TArray<FString>& Flags)
 		{ TEXT("Abstract"), CLASS_Abstract },
 		{ TEXT("DefaultConfig"), CLASS_DefaultConfig },
 		{ TEXT("Transient"), CLASS_Transient },
+#if ENGINE_MINOR_VERSION < 26
 		{ TEXT("AdvancedDisplay"), CLASS_AdvancedDisplay },
+#endif
 		{ TEXT("NotPlaceable"), CLASS_NotPlaceable },
 		{ TEXT("PerObjectConfig"), CLASS_PerObjectConfig },
 		{ TEXT("EditInlineNew"), CLASS_EditInlineNew },

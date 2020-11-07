@@ -2967,9 +2967,13 @@ public:
 	void SetWeak(UniquePersistent<U>& Handle, T* GarbageCollectedObject)
 	{
 		typedef TPair<FJavascriptContext*, T*> WeakData;
+#if ENGINE_MINOR_VERSION < 26
 		typedef typename WeakData::KeyType WeakDataKeyInitType;
 		typedef typename WeakData::ValueType WeakDataValueInitType;
 		typedef TPairInitializer<WeakDataKeyInitType, WeakDataValueInitType> InitializerType;
+#else
+		typedef TPairInitializer<FJavascriptContext*, T*> InitializerType;
+#endif
 
 #if V8_MAJOR_VERSION == 5 && V8_MINOR_VERSION < 3
 		Handle.template SetWeak<WeakData>(new WeakData(InitializerType(GetContext(), GarbageCollectedObject)), [](const WeakCallbackData<U, WeakData>& data) {
