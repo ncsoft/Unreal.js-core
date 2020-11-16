@@ -15,11 +15,19 @@ typedef FTickableGameObject FTickableRequest;
 struct FHttpProcessor : public FTickableRequest
 {
 public:
+#if ENGINE_MINOR_VERSION < 26
 	FHttpProcessor(TSharedPtr<IHttpRequest> InRef)
+#else
+	FHttpProcessor(FHttpRequestPtr InRef)
+#endif
 		: Ref(InRef)
 	{}
 
+#if ENGINE_MINOR_VERSION < 26
 	TSharedPtr<IHttpRequest> Ref;
+#else
+	FHttpRequestPtr Ref = nullptr;
+#endif
 
 	virtual void Tick(float DeltaTime) override
 	{
