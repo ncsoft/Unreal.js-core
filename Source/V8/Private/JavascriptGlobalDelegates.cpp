@@ -1,4 +1,5 @@
 ﻿#include "JavascriptGlobalDelegates.h"
+#include "Misc/CoreDelegates.h"
 #include "../../Launch/Resources/Version.h"
 
 void UJavascriptGlobalDelegates::BeginDestroy()
