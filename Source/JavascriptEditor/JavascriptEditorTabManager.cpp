@@ -90,7 +90,7 @@ void UJavascriptEditorTabManager::InvokeTab(FName SearchForTabId)
 {
 	if (TabManager.IsValid())
 	{
-		TabManager->InvokeTab(SearchForTabId);
+		TabManager->TryInvokeTab(SearchForTabId);
 	}
 }
 

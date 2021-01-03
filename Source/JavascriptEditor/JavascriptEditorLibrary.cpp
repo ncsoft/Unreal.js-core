@@ -61,6 +61,7 @@
 #include "Engine/DataTable.h"
 #include "Engine/EngineTypes.h"
 #include "Toolkits/AssetEditorManager.h"
+#include "Kismet2/KismetEditorUtilities.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -1040,7 +1041,12 @@ USCS_Node* FindSCSNode(const TArray<USCS_Node*>& Nodes, UActorComponent* Compone
 void UJavascriptEditorLibrary::AddComponentsToBlueprint(UBlueprint* Blueprint, const TArray<UActorComponent*>& Components, bool bHarvesting, UActorComponent* OptionalNewRootComponent, bool bKeepMobility)
 {
 	auto* OptionalNewRootNode = FindSCSNode(Blueprint->SimpleConstructionScript->GetRootNodes(), OptionalNewRootComponent);
-	FKismetEditorUtilities::AddComponentsToBlueprint(Blueprint, Components, bHarvesting, OptionalNewRootNode, bKeepMobility);
+
+	FKismetEditorUtilities::FAddComponentsToBlueprintParams Params;
+	Params.HarvestMode = (bHarvesting ? FKismetEditorUtilities::EAddComponentToBPHarvestMode::Harvest_UseComponentName : FKismetEditorUtilities::EAddComponentToBPHarvestMode::None);
+	Params.OptionalNewRootNode = OptionalNewRootNode;
+	Params.bKeepMobility = bKeepMobility;
+	FKismetEditorUtilities::AddComponentsToBlueprint(Blueprint, Components, Params);
 	FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
 }
 

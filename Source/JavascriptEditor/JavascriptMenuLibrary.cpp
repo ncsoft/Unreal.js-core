@@ -89,7 +89,7 @@ void UJavascriptMenuLibrary::AddSeparator(FJavascriptMenuBuilder& Builder)
 	else if (Builder.ToolMenu)
 	{
 		FToolMenuSection& Section = Builder.ToolMenu->Sections.Num() > 0 ? Builder.ToolMenu->Sections.Top() : Builder.ToolMenu->AddSection(FName());
-		Section.AddMenuSeparator(FName());
+		Section.AddSeparator(FName());
 	}
 }
 

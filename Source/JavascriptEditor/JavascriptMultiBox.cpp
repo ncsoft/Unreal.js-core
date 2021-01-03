@@ -5,21 +5,21 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SSpacer.h"
 
-static SBox* Target;
+static SBox* _Target;
 void UJavascriptMultiBox::Setup(TSharedRef<SBox> Box)
 {	
 	Box->SetContent(SNew(SSpacer));
 
-	Target = &(Box.Get());
+	_Target = &(Box.Get());
 	OnHook.Execute(FName("Main"),this,FJavascriptMenuBuilder());
-	Target = nullptr;
+	_Target = nullptr;
 }
 
 void UJavascriptMultiBox::Bind(FJavascriptMenuBuilder Builder)
 {
 	if (Builder.MultiBox)
 	{
-		Target->SetContent(Builder.MultiBox->MakeWidget());
+		_Target->SetContent(Builder.MultiBox->MakeWidget());
 	}
 }
 
