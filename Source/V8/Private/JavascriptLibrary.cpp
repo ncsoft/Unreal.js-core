@@ -1,6 +1,7 @@
 ﻿#include "JavascriptLibrary.h"
 #include "Engine/DynamicBlueprintBinding.h"
 #include "JavascriptContext.h"
+#include "GameFramework/GameModeBase.h"	
 #include "IV8.h"
 #include "SocketSubsystem.h"
 #include "Sockets.h"
@@ -225,6 +226,11 @@ UDynamicBlueprintBinding* UJavascriptLibrary::GetDynamicBinding(UClass* Outer, T
 	}
 
 	return nullptr;
+}
+
+void UJavascriptLibrary::HandleSeamlessTravelPlayer(AGameModeBase* GameMode, AController*& C)	
+{	
+	GameMode->HandleSeamlessTravelPlayer(C);	
 }
 
 void UJavascriptLibrary::SetRootComponent(AActor* Actor, USceneComponent* Component)

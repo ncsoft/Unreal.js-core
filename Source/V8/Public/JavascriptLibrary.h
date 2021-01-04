@@ -379,6 +379,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static UDynamicBlueprintBinding* GetDynamicBinding(UClass* Outer, TSubclassOf<UDynamicBlueprintBinding> BindingObjectClass);
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")	
+	static void HandleSeamlessTravelPlayer(class AGameModeBase* GameMode, AController*& C);
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static void SetRootComponent(AActor* Actor, USceneComponent* Component);
 
