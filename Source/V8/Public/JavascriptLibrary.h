@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "GameFramework/GameModeBase.h"	
 #include "JavascriptProfile.h"
 #include "JavascriptIsolate.h"
 #include "Engine/StreamableManager.h"

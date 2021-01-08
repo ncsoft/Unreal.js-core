@@ -1,7 +1,6 @@
 ﻿#include "JavascriptLibrary.h"
 #include "Engine/DynamicBlueprintBinding.h"
 #include "JavascriptContext.h"
-#include "GameFramework/GameModeBase.h"	
 #include "IV8.h"
 #include "SocketSubsystem.h"
 #include "Sockets.h"
