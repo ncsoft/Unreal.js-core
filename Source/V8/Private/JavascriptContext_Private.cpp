@@ -1160,14 +1160,14 @@ public:
 					auto Function1 = FuncMap->Get(context, I.Keyword("prector")).ToLocalChecked();
 
 					auto ProxyFuncMap = ProxyFunctions->ToObject(context).ToLocalChecked();
-					ProxyFuncMap->Set(context, I.Keyword("ctor"), Function0);
-					ProxyFuncMap->Set(context, I.Keyword("prector"), Function1);
+					(void)ProxyFuncMap->Set(context, I.Keyword("ctor"), Function0);
+					(void)ProxyFuncMap->Set(context, I.Keyword("prector"), Function1);
 				}
 			}
 			Context->Environment->PublicExportUClass(Class);
 
 			auto aftr_v8_template = Context->ExportObject(Class);
-			aftr_v8_template->ToObject(context).ToLocalChecked()->Set(context, I.Keyword("proxy"), ProxyFunctions);
+			(void)(aftr_v8_template->ToObject(context).ToLocalChecked()->Set(context, I.Keyword("proxy"), ProxyFunctions));
 
 			Class->GetDefaultObject(true);
 
@@ -1312,7 +1312,7 @@ public:
 			Context->Environment->PublicExportStruct(Struct);
 
 			auto aftr_v8_template = Context->ExportObject(Struct);
-			aftr_v8_template->ToObject(context).ToLocalChecked()->Set(context, I.Keyword("proxy"), ProxyFunctions);
+			(void)(aftr_v8_template->ToObject(context).ToLocalChecked()->Set(context, I.Keyword("proxy"), ProxyFunctions));
 			auto end = FPlatformTime::Seconds();
 			UE_LOG(Javascript, Warning, TEXT("Rebind UStruct(%s) Elapsed: %.6f"), *Struct->GetName(), end - start);
 #endif
