@@ -748,7 +748,7 @@ public:
 			for (int Index = 0; Index < Num; ++Index)
 			{
 				uint8* PairPtr = MapHelper.GetPairPtr(Index);
-#if ENGINE_MINOR_VERSION < 22
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 22
 				auto Key = InternalReadProperty(p->KeyProp, PairPtr + p->MapLayout.KeyOffset, Owner, Flags);
 #else
 				auto Key = InternalReadProperty(p->KeyProp, PairPtr, Owner, Flags);
@@ -1109,7 +1109,7 @@ public:
 					MapHelper.Rehash();
 
 					uint8* PairPtr = MapHelper.GetPairPtr(ElementIndex);
-#if ENGINE_MINOR_VERSION < 22
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 22
 					InternalWriteProperty(p->KeyProp, PairPtr + p->MapLayout.KeyOffset, Key, Owner, Flags);
 #else
 					InternalWriteProperty(p->KeyProp, PairPtr, Key, Owner, Flags);
@@ -1980,7 +1980,7 @@ public:
 			bool bTransient = info.Length() > 1 ? info[1]->BooleanValue(isolate) : false;
 			bool bIsRequired = info.Length() > 2 ? info[2]->BooleanValue(isolate) : true;
 			bool bIsAbstract = info.Length() > 3 ? info[3]->BooleanValue(isolate) : false;
-#if ENGINE_MINOR_VERSION < 23
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 23
 			auto Object = ObjectInitializer->CreateDefaultSubobject(ObjectInitializer->GetObj(), *Name, ReturnType, ReturnType, bIsRequired, bIsAbstract, bTransient);
 #else
 			auto Object = ObjectInitializer->CreateDefaultSubobject(ObjectInitializer->GetObj(), *Name, ReturnType, ReturnType, bIsRequired, bTransient);
@@ -2967,7 +2967,7 @@ public:
 	void SetWeak(UniquePersistent<U>& Handle, T* GarbageCollectedObject)
 	{
 		typedef TPair<FJavascriptContext*, T*> WeakData;
-#if ENGINE_MINOR_VERSION < 26
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 26
 		typedef typename WeakData::KeyType WeakDataKeyInitType;
 		typedef typename WeakData::ValueType WeakDataValueInitType;
 		typedef TPairInitializer<WeakDataKeyInitType, WeakDataValueInitType> InitializerType;

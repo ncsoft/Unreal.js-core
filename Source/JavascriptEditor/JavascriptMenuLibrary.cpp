@@ -152,7 +152,7 @@ void UJavascriptMenuLibrary::AddMenuEntry(FJavascriptMenuBuilder& Builder, UJava
 		DefaultAction.CanExecuteAction = FCanExecuteAction::CreateUObject(Object, &UJavascriptMenuContext::Public_CanExecute);
 		DefaultAction.ExecuteAction = FExecuteAction::CreateUObject(Object, &UJavascriptMenuContext::Public_Execute);
 		DefaultAction.GetActionCheckState = FGetActionCheckState::CreateUObject(Object, &UJavascriptMenuContext::Public_GetActionCheckState);
-#if ENGINE_MINOR_VERSION > 22
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 22) || ENGINE_MAJOR_VERSION > 4
 		const EUserInterfaceActionType CommandType = EUserInterfaceActionType(Object->ActionType.GetValue());
 #else
 		const EUserInterfaceActionType::Type CommandType = EUserInterfaceActionType::Type(Object->ActionType.GetValue());
@@ -172,7 +172,7 @@ void UJavascriptMenuLibrary::AddMenuEntry(FJavascriptMenuBuilder& Builder, UJava
 		DefaultAction.CanExecuteAction = FCanExecuteAction::CreateUObject(Object, &UJavascriptMenuContext::Public_CanExecute);
 		DefaultAction.ExecuteAction = FExecuteAction::CreateUObject(Object, &UJavascriptMenuContext::Public_Execute);
 		DefaultAction.GetActionCheckState = FGetActionCheckState::CreateUObject(Object, &UJavascriptMenuContext::Public_GetActionCheckState);
-#if ENGINE_MINOR_VERSION > 22
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 22) || ENGINE_MAJOR_VERSION > 4
 		const EUserInterfaceActionType CommandType = EUserInterfaceActionType(Object->ActionType.GetValue());
 #else
 		const EUserInterfaceActionType::Type CommandType = EUserInterfaceActionType::Type(Object->ActionType.GetValue());
@@ -318,7 +318,7 @@ FJavascriptUICommandInfo UJavascriptMenuLibrary::UI_COMMAND_Function(FJavascript
 	const FString DotOutCommandName = FString::Printf(TEXT(".%s"), *info.Id);
 	const TCHAR* FriendlyName = *info.FriendlyName;
 	const TCHAR* InDescription = *info.Description;
-#if ENGINE_MINOR_VERSION > 22
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 22) || ENGINE_MAJOR_VERSION > 4
 	const EUserInterfaceActionType CommandType = EUserInterfaceActionType(info.ActionType.GetValue());
 #else
 	const EUserInterfaceActionType::Type CommandType = EUserInterfaceActionType::Type(info.ActionType.GetValue());

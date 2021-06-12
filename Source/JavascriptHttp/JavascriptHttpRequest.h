@@ -41,7 +41,7 @@ class JAVASCRIPTHTTP_API UJavascriptHttpRequest : public UObject
 	GENERATED_UCLASS_BODY()
 
 public:	
-#if ENGINE_MINOR_VERSION < 26
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 26
 	TSharedPtr<IHttpRequest> Request;
 #else
 	FHttpRequestPtr Request = nullptr;

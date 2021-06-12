@@ -34,4 +34,7 @@ public:
 	// UObject interface
 	virtual void ProcessEvent(UFunction* Function, void* Parms) override;
 	// End of UObject interface
+	
+	UPROPERTY(Transient)
+	TArray<UObject*> TileListItems;
 };

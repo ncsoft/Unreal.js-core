@@ -59,7 +59,7 @@ bool UJavascriptLibrary::ResolveIp(FString HostName, FString& OutIp)
 	auto SocketSub = ISocketSubsystem::Get();
 	TSharedRef<FInternetAddr> HostAddr = SocketSub->CreateInternetAddr();
 
-#if ENGINE_MINOR_VERSION > 22
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 22) || ENGINE_MAJOR_VERSION > 4
 	FAddressInfoResult GAIResult = SocketSub->GetAddressInfo(*HostName, nullptr, EAddressInfoFlags::Default, NAME_None);
 	if (GAIResult.Results.Num() > 0)
 	{
@@ -718,22 +718,22 @@ FJavascriptStreamableManager UJavascriptLibrary::CreateStreamableManager()
 	return{ MakeShareable<FStreamableManager>(new FStreamableManager) };
 }
 
-void UJavascriptLibrary::SimpleAsyncLoad(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target, int32 Priority)
+void UJavascriptLibrary::SimpleAsyncLoad(const FJavascriptStreamableManager& Manager, FSoftObjectPath const& Target, int32 Priority)
 {
 	Manager->RequestAsyncLoad(Target, FStreamableDelegate(), Priority, true);
 }
 
-void UJavascriptLibrary::Unload(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target)
+void UJavascriptLibrary::Unload(const FJavascriptStreamableManager& Manager, FSoftObjectPath const& Target)
 {
 	Manager->Unload(Target);
 }
 
-bool UJavascriptLibrary::IsAsyncLoadComplete(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target)
+bool UJavascriptLibrary::IsAsyncLoadComplete(const FJavascriptStreamableManager& Manager, FSoftObjectPath const& Target)
 {
 	return Manager->IsAsyncLoadComplete(Target);
 }
 
-void UJavascriptLibrary::RequestAsyncLoad(const FJavascriptStreamableManager& Manager, const TArray<FStringAssetReference>& TargetsToStream, FJavascriptFunction DelegateToCall, int32 Priority)
+void UJavascriptLibrary::RequestAsyncLoad(const FJavascriptStreamableManager& Manager, const TArray<FSoftObjectPath>& TargetsToStream, FJavascriptFunction DelegateToCall, int32 Priority)
 {
 	auto Copy = new FJavascriptFunction;
 	*Copy = DelegateToCall;
@@ -854,7 +854,7 @@ FJavascriptStat UJavascriptLibrary::NewStat(
 {
 	FJavascriptStat Out;
 #if STATS
-#if ENGINE_MINOR_VERSION > 20
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 20) || ENGINE_MAJOR_VERSION > 4
     ANSICHAR StatName[NAME_SIZE];
     ANSICHAR GroupName[NAME_SIZE];
     ANSICHAR GroupCategoryName[NAME_SIZE];

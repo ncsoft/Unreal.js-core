@@ -291,10 +291,10 @@ public:
 	static FJavascriptStreamableManager CreateStreamableManager();
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	static void SimpleAsyncLoad(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target, int32 Priority);
+	static void SimpleAsyncLoad(const FJavascriptStreamableManager& Manager, FSoftObjectPath const& Target, int32 Priority);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	static void RequestAsyncLoad(const FJavascriptStreamableManager& Manager, const TArray<FStringAssetReference>& TargetsToStream, FJavascriptFunction DelegateToCall, int32 Priority);
+	static void RequestAsyncLoad(const FJavascriptStreamableManager& Manager, const TArray<FSoftObjectPath>& TargetsToStream, FJavascriptFunction DelegateToCall, int32 Priority);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static void V8_SetFlagsFromString(const FString& V8Flags);
@@ -303,10 +303,10 @@ public:
 	static void V8_SetIdleTaskBudget(float BudgetInSeconds);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	static void Unload(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target);
+	static void Unload(const FJavascriptStreamableManager& Manager, FSoftObjectPath const& Target);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	static bool IsAsyncLoadComplete(const FJavascriptStreamableManager& Manager, FStringAssetReference const& Target);
+	static bool IsAsyncLoadComplete(const FJavascriptStreamableManager& Manager, FSoftObjectPath const& Target);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static FJavascriptLogCategory CreateLogCategory(const FString& CategoryName, ELogVerbosity_JS InDefaultVerbosity);

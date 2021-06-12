@@ -293,7 +293,7 @@ public:
 
 	//~ Begin EdGraphSchema Interface
  	virtual void GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const override;
-#if ENGINE_MINOR_VERSION < 24
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 24
 	virtual void GetContextMenuActions(const UEdGraph* CurrentGraph, const UEdGraphNode* InGraphNode, const UEdGraphPin* InGraphPin, class FMenuBuilder* MenuBuilder, bool bIsDebugging) const override;
 #else
 	virtual void GetContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const override;

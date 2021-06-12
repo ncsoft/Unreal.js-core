@@ -241,7 +241,7 @@ FJavascriptArrangedWidget UJavascriptGraphEditorLibrary::FindPinGeometries(FJava
 FJavascriptPinWidget UJavascriptGraphEditorLibrary::FindPinToPinWidgetMap(FJavascriptDetermineLinkGeometryContainer Container, FJavascriptEdGraphPin Pin)
 {
 	FJavascriptPinWidget Widget = FJavascriptPinWidget();
-#if ENGINE_MINOR_VERSION > 22
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 22) || ENGINE_MAJOR_VERSION > 4
 	TSharedPtr<SGraphPin>* SGraphPinHandle = Container.PinToPinWidgetMap->Find(Pin);
 	if (SGraphPinHandle)
 	{

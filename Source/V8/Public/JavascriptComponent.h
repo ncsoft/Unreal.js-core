@@ -14,7 +14,7 @@ struct V8_API FJavascriptAsset
 	FName Name;
 
 	UPROPERTY(EditAnywhere, Category = "Javascript")
-	FStringAssetReference Asset;
+	FSoftObjectPath Asset;
 };
 
 USTRUCT()

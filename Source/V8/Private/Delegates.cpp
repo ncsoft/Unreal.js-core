@@ -228,7 +228,7 @@ public:
 				FScriptDelegate Delegate;
 				Delegate.BindUFunction(DelegateObject, NAME_Fire);
 
-#if ENGINE_MINOR_VERSION > 22
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 22) || ENGINE_MAJOR_VERSION > 4
 				p->AddDelegate(Delegate, WeakObject.Get());
 #else
 				auto Target = p->GetPropertyValuePtr_InContainer(WeakObject.Get());
@@ -258,7 +258,7 @@ public:
 			{
 				FScriptDelegate Delegate;
 				Delegate.BindUFunction(DelegateObject, NAME_Fire);
-#if ENGINE_MINOR_VERSION > 22
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 22) || ENGINE_MAJOR_VERSION > 4
 				p->RemoveDelegate(Delegate, WeakObject.Get());
 #else
 				auto Target = p->GetPropertyValuePtr_InContainer(WeakObject.Get());

@@ -10,7 +10,7 @@ TSharedRef<STableViewBase> UJavascriptTileView::RebuildListWidget()
 {
 	MyTileView = SNew(STileView< UObject* >)
 		.SelectionMode(SelectionMode)
-		.ListItemsSource(&ListItems)
+		.ListItemsSource(&TileListItems)
 		.ItemHeight(EntryHeight)
 		.OnSelectionChanged_Lambda([this](UObject* Object, ESelectInfo::Type SelectInfo){
 			OnSelectionChanged(Object, SelectInfo);

@@ -139,7 +139,7 @@ namespace v8
 		{
 			if (auto s = Cast<UUserDefinedStruct>(Struct))
 			{
-#if ENGINE_MINOR_VERSION > 22
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 22) || ENGINE_MAJOR_VERSION > 4
 				return s->GetAuthoredNameForField(Property);
 #else
 				return s->PropertyNameToDisplayName(name);
@@ -157,7 +157,7 @@ namespace v8
 		{
 			if (auto s = Cast<UUserDefinedStruct>(Struct))
 			{
-#if ENGINE_MINOR_VERSION > 22
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 22) || ENGINE_MAJOR_VERSION > 4
 				return s->GetAuthoredNameForField(Property) == NameToMatch.ToString();
 #else
 				return s->PropertyNameToDisplayName(name) == NameToMatch.ToString();

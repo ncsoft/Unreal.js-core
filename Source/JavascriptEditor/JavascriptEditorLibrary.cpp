@@ -60,7 +60,9 @@
 
 #include "Engine/DataTable.h"
 #include "Engine/EngineTypes.h"
-#include "Toolkits/AssetEditorManager.h"
+#if ENGINE_MAJOR_VERSION == 4
+	#include "Toolkits/AssetEditorManager.h"
+#endif
 #include "Kismet2/KismetEditorUtilities.h"
 
 #if WITH_EDITOR
@@ -202,18 +204,30 @@ void UJavascriptEditorLibrary::OpenPopupWindow(UWidget* Widget, const FVector2D&
 
 void UJavascriptEditorLibrary::GetAllTags(const FJavascriptAssetData& AssetData, TArray<FName>& OutArray)
 {
+#if ENGINE_MAJOR_VERSION > 4
+	AssetData.SourceAssetData.TagsAndValues.CopyMap().GetKeys(OutArray);
+#else
 	AssetData.SourceAssetData.TagsAndValues.GetKeys(OutArray);
+#endif
 }
 
 bool UJavascriptEditorLibrary::GetTagValue(const FJavascriptAssetData& AssetData, const FName& Name, FString& OutValue)
 {
+#if ENGINE_MAJOR_VERSION > 4
+	auto Value = AssetData.SourceAssetData.TagsAndValues.FindTag(Name);
+	if (Value.IsSet())
+	{
+		OutValue = Value.GetValue();
+		return true;
+	}
+#else
 	auto Value = AssetData.SourceAssetData.TagsAndValues.GetMap().Find(Name);
-
 	if (Value)
 	{
 		OutValue = *Value;
 		return true;
 	}
+#endif
 	else
 	{
 		return false;
@@ -496,7 +510,7 @@ void UJavascriptEditorLibrary::DrawPolygon(const FJavascriptPDI& PDI, const TArr
 	}
 
 	static auto TransparentPlaneMaterialXY = (UMaterial*)StaticLoadObject(UMaterial::StaticClass(), NULL, TEXT("/Engine/EditorMaterials/WidgetVertexColorMaterial.WidgetVertexColorMaterial"), NULL, LOAD_None, NULL);
-#if ENGINE_MINOR_VERSION < 22
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 22
 	MeshBuilder.Draw(PDI.PDI, FMatrix::Identity, TransparentPlaneMaterialXY->GetRenderProxy(false), DepthPriority, 0.f);
 #else
 	MeshBuilder.Draw(PDI.PDI, FMatrix::Identity, TransparentPlaneMaterialXY->GetRenderProxy(), DepthPriority, 0.f);
@@ -691,7 +705,7 @@ FJavascriptSlateWidget UJavascriptEditorLibrary::GetRootWindow()
 void UJavascriptEditorLibrary::CreatePropertyEditorToolkit(TArray<UObject*> ObjectsForPropertiesMenu)
 {
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	PropertyEditorModule.CreatePropertyEditorToolkit(EToolkitMode::Standalone, TSharedPtr<IToolkitHost>(), ObjectsForPropertiesMenu);
+	PropertyEditorModule.CreatePropertyEditorToolkit(TSharedPtr<IToolkitHost>(), ObjectsForPropertiesMenu);
 }
 
 static FName NAME_LevelEditor("LevelEditor");
@@ -1310,7 +1324,7 @@ bool UJavascriptEditorLibrary::LoadImageFromDiskAsync(const FString& ImagePath, 
 			{
 				Texture->SRGB = true;
 				Texture->UpdateResource();
-#if ENGINE_MINOR_VERSION < 22
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 22
 				ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
 					FWriteRawDataToTexture,
 					FTexture2DDynamicResource*, TextureResource, static_cast<FTexture2DDynamicResource*>(Texture->Resource),
@@ -1432,7 +1446,7 @@ FString UJavascriptEditorLibrary::GetDataTableAsJSON(UDataTable* InDataTable, ui
 
 void UJavascriptEditorLibrary::AddRichCurve(UCurveTable* InCurveTable, const FName& Key, const FRichCurve& InCurve)
 {
-#if ENGINE_MINOR_VERSION < 22
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 22
 	FRichCurve* NewCurve = new FRichCurve();
 	NewCurve->SetKeys(InCurve.GetConstRefOfKeys());
 	NewCurve->PreInfinityExtrap = InCurve.PreInfinityExtrap;
