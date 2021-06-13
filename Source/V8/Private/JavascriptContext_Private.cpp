@@ -131,7 +131,7 @@ static void SetClassFlags(UClass* Class, const TArray<FString>& Flags)
 		{ TEXT("Abstract"), CLASS_Abstract },
 		{ TEXT("DefaultConfig"), CLASS_DefaultConfig },
 		{ TEXT("Transient"), CLASS_Transient },
-#if ENGINE_MINOR_VERSION < 26
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 26
 		{ TEXT("AdvancedDisplay"), CLASS_AdvancedDisplay },
 #endif
 		{ TEXT("NotPlaceable"), CLASS_NotPlaceable },
@@ -1075,7 +1075,7 @@ public:
 			else
 				Class->GetDefaultObject();
 
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 12
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 12) || ENGINE_MAJOR_VERSION > 4
 			// Assemble reference token stream for garbage collection/ RTGC.
 			if (!Class->HasAnyClassFlags(CLASS_TokenStreamAssembled))
 			{
@@ -1171,7 +1171,7 @@ public:
 
 			Class->GetDefaultObject(true);
 
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 12
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 12) || ENGINE_MAJOR_VERSION > 4
 			// Assemble reference token stream for garbage collection/ RTGC.
 			Class->AssembleReferenceTokenStream(true);
 #endif

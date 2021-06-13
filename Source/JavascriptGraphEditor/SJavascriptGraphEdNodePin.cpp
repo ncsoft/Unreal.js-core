@@ -7,6 +7,8 @@
 #include "Widgets/SBoxPanel.h"
 #include "Components/Widget.h"
 
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
 void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin)
 {
 	this->SetCursor(EMouseCursor::Default);
@@ -95,7 +97,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 		}
 	}
 	// Create the widget used for the pin body (status indicator, label, and value)
-#if ENGINE_MINOR_VERSION > 22
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 22) || ENGINE_MAJOR_VERSION > 4
 	LabelAndValue =
 #else
 	TSharedRef<SWrapBox> LabelAndValue =
@@ -173,7 +175,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 			.AutoWidth()
 			.VAlign(VAlign_Center)
 			[
-#if ENGINE_MINOR_VERSION > 22
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 22) || ENGINE_MAJOR_VERSION > 4
 				LabelAndValue.ToSharedRef()
 #else
 				LabelAndValue
@@ -188,7 +190,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 			.AutoWidth()
 			.VAlign(VAlign_Center)
 			[
-#if ENGINE_MINOR_VERSION > 22
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 22) || ENGINE_MAJOR_VERSION > 4
 				LabelAndValue.ToSharedRef()
 #else
 				LabelAndValue

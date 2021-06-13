@@ -27,7 +27,7 @@ public:
 	// UClass interface
 #if WITH_EDITOR
 	virtual UClass* GetAuthoritativeClass() override { return UClass::GetAuthoritativeClass();  }
-#if ENGINE_MINOR_VERSION < 22
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 22
 	virtual void ConditionalRecompileClass(TArray<UObject*>* ObjLoaded) override { UClass::ConditionalRecompileClass(ObjLoaded);  }
 #else
 	virtual void ConditionalRecompileClass(FUObjectSerializeContext* InLoadContext) override { UClass::ConditionalRecompileClass(InLoadContext); }
@@ -35,13 +35,13 @@ public:
 	virtual UObject* GetArchetypeForCDO() const override { return UClass::GetArchetypeForCDO();  }
 #endif //WITH_EDITOR
 
-#if ENGINE_MINOR_VERSION < 23
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 23
 	virtual bool IsFunctionImplementedInBlueprint(FName InFunctionName) const override { return false;  }
 #else
 	virtual bool IsFunctionImplementedInScript(FName InFunctionName) const override { return false; }
 #endif
 
-#if ENGINE_MINOR_VERSION < 21
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 21
 	virtual uint8* GetPersistentUberGraphFrame(UObject* Obj, UFunction* FuncToCheck) const override { return nullptr;  }
 	virtual void GetRequiredPreloadDependencies(TArray<UObject*>& DependenciesOut) override { UClass::GetRequiredPreloadDependencies(DependenciesOut);  }
 #endif
@@ -54,7 +54,7 @@ public:
 	virtual void Link(FArchive& Ar, bool bRelinkExistingProperties) override { UClass::Link(Ar, bRelinkExistingProperties); }
 	virtual void PurgeClass(bool bRecompilingOnLoad) override { UClass::PurgeClass(bRecompilingOnLoad);  }
 	virtual void Bind() override { UClass::Bind(); }
-#if ENGINE_MINOR_VERSION < 24
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 24
 	virtual UObject* FindArchetype(UClass* ArchetypeClass, const FName ArchetypeName) const override { return UClass::FindArchetype(ArchetypeClass, ArchetypeName);  }
 #else
 	virtual UObject* FindArchetype(const UClass* ArchetypeClass, const FName ArchetypeName) const override { return UClass::FindArchetype(ArchetypeClass, ArchetypeName); }

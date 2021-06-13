@@ -15,7 +15,7 @@ typedef FTickableGameObject FTickableRequest;
 struct FHttpProcessor : public FTickableRequest
 {
 public:
-#if ENGINE_MINOR_VERSION < 26
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 26
 	FHttpProcessor(TSharedPtr<IHttpRequest> InRef)
 #else
 	FHttpProcessor(FHttpRequestPtr InRef)
@@ -23,7 +23,7 @@ public:
 		: Ref(InRef)
 	{}
 
-#if ENGINE_MINOR_VERSION < 26
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 26
 	TSharedPtr<IHttpRequest> Ref;
 #else
 	FHttpRequestPtr Ref = nullptr;
