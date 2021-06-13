@@ -3,7 +3,7 @@ using UnrealBuildTool;
 
 public class JavascriptEditor : ModuleRules
 {
-    public static (Int32, Int32) ParseEditorVersions()
+    public static Int32[] ParseEditorVersions()
     {
         string[] VersionHeader = Utils.ReadAllText("../Source/Runtime/Launch/Resources/Version.h").Replace("\r\n", "\n").Replace("\t", " ").Split('\n');
         string EngineVersionMajor = "4";
@@ -19,26 +19,7 @@ public class JavascriptEditor : ModuleRules
                 EngineVersionMinor = Line.Split(' ')[2];
             }
         }
-        return (System.Int32.Parse(EngineVersionMajor), System.Int32.Parse(EngineVersionMinor));
-    }
-
-    public static bool IsVREditorNeeded()
-    {
-        string[] VersionHeader = Utils.ReadAllText("../Source/Runtime/Launch/Resources/Version.h").Replace("\r\n", "\n").Replace("\t", " ").Split('\n');
-        string EngineVersionMajor = "4";
-        string EngineVersionMinor = "0";
-        foreach (string Line in VersionHeader)
-        {
-            if (Line.StartsWith("#define ENGINE_MAJOR_VERSION "))
-            {
-                EngineVersionMajor = Line.Split(' ')[2];
-            }
-            else if (Line.StartsWith("#define ENGINE_MINOR_VERSION "))
-            {
-                EngineVersionMinor = Line.Split(' ')[2];
-            }
-        }
-        return (System.Int32.Parse(EngineVersionMajor) == 4 && System.Int32.Parse(EngineVersionMinor) >= 14) || System.Int32.Parse(EngineVersionMajor) >= 5;
+        return new Int32[] { System.Int32.Parse(EngineVersionMajor), System.Int32.Parse(EngineVersionMinor) };
     }
 
     public JavascriptEditor(ReadOnlyTargetRules Target) : base(Target)
@@ -74,7 +55,9 @@ public class JavascriptEditor : ModuleRules
                 }
             );
 
-            var (EngineMajorVer, EngineMinorVer) = ParseEditorVersions();
+            var vers = ParseEditorVersions();
+            var EngineMajorVer = vers[0];
+            var EngineMinorVer = vers[1];
 
             // Is VREditor Needed?
             if (EngineMajorVer > 4 || EngineMinorVer >= 14)
