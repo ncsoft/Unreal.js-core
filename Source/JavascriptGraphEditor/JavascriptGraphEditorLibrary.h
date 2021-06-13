@@ -105,7 +105,7 @@ struct FJavascriptDetermineLinkGeometryContainer
 		TSharedRef<SWidget>* InOutputPinWidget,
 		TMap<UEdGraphNode*, int32>* InNodeWidgetMap,
 		TMap<TSharedRef<SWidget>, FArrangedWidget>* InPinGeometries,
-#if ENGINE_MINOR_VERSION > 22
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 22) || ENGINE_MAJOR_VERSION > 4
 		TMap< UEdGraphPin*, TSharedPtr<SGraphPin> >* InPinToPinWidgetMap
 #else
 		TMap< UEdGraphPin*, TSharedRef<SGraphPin> >* InPinToPinWidgetMap
@@ -124,7 +124,7 @@ struct FJavascriptDetermineLinkGeometryContainer
 	TMap<UEdGraphNode*, int32>* NodeWidgetMap;
 
 	TMap<TSharedRef<SWidget>, FArrangedWidget>* PinGeometries;
-#if ENGINE_MINOR_VERSION > 22
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 22) || ENGINE_MAJOR_VERSION > 4
 	TMap< UEdGraphPin*, TSharedPtr<SGraphPin> >* PinToPinWidgetMap;
 #else
 	TMap< UEdGraphPin*, TSharedRef<SGraphPin> >* PinToPinWidgetMap;

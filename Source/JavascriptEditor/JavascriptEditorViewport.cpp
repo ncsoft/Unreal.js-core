@@ -8,10 +8,19 @@
 #include "AssetViewerSettings.h"
 #include "Launch/Resources/Version.h"
 #include "Components/DirectionalLightComponent.h"
+#if ENGINE_MAJOR_VERSION > 4
+	#include "UnrealWidget.h"
+#endif
 
 #define LOCTEXT_NAMESPACE "JavascriptEditor"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+
+#if ENGINE_MAJOR_VERSION > 4
+	namespace WidgetAlias = UE::Widget;
+#else
+	using WidgetAlias = FWidget;
+#endif
 
 class FJavascriptPreviewScene : public FAdvancedPreviewScene
 {
@@ -38,7 +47,7 @@ public:
 	{
 		return SkyComponent;
 	}
-#if ENGINE_MINOR_VERSION < 23
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 23
 	class USphereReflectionCaptureComponent* GetDefaultSphereReflectionComponent()
 	{
 		return SphereReflectionComponent;
@@ -208,11 +217,11 @@ public:
         }
     }
 
-	virtual FWidget::EWidgetMode GetWidgetMode() const override
+	virtual WidgetAlias::EWidgetMode GetWidgetMode() const override
 	{
 		if (Widget.IsValid() && Widget->OnGetWidgetMode.IsBound())
 		{
-			return (FWidget::EWidgetMode)Widget->OnGetWidgetMode.Execute(Widget.Get());
+			return (WidgetAlias::EWidgetMode)Widget->OnGetWidgetMode.Execute(Widget.Get());
 		}
 		else
 		{
@@ -265,7 +274,7 @@ public:
 			{
 				for (FActorIterator It(PreviewScene->GetWorld()); It; ++It)
 				{
-#if ENGINE_MINOR_VERSION > 14
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 14) || ENGINE_MAJOR_VERSION > 4
 					It->DispatchBeginPlay();
 #else
 					if (It->HasActorBegunPlay() == false)
@@ -447,13 +456,13 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 
 	void SetWidgetMode(EJavascriptWidgetMode WidgetMode)
 	{
-		EditorViewportClient->SetWidgetMode(WidgetMode == EJavascriptWidgetMode::WM_None ? FWidget::WM_None : (FWidget::EWidgetMode)WidgetMode);
+		EditorViewportClient->SetWidgetMode(WidgetMode == EJavascriptWidgetMode::WM_None ? WidgetAlias::WM_None : (WidgetAlias::EWidgetMode)WidgetMode);
     }
     
     EJavascriptWidgetMode GetWidgetMode()
     {
-        FWidget::EWidgetMode WidgetMode = EditorViewportClient->GetWidgetMode();
-        return FWidget::WM_None ? EJavascriptWidgetMode::WM_None : (EJavascriptWidgetMode)WidgetMode;
+		WidgetAlias::EWidgetMode WidgetMode = EditorViewportClient->GetWidgetMode();
+        return WidgetAlias::WM_None ? EJavascriptWidgetMode::WM_None : (EJavascriptWidgetMode)WidgetMode;
     }
 
 	FString GetEngineShowFlags()
@@ -508,7 +517,7 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 	{
 		return PreviewScene.GetDefaultSkySphereComponent();
 	}
-#if ENGINE_MINOR_VERSION < 23
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 23
 	class USphereReflectionCaptureComponent* GetDefaultSphereReflectionComponent()
 	{
 		return PreviewScene.GetDefaultSphereReflectionComponent();
@@ -534,7 +543,7 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 			UStaticMeshComponent* Component = *Itr;
 			if (Component && Component->GetOwner() == nullptr) 
 			{
-#if ENGINE_MINOR_VERSION >= 14
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 14) || ENGINE_MAJOR_VERSION > 4
 				auto StaticMesh = Component->GetStaticMesh();
 #else
 				auto StaticMesh = Component->StaticMesh;
@@ -838,7 +847,7 @@ void UJavascriptEditorViewport::DeprojectScreenToWorld(const FVector2D &ScreenPo
         FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues( ViewportWidget->EditorViewportClient->Viewport, ViewportWidget->EditorViewportClient->GetScene(), ViewportWidget->EditorViewportClient->EngineShowFlags ));
         FSceneView* View = ViewportWidget->EditorViewportClient->CalcSceneView(&ViewFamily);
 		
-#if ENGINE_MINOR_VERSION >= 14
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 14) || ENGINE_MAJOR_VERSION > 4
 		const auto& InvViewProjMatrix = View->ViewMatrices.GetInvViewProjectionMatrix();
 #else
 		const auto& InvViewProjMatrix = View->ViewMatrices.GetInvViewProjMatrix();
@@ -854,7 +863,7 @@ void UJavascriptEditorViewport::ProjectWorldToScreen(const FVector &WorldPositio
         FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues( ViewportWidget->EditorViewportClient->Viewport, ViewportWidget->EditorViewportClient->GetScene(), ViewportWidget->EditorViewportClient->EngineShowFlags ));
         FSceneView* View = ViewportWidget->EditorViewportClient->CalcSceneView(&ViewFamily);
 
-#if ENGINE_MINOR_VERSION >= 14
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 14) || ENGINE_MAJOR_VERSION > 4
 		const auto& ViewProjMatrix = View->ViewMatrices.GetViewProjectionMatrix();
 #else
 		const auto& ViewProjMatrix = View->ViewMatrices.GetViewProjMatrix();
@@ -970,7 +979,7 @@ class UStaticMeshComponent* UJavascriptEditorViewport::GetDefaultSkySphereCompon
 
 class USphereReflectionCaptureComponent* UJavascriptEditorViewport::GetDefaultSphereReflectionComponent()
 {
-#if ENGINE_MINOR_VERSION < 23
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 23
 	if (ViewportWidget.IsValid())
 	{
 		return ViewportWidget->GetDefaultSphereReflectionComponent();

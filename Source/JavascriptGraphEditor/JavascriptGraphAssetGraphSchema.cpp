@@ -76,7 +76,7 @@ void UJavascriptGraphAssetGraphSchema::GetGraphContextActions(FGraphContextMenuB
 	}
 }
 
-#if ENGINE_MINOR_VERSION < 24
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 24
 void UJavascriptGraphAssetGraphSchema::GetContextMenuActions(const UEdGraph* CurrentGraph, const UEdGraphNode* InGraphNode, const UEdGraphPin* InGraphPin, class FMenuBuilder* MenuBuilder, bool bIsDebugging) const
 {
 	if (OnBuildMenu.IsBound())
