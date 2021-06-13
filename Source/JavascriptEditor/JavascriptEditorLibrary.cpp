@@ -705,7 +705,11 @@ FJavascriptSlateWidget UJavascriptEditorLibrary::GetRootWindow()
 void UJavascriptEditorLibrary::CreatePropertyEditorToolkit(TArray<UObject*> ObjectsForPropertiesMenu)
 {
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+#if ENGINE_MAJOR_VERSION > 4 
 	PropertyEditorModule.CreatePropertyEditorToolkit(TSharedPtr<IToolkitHost>(), ObjectsForPropertiesMenu);
+#else
+	PropertyEditorModule.CreatePropertyEditorToolkit(EToolkitMode::Standalone, TSharedPtr<IToolkitHost>(), ObjectsForPropertiesMenu);
+#endif
 }
 
 static FName NAME_LevelEditor("LevelEditor");

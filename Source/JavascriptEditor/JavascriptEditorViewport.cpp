@@ -19,7 +19,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 #if ENGINE_MAJOR_VERSION > 4
 	namespace WidgetAlias = UE::Widget;
 #else
-	namespace WidgetAlias = FWidget;
+	using WidgetAlias = FWidget;
 #endif
 
 class FJavascriptPreviewScene : public FAdvancedPreviewScene
