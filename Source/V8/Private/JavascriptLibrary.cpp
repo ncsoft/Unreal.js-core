@@ -190,7 +190,7 @@ void UJavascriptLibrary::SetClientTravel(UEngine* Engine, UWorld *InWorld, FStri
 
 UPackage* UJavascriptLibrary::CreatePackage(UObject* Outer, FString PackageName)
 {
-	return ::CreatePackage(Outer, *PackageName);
+	return ::CreatePackage(*PackageName);
 }
 
 UPackage* UJavascriptLibrary::FindPackage(UObject* InOuter, FString PackageName)
@@ -337,10 +337,10 @@ FReadStringFromFileHandle UJavascriptLibrary::ReadStringFromFileAsync(UObject* O
 	return Handle;
 }
 
-FString UJavascriptLibrary::ReadStringFromFile(UObject* Object, FString Filename)
+FString UJavascriptLibrary::ReadStringFromFile(UObject* Object, FString Filename, EFileRead_JS ReadFlags)
 {
 	FString Result;
-	FFileHelper::LoadFileToString(Result, *Filename);
+	FFileHelper::LoadFileToString(Result, *Filename, FFileHelper::EHashOptions::None, (uint32)ReadFlags);
 	return Result;
 }
 
@@ -743,6 +743,11 @@ void UJavascriptLibrary::RequestAsyncLoad(const FJavascriptStreamableManager& Ma
 	}, Priority);
 }
 
+bool UJavascriptLibrary::V8_IsEnableHotReload()
+{
+	return IV8::Get().IsEnableHotReload();
+}
+
 void UJavascriptLibrary::V8_SetFlagsFromString(const FString& V8Flags)
 {
 	IV8::Get().SetFlagsFromString(V8Flags);
@@ -813,6 +818,11 @@ TArray<FJavscriptProperty> UJavascriptLibrary::GetStructProperties(const FString
 				{
 					Type += TEXT("/") + p->Inner->GetCPPType();
 				}
+				if (auto p = CastField<FMapProperty>(Property))
+				{
+					Type += TEXT("/") + p->KeyProp->GetCPPType();
+					Type += TEXT(":") + p->ValueProp->GetCPPType();
+				}
 				JavascriptProperty.Type = Type;
 				JavascriptProperty.Name = Property->GetName();
 
@@ -821,6 +831,21 @@ TArray<FJavscriptProperty> UJavascriptLibrary::GetStructProperties(const FString
 		}
 	}
     return Properties;
+}
+
+TArray<FString> UJavascriptLibrary::GetEnumListByEnumName(const FString EnumName)
+{
+	TArray<FString> EnumList;
+	UEnum* Enum = FindObjectFast<UEnum>(NULL, *EnumName, false, true);
+	if (Enum != nullptr)
+	{
+		int32 length = Enum->NumEnums();
+		for (int32 i = 0; i < length; i++)
+		{
+			EnumList.Push(Enum->GetNameStringByIndex(i));
+		}
+	}
+	return EnumList;
 }
 
 int32 UJavascriptLibrary::GetFunctionParmsSize(UFunction* Function)

@@ -193,6 +193,17 @@ void UJavascriptGraphEdNode::ResetTitleSelectionMode()
 	this->bTitleSelectionOnly = false;
 }
 
+void UJavascriptGraphEdNode::SetRenderOpacity(float Opacity)
+{
+	RenderOpacity = Opacity;
+
+	auto MyWidget = SlateGraphNode.Pin();
+	if (MyWidget.IsValid())
+	{
+		MyWidget->SetRenderOpacity(Opacity);
+	}
+}
+
 void UJavascriptGraphEdNode::ResizeNode(const FVector2D& NewSize)
 {
 	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GetSchema());

@@ -59,7 +59,7 @@ struct FJavascriptConnectionParams
 {
 	GENERATED_BODY()
 
-		FJavascriptConnectionParams()
+	FJavascriptConnectionParams()
 	{}
 
 	FJavascriptConnectionParams(const FConnectionParams& In);
@@ -246,7 +246,7 @@ public:
 	static void MakeLinkTo(FJavascriptEdGraphPin A, FJavascriptEdGraphPin B);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void TryConnection(UEdGraphSchema* Schema, FJavascriptEdGraphPin A, FJavascriptEdGraphPin B);
+	static bool TryConnection(UEdGraphSchema* Schema, FJavascriptEdGraphPin A, FJavascriptEdGraphPin B);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void BreakLinkTo(FJavascriptEdGraphPin A, FJavascriptEdGraphPin B);
@@ -327,6 +327,9 @@ public:
 	static void AutowireNewNode(UEdGraphNode* Node, FJavascriptEdGraphPin FromPin);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void SetPinAdvancedView(FJavascriptEdGraphPin A, bool bAdvancedView);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptArrangedWidget FindPinGeometries(FJavascriptDetermineLinkGeometryContainer Container, FJavascriptPinWidget PinWidget);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -390,24 +393,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptSlateWidget GetOwnerPanel(UJavascriptGraphEdNode* Node);
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void SetPinRefObject(FJavascriptEdGraphPin InPin, UObject* InObject);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static UObject* GetPinRefObject(FJavascriptEdGraphPin InPin);
+
 private:
 	static TArray<FJavascriptEdGraphPin> TransformPins(const TArray<UEdGraphPin*>& Pins);
-};
-
-USTRUCT(BlueprintType)
-struct FJavascriptTextProperty
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	FString Key;
-
-	UPROPERTY()
-	FString Namespace;
-
-	UPROPERTY()
-	FString Value;
-
-	UPROPERTY()
-	FName TableId;
 };

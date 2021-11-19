@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Components/Widget.h"
 #include "Widgets/Layout/SBox.h"
@@ -30,7 +30,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	void InvokeTab(FName SearchForTabId);
-	
 	void Commit();
 	void Setup(TSharedRef<SBox> VerticalBox);
 

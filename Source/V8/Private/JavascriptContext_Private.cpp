@@ -614,6 +614,8 @@ public:
 		ExposeGlobals();
 
 		Paths = IV8::Get().GetGlobalScriptSearchPaths();
+
+		PostWorldCleanupHandle = FWorldDelegates::OnPostWorldCleanup.AddRaw(this, &FJavascriptContextImplementation::OnWorldCleanup);
 	}
 
 	~FJavascriptContextImplementation()
@@ -625,6 +627,8 @@ public:
 		DestroyInspector();
 
 		context_.Reset();
+
+		FWorldDelegates::OnPostWorldCleanup.Remove(PostWorldCleanupHandle);
 	}
 
 	void ReleaseAllPersistentHandles()
@@ -1590,6 +1594,7 @@ public:
 		(void)global->SetAccessor(ctx, V8_KeywordString(isolate(), "modules"), getter, 0, self);
 	}
 
+
 	void ExposeMemory2()
 	{
 		FIsolateHelper I(isolate());
@@ -1743,20 +1748,39 @@ public:
 		return Text;
 	}
 
-	Local<Value> RunFile(const FString& Filename)
+	FString RunFile(const FString& Filename, const TArray<FString>& Args = TArray<FString>())
 	{
+		Isolate::Scope isolate_scope(isolate());
 		HandleScope handle_scope(isolate());
+		Context::Scope context_scope(context());
 
 		auto Script = ReadScriptFile(Filename);
 
 		auto ScriptPath = GetScriptFileFullPath(Filename);
-		auto Text = FString::Printf(TEXT("(function (global,__filename,__dirname) { %s\n;}(this,'%s','%s'));"), *Script, *ScriptPath, *FPaths::GetPath(ScriptPath));
-		return RunScript(ScriptPath, Text, 0);
+		FString Text;
+		if (Args.Num() > 0)
+		{
+			FString strArgs = FString::Printf(TEXT("\'%s\'"), *Args[0]);
+			for (int32 i = 1; i < Args.Num(); ++i)
+			{
+				strArgs += TEXT(", ");
+				strArgs +=  FString::Printf(TEXT("\'%s\'"), *Args[i]);
+			}
+
+			Text = FString::Printf(TEXT("(function (global,__filename,__dirname, ...args) { %s\n; }(this,'%s','%s', %s));"), *Script, *ScriptPath, *FPaths::GetPath(ScriptPath), *strArgs);
+		}
+		else
+		{
+			Text = FString::Printf(TEXT("(function (global,__filename,__dirname) { %s\n;}(this,'%s','%s'));"), *Script, *ScriptPath, *FPaths::GetPath(ScriptPath));
+		}
+
+		auto ret = RunScript(ScriptPath, Text, 0);
+		return ret.IsEmpty()? TEXT("(empty)") : StringFromV8(isolate(), ret);
 	}
 
-	void Public_RunFile(const FString& Filename)
+	FString Public_RunFile(const FString& Filename, const TArray<FString>& Args)
 	{
-		RunFile(Filename);
+		return RunFile(Filename, Args);
 	}
 
 	FString Public_RunScript(const FString& Script, bool bOutput = true)
@@ -2081,6 +2105,11 @@ public:
 
 		instance.Finalize();
 
+		FString Path, BaseFilename, Extension;
+		FPaths::Split(Filename, Path, BaseFilename, Extension);
+		auto GlobalNamePath = FPaths::Combine(*Path, TEXT("globals.js"));
+		instance.SaveGlobalNames(GlobalNamePath);
+
 		return instance.Save(Filename);
 #else
 		return false;
@@ -2248,6 +2277,19 @@ public:
 		}
 
 		return false;
+	}
+
+	virtual void OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources) override
+	{
+		for (auto It = ObjectToObjectMap.CreateIterator(); It; ++It)
+		{
+			auto Object = It.Key();
+
+			if (World == Object)
+			{
+				It.RemoveCurrent();
+			}
+		}
 	}
 
 	virtual bool IsExcludeGCStructTarget(UStruct* TargetStruct) override

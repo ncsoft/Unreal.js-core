@@ -1,9 +1,13 @@
-#pragma once
+﻿#pragma once
 
 #include "RawMesh.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Engine/StaticMesh.h"
 #include "JavascriptRawMeshLibrary.generated.h"
+
+class USkeletalMesh;
+class UStaticMeshComponent;
+class USkeletalMeshComponent;
 
 USTRUCT(BlueprintType)
 struct FJavascriptRawMesh
@@ -131,5 +135,19 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void Build(UStaticMesh* StaticMesh);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static class UBodySetup* GetPhysicsBodySetupFromMesh(USkeletalMesh* InSkeletalMesh
+		, FString InName);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static class UBodySetup* GetPhysicsBodySetupFromStaticMesh(UStaticMesh* InStaticMesh);
+
+	UFUNCTION(BlueprintCallable, Category = "A2Client|Physics")
+	static class UBodySetup* GetPhysicsBodySetup(USkeletalMeshComponent* InSkeletalMeshComp, FString InName);
+
+	UFUNCTION(BlueprintCallable, Category = "A2Client|Physics")
+	static class UBodySetup* GetPhysicsBodySetupFromStaticMeshComponent(UStaticMeshComponent* InStaticMeshComp);
+
 #endif
 };

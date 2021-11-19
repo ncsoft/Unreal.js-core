@@ -69,6 +69,8 @@ class JAVASCRIPTGRAPHEDITOR_API UJavascriptGraphEditorWidget : public UWidget
 
 	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnDisallowedPinConnection, FJavascriptEdGraphPin, A, FJavascriptEdGraphPin, B);
 
+	DECLARE_DYNAMIC_DELEGATE(FSimpleDelegate);
+
 	UPROPERTY(EditAnywhere, Category = Content)
 	UJavascriptGraphEdGraph* EdGraph;
 
@@ -89,6 +91,9 @@ class JAVASCRIPTGRAPHEDITOR_API UJavascriptGraphEditorWidget : public UWidget
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FSetNodes OnSelectedNodesChanged;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FSimpleDelegate OnInitialGraphPanelUpdated;
 
 	UPROPERTY()
 	FJavascriptGraphAppearanceInfo AppearanceInfo;
@@ -133,6 +138,8 @@ protected:
 	// UWidget interface
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 	// End of UWidget interface
+
+	EActiveTimerReturnType HandleOnInitialGraphPanelUpdated(double InCurrentTime, float InDeltaTime);
 
 	void HandleOnSelectedNodesChanged(const FGraphPanelSelectionSet& Selection);
 	void HandleOnNodeDoubleClicked(UEdGraphNode* Node);

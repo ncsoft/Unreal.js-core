@@ -158,6 +158,12 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 			];
 	}
 
+	float SideMargin = 0.f;
+	if (GraphSchema->OnGetSideMarginInPin.IsBound())
+	{
+		SideMargin = GraphSchema->OnGetSideMarginInPin.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) });
+	}
+	
 	TSharedPtr<SHorizontalBox> PinContent;
 	if (bIsInput)
 	{
@@ -167,7 +173,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
 			.VAlign(VAlign_Center)
-			.Padding(0, 0, InArgs._SideToSideMargin, 0)
+			.Padding(SideMargin, 0, InArgs._SideToSideMargin, 0)
 			[
 				ActualPinWidget
 			]
@@ -199,7 +205,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 		+ SHorizontalBox::Slot()
 			.AutoWidth()
 			.VAlign(VAlign_Center)
-			.Padding(InArgs._SideToSideMargin, 0, 0, 0)
+			.Padding(InArgs._SideToSideMargin, 0, SideMargin, 0)
 			[
 				ActualPinWidget
 			];

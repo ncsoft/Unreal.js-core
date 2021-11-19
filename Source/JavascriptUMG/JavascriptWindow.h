@@ -65,6 +65,19 @@ enum class EJavascriptWindowTransparency : uint8
 #endif
 };
 
+/** Enumeration to specify whether the window gets activated upon showing it */
+UENUM()
+enum class EJavascriptWindowActivationPolicy : uint8
+{
+	/** Value indicating that a window never activates when it is shown */
+	Never,
+
+	/** Value indicating that a window always activates when it is shown */
+	Always,
+
+	/** Value indicating that a window only activates when it is first shown */
+	FirstShown
+};
 
 UCLASS(Experimental)
 class JAVASCRIPTUMG_API UJavascriptWindow : public UContentWidget
@@ -170,6 +183,14 @@ public:
 	/** True if this window should always be on top of all other windows */
 	UPROPERTY()
 	bool IsTopmostWindow;
+
+	/** If the initial ClientSize and ScreenPosition arguments should be automatically adjusted to account for DPI scale */
+	UPROPERTY()
+	bool AdjustInitialSizeAndPositionForDPIScale;
+
+	/** The window activation policy used when showing the window */
+	UPROPERTY()
+	EJavascriptWindowActivationPolicy ActivationPolicy;
 
 	void OnWindowDeactivatedEvent();
 

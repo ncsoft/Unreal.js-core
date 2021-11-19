@@ -98,7 +98,11 @@ public class JavascriptEditor : ModuleRules
 				        "DesktopPlatform",
                         "ToolMenus",
                         "SkeletalMeshEditor",
-                        "StaticMeshEditor"
+                        "StaticMeshEditor",
+                        "Media",
+                        "SlateNullRenderer",
+                        "SlateRHIRenderer",
+                        "SourceControl"
                     }
             );
 

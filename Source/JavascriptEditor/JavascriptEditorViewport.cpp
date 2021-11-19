@@ -346,13 +346,8 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 
 	void SetRealtime(bool bInRealtime, bool bStoreCurrentValue)
 	{
-		EditorViewportClient->SetRealtime(bInRealtime, bStoreCurrentValue);
+		EditorViewportClient->SetRealtime(bInRealtime);
 	}
-
-	void RestoreRealtime(bool bAllowDisable)
-	{
-		EditorViewportClient->RestoreRealtime(bAllowDisable);
-	}	
 
 	void SetBackgroundColor(const FLinearColor& BackgroundColor)
 	{
@@ -658,14 +653,6 @@ void UJavascriptEditorViewport::SetRealtime(bool bInRealtime, bool bStoreCurrent
 	if (ViewportWidget.IsValid())
 	{
 		ViewportWidget->SetRealtime(bInRealtime,bStoreCurrentValue);
-	}
-}
-
-void UJavascriptEditorViewport::RestoreRealtime(bool bAllowDisable)
-{
-	if (ViewportWidget.IsValid())
-	{
-		ViewportWidget->RestoreRealtime(bAllowDisable);
 	}
 }
 

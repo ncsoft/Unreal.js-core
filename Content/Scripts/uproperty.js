@@ -21,7 +21,7 @@
             let classFlags = (splits[3] || "").split('+').map((x) => x.trim())
 
             function refactored(x) {
-                let m = /\s*(\w+)\s*(\/\*([^\*]*)\*\/)?\s*/.exec(x)
+                let m = /\s*(\w+)\;?\s*(\/\*([^\*]*)\*\/)?\s*/.exec(x);
                 if (m) {
                     let arr = (m[3] || '').split('+').map((x) => x.trim())
                     let type = arr.pop()                        

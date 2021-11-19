@@ -23,11 +23,14 @@ private:
 		if (BodyPtr)
 		{
 			IDetailCategoryBuilder& CustomCategory = InDetailLayout.EditCategory(BodyPtr->CategoryName, FText::GetEmpty(), ECategoryPriority::Important);
-			CustomCategory.AddCustomRow(FText::GetEmpty())
-				.WholeRowContent()
+			FDetailWidgetRow& DetailWidgetRow = CustomCategory.AddCustomRow(FText::GetEmpty());
+			if (BodyPtr->CustomWidget.Widget.IsValid())
+			{
+				DetailWidgetRow.WholeRowContent()
 				[
 					BodyPtr->CustomWidget.Widget.ToSharedRef()
 				];
+			}
 		}
 	}
 
@@ -47,6 +50,7 @@ void UJavascriptWholeRowDetailCustomization::Unregister()
 {
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	PropertyModule.UnregisterCustomPropertyTypeLayout(TypeName);
+	CustomWidget.Widget.Reset();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,15 +69,23 @@ private:
 		if (BodyPtr)
 		{
 			IDetailCategoryBuilder& CustomCategory = InDetailLayout.EditCategory(BodyPtr->CategoryName, FText::GetEmpty(), ECategoryPriority::Important);
-			CustomCategory.AddCustomRow(FText::GetEmpty())
-				.NameContent()
+			FDetailWidgetRow& DetailWidgetRow = CustomCategory.AddCustomRow(FText::GetEmpty());
+
+			if (BodyPtr->NameWidget.Widget.IsValid())
+			{
+				DetailWidgetRow.NameContent()
 				[
 					BodyPtr->NameWidget.Widget.ToSharedRef()
-				]
-				.ValueContent()
+				];
+			}
+
+			if (BodyPtr->ValueWidget.Widget.IsValid())
+			{
+				DetailWidgetRow.ValueContent()
 				[
 					BodyPtr->ValueWidget.Widget.ToSharedRef()
 				];
+			}
 		}
 	}
 
@@ -93,6 +105,8 @@ void UJavascriptDetailCustomization::Unregister()
 {
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	PropertyModule.UnregisterCustomPropertyTypeLayout(TypeName);
+	NameWidget.Widget.Reset();
+	ValueWidget.Widget.Reset();
 }
 #endif
 

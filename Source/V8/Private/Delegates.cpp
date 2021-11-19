@@ -333,10 +333,14 @@ struct FDelegateManager : IDelegateManager
 
 	FDelegateManager(Isolate* isolate)
 		: isolate_(isolate)
-	{}
+	{
+		FCoreUObjectDelegates::GetPostGarbageCollect().AddRaw(this, &FDelegateManager::OnPostGarbageCollect);
+	}
 
 	virtual ~FDelegateManager()
 	{
+		FCoreUObjectDelegates::GetPostGarbageCollect().RemoveAll(this);
+
 		PurgeAllDelegates();
 	}
 
@@ -346,6 +350,12 @@ struct FDelegateManager : IDelegateManager
 	}
 
 	TSet<TSharedPtr<FJavascriptDelegate>> Delegates;
+	bool bGarbageCollected = false;
+
+	void OnPostGarbageCollect()
+	{
+		bGarbageCollected = true;
+	}
 
 	void CollectGarbageDelegates()
 	{
@@ -371,8 +381,12 @@ struct FDelegateManager : IDelegateManager
 
 	Local<Object> CreateDelegate(UObject* Object, FProperty* Property)
 	{
-		//@HACK
-		CollectGarbageDelegates();
+		if (bGarbageCollected)
+		{
+			//@HACK
+			CollectGarbageDelegates();
+			bGarbageCollected = false;
+		}
 
 		TSharedPtr<FJavascriptDelegate> payload = MakeShareable(new FJavascriptDelegate(Object, Property));
 		auto created = payload->Initialize(isolate_->GetCurrentContext());

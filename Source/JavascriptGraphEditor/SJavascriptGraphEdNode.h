@@ -48,7 +48,11 @@ public:
 	virtual void UpdateGraphNode() override;
 	virtual void CreatePinWidgets() override;
 	virtual void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27
 	virtual void MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter) override;
+#else
+	virtual void MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty = true) override;
+#endif
 	virtual bool RequiresSecondPassLayout() const override;
 	virtual void PerformSecondPassLayout(const TMap< UObject*, TSharedRef<SNode> >& NodeToWidgetLookup) const override;
 
@@ -89,8 +93,16 @@ public:
 
 	bool InSelectionArea() const;
 
+	void CreateAdvancedViewArrow(TSharedPtr<SVerticalBox> MainBox);
+
 public:
 	void PositionBetweenTwoNodesWithOffset(const FGeometry& StartGeom, const FGeometry& EndGeom, int32 NodeIndex, int32 MaxNodes) const;
+
+protected:
+	EVisibility AdvancedViewArrowVisibility() const;
+	void OnAdvancedViewChanged(const ECheckBoxState NewCheckedState);
+	ECheckBoxState IsAdvancedViewChecked() const;
+	const FSlateBrush* GetAdvancedViewArrow() const;
 
 private:
 	TSharedPtr<SWidget> GetTitleAreaWidget();

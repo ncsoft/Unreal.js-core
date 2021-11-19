@@ -26,6 +26,8 @@ UJavascriptWindow::UJavascriptWindow(const FObjectInitializer& ObjectInitializer
 	LayoutBorder = FMargin(5, 5, 5, 5);
 	UserResizeBorder = FMargin(5, 5, 5, 5);
 	bIsCloseRequested = false;
+	AdjustInitialSizeAndPositionForDPIScale = true;
+	ActivationPolicy = EJavascriptWindowActivationPolicy::Always;
 }
 
 TSharedRef<SWidget> UJavascriptWindow::RebuildWidget()
@@ -56,6 +58,8 @@ TSharedRef<SWidget> UJavascriptWindow::RebuildWidget()
 		.LayoutBorder(LayoutBorder)
 		.UserResizeBorder(UserResizeBorder)
 		.IsTopmostWindow(IsTopmostWindow)
+		.AdjustInitialSizeAndPositionForDPIScale(AdjustInitialSizeAndPositionForDPIScale)
+		.ActivationPolicy((EWindowActivationPolicy)ActivationPolicy)
 		.Content()
 			[
 				Content == nullptr ? SNullWidget::NullWidget : Content->TakeWidget()

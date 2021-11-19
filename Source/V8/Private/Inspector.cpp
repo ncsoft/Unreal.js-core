@@ -1,4 +1,4 @@
-#include "V8PCH.h"
+﻿#include "V8PCH.h"
 #include "../../Launch/Resources/Version.h"
 
 #ifndef THIRD_PARTY_INCLUDES_START
@@ -414,7 +414,7 @@ public:
 
 	FString DevToolsFrontEndUrl() const
 	{
-		return FString::Printf(TEXT("chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=127.0.0.1:%d"), Port);
+		return FString::Printf(TEXT("devtools://devtools/bundled/inspector.html?v8only=true&ws=127.0.0.1:%d"), Port);
 	}
 
 	FInspector(v8::Platform* platform, int32 InPort, Local<Context> InContext)
@@ -440,17 +440,6 @@ public:
 		v8inspector->contextCreated(v8_inspector::V8ContextInfo(InContext, CONTEXT_GROUP_ID, context_name));
 
 		Install(InPort);
-
-		{
-			Isolate::Scope isolate_scope(isolate_);
-			Context::Scope context_scope(InContext);
-
-			TryCatch try_catch(isolate_);
-
-			auto source = TEXT("'log error warn info void assert'.split(' ').forEach(x => { let o = console[x].bind(console); let y = $console[x].bind($console); console['$'+x] = o; console[x] = function () { y(...arguments); return o(...arguments); }})");
-			auto script = v8::Script::Compile(context(), I.String(source)).ToLocalChecked();
-			auto result = script->Run(context());
-		}
 
 		UE_LOG(Javascript, Log, TEXT("open %s"), *DevToolsFrontEndUrl());
 
@@ -654,9 +643,9 @@ public:
 							TEXT("\"description\": \"unreal.js instance\",\r\n")
 							TEXT("\"devtoolsFrontendUrl\": \"%s\",\r\n")
 							TEXT("\"type\":\"node\",\r\n")
-							TEXT("\"id\": 0,\r\n")
+							TEXT("\"id\": \"C889497F-7C93-433D-A1F1-08F93A2F12E2\",\r\n")
 							TEXT("\"title\": \"unreal.js\",\r\n")
-							TEXT("\"webSocketDebuggerUrl\": \"%s\"\r\n")
+							TEXT("\"webSocketDebuggerUrl\": \"%s/C889497F-7C93-433D-A1F1-08F93A2F12E2\"\r\n")
 							TEXT("}]"),
 							*DevToolsFrontEndUrl(), *WebSocketDebuggerUrl());
 

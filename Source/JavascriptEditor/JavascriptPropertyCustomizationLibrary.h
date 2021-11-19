@@ -130,6 +130,17 @@ public:
 	FDynamicSimpleGetBoolDelegate Delegate;
 };
 
+DECLARE_DYNAMIC_DELEGATE(FDynamicSimpleDelegate);
+
+UCLASS()
+class JAVASCRIPTEDITOR_API UJavascriptSimpleDelegateWrapper : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY()
+	FDynamicSimpleDelegate Delegate;
+};
 
 /**
  * 
@@ -169,7 +180,7 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static TFieldPath<FProperty> GetProperty(FJavascriptPropertyHandle Handle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, UJavascriptPropertyCustomization* Custom);
+	static void SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, UJavascriptSimpleDelegateWrapper* Wrapper);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool IsEditConst(FJavascriptPropertyHandle Handle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
@@ -182,7 +193,8 @@ class JAVASCRIPTEDITOR_API UJavascriptPropertyCustomizationLibrary : public UBlu
 	static TArray<UObject*> GetOuterObjects(FJavascriptPropertyHandle Handle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FString GeneratePathToProperty(FJavascriptPropertyHandle Handle);
-
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static FString GetPropertyName(FJavascriptPropertyHandle Handle);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static FJavascriptDetailWidgetDecl WholeRowContent(FJavascriptDetailWidgetRow Row);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")

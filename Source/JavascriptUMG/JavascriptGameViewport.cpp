@@ -1,4 +1,4 @@
-
+﻿
 #include "JavascriptGameViewport.h"
 #include "Slate/SceneViewport.h"
 #include "Framework/Application/SlateApplication.h"
@@ -370,7 +370,7 @@ void UJavascriptGameViewport::ReleaseSlateResources(bool bReleaseChildren)
 {
 	Super::ReleaseSlateResources(bReleaseChildren);
 
-	// MyViewportWidget.Reset();
+	MyViewportWidget.Reset();
 }
 
 TSharedRef<SWidget> UJavascriptGameViewport::RebuildWidget()
@@ -390,40 +390,36 @@ void UJavascriptGameViewport::SynchronizeProperties()
 {
 	Super::SynchronizeProperties();
 
-	auto ViewportWidget = MyViewportWidget.Pin();
-	if (ViewportWidget.IsValid())
+	if (MyViewportWidget.IsValid())
 	{
-		ViewportWidget->ViewportClient->SetBackgroundColor(BackgroundColor);
-		ViewportWidget->ViewportClient->SetEngineShowFlags(ShowFlags);
+		MyViewportWidget->ViewportClient->SetBackgroundColor(BackgroundColor);
+		MyViewportWidget->ViewportClient->SetEngineShowFlags(ShowFlags);
 	}
 }
 
 void UJavascriptGameViewport::OnSlotAdded(UPanelSlot* InSlot)
 {
 	// Add the child to the live canvas if it already exists
-	auto ViewportWidget = MyViewportWidget.Pin();
-	if (ViewportWidget.IsValid())
+	if (MyViewportWidget.IsValid())
 	{
-		ViewportWidget->SetContent(InSlot->Content ? InSlot->Content->TakeWidget() : SNullWidget::NullWidget);
+		MyViewportWidget->SetContent(InSlot->Content ? InSlot->Content->TakeWidget() : SNullWidget::NullWidget);
 	}
 }
 
 void UJavascriptGameViewport::OnSlotRemoved(UPanelSlot* InSlot)
 {
 	// Remove the widget from the live slot if it exists.
-	auto ViewportWidget = MyViewportWidget.Pin();
-	if (ViewportWidget.IsValid())
+	if (MyViewportWidget.IsValid())
 	{
-		ViewportWidget->SetContent(SNullWidget::NullWidget);
+		MyViewportWidget->SetContent(SNullWidget::NullWidget);
 	}
 }
 
 UWorld* UJavascriptGameViewport::GetViewportWorld() const
 {
-	auto ViewportWidget = MyViewportWidget.Pin();
-	if (ViewportWidget.IsValid())
+	if (MyViewportWidget.IsValid())
 	{
-		return ViewportWidget->GameScene->GetWorld();
+		return MyViewportWidget->GameScene->GetWorld();
 	}
 
 	return NULL;
@@ -431,10 +427,9 @@ UWorld* UJavascriptGameViewport::GetViewportWorld() const
 
 FVector UJavascriptGameViewport::GetViewLocation() const
 {
-	auto ViewportWidget = MyViewportWidget.Pin();
-	if (ViewportWidget.IsValid())
+	if (MyViewportWidget.IsValid())
 	{
-		return ViewportWidget->ViewportClient->GetViewLocation();
+		return MyViewportWidget->ViewportClient->GetViewLocation();
 	}
 
 	return FVector();
@@ -442,19 +437,17 @@ FVector UJavascriptGameViewport::GetViewLocation() const
 
 void UJavascriptGameViewport::SetViewLocation(FVector Vector)
 {
-	auto ViewportWidget = MyViewportWidget.Pin();
-	if (ViewportWidget.IsValid())
+	if (MyViewportWidget.IsValid())
 	{
-		ViewportWidget->ViewportClient->SetViewLocation(Vector);
+		MyViewportWidget->ViewportClient->SetViewLocation(Vector);
 	}
 }
 
 FRotator UJavascriptGameViewport::GetViewRotation() const
 {
-	auto ViewportWidget = MyViewportWidget.Pin();
-	if (ViewportWidget.IsValid())
+	if (MyViewportWidget.IsValid())
 	{
-		return ViewportWidget->ViewportClient->GetViewRotation();
+		return MyViewportWidget->ViewportClient->GetViewRotation();
 	}
 
 	return FRotator();
@@ -462,17 +455,15 @@ FRotator UJavascriptGameViewport::GetViewRotation() const
 
 void UJavascriptGameViewport::SetViewRotation(FRotator Rotator)
 {
-	auto ViewportWidget = MyViewportWidget.Pin();
-	if (ViewportWidget.IsValid())
+	if (MyViewportWidget.IsValid())
 	{
-		ViewportWidget->ViewportClient->SetViewRotation(Rotator);
+		MyViewportWidget->ViewportClient->SetViewRotation(Rotator);
 	}
 }
 
 AActor* UJavascriptGameViewport::Spawn(TSubclassOf<AActor> ActorClass)
 {
-	auto ViewportWidget = MyViewportWidget.Pin();
-	if (ViewportWidget.IsValid())
+	if (MyViewportWidget.IsValid())
 	{
 		UWorld* World = GetViewportWorld();
 		FActorSpawnParameters SpawnParameters;

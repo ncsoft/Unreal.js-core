@@ -95,7 +95,12 @@ TSharedRef<SWidget> UPropertyEditor::RebuildWidget()
 		View->OnFinishedChangingProperties().AddUObject(this, &UPropertyEditor::OnFinishedChangingProperties);
 		//bool bEditable = !bReadOnly;
 		View->SetIsPropertyEditingEnabledDelegate(FIsPropertyEditingEnabled::CreateLambda([this]() {
-			return !bReadOnly;
+			auto ReadOnly = bReadOnly;
+			if (ReadOnlyDelegate.IsBound())
+			{
+				ReadOnly = ReadOnly || ReadOnlyDelegate.Execute();
+			}
+			return !ReadOnly;
 			//return bEditable;
 		}));
 		View->SetIsPropertyReadOnlyDelegate(FIsPropertyReadOnly::CreateUObject(this, &UPropertyEditor::NativeIsPropertyReadOnly));

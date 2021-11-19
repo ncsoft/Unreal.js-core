@@ -17,5 +17,11 @@ public class JavascriptUMG : ModuleRules
             "UMG",
             "V8"
         });
+        if (Target.Type == TargetType.Editor)
+        {
+            PrivateDependencyModuleNames.AddRange(new string[] {
+                "EditorWidgets",
+            });
+        }
     }
 }

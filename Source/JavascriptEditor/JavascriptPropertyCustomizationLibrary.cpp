@@ -148,13 +148,30 @@ TFieldPath<FProperty> UJavascriptPropertyCustomizationLibrary::GetProperty(FJava
 {
 	return Handle->GetProperty();
 }
-void UJavascriptPropertyCustomizationLibrary::SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, UJavascriptPropertyCustomization* Custom)
+
+FString UJavascriptPropertyCustomizationLibrary::GetPropertyName(FJavascriptPropertyHandle Handle)
 {
-	FSimpleDelegate Delegate;
-	Delegate.BindLambda([Custom]() {
-		Custom->OnPropertyValueChanged.Broadcast();
-	});
-	Handle->SetOnPropertyValueChanged(Delegate);
+	if (Handle.IsValid() && Handle->GetProperty())
+	{
+		return Handle->GetProperty()->GetNameCPP();
+	}
+
+	return TEXT("");
+}
+
+void UJavascriptPropertyCustomizationLibrary::SetOnPropertyValueChanged(FJavascriptPropertyHandle Handle, UJavascriptSimpleDelegateWrapper* Wrapper)
+{
+	if (Wrapper != nullptr && Wrapper->Delegate.IsBound())
+	{
+		FSimpleDelegate Delegate;
+		Delegate.BindLambda([_Delegate = Wrapper->Delegate]() {
+			if (_Delegate.IsBound())
+			{
+				_Delegate.Execute();
+			}
+		});
+		Handle->SetOnPropertyValueChanged(Delegate);
+	}
 }
 
 bool UJavascriptPropertyCustomizationLibrary::IsEditConst(FJavascriptPropertyHandle Handle)
@@ -269,7 +286,7 @@ void UJavascriptPropertyCustomizationLibrary::BindVisibility(FJavascriptDetailPr
 		if (Wrapper != nullptr && Wrapper->Delegate.IsBound())
 		{
 			VisibilityAttr = TAttribute<EVisibility>::Create(TAttribute<EVisibility>::FGetter::CreateLambda([Row, _Delegate = Wrapper->Delegate]() {
-				EVisibility visibility = _Delegate.Execute() ? EVisibility::Visible : EVisibility::Collapsed;
+				EVisibility visibility = _Delegate.IsBound() && _Delegate.Execute() ? EVisibility::Visible : EVisibility::Collapsed;
 				return visibility;
 			}));
 		}

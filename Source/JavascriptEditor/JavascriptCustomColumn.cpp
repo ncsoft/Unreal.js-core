@@ -4,7 +4,7 @@
 #include "EditorStyleSet.h"
 #include "IPropertyTable.h"
 #include "IPropertyTableCell.h"
-#include "JavascriptInvalidCellPresenter.h"
+#include "JavascriptCustomCellPresenter.h"
 
 FJavascriptCustomColumn::FJavascriptCustomColumn(UJavascriptPropertyTable* InJavascriptPropertyTable)
 	: JavascriptPropertyTable(InJavascriptPropertyTable)
@@ -46,12 +46,17 @@ TSharedPtr< SWidget > FJavascriptCustomColumn::CreateColumnLabel(const TSharedRe
 
 TSharedPtr< IPropertyTableCellPresenter > FJavascriptCustomColumn::CreateCellPresenter(const TSharedRef< IPropertyTableCell >& Cell, const TSharedRef< IPropertyTableUtilities >& Utilities, const FName& Style) const
 {
-	TSharedPtr< IPropertyHandle > PropertyHandle = Cell->GetPropertyHandle();
-	if (PropertyHandle.IsValid())
+	if (IsValid(JavascriptPropertyTable) && JavascriptPropertyTable->OnUseCustomCellWidget.IsBound())
 	{
-		if (Cell->IsReadOnly())
+		TWeakObjectPtr<UObject> WeakObject = Cell->GetObject();
+		TSharedRef<IPropertyTableColumn> Column = Cell->GetColumn();
+		if (WeakObject.IsValid())
 		{
-			return MakeShareable(new FJavascriptInvalidCellPresenter(JavascriptPropertyTable));
+			FString ColumnName = Column->GetId().ToString();
+			if (JavascriptPropertyTable->OnUseCustomCellWidget.Execute(WeakObject.Get(), ColumnName))
+			{
+				return MakeShareable(new FJavascriptCustomCellPresenter(JavascriptPropertyTable, Cell));
+			}
 		}
 	}
 

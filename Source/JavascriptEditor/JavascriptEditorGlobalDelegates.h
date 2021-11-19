@@ -317,6 +317,12 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void OnClassPackageLoadedOrUnloaded();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnLevelActorAdded(AActor* Actor);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnLevelActorDeleted(AActor* Actor);
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript", meta = (DeprecatedFunction, DeprecationMessage = "OnObjectReimported is deprecated with UEditorEngine::OnObjectReimported. Use OnAssetReimport instead."))
 	void OnObjectReimported(UObject* Object);
 	
@@ -335,6 +341,19 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void EndPlayMapDelegate();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void SelectionChangedEvent(UObject* Object);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void SelectObjectEvent(UObject* Object);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void SelectNoneEvent();
+
+	// FJavascriptSupportDelegates
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnConsoleCommandJS(const TArray<FString>& Args, UWorld* InWorld);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void Bind(FString Key);

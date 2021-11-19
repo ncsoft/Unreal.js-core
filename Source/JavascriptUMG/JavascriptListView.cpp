@@ -1,4 +1,4 @@
-#include "JavascriptListView.h"
+﻿#include "JavascriptListView.h"
 #include "JavascriptContext.h"
 
 UJavascriptListView::UJavascriptListView(const FObjectInitializer& ObjectInitializer)
@@ -8,23 +8,30 @@ UJavascriptListView::UJavascriptListView(const FObjectInitializer& ObjectInitial
 
 TSharedRef<STableViewBase> UJavascriptListView::RebuildListWidget()
 {
-	return SAssignNew(MyListView, SListView< UObject* >)
+	SAssignNew(MyListView, SJavascriptListView)
 		.SelectionMode(SelectionMode)
 		.ListItemsSource(&Items)
 		.ItemHeight(ItemHeight)
 		.OnGenerateRow(BIND_UOBJECT_DELEGATE(SListView< UObject* >::FOnGenerateRow, HandleOnGenerateRow))
-		.OnSelectionChanged_Lambda([this](UObject* Object, ESelectInfo::Type SelectInfo) {
-		OnSelectionChanged(Object, SelectInfo);
+		.OnSelectionChanged_Lambda([this](UObject* Object, ESelectInfo::Type SelectInfo)
+		{
+			OnSelectionChanged(Object, SelectInfo);
 		})
-		.OnMouseButtonClick_Lambda([this](UObject* Object) {
+		.OnMouseButtonClick_Lambda([this](UObject* Object)
+		{
 			OnClick(Object);
 		})
-		.OnMouseButtonDoubleClick_Lambda([this](UObject* Object) {
+		.OnMouseButtonDoubleClick_Lambda([this](UObject* Object)
+		{
 			OnDoubleClick(Object);
 		})
 		.HeaderRow(GetHeaderRowWidget())
-		.ExternalScrollbar(SNew(SScrollBar).Style(&ScrollBarStyle))
-		.OnContextMenuOpening_Lambda([this]() {
+		.ExternalScrollbar(SNew(SScrollBar).Style(&ScrollBarStyle));
+
+	if (OnContextMenuOpening.IsBound())
+	{
+		MyListView->SetOnContextMenuOpening(::FOnContextMenuOpening::CreateLambda([this]()
+		{
 			if (OnContextMenuOpening.IsBound())
 			{
 				auto Widget = OnContextMenuOpening.Execute(this);
@@ -34,43 +41,52 @@ TSharedRef<STableViewBase> UJavascriptListView::RebuildListWidget()
 				}
 			}
 			return SNullWidget::NullWidget;
-		});
-		//.OnContextMenuOpening(this, &SSocketManager::OnContextMenuOpening)
-		//.OnItemScrolledIntoView(this, &SSocketManager::OnItemScrolledIntoView)
-		//	.HeaderRow
-		//	(
-		//		SNew(SHeaderRow)
-		//		.Visibility(EVisibility::Collapsed)
-		//		+ SHeaderRow::Column(TEXT("Socket"))
-		//	);
+		}));
+	}
+
+	return MyListView.ToSharedRef();
 }
 
 void UJavascriptListView::RequestListRefresh()
 {
-	auto ListView = MyListView.Pin();
-	if (ListView.IsValid())
+	if (MyListView.IsValid())
 	{
-		ListView->RequestListRefresh();
+		MyListView->RequestListRefresh();
 	}	
 }
 
 bool UJavascriptListView::GetSelectedItems_Implementation(TArray<UObject*>& OutItems)
 {
-	auto ListView = MyListView.Pin();
-	if (ListView.IsValid())
+	if (MyListView.IsValid())
 	{
-		return ListView->GetSelectedItems(OutItems) > 0;
+		return MyListView->GetSelectedItems(OutItems) > 0;
 	}
 	return false;
 }
 
 void UJavascriptListView::SetSelection_Implementation(UObject* SoleSelectedItem)
 {
-	auto ListView = MyListView.Pin();
-	if (ListView.IsValid())
+	if (MyListView.IsValid())
 	{
-		ListView->SetSelection(SoleSelectedItem);
+		MyListView->SetSelection(SoleSelectedItem);
 	}
+}
+
+void UJavascriptListView::ProcessEvent(UFunction* Function, void* Parms)
+{
+	if (JavascriptContext && JavascriptContext->CallProxyFunction(this, this, Function, Parms))
+	{
+		return;
+	}
+
+	Super::ProcessEvent(Function, Parms);
+}
+
+void UJavascriptListView::ReleaseSlateResources(bool bReleaseChildren)
+{
+	Super::ReleaseSlateResources(bReleaseChildren);
+
+	MyListView.Reset();
 }
 
 TSharedRef<ITableRow> UJavascriptListView::CreateItemRow(UWidget* Widget, const TSharedRef<STableViewBase>& OwnerTable)

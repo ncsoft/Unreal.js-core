@@ -65,7 +65,10 @@ public:
 	FString ReadScriptFile(FString Filename);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	void RunFile(FString Filename);
+	FString RunFile(FString Filename);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	FString RunFileWithArgs(FString Filename, const TArray<FString>& Args);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	FString RunScript(FString Script, bool bOutput = true);
@@ -96,6 +99,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	void DestroyInspector();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	void ResetUnrealConsoleDelegate();
 
 	bool RemoveObjectInJavacontext(UObject* TargetObj);
 

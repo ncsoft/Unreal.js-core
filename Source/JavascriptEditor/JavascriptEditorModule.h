@@ -44,4 +44,5 @@ public:
 
 	virtual void AddExtension(IEditorExtension* Extension) = 0;
 	virtual void RemoveExtension(IEditorExtension* Extension) = 0;
+	virtual class UJavascriptEditorObjectManager* GetEditorObjectManager() = 0;
 };
