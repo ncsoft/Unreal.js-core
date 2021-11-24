@@ -178,6 +178,11 @@ public:
 	}
 	// End of FSerializableObject interface
 
+	virtual FString GetReferencerName() const
+	{
+		return "SJavascriptTableRow";
+	}
+
 	/**
 	* Constructs the widget.
 	*

@@ -80,6 +80,11 @@ struct FJavascriptEditorTabTracker : public FGCObject
 	TArray<UWidget*> Widgets;
 	TArray<TWeakPtr<SDockTab>> Tabs;
 
+	virtual FString GetReferencerName() const
+	{
+		return "FJavascriptEditorTabTracker";
+	}
+
 	void OnTabClosed(UWidget* Widget)
 	{
 		for (int Index = Tabs.Num() - 1; Index >= 0; --Index)

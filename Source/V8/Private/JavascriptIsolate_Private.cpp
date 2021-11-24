@@ -136,6 +136,8 @@ public:
 	FTickerDelegate TickDelegate;
 	FDelegateHandle TickHandle;
 	bool bIsEditor;
+	UnrealConsoleDelegate* _UnrealConsoleDelegate = nullptr;
+	const uint8 ZeroMemory[100] = {0,};
 
 	struct FObjectPropertyAccessors
 	{
@@ -607,6 +609,13 @@ public:
 			const FText& Data = p->GetPropertyValue_InContainer(Buffer);
 			if (!Flags.Alternative)
 			{
+				///@hack: Support uninitialized ftext (e.g. function prototype parameter properties)
+				const uint8* buf = p->ContainerPtrToValuePtr<uint8>(Buffer);
+				if (!FMemory::Memcmp(buf, (const void*)&ZeroMemory, sizeof(FText)))
+				{
+					return V8_String(isolate_, "EmptyString");
+				}
+
 				return V8_String(isolate_, Data.ToString());
 			}
 			else

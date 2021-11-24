@@ -11,6 +11,11 @@ public:
 	SLATE_END_ARGS()
 
 public:
+	virtual FString GetReferencerName() const
+	{
+		return "SJavascriptBox";
+	}
+
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override
 	{
 		Collector.AddReferencedObject(Widget);

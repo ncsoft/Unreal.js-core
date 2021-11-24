@@ -4,7 +4,7 @@
   "Version": 2,
   "VersionName": "0.5.0",
   "FriendlyVersion": "0.5.0",
-  "EngineVersion": "5.0.0",
+  "EngineVersion": "5.1.0",
   "Description": "Javascript powered UnrealEngine",
   "Category": "Programming",
   "CreatedBy": "NCSOFT Corporation",

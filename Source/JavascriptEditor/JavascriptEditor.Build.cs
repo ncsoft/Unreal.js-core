@@ -42,7 +42,8 @@ public class JavascriptEditor : ModuleRules
                     "EditorStyle",
                     "UnrealEd",
                     "JavascriptUMG",
-                    "DetailCustomizations"
+                    "DetailCustomizations",
+                    "BSPUtils"
                 }
             );	// @todo Mac: for some reason CoreUObject and Engine are needed to link in debug on Mac
 

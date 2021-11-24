@@ -27,6 +27,11 @@ public:
 		return WeakObject.IsValid();
 	}
 
+	virtual FString GetReferencerName() const
+	{
+		return "FJavascriptDelegate";
+	}
+
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override
 	{
 		Collector.AddReferencedObjects(DelegateObjects);
