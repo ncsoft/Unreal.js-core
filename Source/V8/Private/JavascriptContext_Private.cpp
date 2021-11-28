@@ -646,6 +646,7 @@ public:
 		ExportUnrealEngineStructs();
 
 		ExposeMemory2();
+		ExposeVersions();		
 	}
 
 	void PurgeModules()
@@ -653,7 +654,18 @@ public:
 		Modules.Empty();
 	}
 
+	void ExposeVersions()
+	{
+		FIsolateHelper I(isolate());
 
+		auto ctx = context();
+		auto global = ctx->Global();
+
+		(void)global->Set(ctx, I.Keyword("$engineVersion"), I.String(ENGINE_VERSION_STRING));
+		(void)global->Set(ctx, I.Keyword("$engineMajorVersion"), I.String(VERSION_STRINGIFY(ENGINE_MAJOR_VERSION)));
+		(void)global->Set(ctx, I.Keyword("$engineMinorVersion"), I.String(VERSION_STRINGIFY(ENGINE_MINOR_VERSION)));
+		(void)global->Set(ctx, I.Keyword("$enginePatchVersion"), I.String(VERSION_STRINGIFY(ENGINE_PATCH_VERSION)));
+	}
 
 	void ExportUnrealEngineClasses()
 	{
