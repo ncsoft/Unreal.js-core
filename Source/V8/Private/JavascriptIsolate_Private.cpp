@@ -590,6 +590,10 @@ public:
 		{
 			return Number::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
 		}
+		else if (auto p = CastField<FDoubleProperty>(Property))
+		{
+			return Number::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+		}
 		else if (auto p = CastField<FBoolProperty>(Property))
 		{
             return v8::Boolean::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
@@ -849,6 +853,10 @@ public:
 			p->SetPropertyValue_InContainer(Buffer, Value->Int32Value(isolate_->GetCurrentContext()).ToChecked());
 		}
 		else if (auto p = CastField<FFloatProperty>(Property))
+		{
+			p->SetPropertyValue_InContainer(Buffer, Value->NumberValue(isolate_->GetCurrentContext()).ToChecked());
+		}
+		else if (auto p = CastField<FDoubleProperty>(Property))
 		{
 			p->SetPropertyValue_InContainer(Buffer, Value->NumberValue(isolate_->GetCurrentContext()).ToChecked());
 		}
