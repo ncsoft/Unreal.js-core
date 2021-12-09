@@ -49,6 +49,25 @@ struct FJavascriptSlateIcon
 		return GetSlateIcon();
 	}
 };
+
+USTRUCT(BlueprintType)
+struct FJavascriptTextProperty
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString Key;
+
+	UPROPERTY()
+	FString Namespace;
+
+	UPROPERTY()
+	FString Value;
+
+	UPROPERTY()
+	FName TableId;
+};
+
 /**
  * 
  */

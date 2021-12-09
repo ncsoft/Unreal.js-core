@@ -28,6 +28,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Internationalization/TextNamespaceUtil.h"
 #include "Internationalization/StringTableRegistry.h"
+#include "Misc/MessageDialog.h"
 
 #if WITH_EDITOR
 #include "ScopedTransaction.h"
@@ -292,11 +293,17 @@ public:
 		isolate_ = isolate;
 		isolate->SetData(0, this);
 		Delegates = IDelegateManager::Create(isolate);
-		v8::debug::SetConsoleDelegate(isolate_, new UnrealConsoleDelegate(isolate_));
+		_UnrealConsoleDelegate = new UnrealConsoleDelegate(isolate_);
+		v8::debug::SetConsoleDelegate(isolate_, _UnrealConsoleDelegate);
 
 #if STATS
 		SetupCallbacks();
 #endif
+	}
+
+	virtual void ResetUnrealConsoleDelegate() override
+	{
+		v8::debug::SetConsoleDelegate(isolate_, _UnrealConsoleDelegate);
 	}
 
 #if STATS
@@ -561,28 +568,29 @@ public:
 				if (p->IsInteger())
 				{
 					const UEnum* BitmaskEnum = FindObject<UEnum>(ANY_PACKAGE, *BitmaskEnumName);
-					int32 EnumCount = BitmaskEnum->NumEnums();
-
-					auto Value = p->GetSignedIntPropertyValue(Property->ContainerPtrToValuePtr<int64>(Buffer));
-
-					TArray<FString> EnumStrings;
-
-					for (int32 i = 0; i < EnumCount-1; ++i)
+					if (::IsValid(BitmaskEnum))
 					{
-						if (Value & BitmaskEnum->GetValueByIndex(i))
-						{
-							EnumStrings.Add(BitmaskEnum->GetNameStringByIndex(i));
-						}
-					}
+						int32 EnumCount = BitmaskEnum->NumEnums();
 
-					return I.Keyword(FString::Join(EnumStrings, TEXT(",")));
+						auto Value = p->GetSignedIntPropertyValue(Property->ContainerPtrToValuePtr<int64>(Buffer));
+
+						TArray<FString> EnumStrings;
+
+						for (int32 i = 0; i < EnumCount - 1; ++i)
+						{
+							if (Value & BitmaskEnum->GetValueByIndex(i))
+							{
+								EnumStrings.Add(BitmaskEnum->GetNameStringByIndex(i));
+							}
+						}
+
+						return I.Keyword(FString::Join(EnumStrings, TEXT(",")));
+					}
 				}
 			}
 		}
-#else
-		if (false) {}
 #endif
-		else if (auto p = CastField<FIntProperty>(Property))
+		if (auto p = CastField<FIntProperty>(Property))
 		{
 			return Int32::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
 		}
@@ -831,24 +839,26 @@ public:
 				if (p->IsInteger())
 				{
 					const UEnum* BitmaskEnum = FindObject<UEnum>(ANY_PACKAGE, *BitmaskEnumName);
-					auto Str = StringFromV8(isolate_, Value);
-					TArray<FString> EnumStrings;
-					Str.ParseIntoArray(EnumStrings, TEXT(","));
-					int64 EnumValue = 0;
-
-					for (int32 i = 0; i < EnumStrings.Num(); ++i)
+					if (::IsValid(BitmaskEnum))
 					{
-						EnumValue |= BitmaskEnum->GetValueByNameString(*EnumStrings[i], EGetByNameFlags::None);
-					}
+						auto Str = StringFromV8(isolate_, Value);
+						TArray<FString> EnumStrings;
+						Str.ParseIntoArray(EnumStrings, TEXT(","));
+						int64 EnumValue = 0;
 
-					p->SetIntPropertyValue(Property->ContainerPtrToValuePtr<int64>(Buffer), EnumValue);
+						for (int32 i = 0; i < EnumStrings.Num(); ++i)
+						{
+							EnumValue |= BitmaskEnum->GetValueByNameString(*EnumStrings[i], EGetByNameFlags::None);
+						}
+
+						p->SetIntPropertyValue(Property->ContainerPtrToValuePtr<int64>(Buffer), EnumValue);
+						return;
+					}
 				}
 			}
 		}
-#else
-		if (false) {}
 #endif
-		else if (auto p = CastField<FIntProperty>(Property))
+		if (auto p = CastField<FIntProperty>(Property))
 		{
 			p->SetPropertyValue_InContainer(Buffer, Value->Int32Value(isolate_->GetCurrentContext()).ToChecked());
 		}
@@ -1118,6 +1128,7 @@ public:
 
 				auto PropertyNames = v->GetOwnPropertyNames(context).ToLocalChecked();
 				auto Num = PropertyNames->Length();
+				MapHelper.EmptyValues(Num);
 				for (decltype(Num) Index = 0; Index < Num; ++Index) {
 					auto Key = PropertyNames->Get(context, Index).ToLocalChecked();
 					auto Value = v->Get(context, Key).ToLocalChecked();
@@ -1735,7 +1746,7 @@ public:
 
 		auto function_name = I.Keyword(FunctionToExport->GetName());
 		auto function = I.FunctionTemplate(FV8Exception::GuardLambda(FunctionBody), FunctionToExport);
-
+		
 		// Register the function to prototype template
 		Template->PrototypeTemplate()->Set(function_name, function);
 	}
@@ -1915,7 +1926,7 @@ public:
 		};
 
 		Template->Set(I.Keyword("GetClassObject"), I.FunctionTemplate(FV8Exception::GuardLambda(fn), ClassToExport));
-	}
+	}	
 
 	void AddMemberFunction_Class_SetDefaultSubobjectClass(Local<FunctionTemplate> Template, UStruct* ClassToExport)
 	{
@@ -2563,6 +2574,16 @@ public:
 							if (info.Length() == 6) break;
 						default:
 							break;
+						}
+						
+						ULevel* CurrentLevel = World->GetCurrentLevel();
+						if (StaticFindObjectFast(nullptr, CurrentLevel, SpawnInfo.Name))
+						{
+							FString Msg = FString::Printf(TEXT("An actor of name '%s' already exists in level '%s'."), *(SpawnInfo.Name.ToString()), *(CurrentLevel->GetFullName()));
+							FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(Msg));
+							RequestEngineExit(TEXT("JavascriptIsolate_Private RequestExit"));
+							I.Throw(TEXT("Failed to spawn"));
+							return;
 						}
 
 						PreCreate();

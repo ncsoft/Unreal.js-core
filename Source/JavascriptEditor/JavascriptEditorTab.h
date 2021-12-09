@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Widgets/Docking/SDockTab.h"
@@ -86,6 +86,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	void CloseTab(UWidget* Widget);
 
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	void ActivateInParent();
+
 	bool bRegistered;
 
 	UWidget* TakeWidget(UObject* Context);
@@ -101,6 +104,7 @@ public:
 	void Unregister(TSharedRef<FTabManager> TabManager);
 	void InsertTo(TSharedRef<FTabManager> TabManager, UObject* Context, FName PlaceholderId, FName SearchForTabId);
 
+	TWeakPtr<SDockTab> ThisTab;
 	static TSharedPtr<SDockTab> MajorTab;
 	static TSharedPtr<SDockTab> FindDocktab(UWidget* Widget);
 #endif

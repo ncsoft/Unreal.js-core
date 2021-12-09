@@ -1,6 +1,16 @@
 ﻿#include "JavascriptComboButtonContext.h"
 #include "Components/Widget.h"
 
+void UJavascriptComboButtonContext::MarkReferencedObject()
+{
+	AddToRoot();
+}
+
+void UJavascriptComboButtonContext::UnmarkReferencedObject()
+{
+	RemoveFromRoot();
+}
+
 TSharedRef<SWidget> UJavascriptComboButtonContext::Public_OnGetWidget(UObject* EditingObject)
 {
 	if (OnGetWidget.IsBound())

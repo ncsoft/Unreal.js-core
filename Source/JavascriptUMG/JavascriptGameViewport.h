@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Camera/CameraTypes.h"
 #include "Components/ContentWidget.h"
@@ -257,7 +257,7 @@ protected:
 	// End UPanelWidget
 
 protected:
-	TWeakPtr<class SJavascriptAutoRefreshViewport> MyViewportWidget;
+	TSharedPtr<class SJavascriptAutoRefreshViewport> MyViewportWidget;
 
 protected:
 	// UWidget interface

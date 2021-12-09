@@ -17,9 +17,9 @@
 		function read_dir(dir) {
 			let out = Root.ReadDirectory(dir)
             if (out.$) {
-                let prerequisite_items = _.filter(out.OutItems, (item) => !item.bIsDirectory && /^((?!node_modules).)*$/.test(item.Name) && /prerequisite[^\.]*\.js$/.test(item.Name))
+                let prerequisite_items = _.filter(out.OutItems, (item) => !item.bIsDirectory && /^((?!(node_modules|__legacy)).)*$/.test(item.Name) && /prerequisite[^\.]*\.js$/.test(item.Name))
                 prerequisites = prerequisites.concat(prerequisite_items.map((item) => item.Name.substr(root_path.length + 1)))
-				let extension_items = _.filter(out.OutItems, (item) => !item.bIsDirectory && /^((?!node_modules).)*$/.test(item.Name) && /extension[^\.]*\.js$/.test(item.Name))
+				let extension_items = _.filter(out.OutItems, (item) => !item.bIsDirectory && /^((?!(node_modules|__legacy)).)*$/.test(item.Name) && /extension[^\.]*\.js$/.test(item.Name))
                 extensions = extensions.concat(extension_items.map((item) => item.Name.substr(root_path.length + 1)))
 				out.OutItems.forEach((item) => {
 					if (item.bIsDirectory) {
@@ -43,8 +43,15 @@
 		}
 
         function main() {
-            let bye_prerequisites = _.filter(prerequisites.map(prerequisite => spawn('prerequisite', prerequisite)), _.isFunction)
-		    let byes = _.filter(extensions.map(extension => spawn('extension', extension)), _.isFunction)
+			//let bye_prerequisites = _.filter(prerequisites.map(prerequisite => spawn('prerequisite', prerequisite)), _.isFunction)
+			let prerequisite_result = prerequisites.map(prerequisite => spawn('prerequisite', prerequisite));
+			let loaded_prerequisites = Promise.all(prerequisite_result.map(result => result[0]));
+			let bye_prerequisites = prerequisite_result.map(result => result[1]);
+			let byes = [];
+
+			loaded_prerequisites.then(__ => {
+				byes = _.filter(extensions.map(extension => spawn('extension', extension)), _.isFunction);
+			});
 
 			return function () {
                 _.concat(byes, bye_prerequisites).forEach(byeFunc => byeFunc())
@@ -63,7 +70,8 @@
 				return () => {}
 			}
 		}
-	} else {
+	} 
+	else {
 		global.$$exit = function() {}
 		global.$exit = function () {
 			global.$$exit()

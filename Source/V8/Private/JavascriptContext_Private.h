@@ -15,6 +15,7 @@ struct FJavascriptContext : TSharedFromThis<FJavascriptContext>
 	/** A map from Unreal UObject to V8 Object */
 	TMap< UObject*, v8::UniquePersistent<v8::Value> > ObjectToObjectMap;
 
+
 	struct FExportedStructMemoryInfo
 	{
 		FExportedStructMemoryInfo() = default;
@@ -39,13 +40,15 @@ struct FJavascriptContext : TSharedFromThis<FJavascriptContext>
 	/** A map from Struct buffer to V8 Object */
 	TMap<FStructMemoryInstance*, FExportedStructMemoryInfo> MemoryToObjectMap;
 
+	FDelegateHandle PostWorldCleanupHandle;
+
 	virtual ~FJavascriptContext() {}
 	virtual void Expose(FString RootName, UObject* Object) = 0;
 	virtual FString GetScriptFileFullPath(const FString& Filename) = 0;
 	virtual FString ReadScriptFile(const FString& Filename) = 0;
 	virtual FString Public_RunScript(const FString& Script, bool bOutput = true) = 0;
 	virtual void RequestV8GarbageCollection() = 0;
-	virtual void Public_RunFile(const FString& Filename) = 0;
+	virtual FString Public_RunFile(const FString& Filename, const TArray<FString>& Args) = 0;
     virtual void FindPathFile(const FString TargetRootPath, const FString TargetFileName, TArray<FString>& OutFiles) = 0;
 	virtual bool IsDebugContext() const = 0;
 	virtual void CreateInspector(int32 Port) = 0;
@@ -73,4 +76,6 @@ struct FJavascriptContext : TSharedFromThis<FJavascriptContext>
 
 	virtual bool IsExcludeGCObjectTarget(UObject* TargetObj) { return false; }
 	virtual bool IsExcludeGCStructTarget(UStruct* TargetStruct) { return false; }
+
+	virtual void OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources) = 0;
 };

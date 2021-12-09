@@ -34,6 +34,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FBoolDelegate OnCanExecute;
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	void MarkReferencedObject();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	void UnmarkReferencedObject();
+
 	TSharedRef<SWidget> Public_OnGetWidget(UObject* EditingObject);
 	FSlateIcon Public_OnGetSlateIcon();
 	bool Public_CanExecute();

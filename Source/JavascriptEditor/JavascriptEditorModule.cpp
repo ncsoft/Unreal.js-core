@@ -13,6 +13,7 @@
 #include "ISettingsModule.h"
 #include "Settings/EditorLoadingSavingSettings.h"
 #endif
+#include "JavascriptEditorObjectManager.h"
 
 #define LOCTEXT_NAMESPACE "UnrealJSEditor"
 
@@ -26,12 +27,18 @@ class FJavascriptEditorModule : public IJavascriptEditorModule
 	virtual void AddExtension(IEditorExtension* Extension) override;
 	virtual void RemoveExtension(IEditorExtension* Extension) override;
 
+	virtual UJavascriptEditorObjectManager* GetEditorObjectManager() override;
+
 	void Bootstrap();
+	void GarbageCollect();
 
 #if WITH_EDITOR
 	virtual UJavascriptContext* GetJavascriptContext() override { return JavascriptContext; }
-
 #endif
+
+private:
+	void InitializeEditorObjectManager();
+	void DestroyEditorObjectManager();
 
 private:
 #if WITH_EDITOR
@@ -42,6 +49,9 @@ private:
 
 	bool bRegistered{ false };
 	FDelegateHandle OnPropertyChangedDelegateHandle;
+
+	FTimerHandle TimerHandle_GarbageCollect;
+	UJavascriptEditorObjectManager* EditorObjectManager;
 
 	void Unregister();
 
@@ -126,6 +136,18 @@ static void PatchReimportRule()
 }
 #endif
 
+void FJavascriptEditorModule::GarbageCollect()
+{
+#if WITH_EDITOR
+	if (GEditor && GEditor->IsPlayingSessionInEditor())
+	{
+		// #20877 - skip GC on PIE or SIE.
+		return;
+	}
+	CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
+#endif
+}
+
 void FJavascriptEditorModule::Bootstrap()
 {
 #if WITH_EDITOR
@@ -158,6 +180,8 @@ void FJavascriptEditorModule::Bootstrap()
 		bRegistered = true;
 
 		FCoreDelegates::OnPreExit.AddRaw(this, &FJavascriptEditorModule::Unregister);
+
+		GEditor->GetTimerManager()->SetTimer(TimerHandle_GarbageCollect, FTimerDelegate::CreateRaw(this, &FJavascriptEditorModule::GarbageCollect), 60.f, true);
 	}
 #endif
 }
@@ -165,6 +189,7 @@ void FJavascriptEditorModule::Bootstrap()
 void FJavascriptEditorModule::StartupModule()
 {
 	FCoreDelegates::OnPostEngineInit.AddRaw(this, &FJavascriptEditorModule::Bootstrap);
+	InitializeEditorObjectManager();
 }
 
 void FJavascriptEditorModule::ShutdownModule()
@@ -191,6 +216,8 @@ void FJavascriptEditorModule::Unregister()
 	if (!bRegistered) return;
 	bRegistered = false;
 
+	DestroyEditorObjectManager();
+
 	for (auto e : Extensions) { e->Unregister(); }
 	Extensions.Empty();
 
@@ -201,7 +228,32 @@ void FJavascriptEditorModule::Unregister()
 
 	JavascriptContext->RemoveFromRoot();
 	Tick->RemoveFromRoot();
+
+	if (TimerHandle_GarbageCollect.IsValid())
+	{
+		GEditor->GetTimerManager()->ClearTimer(TimerHandle_GarbageCollect);
+	}
 }
 #endif
+
+void FJavascriptEditorModule::InitializeEditorObjectManager()
+{
+	EditorObjectManager = NewObject<UJavascriptEditorObjectManager>();
+	EditorObjectManager->AddToRoot();
+}
+
+void FJavascriptEditorModule::DestroyEditorObjectManager()
+{
+	if (EditorObjectManager->IsValidLowLevel())
+	{
+		EditorObjectManager->RemoveFromRoot();
+	}
+	EditorObjectManager = nullptr;
+}
+
+UJavascriptEditorObjectManager* FJavascriptEditorModule::GetEditorObjectManager()
+{
+	return EditorObjectManager;
+}
 
 #undef LOCTEXT_NAMESPACE

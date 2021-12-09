@@ -5,6 +5,7 @@
 #include "JavascriptPropertyEditor.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPropertyEditorPropertyChanged, FName, PropertyName, FName, MemberPropertyName);
+DECLARE_DYNAMIC_DELEGATE_RetVal(bool, FPropertyEditorReadOnly);
 
 UENUM()
 enum class EPropertyEditorNameAreaSettings : uint8
@@ -74,6 +75,9 @@ class JAVASCRIPTEDITOR_API UPropertyEditor : public UWidget
 
 	UPROPERTY(BlueprintReadWrite, Category = "PropertyEditor")
 	EPropertyEditorNameAreaSettings NameAreaSettings;
+
+	UPROPERTY()
+	FPropertyEditorReadOnly ReadOnlyDelegate;
 
 	TArray<FWeakObjectPtr> ObjectsToInspect;
 

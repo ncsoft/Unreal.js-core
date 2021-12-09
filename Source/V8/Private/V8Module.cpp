@@ -37,10 +37,25 @@ using namespace v8;
 
 static float GV8IdleTaskBudget = 1 / 60.0f;
 
+static FAutoConsoleCommand ToggleEnableV8Hotreload(
+	TEXT("v8.ToggleHotReload"),
+	TEXT("Toggle HotReload Flags when changed watching files."),
+	FConsoleCommandDelegate::CreateLambda(
+		[]()
+		{
+			bool bFlag = !IV8::Get().IsEnableHotReload();
+			IV8::Get().SetEnableHotReload(bFlag);
+			FName NAME_JavascriptCmd("JavascriptCmd");
+			GLog->Log(NAME_JavascriptCmd, ELogVerbosity::Log, *FString::Printf(TEXT("v8 hotreload %s"), bFlag ? TEXT("on") : TEXT("off")));
+		}
+	)
+);
+
 UJavascriptSettings::UJavascriptSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	V8Flags = TEXT("--harmony --harmony-shipping --es-staging --expose-gc");
+	bEnableHotReload = true;
 }
 
 void UJavascriptSettings::Apply() const
@@ -337,6 +352,18 @@ public:
 	virtual void SetFlagsFromString(const FString& V8Flags) override
 	{
 		V8::SetFlagsFromString(TCHAR_TO_ANSI(*V8Flags), strlen(TCHAR_TO_ANSI(*V8Flags)));
+	}
+
+	virtual bool IsEnableHotReload() const override
+	{
+		const UJavascriptSettings& Settings = *GetDefault<UJavascriptSettings>();
+		return Settings.bEnableHotReload;
+	}
+
+	virtual void SetEnableHotReload(bool bEnable) override
+	{		
+		UJavascriptSettings& Settings = *GetMutableDefault<UJavascriptSettings>();
+		Settings.bEnableHotReload = bEnable;
 	}
 
 	virtual void SetIdleTaskBudget(float BudgetInSeconds) override

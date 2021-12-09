@@ -27,8 +27,9 @@ bool UJavascriptMenuLibrary::ProcessCommandBindings_PointerEvent(FJavascriptUICo
 void UJavascriptMenuLibrary::CreateToolbarBuilder(FJavascriptUICommandList CommandList, EOrientation Orientation, FJavascriptFunction Function)
 {
 	FJavascriptMenuBuilder Out;
-	FToolBarBuilder Builder(CommandList.Handle, FMultiBoxCustomization::None, nullptr, Orientation);
-	Out.MultiBox = Out.ToolBar = &Builder;
+	FToolBarBuilder Builder(CommandList.Handle, FMultiBoxCustomization::None, nullptr);
+	FVerticalToolBarBuilder VTBuilder(CommandList.Handle, FMultiBoxCustomization::None, nullptr);
+	Out.MultiBox = Out.ToolBar = (Orientation == Orient_Horizontal) ? &Builder : &VTBuilder;
 	Function.Execute(FJavascriptMenuBuilder::StaticStruct(), &Out);
 }
 

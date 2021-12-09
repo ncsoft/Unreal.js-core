@@ -120,9 +120,6 @@ public:
 	int32 GetCameraSpeedSetting();
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")
-	void RestoreRealtime(bool bAllowDisable);
-
-	UFUNCTION(BlueprintCallable, Category = "Viewport")
 	void SetLightLocation(const FVector& InLightPos);
 
 	UFUNCTION(BlueprintCallable, Category = "Viewport")

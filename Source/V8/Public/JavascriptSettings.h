@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "JavascriptSettings.generated.h"
 
@@ -13,7 +13,12 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = Javascript, meta = (
 		ConsoleVariable = "unrealjs.v8flags", DisplayName = "V8 Flags",
 		ToolTip = "V8 Flags. Please refer to V8 documentation"))
-	FString V8Flags;	
+	FString V8Flags;
+
+	UPROPERTY(EditAnywhere, config, Category = Javascript, meta = (
+		ConsoleVariable = "unrealjs.enableHotReload", DisplayName = "Enable HotReload",
+		ToolTip = "hot reload when modified js file in scripts."))
+	bool bEnableHotReload;
 
 	void Apply() const;
 };

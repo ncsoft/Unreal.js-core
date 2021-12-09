@@ -161,6 +161,21 @@ namespace EJavascriptRHIFeatureLevel
 	};
 }
 
+USTRUCT(BlueprintType)
+struct FJavascriptPopup
+{
+	GENERATED_BODY()
+
+	FJavascriptPopup()
+	{}
+
+	FJavascriptPopup(IMenu* InMenu)
+		: Menu(InMenu)
+	{}
+
+	TSharedPtr<IMenu> Menu;
+};
+
 UCLASS()
 class JAVASCRIPTEDITOR_API UJavascriptLazyExtenderDelegates : public UObject
 {
@@ -228,7 +243,10 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static bool GetLandscapeExtent(ULandscapeInfo* LandscapeInfo, int32& MinX, int32& MinY, int32& MaxX, int32& MaxY);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void OpenPopupWindow(UWidget* Widget, const FVector2D& PopupDesiredSize, const FText& HeadingText);
+	static FJavascriptPopup OpenPopupWindow(UWidget* Widget, const FVector2D& PopupPosition, const FText& HeadingText, FJavascriptFunction Function);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void ClosePopupWindow(FJavascriptPopup Handle);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void GetAllTags(const FJavascriptAssetData& AssetData, TArray<FName>& OutArray);
@@ -529,6 +547,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static bool OpenDirectoryDialog(const class UJavascriptWindow* WindowHandle, const FString& DialogTitle, const FString& DefaultPath, FString& OutFolderName);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool SaveFileDialog(const class UJavascriptWindow* WindowHandle, const FString& DialogTitle, const FString& DefaultPath, const FString& DefaultFile, const FString& FileTypes, int32 Flags, TArray<FString>& OutFilenames);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool LoadFileToIntArray(FString Path, TArray<uint8>& FileData);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -572,5 +593,27 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void SetActorLabelUnique(AActor* Actor, const FString& NewActorLabel, const TArray<FString>& InExistingActorLabels);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool EditorExec(UWorld* World, FString Cmd);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptTextProperty FromStringTable(const FName InTableId, const FString& InKey);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static float GetAverageFPS();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static float GetAverageMS();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool CheckActivatedStatGroup(FName GroupName);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FString GetSourceControlStatusText();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static class UJavascriptEditorObjectManager* GetEditorObjectManager();
+
 #endif
 };

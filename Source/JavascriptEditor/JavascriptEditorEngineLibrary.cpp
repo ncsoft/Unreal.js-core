@@ -1,4 +1,4 @@
-#include "JavascriptEditorEngineLibrary.h"
+﻿#include "JavascriptEditorEngineLibrary.h"
 #include "AssetToolsModule.h"
 #include "JavascriptContext.h"
 #include "ObjectTools.h"
@@ -77,6 +77,11 @@ void UJavascriptEditorEngineLibrary::SelectComponent(UEditorEngine* Engine, clas
 void UJavascriptEditorEngineLibrary::SelectNone(UEditorEngine* Engine, bool bNoteSelectionChange, bool bDeselectBSPSurfs, bool WarnAboutManyActors)
 {
 	Engine->SelectNone(bNoteSelectionChange, bDeselectBSPSurfs, WarnAboutManyActors);
+}
+
+class USelection* UJavascriptEditorEngineLibrary::GetSelectedActors(UEditorEngine* Engine)
+{
+	return Engine->GetSelectedActors();
 }
 
 class USelection* UJavascriptEditorEngineLibrary::GetSelectedComponents(UEditorEngine* Engine)

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "JavascriptEditorGlobalDelegates.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Engine/BrushBuilder.h"
@@ -46,6 +46,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorEngineLibrary : public UBlueprintFun
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void SelectNone(UEditorEngine* Engine, bool bNoteSelectionChange, bool bDeselectBSPSurfs, bool WarnAboutManyActors = true);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static class USelection* GetSelectedActors(UEditorEngine* Engine);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static class USelection* GetSelectedComponents(UEditorEngine* Engine);

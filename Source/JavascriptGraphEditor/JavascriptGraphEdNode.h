@@ -51,6 +51,8 @@ public:
 	UPROPERTY()
 	FJavascriptFunction WidgetFinalized;
 
+	UPROPERTY()
+	float RenderOpacity = 1.f;
 public:
 	virtual void AllocateDefaultPins() override;
 	virtual void NodeConnectionListChanged() override;
@@ -106,12 +108,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void ResetTitleSelectionMode();
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	void SetRenderOpacity(float Opacity);
+
 public:
 	UPROPERTY()
 	bool Bidirectional;
 
 	UPROPERTY()
 	int32 PriorityOrder;
+
+	UPROPERTY()
+	TMap<FName, UObject*> PinRefMap;
 
 	TWeakPtr<SJavascriptGraphEdNode> SlateGraphNode;
 

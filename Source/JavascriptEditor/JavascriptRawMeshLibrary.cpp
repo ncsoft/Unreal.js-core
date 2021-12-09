@@ -1,4 +1,8 @@
 ﻿#include "JavascriptRawMeshLibrary.h"
+#include "PhysicsEngine/BodySetup.h"
+#include "Engine/SkeletalMesh.h"
+#include "PhysicsEngine/PhysicsAsset.h"
+#include "Components/StaticMeshComponent.h"
 
 #if WITH_EDITOR
 void UJavascriptRawMeshLibrary::Empty(FJavascriptRawMesh& RawMesh)
@@ -39,6 +43,56 @@ void UJavascriptRawMeshLibrary::LoadRawMesh(UStaticMesh* StaticMesh, int32 Sourc
 void UJavascriptRawMeshLibrary::Build(UStaticMesh* StaticMesh)
 {
 	StaticMesh->Build();
+}
+
+UBodySetup* UJavascriptRawMeshLibrary::GetPhysicsBodySetupFromMesh(USkeletalMesh* InSkeletalMesh, FString InName)
+{
+	check(InSkeletalMesh);
+
+	UPhysicsAsset* const PhysicsAsset = InSkeletalMesh->PhysicsAsset;
+	if (::IsValid(PhysicsAsset))
+	{
+		int32 BodyIndex = PhysicsAsset->FindBodyIndex(FName(*InName));
+		if (BodyIndex != INDEX_NONE)
+		{
+			return PhysicsAsset->SkeletalBodySetups[BodyIndex];
+		}
+	}
+
+	return nullptr;
+}
+
+UBodySetup* UJavascriptRawMeshLibrary::GetPhysicsBodySetupFromStaticMesh(UStaticMesh* InStaticMesh)
+{
+	if (!::IsValid(InStaticMesh))
+	{
+		return nullptr;
+	}
+
+	return InStaticMesh->BodySetup;
+}
+
+
+UBodySetup* UJavascriptRawMeshLibrary::GetPhysicsBodySetup(USkeletalMeshComponent* InSkeletalMeshComp, FString InName)
+{
+	check(InSkeletalMeshComp);
+
+	UPhysicsAsset* const PhysicsAsset = InSkeletalMeshComp->GetPhysicsAsset();
+	if (PhysicsAsset)
+	{
+		int32 BodyIndex = PhysicsAsset->FindBodyIndex(FName(*InName));
+		if (BodyIndex != INDEX_NONE)
+		{
+			return PhysicsAsset->SkeletalBodySetups[BodyIndex];
+		}
+	}
+
+	return nullptr;
+}
+
+UBodySetup* UJavascriptRawMeshLibrary::GetPhysicsBodySetupFromStaticMeshComponent(UStaticMeshComponent* InStaticMeshComp)
+{
+	return ::IsValid(InStaticMeshComp) ? InStaticMeshComp->GetBodySetup() : nullptr;
 }
 
 FMeshSectionInfo UJavascriptRawMeshLibrary::GetSectionInfo(UStaticMesh* StaticMesh, int32 LODIndex, int32 SectionIndex)

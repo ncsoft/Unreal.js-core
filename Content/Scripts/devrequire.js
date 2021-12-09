@@ -59,9 +59,16 @@ var devrequire = function (opts) {
     };
     
     watcher.OnChanged.Add(function () {
-        var changed_modules = get_change(watcher)        
-        var module_changed = changed_modules.length > 0
+        let changed_modules = get_change(watcher)
+        let module_changed = changed_modules.length > 0
         if (module_changed) {
+            let file = _.uniq(changed_modules).join(',')
+
+            if (!JavascriptLibrary.V8_IsEnableHotReload()) {
+                console.log(`skip hot reload ${file}.`)
+                return
+            }
+
             cleanup() 
 
             function retry(index) {
@@ -82,10 +89,8 @@ var devrequire = function (opts) {
                     cleanup = function () { }
                 }
 
-                var file = _.uniq(changed_modules).join(',')
-
                 if (should_notify) {
-                    var note = new JavascriptNotification
+                    let note = new JavascriptNotification
                     note.Text = notification_message + ": " + file
                     note.bFireAndForget = true
                     note.Fire()

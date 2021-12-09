@@ -176,6 +176,16 @@ enum class ELogVerbosity_JS : uint8
 	VeryVerbose
 };
 
+UENUM()
+enum class EFileRead_JS : uint8
+{
+	FILEREAD_None = 0,
+	FILEREAD_NoFail = 1,
+	FILEREAD_Silent = 2,
+	FILEREAD_NotUsedDummy = 3,
+	FILEREAD_AllowWrite = 4
+};
+
 USTRUCT(BlueprintType)
 struct FJavascriptLogCategory
 {
@@ -297,6 +307,9 @@ public:
 	static void RequestAsyncLoad(const FJavascriptStreamableManager& Manager, const TArray<FSoftObjectPath>& TargetsToStream, FJavascriptFunction DelegateToCall, int32 Priority);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	static bool V8_IsEnableHotReload();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static void V8_SetFlagsFromString(const FString& V8Flags);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
@@ -399,7 +412,7 @@ public:
 	static FReadStringFromFileHandle ReadStringFromFileAsync(UObject* Object, FString Filename, FJavascriptFunction Function);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
-	static FString ReadStringFromFile(UObject* Object, FString Filename);
+	static FString ReadStringFromFile(UObject* Object, FString Filename, EFileRead_JS ReadFlags = EFileRead_JS::FILEREAD_None);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	static bool WriteStringToFile(UObject* Object, FString Filename, const FString& Data, EJavascriptEncodingOptions::Type EncodingOptions);
@@ -564,6 +577,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static TArray<FJavscriptProperty> GetStructProperties(const FString StructName, bool bIncludeSuper);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static TArray<FString> GetEnumListByEnumName(const FString EnumName);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static int32 GetFunctionParmsSize(UFunction* Function);

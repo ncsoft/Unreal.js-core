@@ -256,7 +256,8 @@ struct TypingGenerator : TypingGeneratorBase
 
 	FString Text;
 
-	TArray<FString> Folded;	
+	TArray<FString> Folded;
+	TArray<FString> GlobalNames;
 
 	void fold(bool force = false)
 	{
@@ -276,7 +277,7 @@ struct TypingGenerator : TypingGeneratorBase
 		w.push(enumName);
 		w.push(" = ");
 
-		
+		GlobalNames.Add(enumName);
 
 		auto EnumCount = source->NumEnums();
 
@@ -344,6 +345,8 @@ struct TypingGenerator : TypingGeneratorBase
 
 		const auto name = FV8Config::Safeify(source->GetName());
 		auto super_class = source->GetSuperStruct();
+
+		GlobalNames.Add(name);
 		
 		w.tooltip("", source);
 
@@ -605,6 +608,20 @@ struct TypingGenerator : TypingGeneratorBase
 		w.push("}\n\n");
 
 		Text.Append(*w);
+
+		GlobalNames.Add("Process");
+		GlobalNames.Add("Memory");
+		GlobalNames.Add("memory");
+		GlobalNames.Add("GEngine");
+		GlobalNames.Add("GWorld");
+		GlobalNames.Add("Root");
+		GlobalNames.Add("Context");
+		GlobalNames.Add("$execEditor");
+		GlobalNames.Add("$execTransaction");
+		GlobalNames.Add("$time"); 
+		GlobalNames.Add("JavascriptUserObjectListEntry");
+		GlobalNames.Add("Base64");
+		GlobalNames.Add("JavascriptText");
 	}
 
 	void ExportWKO(FString name, UObject* Object)
@@ -663,5 +680,18 @@ struct TypingGenerator : TypingGeneratorBase
 		}
 
 		return true;
+	}
+
+	bool SaveGlobalNames(const FString& Filename)
+	{
+		FString Content;
+		Content.Append("module.exports = {\n");
+		for (auto name : GlobalNames)
+		{
+			Content.Append(FString::Printf(TEXT("\t%s: \'readonly\',\n"), *name));
+		}
+		Content.Append("};\n");
+
+		return FFileHelper::SaveStringToFile(Content, *Filename);
 	}
 };

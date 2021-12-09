@@ -6,7 +6,8 @@
 #include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "JavascriptPropertyTable.generated.h"
 
-DECLARE_DYNAMIC_DELEGATE_RetVal(FJavascriptSlateWidget, FOnGenerateInvalidCellWidget);
+DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(FJavascriptSlateWidget, FOnGenerateCustomCellWidget, UObject*, Object, FString, ColumnName);
+DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FOnUseCustomCellWidget, UObject*, Object, FString, ColumnName);
 
 UCLASS()
 class JAVASCRIPTEDITOR_API UJavascriptPropertyTable : public UWidget
@@ -27,7 +28,10 @@ public:
 	TArray<UObject*> GetSelectedTableObjects();
 
 	UPROPERTY(EditAnywhere, Category = "JavascriptPropertyTable")
-	FOnGenerateInvalidCellWidget OnGenerateInvalidCellWidget;
+	FOnGenerateCustomCellWidget OnGenerateCustomCellWidget;
+
+	UPROPERTY(EditAnywhere, Category = "JavascriptPropertyTable")
+	FOnUseCustomCellWidget OnUseCustomCellWidget;
 
 	UPROPERTY(EditAnywhere, Category = "JavascriptPropertyTable")
 	bool bUseCustomColumns;

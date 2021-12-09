@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Widgets/Views/STreeView.h"
 #include "Components/ListViewBase.h"
@@ -70,6 +70,11 @@ public:
 			SelectedItemArray.Add(*SelectedItemIt);
 		}
 		return SelectedItemArray;
+	}
+
+	void SetOnContextMenuOpening(FOnContextMenuOpening InOnContextMenuOpening)
+	{
+		OnContextMenuOpening = InOnContextMenuOpening;
 	}
 
 protected:
@@ -175,11 +180,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	bool IsItemExpanded(UObject* InItem);
 
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	void SetItemSelection(TArray<UObject*> MultiSelectedItems, bool bIsSelected);
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Behavior")
 	void SetSelection(UObject* SoleSelectedItem);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Behavior")
 	bool GetSelectedItems(TArray<UObject*>& OutItems);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	void ClearSelection();
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	void ClearDoubleClickSelection();
@@ -192,6 +203,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	void GetDoubleClickedItems(TArray<UObject*>& OutItems);
+	
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	void RequestNavigateToItem(UObject* Item);
 
 	TSharedRef<ITableRow> HandleOnGenerateRow(UObject* Item, const TSharedRef< STableViewBase >& OwnerTable);
 

@@ -1,4 +1,4 @@
-#include "JavascriptMultiLineEditableTextBox.h"
+﻿#include "JavascriptMultiLineEditableTextBox.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Framework/Text/BaseTextLayoutMarshaller.h"
 
@@ -26,6 +26,10 @@ struct FJavascriptTextLayoutMarshaller : FBaseTextLayoutMarshaller
 		if (Parent->GetTextDelegate.IsBound())
 		{
 			TargetString = Parent->GetTextDelegate.Execute(layout);
+		}
+		else
+		{
+			SourceTextLayout.GetAsText(TargetString);
 		}
 	}
 };

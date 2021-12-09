@@ -63,7 +63,12 @@
 #if ENGINE_MAJOR_VERSION == 4
 	#include "Toolkits/AssetEditorManager.h"
 #endif
+#include "Stats/StatsData.h"
 #include "Kismet2/KismetEditorUtilities.h"
+#include "ISourceControlModule.h"
+#include "ISourceControlProvider.h"
+#include "JavascriptEditorObjectManager.h"
+#include "JavascriptEditorModule.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -169,7 +174,7 @@ ULandscapeLayerInfoObject* UJavascriptEditorLibrary::GetLayerInfoByName(ULandsca
 	return LandscapeInfo ? LandscapeInfo->GetLayerInfoByName(LayerName, Owner) : nullptr;
 }
 
-void UJavascriptEditorLibrary::OpenPopupWindow(UWidget* Widget, const FVector2D& PopupDesiredSize, const FText& HeadingText)
+FJavascriptPopup UJavascriptEditorLibrary::OpenPopupWindow(UWidget* Widget, const FVector2D& PopupPosition, const FText& HeadingText, FJavascriptFunction Function)
 {
 	// Create the contents of the popup
 	TSharedRef<SWidget> ActualWidget = Widget->TakeWidget();
@@ -180,34 +185,46 @@ void UJavascriptEditorLibrary::OpenPopupWindow(UWidget* Widget, const FVector2D&
 	MenuBuilder.AddWidget(ActualWidget, FText::GetEmpty(), /*bNoIndent=*/ true);
 	MenuBuilder.EndSection();
 
-	auto WindowContents = MenuBuilder.MakeWidget();
-
 	// Determine where the pop-up should open
-	TSharedPtr<SWindow> ParentWindow = FSlateApplication::Get().GetActiveTopLevelWindow();
-	FVector2D WindowPosition = FSlateApplication::Get().GetCursorPos();
-	if (!ParentWindow.IsValid())
-	{
-		return;
-	}
+	// TSharedPtr<SWindow> ParentWindow = FSlateApplication::Get().GetActiveTopLevelWindow();
+	// FVector2D WindowPosition = FSlateApplication::Get().GetCursorPos();
 
+	FJavascriptPopup Out;
+	TSharedPtr<SWindow> ParentWindow = FSlateApplication::Get().FindBestParentWindowForDialogs(ActualWidget, ESlateParentWindowSearchMethod::ActiveWindow);
 	if (ParentWindow.IsValid())
 	{
-		FSlateRect ParentMonitorRect = ParentWindow->GetFullScreenInfo();
-		const FVector2D MonitorCenter((ParentMonitorRect.Right + ParentMonitorRect.Left) * 0.5f, (ParentMonitorRect.Top + ParentMonitorRect.Bottom) * 0.5f);
-		WindowPosition = MonitorCenter - PopupDesiredSize * 0.5f;
-
 		// Open the pop-up
-		FPopupTransitionEffect TransitionEffect(FPopupTransitionEffect::None);
-		auto Menu = FSlateApplication::Get().PushMenu(ParentWindow.ToSharedRef(), FWidgetPath(), WindowContents, WindowPosition, TransitionEffect, /*bFocusImmediately=*/ true);
+		FPopupTransitionEffect TransitionEffect(FPopupTransitionEffect::TopMenu);
+		Out.Menu = FSlateApplication::Get().PushMenu(ParentWindow.ToSharedRef(), FWidgetPath(), MenuBuilder.MakeWidget(), PopupPosition, TransitionEffect, /*bFocusImmediately=*/ true, FVector2D::ZeroVector, EPopupMethod::CreateNewWindow
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27
+			, EShouldThrottle::No);
+#else
+			, true);
+#endif
+		TSharedPtr<FJavascriptFunction> Copy(new FJavascriptFunction);
+		*(Copy.Get()) = Function;
+		Out.Menu->GetOnMenuDismissed().AddLambda([Copy](TSharedRef<IMenu> Self) {
+			Copy->Execute();
+		});
+	}
+
+	return Out;
+}
+
+void UJavascriptEditorLibrary::ClosePopupWindow(FJavascriptPopup PopupHandle)
+{
+	if (PopupHandle.Menu.IsValid())
+	{
+		PopupHandle.Menu->Dismiss();
 	}
 }
 
 void UJavascriptEditorLibrary::GetAllTags(const FJavascriptAssetData& AssetData, TArray<FName>& OutArray)
 {
-#if ENGINE_MAJOR_VERSION > 4
-	AssetData.SourceAssetData.TagsAndValues.CopyMap().GetKeys(OutArray);
-#else
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27
 	AssetData.SourceAssetData.TagsAndValues.GetKeys(OutArray);
+#else
+	AssetData.SourceAssetData.TagsAndValues.CopyMap().GetKeys(OutArray);
 #endif
 }
 
@@ -1410,6 +1427,36 @@ bool UJavascriptEditorLibrary::OpenDirectoryDialog(const UJavascriptWindow* SubW
 	return false;
 }
 
+bool UJavascriptEditorLibrary::SaveFileDialog(const UJavascriptWindow* SubWindow, const FString& DialogTitle, const FString& DefaultPath, const FString& DefaultFile, const FString& FileTypes, int32 Flags, TArray<FString>& OutFilenames)
+{
+	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
+	if (DesktopPlatform)
+	{
+		const void* ParentWindowWindowHandle = nullptr;
+		if (SubWindow)
+		{
+			ParentWindowWindowHandle = nullptr;
+		}
+		else
+		{
+			ParentWindowWindowHandle = FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr);
+		}
+
+		return DesktopPlatform->SaveFileDialog(
+			ParentWindowWindowHandle,
+			DialogTitle,
+			//FEditorDirectories::Get().GetLastDirectory(ELastDirectory::GENERIC_IMPORT),
+			DefaultPath,
+			TEXT(""),
+			FileTypes,
+			EFileDialogFlags::Type(Flags),
+			OutFilenames
+		);
+	}
+
+	return false;
+}
+
 bool UJavascriptEditorLibrary::LoadFileToIntArray(FString Path, TArray<uint8>& FileData)
 {
 	return FFileHelper::LoadFileToArray(FileData, *Path);
@@ -1526,6 +1573,68 @@ void UJavascriptEditorLibrary::SetActorLabelUnique(AActor* Actor, const FString&
 	}
 
 	FActorLabelUtilities::SetActorLabelUnique(Actor, NewActorLabel, &ActorLabels);
+}
+
+bool UJavascriptEditorLibrary::EditorExec(UWorld* World, FString Cmd)
+{
+	return GEditor->Exec(World, *Cmd, *GLog);
+}
+
+FJavascriptTextProperty UJavascriptEditorLibrary::FromStringTable(const FName InTableId, const FString& InKey)
+{
+	FText TmpText = FText::FromStringTable(InTableId, InKey);
+	FJavascriptTextProperty Result;
+	Result.TableId = InTableId;
+	Result.Namespace = FTextInspector::GetNamespace(TmpText).Get(FString());
+	Result.Key = FTextInspector::GetKey(TmpText).Get(FString());
+	Result.Value = TmpText.ToString();
+	return Result;
+}
+
+float UJavascriptEditorLibrary::GetAverageFPS()
+{
+	extern ENGINE_API float GAverageFPS;
+	return GAverageFPS;
+}
+
+float UJavascriptEditorLibrary::GetAverageMS()
+{
+	extern ENGINE_API float GAverageMS;
+	return GAverageMS;
+}
+
+bool UJavascriptEditorLibrary::CheckActivatedStatGroup(FName GroupName)
+{
+#if STATS
+	if (FGameThreadStatsData* StatsData = FLatestGameThreadStatsData::Get().Latest)
+	{
+		const FString GroupNameString = FString(TEXT("STATGROUP_")) + GroupName.ToString();
+		const FName GroupNameFull = FName(*GroupNameString, EFindName::FNAME_Find);
+
+		if (StatsData->GroupNames.Contains(GroupNameFull))
+		{
+			return true;
+		}
+	}
+
+#endif
+	return false;
+}
+
+FString UJavascriptEditorLibrary::GetSourceControlStatusText()
+{
+	ISourceControlModule& SourceControlModule = FModuleManager::LoadModuleChecked<ISourceControlModule>("SourceControl");
+	return SourceControlModule.GetProvider().GetStatusText().BuildSourceString();
+}
+
+UJavascriptEditorObjectManager* UJavascriptEditorLibrary::GetEditorObjectManager()
+{
+	UJavascriptEditorObjectManager* EditorObjectManager = nullptr;
+	if (IJavascriptEditorModule* JSEditorModule = FModuleManager::GetModulePtr<IJavascriptEditorModule>("JavascriptEditor"))
+	{
+		EditorObjectManager = JSEditorModule->GetEditorObjectManager();
+	}
+	return EditorObjectManager;
 }
 
 #endif

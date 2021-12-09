@@ -62,11 +62,17 @@ void UJavascriptComboButton::SynchronizeProperties()
 
 void UJavascriptComboButton::SetIsOpen(bool InIsOpen, bool bFocusMenu)
 {
-	auto ComboButton = MyComboButton.Pin();
-	if (ComboButton.IsValid())
+	if (MyComboButton.IsValid())
 	{
-		return ComboButton->SetIsOpen(InIsOpen, bFocusMenu);
+		return MyComboButton->SetIsOpen(InIsOpen, bFocusMenu);
 	}
+}
+
+void UJavascriptComboButton::ReleaseSlateResources(bool bReleaseChildren)
+{
+	Super::ReleaseSlateResources(bReleaseChildren);
+
+	MyComboButton.Reset();
 }
 
 PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS

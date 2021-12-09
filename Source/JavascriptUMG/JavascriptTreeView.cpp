@@ -60,15 +60,29 @@ TSharedPtr<SHeaderRow> UJavascriptTreeView::GetHeaderRowWidget()
 
 TSharedRef<STableViewBase> UJavascriptTreeView::RebuildListWidget()
 {
-	return SAssignNew(MyTreeView, SJavascriptTreeView)
+	SAssignNew(MyTreeView, SJavascriptTreeView)
 		.ClearSelectionOnClick(false)
 		.SelectionMode(SelectionMode)
 		.TreeItemsSource(&Items)
 		.OnGenerateRow(BIND_UOBJECT_DELEGATE(STreeView< UObject* >::FOnGenerateRow, HandleOnGenerateRow))
 		.OnGetChildren(BIND_UOBJECT_DELEGATE(STreeView< UObject* >::FOnGetChildren, HandleOnGetChildren))
 		.OnExpansionChanged(BIND_UOBJECT_DELEGATE(STreeView< UObject* >::FOnExpansionChanged, HandleOnExpansionChanged))
-		.OnContextMenuOpening_Lambda([this]() {
-		if (OnContextMenuOpening.IsBound())
+		.OnSelectionChanged_Lambda([this](UObject* Object, ESelectInfo::Type SelectInfo)
+		{
+			UE_LOG(LogSlate, Log, TEXT("OnSelection...."));
+			OnSelectionChanged(Object, SelectInfo);
+		})
+		.OnMouseButtonDoubleClick_Lambda([this](UObject* Object)
+		{
+			OnDoubleClick(Object);
+		})
+		.HeaderRow(GetHeaderRowWidget());
+
+	if (OnContextMenuOpening.IsBound())
+	{
+		MyTreeView->SetOnContextMenuOpening(::FOnContextMenuOpening::CreateLambda([this]()
+		{
+			if (OnContextMenuOpening.IsBound())
 			{
 				auto Widget = OnContextMenuOpening.Execute(this);
 				if (Widget)
@@ -77,24 +91,10 @@ TSharedRef<STableViewBase> UJavascriptTreeView::RebuildListWidget()
 				}
 			}
 			return SNullWidget::NullWidget;
-		})
-				.OnSelectionChanged_Lambda([this](UObject* Object, ESelectInfo::Type SelectInfo) {
-				UE_LOG(LogSlate, Log, TEXT("OnSelection...."));
-			OnSelectionChanged(Object, SelectInfo);
-		})
-			.OnMouseButtonDoubleClick_Lambda([this](UObject* Object) {
-			OnDoubleClick(Object);
-		})
-		.HeaderRow(GetHeaderRowWidget())
-		.ExternalScrollbar(SNew(SScrollBar).Style(&ScrollBarStyle));
-		//.OnContextMenuOpening(this, &SSocketManager::OnContextMenuOpening)
-		//.OnItemScrolledIntoView(this, &SSocketManager::OnItemScrolledIntoView)
-		//	.HeaderRow
-		//	(
-		//		SNew(SHeaderRow)
-		//		.Visibility(EVisibility::Collapsed)
-		//		+ SHeaderRow::Column(TEXT("Socket"))
-		//	);
+		}));
+	}
+
+	return MyTreeView.ToSharedRef();
 }
 
 void UJavascriptTreeView::ProcessEvent(UFunction* Function, void* Parms)
@@ -289,6 +289,14 @@ void UJavascriptTreeView::HandleOnExpansionChanged(UObject* Item, bool bExpanded
 	}
 }
 
+void UJavascriptTreeView::SetItemSelection(TArray<UObject*> MultiSelectedItems, bool bIsSelected)
+{
+	if (MyTreeView.IsValid())
+	{
+		MyTreeView->SetItemSelection(MultiSelectedItems, bIsSelected);
+	}
+}
+
 void UJavascriptTreeView::SetSelection_Implementation(UObject* SoleSelectedItem)
 {
 	if (MyTreeView.IsValid())
@@ -319,6 +327,14 @@ void UJavascriptTreeView::SetSingleExpandedItem(UObject* InItem)
 	if (MyTreeView.IsValid())
 	{
 		MyTreeView->SetSingleExpandedItem(InItem);
+	}
+}
+
+void UJavascriptTreeView::ClearSelection()
+{
+	if (MyTreeView.IsValid())
+	{
+		MyTreeView->ClearSelection();
 	}
 }
 
@@ -353,6 +369,14 @@ void UJavascriptTreeView::GetDoubleClickedItems(TArray<UObject*>& OutItems)
 	if (MyTreeView.IsValid())
 	{
 		OutItems = MyTreeView->GetDoubleClickedItems();
+	}
+}
+
+void UJavascriptTreeView::RequestNavigateToItem(UObject* Item)
+{
+	if (MyTreeView.IsValid())
+	{
+		MyTreeView->RequestNavigateToItem(Item);
 	}
 }
 

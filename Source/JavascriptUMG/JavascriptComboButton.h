@@ -65,10 +65,13 @@ public:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 	virtual void SynchronizeProperties() override;
 	// End of UWidget interface
+	//~ Begin UVisual Interface
+	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
+	//~ End UVisual Interface
 
 	void HandleComboBoxOpened();
 	void HandleMenuOpenChanged(bool bOpen);
 
 protected:
-	TWeakPtr<SComboButton> MyComboButton;
+	TSharedPtr<SComboButton> MyComboButton;
 };

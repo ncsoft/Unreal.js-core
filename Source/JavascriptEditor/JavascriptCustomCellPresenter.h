@@ -6,13 +6,12 @@
 #include "IPropertyTableCellPresenter.h"
 #include "JavascriptPropertyTable.h"
 
-class FJavascriptInvalidCellPresenter : public TSharedFromThis< FJavascriptInvalidCellPresenter >, public IPropertyTableCellPresenter
+class FJavascriptCustomCellPresenter : public TSharedFromThis< FJavascriptCustomCellPresenter >, public IPropertyTableCellPresenter
 {
 public:
+	FJavascriptCustomCellPresenter(UJavascriptPropertyTable* InJavascriptPropertyTable, const TSharedRef< IPropertyTableCell >& InCell);
 
-	FJavascriptInvalidCellPresenter(UJavascriptPropertyTable* InJavascriptPropertyTable);
-
-	virtual ~FJavascriptInvalidCellPresenter() {}
+	virtual ~FJavascriptCustomCellPresenter() {}
 
 	virtual TSharedRef< class SWidget > ConstructDisplayWidget() override;
 
@@ -33,4 +32,5 @@ public:
 private:
 
 	UJavascriptPropertyTable* JavascriptPropertyTable;
+	TSharedRef< IPropertyTableCell > Cell;
 };

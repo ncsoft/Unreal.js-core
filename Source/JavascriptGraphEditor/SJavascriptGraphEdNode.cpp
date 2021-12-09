@@ -13,6 +13,7 @@
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SWindow.h"
+#include "Widgets/SInvalidationPanel.h"
 
 TSharedRef<FDragJavascriptGraphNode> FDragJavascriptGraphNode::New(const TSharedRef<SGraphNode>& InDraggedNode)
 {
@@ -111,37 +112,40 @@ void SJavascriptGraphEdNode::UpdateGraphNode()
 			.HAlign(HAlign_Fill)
 			.VAlign(VAlign_Fill)
 			[
-				SNew(SOverlay)
-				+SOverlay::Slot()
-				.Padding(Settings->GetNonPinNodeBodyPadding())
+				SNew(SInvalidationPanel)
 				[
-					SNew(SImage)
-					.Image(FEditorStyle::GetBrush("Graph.Node.Body"))
-					.ColorAndOpacity(this, &SGraphNode::GetNodeBodyColor)
-				]
-				+SOverlay::Slot()
-				[
-					SNew(SVerticalBox)
-					+ SVerticalBox::Slot()
-						.AutoHeight()
-						.HAlign(HAlign_Fill)
-						.VAlign(VAlign_Top)
-						[
-							GetTitleAreaWidget().ToSharedRef()
-						]
-					+ SVerticalBox::Slot()
-						.AutoHeight()
-						.HAlign(HAlign_Fill)
-						.VAlign(VAlign_Fill)
-						[
-							GetContentWidget().ToSharedRef()
-						]
-					+ SVerticalBox::Slot()
-						.AutoHeight()
-						.Padding(1.0f)
-						[
-							ErrorReportingWidget().ToSharedRef()
-						]
+					SNew(SOverlay)
+					+SOverlay::Slot()
+					.Padding(Settings->GetNonPinNodeBodyPadding())
+					[
+						SNew(SImage)
+						.Image(FEditorStyle::GetBrush("Graph.Node.Body"))
+						.ColorAndOpacity(this, &SGraphNode::GetNodeBodyColor)
+					]
+					+SOverlay::Slot()
+					[
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+							.AutoHeight()
+							.HAlign(HAlign_Fill)
+							.VAlign(VAlign_Top)
+							[
+								GetTitleAreaWidget().ToSharedRef()
+							]
+						+ SVerticalBox::Slot()
+							.AutoHeight()
+							.HAlign(HAlign_Fill)
+							.VAlign(VAlign_Fill)
+							[
+								GetContentWidget().ToSharedRef()
+							]
+						+ SVerticalBox::Slot()
+							.AutoHeight()
+							.Padding(1.0f)
+							[
+								ErrorReportingWidget().ToSharedRef()
+							]
+					]
 				]
 			]			
 		];
@@ -171,7 +175,8 @@ void SJavascriptGraphEdNode::UpdateGraphNode()
 
 	CreatePinWidgets();
 	CreateOutputSideAddButton(RightNodeBox);
-
+	CreateAdvancedViewArrow(LeftNodeBox);
+	SetRenderOpacity(GraphEdNode->RenderOpacity);
 	GraphEdNode->SlateGraphNode = SharedThis(this);
 }
 
@@ -325,8 +330,14 @@ void SJavascriptGraphEdNode::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 
 	FJavascriptEdGraphPin JavascriptGraphPin = FJavascriptEdGraphPin(const_cast<UEdGraphPin*>(PinObj));
 
-	bool bDisable = false;
 	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GraphNode->GetSchema());
+	if (Schema->OnEnablePin.IsBound())
+	{
+		bool bEnablePin = Schema->OnEnablePin.Execute(JavascriptGraphPin);
+		PinToAdd->SetEnabled(bEnablePin);
+	}
+
+	bool bDisable = false;
 	if (Schema->OnUsingDefaultPin.IsBound())
 	{
 		bDisable = Schema->OnUsingDefaultPin.Execute(JavascriptGraphPin);
@@ -496,7 +507,11 @@ bool SJavascriptGraphEdNode::InSelectionArea() const
 		(MouseZone == CRWZ_TopRightBorder) || (MouseZone == CRWZ_BottomLeftBorder));
 }
 
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27
+void SJavascriptGraphEdNode::MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter)
+#else
 void SJavascriptGraphEdNode::MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty)
+#endif
 {
 	auto GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphNode);
 	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GraphNode->GetSchema());
@@ -510,7 +525,11 @@ void SJavascriptGraphEdNode::MoveTo(const FVector2D& NewPosition, FNodeSet& Node
 		}
 	}
 	
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27
+	SGraphNode::MoveTo(NewPosition, NodeFilter);
+#else
 	SGraphNode::MoveTo(NewPosition, NodeFilter, bMarkDirty);
+#endif
 }
 
 bool SJavascriptGraphEdNode::RequiresSecondPassLayout() const
@@ -928,4 +947,64 @@ FReply SJavascriptGraphEdNode::OnAddPin()
 	}
 
 	return FReply::Handled();
+}
+
+void SJavascriptGraphEdNode::CreateAdvancedViewArrow(TSharedPtr<SVerticalBox> MainBox)
+{
+	const bool bHidePins = OwnerGraphPanelPtr.IsValid() && (OwnerGraphPanelPtr.Pin()->GetPinVisibility() != SGraphEditor::Pin_Show);
+	const bool bAnyAdvancedPin = GraphNode && (ENodeAdvancedPins::NoPins != GraphNode->AdvancedPinDisplay);
+	if (bAnyAdvancedPin && !bHidePins && GraphNode && MainBox.IsValid())
+	{
+		MainBox->AddSlot()
+			.AutoHeight()
+			.HAlign(HAlign_Fill)
+			.VAlign(VAlign_Top)
+			.Padding(3, 0, 3, 3)
+			[
+				SNew(SCheckBox)
+				.Visibility(this, &SJavascriptGraphEdNode::AdvancedViewArrowVisibility)
+			.OnCheckStateChanged(this, &SJavascriptGraphEdNode::OnAdvancedViewChanged)
+			.IsChecked(this, &SJavascriptGraphEdNode::IsAdvancedViewChecked)
+			.Cursor(EMouseCursor::Default)
+			.Style(FEditorStyle::Get(), "Graph.Node.AdvancedView")
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+			.VAlign(VAlign_Center)
+			.HAlign(HAlign_Center)
+			[
+				SNew(SImage)
+				.Image(this, &SJavascriptGraphEdNode::GetAdvancedViewArrow)
+			]
+			]
+			];
+	}
+}
+
+void SJavascriptGraphEdNode::OnAdvancedViewChanged(const ECheckBoxState NewCheckedState)
+{
+	if (GraphNode && (ENodeAdvancedPins::NoPins != GraphNode->AdvancedPinDisplay))
+	{
+		const bool bAdvancedPinsHidden = (NewCheckedState != ECheckBoxState::Checked);
+		GraphNode->AdvancedPinDisplay = bAdvancedPinsHidden ? ENodeAdvancedPins::Hidden : ENodeAdvancedPins::Shown;
+		UpdateGraphNode();
+	}
+}
+
+EVisibility SJavascriptGraphEdNode::AdvancedViewArrowVisibility() const
+{
+	const bool bShowAdvancedViewArrow = GraphNode && (ENodeAdvancedPins::NoPins != GraphNode->AdvancedPinDisplay);
+	return bShowAdvancedViewArrow ? EVisibility::Visible : EVisibility::Collapsed;
+}
+
+ECheckBoxState SJavascriptGraphEdNode::IsAdvancedViewChecked() const
+{
+	const bool bAdvancedPinsHidden = GraphNode && (ENodeAdvancedPins::Hidden == GraphNode->AdvancedPinDisplay);
+	return bAdvancedPinsHidden ? ECheckBoxState::Unchecked : ECheckBoxState::Checked;
+}
+
+const FSlateBrush* SJavascriptGraphEdNode::GetAdvancedViewArrow() const
+{
+	const bool bAdvancedPinsHidden = GraphNode && (ENodeAdvancedPins::Hidden == GraphNode->AdvancedPinDisplay);
+	return FEditorStyle::GetBrush(bAdvancedPinsHidden ? TEXT("Kismet.TitleBarEditor.ArrowDown") : TEXT("Kismet.TitleBarEditor.ArrowUp"));
 }

@@ -1,30 +1,27 @@
-﻿// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
-
-#pragma once
-
+﻿#pragma once
 #include "Components/Widget.h"
-#include "Types/SlateStructs.h"
-#include "JavascriptUMG/JavascriptUMGLibrary.h"
-#include "JavascriptGraphTextPropertyEditableTextBox.generated.h"
+#include "JavascriptUMGLibrary.h"
+#include "JavascriptFTextBox.generated.h"
 
-class FJavascriptEditableTextGraphPin;
+class FJavascriptEditableText;
 class STextPropertyEditableTextBox;
 
-/**
-*
-*/
 UCLASS()
-class JAVASCRIPTGRAPHEDITOR_API UJavascriptGraphTextPropertyEditableTextBox : public UWidget
+class JAVASCRIPTUMG_API UJavascriptFTextBox : public UWidget
 {
 	GENERATED_UCLASS_BODY()
-	
+
 public:
-	DECLARE_DYNAMIC_DELEGATE_RetVal(FJavascriptEdGraphPin, FOnGetGraphPin);
+	DECLARE_DYNAMIC_DELEGATE_RetVal(bool, FOnIsReadOnly);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FString, FOnIsValidText, const FString&, TextValue);
 	DECLARE_DYNAMIC_DELEGATE_RetVal(FJavascriptTextProperty, FOnGetDefaultValue);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEditableTextBoxCommittedEvent, const FJavascriptTextProperty&, TextProperty);
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
-	FOnGetGraphPin OnGetGraphPin;
+	FOnIsReadOnly OnIsReadOnly;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnIsValidText OnIsValidText;
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetDefaultValue OnGetDefaultValue;
@@ -42,6 +39,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Behavior, AdvancedDisplay)
 	bool AutoWrapText;
 
+#if WITH_EDITOR
 	/** When specified, will report the MinDesiredWidth if larger than the content's desired width */
 	FOptionalSize MinimumDesiredWidth;
 
@@ -59,6 +57,8 @@ public:
 	void HandleOnTextCommitted(const FText& InText);
 	void HandleOnStringTableKeyChanged(const FName& InTableId, const FString& InKey);
 
+	FText TextValue;
+	FText DefaultTextValue;
 protected:
 	// UWidget interface
 	virtual TSharedRef<SWidget> RebuildWidget() override;
@@ -66,6 +66,7 @@ protected:
 
 protected:
 	FJavascriptTextProperty MyTextProperty;
-	TSharedPtr<FJavascriptEditableTextGraphPin> MyEditableTextProperty;
+	TSharedPtr<FJavascriptEditableText> MyEditableTextProperty;
 	TSharedPtr<STextPropertyEditableTextBox> MyEditableTextBlock;
+#endif
 };
