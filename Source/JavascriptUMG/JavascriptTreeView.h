@@ -92,10 +92,10 @@ struct FJavascriptColumn
 	FString Id;
 
 	UPROPERTY()
-	float Width;
+	float Width = 0.f;
 
 	UPROPERTY(Transient)
-	UWidget* Widget;
+	UWidget* Widget = nullptr;
 };
 
 /**

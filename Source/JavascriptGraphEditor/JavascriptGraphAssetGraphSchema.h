@@ -38,7 +38,7 @@ struct FJavascriptPinConnectionResponse
 	FText Message;
 
 	UPROPERTY()
-	TEnumAsByte<enum ECanCreateConnectionResponse> Response;
+	TEnumAsByte<enum ECanCreateConnectionResponse> Response = ECanCreateConnectionResponse::CONNECT_RESPONSE_MAKE;
 };
 
 USTRUCT()
@@ -47,16 +47,16 @@ struct FPerformActionContext
 	GENERATED_BODY()
 
 	UPROPERTY()
-	class UEdGraph* ParentGraph;
+	class UEdGraph* ParentGraph = nullptr;
 
 	UPROPERTY()
 	TArray<FJavascriptEdGraphPin> FromPins;
 
 	UPROPERTY()
-	FVector2D Location;
+	FVector2D Location = FVector2D::ZeroVector;
 
 	UPROPERTY()
-	bool bSelectNewNode;
+	bool bSelectNewNode = false;
 };
 
 UCLASS(MinimalAPI)

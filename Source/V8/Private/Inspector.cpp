@@ -176,7 +176,8 @@ namespace {
 
 		virtual void PostReceiveMessage() override
 		{
-			platform_->CallOnForegroundThread(isolate_, new DispatchOnInspectorBackendTask(AsShared()));
+			std::shared_ptr<v8::TaskRunner> taskrunner = platform_->GetForegroundTaskRunner(isolate_);
+			taskrunner->PostTask(std::make_unique<DispatchOnInspectorBackendTask>(AsShared()));
 			isolate_->RequestInterrupt(InterruptCallback, new AgentRef{AsShared()});
 		}
 

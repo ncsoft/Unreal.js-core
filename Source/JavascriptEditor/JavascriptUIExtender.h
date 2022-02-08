@@ -12,7 +12,7 @@ struct FJavascriptMenuExtension
 	FName ExtensionHook;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
-	TEnumAsByte<EJavascriptExtensionHook::Type> HookPosition;
+	TEnumAsByte<EJavascriptExtensionHook::Type> HookPosition = EJavascriptExtensionHook::Before;
 };
 
 class UJavascriptUICommands;

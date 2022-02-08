@@ -69,6 +69,9 @@
 #include "ISourceControlProvider.h"
 #include "JavascriptEditorObjectManager.h"
 #include "JavascriptEditorModule.h"
+#include "SocketSubsystem.h"
+#include "Sockets.h"
+#include "IPAddress.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -172,51 +175,6 @@ bool UJavascriptEditorLibrary::GetLandscapeExtent(ULandscapeInfo* LandscapeInfo,
 ULandscapeLayerInfoObject* UJavascriptEditorLibrary::GetLayerInfoByName(ULandscapeInfo* LandscapeInfo, FName LayerName, ALandscapeProxy* Owner)
 {
 	return LandscapeInfo ? LandscapeInfo->GetLayerInfoByName(LayerName, Owner) : nullptr;
-}
-
-FJavascriptPopup UJavascriptEditorLibrary::OpenPopupWindow(UWidget* Widget, const FVector2D& PopupPosition, const FText& HeadingText, FJavascriptFunction Function)
-{
-	// Create the contents of the popup
-	TSharedRef<SWidget> ActualWidget = Widget->TakeWidget();
-
-	// Wrap the picker widget in a multibox-style menu body
-	FMenuBuilder MenuBuilder(/*BShouldCloseAfterSelection=*/ false, /*CommandList=*/ nullptr);
-	MenuBuilder.BeginSection("OpenPopupWindow", HeadingText);
-	MenuBuilder.AddWidget(ActualWidget, FText::GetEmpty(), /*bNoIndent=*/ true);
-	MenuBuilder.EndSection();
-
-	// Determine where the pop-up should open
-	// TSharedPtr<SWindow> ParentWindow = FSlateApplication::Get().GetActiveTopLevelWindow();
-	// FVector2D WindowPosition = FSlateApplication::Get().GetCursorPos();
-
-	FJavascriptPopup Out;
-	TSharedPtr<SWindow> ParentWindow = FSlateApplication::Get().FindBestParentWindowForDialogs(ActualWidget, ESlateParentWindowSearchMethod::ActiveWindow);
-	if (ParentWindow.IsValid())
-	{
-		// Open the pop-up
-		FPopupTransitionEffect TransitionEffect(FPopupTransitionEffect::TopMenu);
-		Out.Menu = FSlateApplication::Get().PushMenu(ParentWindow.ToSharedRef(), FWidgetPath(), MenuBuilder.MakeWidget(), PopupPosition, TransitionEffect, /*bFocusImmediately=*/ true, FVector2D::ZeroVector, EPopupMethod::CreateNewWindow
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27
-			, EShouldThrottle::No);
-#else
-			, true);
-#endif
-		TSharedPtr<FJavascriptFunction> Copy(new FJavascriptFunction);
-		*(Copy.Get()) = Function;
-		Out.Menu->GetOnMenuDismissed().AddLambda([Copy](TSharedRef<IMenu> Self) {
-			Copy->Execute();
-		});
-	}
-
-	return Out;
-}
-
-void UJavascriptEditorLibrary::ClosePopupWindow(FJavascriptPopup PopupHandle)
-{
-	if (PopupHandle.Menu.IsValid())
-	{
-		PopupHandle.Menu->Dismiss();
-	}
 }
 
 void UJavascriptEditorLibrary::GetAllTags(const FJavascriptAssetData& AssetData, TArray<FName>& OutArray)
@@ -1635,6 +1593,34 @@ UJavascriptEditorObjectManager* UJavascriptEditorLibrary::GetEditorObjectManager
 		EditorObjectManager = JSEditorModule->GetEditorObjectManager();
 	}
 	return EditorObjectManager;
+}
+
+FString UJavascriptEditorLibrary::GetHostName()
+{
+	ISocketSubsystem* const SocketSubSystem = ISocketSubsystem::Get();
+	FString HostName = "";
+
+	if (SocketSubSystem)
+	{
+		SocketSubSystem->GetHostName(HostName);
+	}
+
+	return HostName;
+}
+
+FString UJavascriptEditorLibrary::GetIPAddress()
+{
+	ISocketSubsystem* const SocketSubSystem = ISocketSubsystem::Get();
+	FString IPAddress = "";
+
+	if (SocketSubSystem)
+	{
+		bool canBind = false;
+		TSharedRef<FInternetAddr> localIp = SocketSubSystem->GetLocalHostAddr(*GLog, canBind);
+		if (localIp->IsValid()) IPAddress = localIp->ToString(false);
+	}
+
+	return IPAddress;
 }
 
 #endif

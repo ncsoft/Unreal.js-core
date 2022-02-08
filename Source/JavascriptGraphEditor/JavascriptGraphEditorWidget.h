@@ -145,4 +145,5 @@ protected:
 	void HandleOnNodeDoubleClicked(UEdGraphNode* Node);
 	void HandleDropActors(const TArray< TWeakObjectPtr<class AActor> >& Actors, class UEdGraph* Graph, const FVector2D& Point);
 	void HandleDisallowedPinConnection(const UEdGraphPin*, const UEdGraphPin*);
+	void HandleNodeTextCommitted(const FText& NewText, ETextCommit::Type CommitInfo, UEdGraphNode* NodeBeingChanged);
 };

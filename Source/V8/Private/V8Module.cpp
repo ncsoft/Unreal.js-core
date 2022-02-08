@@ -54,7 +54,11 @@ static FAutoConsoleCommand ToggleEnableV8Hotreload(
 UJavascriptSettings::UJavascriptSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+#if PLATFORM_IOS
+	V8Flags = TEXT("--harmony --harmony-shipping --es-staging --expose-gc --jitless");
+#else
 	V8Flags = TEXT("--harmony --harmony-shipping --es-staging --expose-gc");
+#endif
 	bEnableHotReload = true;
 }
 
@@ -67,9 +71,11 @@ class FUnrealJSPlatform : public v8::Platform
 {
 private:
 	std::unique_ptr<v8::Platform> platform_;
+#if V8_MAJOR_VERSION < 9
 	TQueue<v8::IdleTask*> IdleTasks;
 	FTickerDelegate TickDelegate;
 	FDelegateHandle TickHandle;
+#endif
 	bool bActive{ true };
 
 public:
@@ -80,20 +86,26 @@ public:
 	FUnrealJSPlatform() 
 		: platform_(platform::NewDefaultPlatform(0, platform::IdleTaskSupport::kEnabled))
 	{
+#if V8_MAJOR_VERSION < 9
 		TickDelegate = FTickerDelegate::CreateRaw(this, &FUnrealJSPlatform::HandleTicker);
 		TickHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);
+#endif
 	}
 
 	~FUnrealJSPlatform()
 	{
+#if V8_MAJOR_VERSION < 9
 		FTicker::GetCoreTicker().RemoveTicker(TickHandle);
+#endif
 		platform_.release();
 	}
 
 	void Shutdown()
 	{
 		bActive = false;
+#if V8_MAJOR_VERSION < 9
 		RunIdleTasks(FLT_MAX);
+#endif
 	}
 	virtual int NumberOfWorkerThreads() { return platform_->NumberOfWorkerThreads(); }
 
@@ -102,10 +114,34 @@ public:
 		return platform_->GetForegroundTaskRunner(isolate);
 	}
 
+#if V8_MAJOR_VERSION < 9
 	virtual void CallOnForegroundThread(Isolate* isolate, Task* task)
 	{
-		platform_->CallOnForegroundThread(isolate, task);
+		std::shared_ptr<v8::TaskRunner> taskrunner =
+			platform_->GetForegroundTaskRunner(isolate);
+		taskrunner->PostTask(std::make_unique<Task>(task));
 	}
+
+	virtual void CallDelayedOnForegroundThread(Isolate* isolate, Task* task,
+		double delay_in_seconds)
+	{
+		std::shared_ptr<v8::TaskRunner> taskrunner =
+			platform_->GetForegroundTaskRunner(isolate);
+		taskrunner->PostDelayedTask(std::make_unique<Task>(task), delay_in_seconds);
+	}
+
+	virtual void CallIdleOnForegroundThread(Isolate* isolate, IdleTask* task)
+	{
+		IdleTasks.Enqueue(task);
+	}
+#else
+	std::unique_ptr<JobHandle> PostJob(
+		TaskPriority priority, std::unique_ptr<JobTask> job_task) override
+	{
+		return v8::platform::NewDefaultJobHandle(
+			this, priority, std::move(job_task), NumberOfWorkerThreads());
+	}
+#endif
 
 	virtual void CallOnWorkerThread(std::unique_ptr<Task> task)
 	{
@@ -115,18 +151,7 @@ public:
 	virtual void CallDelayedOnWorkerThread(std::unique_ptr<Task> task,
 		double delay_in_seconds)
 	{
-		platform_->CallOnWorkerThread(std::move(task));
-	}
-
-	virtual void CallDelayedOnForegroundThread(Isolate* isolate, Task* task,
-		double delay_in_seconds)
-	{
-		platform_->CallOnForegroundThread(isolate, task);
-	}
-
-	virtual void CallIdleOnForegroundThread(Isolate* isolate, IdleTask* task) 
-	{
-		IdleTasks.Enqueue(task);
+		platform_->CallDelayedOnWorkerThread(std::move(task), delay_in_seconds);
 	}
 
 	virtual bool IdleTasksEnabled(Isolate* isolate) 
@@ -153,6 +178,7 @@ public:
 	}
 #endif
 
+#if V8_MAJOR_VERSION < 9
 	void RunIdleTasks(float Budget)
 	{
 		float Start = FPlatformTime::Seconds();
@@ -181,6 +207,7 @@ public:
 		RunIdleTasks(FMath::Max<float>(0, GV8IdleTaskBudget - DeltaTime));
 		return true;
 	}
+#endif
 };
 
 class FV8Module : public IV8
@@ -351,7 +378,7 @@ public:
 
 	virtual void SetFlagsFromString(const FString& V8Flags) override
 	{
-		V8::SetFlagsFromString(TCHAR_TO_ANSI(*V8Flags), strlen(TCHAR_TO_ANSI(*V8Flags)));
+		V8::SetFlagsFromString(TCHAR_TO_ANSI(*V8Flags));
 	}
 
 	virtual bool IsEnableHotReload() const override

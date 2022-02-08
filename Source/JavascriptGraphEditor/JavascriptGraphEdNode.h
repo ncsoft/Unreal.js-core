@@ -59,7 +59,7 @@ public:
 	virtual void PinConnectionListChanged(UEdGraphPin* Pin) override;
 
 	UJavascriptGraphEdGraph* GetGenericGraphEdGraph();
-	TSharedPtr<SJavascriptGraphEdNode> GetNodeSlateWidget() const;
+	TSharedPtr<SGraphNode> GetNodeSlateWidget() const;
 
 	virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const;
 	virtual FText GetDescription() const;
@@ -121,7 +121,7 @@ public:
 	UPROPERTY()
 	TMap<FName, UObject*> PinRefMap;
 
-	TWeakPtr<SJavascriptGraphEdNode> SlateGraphNode;
+	TWeakPtr<SGraphNode> SlateGraphNode;
 
 	bool bTitleSelectionOnly;
 	float TitleHeight;

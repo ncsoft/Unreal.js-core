@@ -42,7 +42,7 @@ struct FJavascriptUICommand
 	FInputChord DefaultChord;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
-	TEnumAsByte<EJavasrciptUserInterfaceActionType::Type> ActionType;
+	TEnumAsByte<EJavasrciptUserInterfaceActionType::Type> ActionType = EJavasrciptUserInterfaceActionType::None;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
 	FJavascriptUICommandInfo CommandInfo;

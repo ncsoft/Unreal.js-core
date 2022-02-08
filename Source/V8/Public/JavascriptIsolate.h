@@ -79,28 +79,28 @@ struct V8_API FJavascriptHeapStatistics
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
-	int32 TotalHeapSize;
+	int32 TotalHeapSize = 0;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
-	int32 TotalHeapSizeExecutable;
+	int32 TotalHeapSizeExecutable = 0;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
-	int32 TotalPhysicalSize;
+	int32 TotalPhysicalSize = 0;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
-	int32 TotalAvailableSize;
+	int32 TotalAvailableSize = 0;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
-	int32 UsedHeapSize;
+	int32 UsedHeapSize = 0;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
-	int32 HeapSizeLimit;
+	int32 HeapSizeLimit = 0;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
-	int32 MallocedMemory;
+	int32 MallocedMemory = 0;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
-	bool bDoesZapGarbage;
+	bool bDoesZapGarbage = false;
 };
 
 UCLASS()

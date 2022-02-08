@@ -52,6 +52,11 @@ public:
 	FJavascriptInGameScene(ConstructionValues CVS = ConstructionValues());
 	virtual ~FJavascriptInGameScene();
 
+	virtual FString GetReferencerName() const
+	{
+		return "FJavascriptInGameScene";
+	}
+
 	/**
 	* Adds a component to the preview scene.  This attaches the component to the scene, and takes ownership of it.
 	*/

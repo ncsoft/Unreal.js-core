@@ -13,7 +13,7 @@ public class JavascriptWebSocket : ModuleRules
             "Engine",
             "V8",
             "Sockets",
-            "OnlineSubSystemUtils",
+            "OnlineSubsystemUtils",
             "Networking"
         });
 

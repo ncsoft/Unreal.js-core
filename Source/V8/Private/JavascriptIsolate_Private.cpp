@@ -99,22 +99,37 @@ struct TStructReader
 
 	bool Read(Isolate* isolate, Local<Value> Value, CppType& Target) const;
 };
-
+#if V8_MAJOR_VERSION < 9
 static v8::ArrayBuffer::Contents GCurrentContents;
+#else
+static std::shared_ptr<v8::BackingStore> GCurrentBackingStore;
+#endif
 
 int32 FArrayBufferAccessor::GetSize()
 {
+#if V8_MAJOR_VERSION < 9
 	return GCurrentContents.ByteLength();
+#else
+	return GCurrentBackingStore->ByteLength();
+#endif
 }
 
 void* FArrayBufferAccessor::GetData()
 {
+#if V8_MAJOR_VERSION < 9
 	return GCurrentContents.Data();
+#else
+	return GCurrentBackingStore->Data();
+#endif
 }
 
 void FArrayBufferAccessor::Discard()
 {
+#if V8_MAJOR_VERSION < 9
 	GCurrentContents = v8::ArrayBuffer::Contents();
+#else
+	GCurrentBackingStore = v8::ArrayBuffer::NewBackingStore(nullptr, 0, v8::BackingStore::EmptyDeleter, nullptr);
+#endif
 }
 
 const FName FJavascriptIsolateConstant::MD_BitmaskEnum(TEXT("BitmaskEnum"));
@@ -138,6 +153,7 @@ public:
 	FDelegateHandle TickHandle;
 	bool bIsEditor;
 	UnrealConsoleDelegate* _UnrealConsoleDelegate = nullptr;
+	const uint8 ZeroMemory[100] = {0,};
 
 	struct FObjectPropertyAccessors
 	{
@@ -448,6 +464,7 @@ public:
 	{
 		auto platform = reinterpret_cast<v8::Platform*>(IV8::Get().GetV8Platform());
 		v8::platform::PumpMessageLoop(platform,isolate_);
+		v8::platform::RunIdleTasks(platform, isolate_, DeltaTime);
 		return true;
 	}
 
@@ -477,6 +494,11 @@ public:
 				{
 					auto Function = *FuncIt;
 					TFieldIterator<FProperty> It(Function);
+
+					if (Function->GetName() == TEXT("GeneratedClass"))
+					{
+						continue;
+					}
 
 					// It should be a static function
 					if ((Function->FunctionFlags & FUNC_Static) && It)
@@ -597,6 +619,10 @@ public:
 		{
 			return Number::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
 		}
+		else if (auto p = CastField<FDoubleProperty>(Property))
+		{
+			return Number::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+		}
 		else if (auto p = CastField<FBoolProperty>(Property))
 		{
             return v8::Boolean::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
@@ -616,6 +642,13 @@ public:
 			const FText& Data = p->GetPropertyValue_InContainer(Buffer);
 			if (!Flags.Alternative)
 			{
+				///@hack: Support uninitialized ftext (e.g. function prototype parameter properties)
+				const uint8* buf = p->ContainerPtrToValuePtr<uint8>(Buffer);
+				if (!FMemory::Memcmp(buf, (const void*)&ZeroMemory, sizeof(FText)))
+				{
+					return V8_String(isolate_, "EmptyString");
+				}
+
 				return V8_String(isolate_, Data.ToString());
 			}
 			else
@@ -851,6 +884,10 @@ public:
 			p->SetPropertyValue_InContainer(Buffer, Value->Int32Value(isolate_->GetCurrentContext()).ToChecked());
 		}
 		else if (auto p = CastField<FFloatProperty>(Property))
+		{
+			p->SetPropertyValue_InContainer(Buffer, Value->NumberValue(isolate_->GetCurrentContext()).ToChecked());
+		}
+		else if (auto p = CastField<FDoubleProperty>(Property))
 		{
 			p->SetPropertyValue_InContainer(Buffer, Value->NumberValue(isolate_->GetCurrentContext()).ToChecked());
 		}
@@ -1318,7 +1355,12 @@ public:
 
 				if (Source)
 				{
+#if V8_MAJOR_VERSION < 9
 					auto ab = ArrayBuffer::New(isolate, Source->GetMemory(), Source->GetSize());
+#else
+					auto backing_store = ArrayBuffer::NewBackingStore(Source->GetMemory(), Source->GetSize(), v8::BackingStore::EmptyDeleter, nullptr);
+					auto ab = ArrayBuffer::New(isolate, std::move(backing_store));
+#endif
 					(void)ab->Set(context, I.Keyword("$source"), info[0]);
 					info.GetReturnValue().Set(ab);
 					return;
@@ -1337,18 +1379,28 @@ public:
 			{
 				auto arr = info[0].As<ArrayBuffer>();
 				auto function = info[1].As<Function>();
-
-				GCurrentContents = arr->GetContents();
-
+#if V8_MAJOR_VERSION < 9
+				GCurrentContents = v8::ArrayBuffer::Contents();
+#else
+				GCurrentBackingStore = arr->GetBackingStore();
+#endif
 				Handle<Value> argv[1];
 				argv[0] = arr;
 				(void)function->Call(isolate->GetCurrentContext(), info.This(), 1, argv);
 
+#if V8_MAJOR_VERSION < 9
 				GCurrentContents = v8::ArrayBuffer::Contents();
+#else
+				GCurrentBackingStore = v8::ArrayBuffer::NewBackingStore(isolate, 0);
+#endif
 			}
 			else
 			{
+#if V8_MAJOR_VERSION < 9
 				GCurrentContents = v8::ArrayBuffer::Contents();
+#else
+				GCurrentBackingStore = v8::ArrayBuffer::NewBackingStore(isolate, 0);
+#endif
 			}
 
 			info.GetReturnValue().Set(info.Holder());
@@ -1358,17 +1410,26 @@ public:
 		FnHelper.Set("bind", [](const FunctionCallbackInfo<Value>& info)
 		{
 			UE_LOG(Javascript, Warning, TEXT("memory.bind is deprecated. use memory.exec(ab,fn) instead."));
-			FIsolateHelper I(info.GetIsolate());
+			auto isolate = info.GetIsolate();
+			FIsolateHelper I(isolate);
 
 			if (info.Length() == 1 && info[0]->IsArrayBuffer())
 			{
 				auto arr = info[0].As<ArrayBuffer>();
 
+#if V8_MAJOR_VERSION < 9
 				GCurrentContents = arr->Externalize();
+#else
+				GCurrentBackingStore = arr->GetBackingStore();
+#endif
 			}
 			else
 			{
+#if V8_MAJOR_VERSION < 9
 				GCurrentContents = v8::ArrayBuffer::Contents();
+#else
+				GCurrentBackingStore = v8::ArrayBuffer::NewBackingStore(isolate, 0);
+#endif
 			}
 
 			info.GetReturnValue().Set(info.Holder());
@@ -1377,18 +1438,26 @@ public:
 		// memory.unbind
 		FnHelper.Set("unbind", [](const FunctionCallbackInfo<Value>& info)
 		{
-			FIsolateHelper I(info.GetIsolate());
+			auto isolate = info.GetIsolate();
+			FIsolateHelper I(isolate);
 
 			if (info.Length() == 1 && info[0]->IsArrayBuffer())
 			{
 				auto arr = info[0].As<ArrayBuffer>();
 
+#if V8_MAJOR_VERSION < 9
 				if (arr->IsNeuterable())
 				{
 					arr->Neuter();
-
 					GCurrentContents = v8::ArrayBuffer::Contents();
 				}
+#else
+				if (arr->IsDetachable())
+				{
+					arr->Detach();
+					GCurrentBackingStore = v8::ArrayBuffer::NewBackingStore(isolate, 0);
+				}
+#endif
 				else
 				{
 					I.Throw(TEXT("ArrayBuffer is not neuterable"));
@@ -1415,9 +1484,13 @@ public:
 					if (data->IsArrayBuffer())
 					{
 						auto arr = data.As<ArrayBuffer>();
+#if V8_MAJOR_VERSION < 9
 						auto Contents = arr->Externalize();
-
 						Ar->Serialize(Contents.Data(), Contents.ByteLength());
+#else
+						auto Contents = arr->GetBackingStore();
+						Ar->Serialize(Contents->Data(), Contents->ByteLength());
+#endif
 					}
 
 					delete Ar;
@@ -2427,9 +2500,12 @@ public:
 					if (FV8Config::CanExportProperty(Class, Property) && MatchPropertyName(Property,PropertyNameToAccess))
 					{
 						Handle<Value> argv[1];
-
+#if V8_MAJOR_VERSION < 9
 						argv[0] = ArrayBuffer::New(isolate, helper.GetRawPtr(), helper.Num() * p->Inner->GetSize());
-
+#else
+						auto backing_store = ArrayBuffer::NewBackingStore(helper.GetRawPtr(), helper.Num() * p->Inner->GetSize(), v8::BackingStore::EmptyDeleter, nullptr);
+						argv[0] = ArrayBuffer::New(isolate, std::move(backing_store));
+#endif
 						auto out = function->Call(Context, info.This(), 1, argv).ToLocalChecked();
 						info.GetReturnValue().Set(out);
 						break;

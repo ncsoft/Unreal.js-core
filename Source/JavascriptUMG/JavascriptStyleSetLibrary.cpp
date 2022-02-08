@@ -1,4 +1,4 @@
-#include "JavascriptStyleSetLibrary.h"
+﻿#include "JavascriptStyleSetLibrary.h"
 #include "Styling/SlateStyle.h"
 #include "Styling/SlateStyleRegistry.h"
 
@@ -12,6 +12,8 @@ static UStruct* Struct_CheckBoxStyle;
 static UStruct* Struct_ComboBoxStyle;
 static UStruct* Struct_ComboButtonStyle;
 static UStruct* Struct_ProgressBarStyle;
+static UStruct* Struct_SpinBoxStyle;
+static UStruct* Struct_TableRowStyle;
 
 void Prepare()
 {
@@ -33,6 +35,8 @@ void Prepare()
 	prepare(Struct_ComboBoxStyle, TEXT("ComboBoxStyle"));
 	prepare(Struct_ComboButtonStyle, TEXT("ComboButtonStyle"));
 	prepare(Struct_ProgressBarStyle, TEXT("ProgressBarStyle"));
+	prepare(Struct_SpinBoxStyle, TEXT("SpinBoxStyle"));
+	prepare(Struct_TableRowStyle, TEXT("TableRowStyle"));
 }
 
 FSlateColor Fixup(const FSlateColor& Src)
@@ -143,6 +147,16 @@ FComboButtonStyle UJavascriptStyleSetLibrary::GetComboButtonStyle(const FJavascr
 FProgressBarStyle UJavascriptStyleSetLibrary::GetProgressBarStyle(const FJavascriptStyleSet& Handle, const FName& StyleName)
 {
 	return FixupWidgetStyle<FProgressBarStyle>(Handle, Struct_ProgressBarStyle, StyleName);
+}
+
+FSpinBoxStyle UJavascriptStyleSetLibrary::GetSpinBoxStyle(const FJavascriptStyleSet& Handle, const FName& StyleName)
+{
+	return FixupWidgetStyle<FSpinBoxStyle>(Handle, Struct_SpinBoxStyle, StyleName);
+}
+
+FTableRowStyle UJavascriptStyleSetLibrary::GetTableRowStyle(const FJavascriptStyleSet& Handle, const FName& StyleName)
+{
+	return FixupWidgetStyle<FTableRowStyle>(Handle, Struct_TableRowStyle, StyleName);
 }
 
 FMargin UJavascriptStyleSetLibrary::GetMargin(const FJavascriptStyleSet& Handle, const FName& StyleName)

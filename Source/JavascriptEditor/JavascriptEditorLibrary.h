@@ -161,21 +161,6 @@ namespace EJavascriptRHIFeatureLevel
 	};
 }
 
-USTRUCT(BlueprintType)
-struct FJavascriptPopup
-{
-	GENERATED_BODY()
-
-	FJavascriptPopup()
-	{}
-
-	FJavascriptPopup(IMenu* InMenu)
-		: Menu(InMenu)
-	{}
-
-	TSharedPtr<IMenu> Menu;
-};
-
 UCLASS()
 class JAVASCRIPTEDITOR_API UJavascriptLazyExtenderDelegates : public UObject
 {
@@ -241,12 +226,6 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool GetLandscapeExtent(ULandscapeInfo* LandscapeInfo, int32& MinX, int32& MinY, int32& MaxX, int32& MaxY);
-
-	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static FJavascriptPopup OpenPopupWindow(UWidget* Widget, const FVector2D& PopupPosition, const FText& HeadingText, FJavascriptFunction Function);
-
-	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static void ClosePopupWindow(FJavascriptPopup Handle);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void GetAllTags(const FJavascriptAssetData& AssetData, TArray<FName>& OutArray);
@@ -615,5 +594,10 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static class UJavascriptEditorObjectManager* GetEditorObjectManager();
 
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FString GetHostName();
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FString GetIPAddress();
 #endif
 };

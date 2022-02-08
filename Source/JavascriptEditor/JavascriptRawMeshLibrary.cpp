@@ -69,7 +69,7 @@ UBodySetup* UJavascriptRawMeshLibrary::GetPhysicsBodySetupFromStaticMesh(UStatic
 		return nullptr;
 	}
 
-	return InStaticMesh->BodySetup;
+	return InStaticMesh->GetBodySetup();
 }
 
 
