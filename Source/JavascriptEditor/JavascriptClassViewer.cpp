@@ -92,13 +92,13 @@ TSharedRef<SWidget> UJavascriptClassViewer::RebuildWidget()
 					.VAlign(VAlign_Center)
 					[
 						SNew(SButton)
-						.ButtonStyle(FEditorStyle::Get(), "NoBorder")
+						.ButtonStyle(FEditorStyle::Get(), "SimpleButton")
 						.OnClicked(FOnClicked::CreateLambda([this]() { return OnClickUse(); }))
 						.ContentPadding(1.f)
 						.ToolTipText(NSLOCTEXT("GraphEditor", "ObjectGraphPin_Use_Tooltip", "Use asset browser selection"))
 						[
 							SNew(SImage)
-							.Image(FEditorStyle::GetBrush(TEXT("PropertyWindow.Button_Use")))
+							.Image(FEditorStyle::GetBrush(TEXT("Icons.Use")))
 						]
 					]
 					// Browse button
@@ -108,13 +108,13 @@ TSharedRef<SWidget> UJavascriptClassViewer::RebuildWidget()
 					.VAlign(VAlign_Center)
 					[
 						SNew(SButton)
-						.ButtonStyle(FEditorStyle::Get(), "NoBorder")
+						.ButtonStyle(FEditorStyle::Get(), "SimpleButton")
 						.OnClicked(FOnClicked::CreateLambda([this]() { return OnClickBrowse(); }))
 						.ContentPadding(0)
 						.ToolTipText(NSLOCTEXT("GraphEditor", "ObjectGraphPin_Browse_Tooltip", "Browse"))
 						[
 							SNew(SImage)
-							.Image(FEditorStyle::GetBrush(TEXT("PropertyWindow.Button_Browse")))
+							.Image(FEditorStyle::GetBrush(TEXT("Icons.BrowseContent")))
 						]
 					]
 				]

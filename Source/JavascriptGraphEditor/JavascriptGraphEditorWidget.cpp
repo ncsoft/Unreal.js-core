@@ -16,6 +16,7 @@ TSharedRef<SWidget> UJavascriptGraphEditorWidget::RebuildWidget()
 	InEvents.OnNodeDoubleClicked = BIND_UOBJECT_DELEGATE(FSingleNodeEvent, HandleOnNodeDoubleClicked);
 	InEvents.OnDropActor = BIND_UOBJECT_DELEGATE(SGraphEditor::FOnDropActor, HandleDropActors);
 	InEvents.OnDisallowedPinConnection = BIND_UOBJECT_DELEGATE(SGraphEditor::FOnDisallowedPinConnection, HandleDisallowedPinConnection);
+	InEvents.OnTextCommitted = BIND_UOBJECT_DELEGATE(FOnNodeTextCommitted, HandleNodeTextCommitted);
 
 	if (!EdGraph) return SNew(SBox);
 
@@ -202,6 +203,15 @@ void UJavascriptGraphEditorWidget::HandleDropActors(const TArray< TWeakObjectPtr
 void UJavascriptGraphEditorWidget::HandleDisallowedPinConnection(const UEdGraphPin* A, const UEdGraphPin* B)
 {
 	OnDisallowedPinConnection.ExecuteIfBound(const_cast<UEdGraphPin*>(A), const_cast<UEdGraphPin*>(B));
+}
+
+void UJavascriptGraphEditorWidget::HandleNodeTextCommitted(const FText& NewText, ETextCommit::Type CommitInfo, UEdGraphNode* NodeBeingChanged)
+{
+	if (::IsValid(NodeBeingChanged))
+	{
+		NodeBeingChanged->Modify();
+		NodeBeingChanged->OnRenameNode(NewText.ToString());
+	}
 }
 
 void UJavascriptGraphEditorWidget::NotifyGraphChanged()

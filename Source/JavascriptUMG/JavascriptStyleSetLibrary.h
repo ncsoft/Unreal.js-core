@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Styling/SlateTypes.h"
@@ -39,6 +39,10 @@ public:
 	static FComboButtonStyle GetComboButtonStyle(const FJavascriptStyleSet& Handle, const FName& StyleName);
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	static FProgressBarStyle GetProgressBarStyle(const FJavascriptStyleSet& Handle, const FName& StyleName);
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	static FSpinBoxStyle GetSpinBoxStyle(const FJavascriptStyleSet& Handle, const FName& StyleName);
+	UFUNCTION(BlueprintCallable, Category = "Javascript")
+	static FTableRowStyle GetTableRowStyle(const FJavascriptStyleSet& Handle, const FName& StyleName);
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
 	static FMargin GetMargin(const FJavascriptStyleSet& Handle, const FName& StyleName);
 	UFUNCTION(BlueprintCallable, Category = "Javascript")
@@ -85,4 +89,10 @@ public:
 
 	UPROPERTY()
 	FProgressBarStyle ProgressBarStyle;
+
+	UPROPERTY()
+	FSpinBoxStyle SpinBoxStyle;
+
+	UPROPERTY()
+	FTableRowStyle TableRowStyle;
 };

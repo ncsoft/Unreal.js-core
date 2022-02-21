@@ -70,6 +70,18 @@ void UJavascriptUMGLibrary::AddFontInfo(FJavascriptSlateStyle StyleSet, FName Pr
 	StyleSet.Handle->Set(PropertyName, FontInfo);
 }
 
+void UJavascriptUMGLibrary::AddButtonStyle(FJavascriptSlateStyle StyleSet, FName PropertyName, const FButtonStyle& ButtonStyle)
+{
+	StyleSet.Handle->Set(PropertyName, ButtonStyle);
+}
+
+void UJavascriptUMGLibrary::SetParentStyleName(FJavascriptSlateStyle StyleSet, const FName& InParentStyleName)
+{
+#if ENGINE_MAJOR_VERSION == 5
+	StyleSet.Handle->SetParentStyleName(InParentStyleName);
+#endif
+}
+
 FJavascriptSlateWidget UJavascriptUMGLibrary::TakeWidget(UWidget* Widget)
 {
 	FJavascriptSlateWidget Out;
@@ -141,4 +153,9 @@ FVector2D UJavascriptUMGLibrary::GenerateDynamicImageResource(const FName InDyna
 {
 	FIntPoint Size = FSlateApplication::Get().GetRenderer()->GenerateDynamicImageResource(InDynamicBrushName);
 	return FVector2D(Size.X, Size.Y);
+}
+
+FGeometry UJavascriptUMGLibrary::GetUIGeometry(UWidget* Widget)
+{
+	return Widget->GetCachedGeometry();
 }

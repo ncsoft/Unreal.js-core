@@ -17,7 +17,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 
 	bShowLabel = true;
 
-	Visibility = TAttribute<EVisibility>(this, &SJavascriptGraphPin::GetPinVisiblity);
+	SetVisibility(TAttribute<EVisibility>(this, &SJavascriptGraphPin::GetPinVisiblity));
 
 	GraphPinObj = InPin;
 	check(GraphPinObj != NULL);
@@ -219,15 +219,14 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 		[
 			SNew(SLevelOfDetailBranchNode)
 			.UseLowDetailSlot(this, &ThisClass::UseLowDetailPinNames)
-		.LowDetail()
-		[
-			//@TODO: Try creating a pin-colored line replacement that doesn't measure text / call delegates but still renders
-			ActualPinWidget
-		]
-	.HighDetail()
-		[
-			PinContent.ToSharedRef()
-		]
+			.LowDetail()
+			[
+				SNew(SSpacer)
+			]
+			.HighDetail()
+			[
+				PinContent.ToSharedRef()
+			]
 		]
 	);
 

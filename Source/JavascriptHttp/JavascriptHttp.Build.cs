@@ -10,7 +10,7 @@ public class JavascriptHttp : ModuleRules
             "CoreUObject", 
             "Engine",             
             "V8",
-            "Http"
+            "HTTP"
         });
 
         if (Target.bBuildEditor == true)

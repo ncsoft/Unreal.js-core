@@ -38,13 +38,13 @@ public:
 	FString Name;
 
 	UPROPERTY()
-	bool bComplexTask;
+	bool bComplexTask = false;
 
 	UPROPERTY()
-	int32 TestFlags;
+	int32 TestFlags = 0;
 
 	UPROPERTY()
-	int32 RequiredDeviceNum;
+	int32 RequiredDeviceNum = 0;
 
 	UPROPERTY()
 	TArray<FString> TestFunctionNames;

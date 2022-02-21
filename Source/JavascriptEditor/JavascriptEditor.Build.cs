@@ -25,6 +25,7 @@ public class JavascriptEditor : ModuleRules
     public JavascriptEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
         PublicDependencyModuleNames.AddRange(
                 new string[]
 				{
@@ -44,7 +45,16 @@ public class JavascriptEditor : ModuleRules
                     "JavascriptUMG",
                     "DetailCustomizations"
                 }
-            );	// @todo Mac: for some reason CoreUObject and Engine are needed to link in debug on Mac
+            );  // @todo Mac: for some reason CoreUObject and Engine are needed to link in debug on Mac
+
+        var vers = ParseEditorVersions();
+        var EngineMajorVer = vers[0];
+        var EngineMinorVer = vers[1];
+
+        if (EngineMajorVer > 4)
+        {
+            PublicDependencyModuleNames.Add("BSPUtils");
+        }
 
         if (Target.bBuildEditor == true)
         {
@@ -54,10 +64,6 @@ public class JavascriptEditor : ModuleRules
                     "AssetRegistry",
                 }
             );
-
-            var vers = ParseEditorVersions();
-            var EngineMajorVer = vers[0];
-            var EngineMinorVer = vers[1];
 
             // Is VREditor Needed?
             if (EngineMajorVer > 4 || EngineMinorVer >= 14)
@@ -102,7 +108,8 @@ public class JavascriptEditor : ModuleRules
                         "Media",
                         "SlateNullRenderer",
                         "SlateRHIRenderer",
-                        "SourceControl"
+                        "SourceControl",
+                        "Sockets"
                     }
             );
 

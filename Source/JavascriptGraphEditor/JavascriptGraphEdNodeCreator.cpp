@@ -1,4 +1,4 @@
-#include "JavascriptGraphEdNodeCreator.h"
+﻿#include "JavascriptGraphEdNodeCreator.h"
 #include "JavascriptGraphEdNode.h"
 
 // Begin of FDefaultJavascriptGraphNodeCreator
@@ -68,3 +68,26 @@ void FCustomJavascriptGraphNodeCreator::Finalize()
 	}
 }
 // End of FCustomJavascriptGraphNodeCreator
+
+// Begin of FCommentJavascriptGraphNodeCreator
+FCommentJavascriptGraphNodeCreator::FCommentJavascriptGraphNodeCreator(UJavascriptGraphEdGraph* InGraph)
+	: IJavascriptGraphNodeCreator(InGraph)
+{
+	Instance = MakeShareable(new FGraphNodeCreator<UJavascriptGraphEdNode_Comment>(*InGraph));
+}
+
+UJavascriptGraphEdNode* FCommentJavascriptGraphNodeCreator::CreateNode(bool bSelectNewNode /*= true*/)
+{
+	return Instance->CreateNode(bSelectNewNode);
+}
+
+UJavascriptGraphEdNode* FCommentJavascriptGraphNodeCreator::CreateUserInvokedNode(bool bSelectNewNode /*= true*/)
+{
+	return Instance->CreateUserInvokedNode(bSelectNewNode);
+}
+
+void FCommentJavascriptGraphNodeCreator::Finalize()
+{
+	Instance->Finalize();
+}
+// End of FCommentJavascriptGraphNodeCreator

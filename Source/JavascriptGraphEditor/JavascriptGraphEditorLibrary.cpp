@@ -43,6 +43,15 @@ FJavascriptNodeCreator UJavascriptGraphEditorLibrary::CustomNodeCreator(UJavascr
 	return Out;
 }
 
+FJavascriptNodeCreator UJavascriptGraphEditorLibrary::CommentNodeCreator(UJavascriptGraphEdGraph* Graph, bool bSelectNewNode/* = true*/)
+{
+	FJavascriptNodeCreator Out;
+	auto Creator = new FCommentJavascriptGraphNodeCreator(Graph);
+	Out.Instance = MakeShareable(static_cast<IJavascriptGraphNodeCreator*>(Creator));
+	Out.Node = Creator->CreateNode(bSelectNewNode);
+	return Out;
+}
+
 void UJavascriptGraphEditorLibrary::Finalize(FJavascriptNodeCreator& Creator)
 {
 	Creator.Instance->Finalize();
@@ -388,7 +397,7 @@ FJavascriptSlateWidget UJavascriptGraphEditorLibrary::GetOwnerPanel(UJavascriptG
 {
 	FJavascriptSlateWidget Out;
 
-	TSharedPtr<SJavascriptGraphEdNode> SlateNode = Node->GetNodeSlateWidget();
+	TSharedPtr<SGraphNode> SlateNode = Node->GetNodeSlateWidget();
 	if (SlateNode.IsValid())
 	{
 		Out.Widget = SlateNode->GetOwnerPanel();

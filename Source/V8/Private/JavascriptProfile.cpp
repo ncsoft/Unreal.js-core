@@ -1,4 +1,4 @@
-#include "JavascriptProfile.h"
+﻿#include "JavascriptProfile.h"
 #include "Config.h"
 #include "Translator.h"
 #include "Helpers.h"
@@ -95,7 +95,12 @@ void UJavascriptProfile::SetSamplingInterval(const FJavascriptCpuProfiler& Profi
 
 void UJavascriptProfile::SetIdle(const FJavascriptCpuProfiler& Profiler, bool is_idle)
 {
+#if V8_MAJOR_VERSION < 9
 	reinterpret_cast<CpuProfiler*>(Profiler.Profiler)->SetIdle(is_idle);
+#else
+	auto isolate = Isolate::GetCurrent();
+	isolate->SetIdle(is_idle);
+#endif
 }
 
 FString UJavascriptLibrary::GetFunctionName(FJavascriptProfileNode Node)
@@ -129,10 +134,6 @@ FString UJavascriptLibrary::GetBailoutReason(FJavascriptProfileNode Node)
 int32 UJavascriptLibrary::GetHitCount(FJavascriptProfileNode Node)
 {
 	return reinterpret_cast<const CpuProfileNode*>(Node.Node)->GetHitCount();
-}
-int32 UJavascriptLibrary::GetCallUid(FJavascriptProfileNode Node)
-{
-	return reinterpret_cast<const CpuProfileNode*>(Node.Node)->GetCallUid();
 }
 int32 UJavascriptLibrary::GetNodeId(FJavascriptProfileNode Node)
 {

@@ -10,6 +10,15 @@
 #include "JavascriptLibrary.generated.h"
 
 USTRUCT(BlueprintType)
+struct FJavascriptRow
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<FString> Values;
+};
+
+USTRUCT(BlueprintType)
 struct FReadStringFromFileHandle
 {
 	GENERATED_BODY()
@@ -35,7 +44,7 @@ struct V8_API FDirectoryItem
 	FString Name;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Scripting | Javascript")
-	bool bIsDirectory;
+	bool bIsDirectory = false;
 };
 
 #if STATS
@@ -486,9 +495,6 @@ public:
 	static int32 GetHitCount(FJavascriptProfileNode Node);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static int32 GetCallUid(FJavascriptProfileNode Node);
-
-	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static int32 GetNodeId(FJavascriptProfileNode Node);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -626,6 +632,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, CustomThunk, Category = "Scripting | Javascript", meta = (CustomStructureParam = "CustomStruct"))
 	static void CallJS(FJavascriptFunction Function, const FJavascriptStubStruct& CustomStruct);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool ReadCSV(const FString& InPath, TArray<FJavascriptRow>& OutData, EFileRead_JS ReadFlags);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool WriteCSV(const FString& InPath, TArray<FJavascriptRow>& InData, EJavascriptEncodingOptions::Type EncodingOptions);
 
 #if USE_STABLE_LOCALIZATION_KEYS
 	// copy from STextPropertyEditableTextBox.cpp

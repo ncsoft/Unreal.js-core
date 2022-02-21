@@ -650,6 +650,7 @@ public:
 		ExportUnrealEngineStructs();
 
 		ExposeMemory2();
+		ExposeVersions();		
 	}
 
 	void PurgeModules()
@@ -657,7 +658,18 @@ public:
 		Modules.Empty();
 	}
 
+	void ExposeVersions()
+	{
+		FIsolateHelper I(isolate());
 
+		auto ctx = context();
+		auto global = ctx->Global();
+
+		(void)global->Set(ctx, I.Keyword("$engineVersion"), I.String(ENGINE_VERSION_STRING));
+		(void)global->Set(ctx, I.Keyword("$engineMajorVersion"), I.String(VERSION_STRINGIFY(ENGINE_MAJOR_VERSION)));
+		(void)global->Set(ctx, I.Keyword("$engineMinorVersion"), I.String(VERSION_STRINGIFY(ENGINE_MINOR_VERSION)));
+		(void)global->Set(ctx, I.Keyword("$enginePatchVersion"), I.String(VERSION_STRINGIFY(ENGINE_PATCH_VERSION)));
+	}
 
 	void ExportUnrealEngineClasses()
 	{
@@ -1676,7 +1688,12 @@ public:
 						auto Indices = (int32*)FMemory_Alloca(sizeof(int32) * Dimension);
 						if (Dimension == 1)
 						{
+#if V8_MAJOR_VERSION < 9
 							auto ab = ArrayBuffer::New(info.GetIsolate(), Source->GetMemory(nullptr), Source->GetSize(0));
+#else
+							auto backing_store = ArrayBuffer::NewBackingStore(Source->GetMemory(nullptr), Source->GetSize(0), v8::BackingStore::EmptyDeleter, nullptr);
+							auto ab = ArrayBuffer::New(info.GetIsolate(), std::move(backing_store));
+#endif
 							argv[0] = ab;
 
 							(void)function->Call(context, info.This(), 1, argv);
@@ -1691,7 +1708,12 @@ public:
 							for (auto Index = 0; Index < Outer; ++Index)
 							{
 								Indices[0] = Index;
+#if V8_MAJOR_VERSION < 9
 								auto ab = ArrayBuffer::New(info.GetIsolate(), Source->GetMemory(Indices), Inner);
+#else
+								auto backing_store = ArrayBuffer::NewBackingStore(Source->GetMemory(Indices), Inner, v8::BackingStore::EmptyDeleter, nullptr);
+								auto ab = ArrayBuffer::New(info.GetIsolate(), std::move(backing_store));
+#endif
 								(void)out_arr->Set(context, Index, ab);
 							}
 
@@ -1801,8 +1823,7 @@ public:
 
 	void RequestV8GarbageCollection()
 	{
-		// @todo: using 'ForTesting' function
-		isolate()->RequestGarbageCollectionForTesting(Isolate::kFullGarbageCollection);
+		isolate()->LowMemoryNotification();
 	}
 
 	// Should be guarded with proper handle scope
@@ -1825,7 +1846,7 @@ public:
 		auto source = V8_String(isolate(), Script);
 		auto path = V8_String(isolate(), LocalPathToURL(Path));
 		auto ctx = context();
-		ScriptOrigin origin(path, Integer::New(isolate(), -line_offset));
+		ScriptOrigin origin(path, -line_offset);
 		auto script = Script::Compile(ctx, source, &origin);
 		if (script.IsEmpty())
 		{
@@ -1950,9 +1971,13 @@ public:
 									Context::Scope context_scope(ctx);
 
 									v8::Handle<Value> args[] = { DefaultValue };
-									auto ret = Packer->Call(ctx, Packer, 1, args).ToLocalChecked();
-									auto Ret = StringFromV8(isolate(), ret);
-									ParameterWithValue = FString::Printf(TEXT("%s = %s"), *Parameter, *Ret);
+									auto maybe_ret = Packer->Call(ctx, Packer, 1, args);
+									if (!maybe_ret.IsEmpty())
+									{
+										auto ret = maybe_ret.ToLocalChecked();
+										auto Ret = StringFromV8(isolate(), ret);
+										ParameterWithValue = FString::Printf(TEXT("%s = %s"), *Parameter, *Ret);
+									}
 								}
 
 								It->DestroyValue_InContainer(Parms);

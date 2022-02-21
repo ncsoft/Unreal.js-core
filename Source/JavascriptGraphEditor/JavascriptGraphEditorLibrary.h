@@ -137,16 +137,16 @@ struct FJavascriptPerformSecondPassLayoutContainer
 	GENERATED_BODY()
 
 	UPROPERTY()
-	UEdGraphNode* PrevNode;
+	UEdGraphNode* PrevNode = nullptr;
 
 	UPROPERTY()
-	UEdGraphNode* NextNode;
+	UEdGraphNode* NextNode = nullptr;
 
 	UPROPERTY()
-	int32 NodeIndex;
+	int32 NodeIndex = INDEX_NONE;
 
 	UPROPERTY()
-	int32 MaxNodes;
+	int32 MaxNodes = 0;
 };
 
 USTRUCT(BlueprintType)
@@ -188,16 +188,16 @@ struct FJavascriptGraphMenuBuilder : public FJavascriptMenuBuilder
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
-	const UEdGraph* Graph;
+	const UEdGraph* Graph = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
-	const UEdGraphNode* GraphNode;
+	const UEdGraphNode* GraphNode = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
 	FJavascriptEdGraphPin GraphPin;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
-	bool bIsDebugging;
+	bool bIsDebugging = false;
 };
 
 USTRUCT(BlueprintType)
@@ -206,7 +206,7 @@ struct FJavascriptNodeCreator
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
-	UJavascriptGraphEdNode* Node;
+	UJavascriptGraphEdNode* Node = nullptr;
 
 	TSharedPtr<class IJavascriptGraphNodeCreator> Instance;
 };
@@ -235,6 +235,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static FJavascriptNodeCreator CustomNodeCreator(UJavascriptGraphEdGraph* Graph);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static FJavascriptNodeCreator CommentNodeCreator(UJavascriptGraphEdGraph* Graph, bool bSelectNewNode = true);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void Finalize(FJavascriptNodeCreator& Creator);

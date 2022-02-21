@@ -77,6 +77,11 @@ public:
     {
         Collector.AddReferencedObject(Canvas);
     }
+
+	virtual FString GetReferencerName() const
+	{
+		return "FCanvasOwner";
+	}
     
 public:
     UCanvas* Canvas;

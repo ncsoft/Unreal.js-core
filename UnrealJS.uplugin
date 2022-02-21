@@ -2,8 +2,8 @@
   "FileVersion": 3,
   "FriendlyName": "Unreal.js - Javascript Runtime",
   "Version": 2,
-  "VersionName": "0.5.0",
-  "FriendlyVersion": "0.5.0",
+  "VersionName": "0.6.0",
+  "FriendlyVersion": "0.6.0",
   "EngineVersion": "4.27.0",
   "Description": "Javascript powered UnrealEngine",
   "Category": "Programming",
@@ -16,19 +16,19 @@
       "Name": "V8",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux", "Android", "IOS" ]
+      "WhitelistPlatforms": [ "Win64", "Mac", "Linux", "Android", "IOS" ]
     },
     {
       "Name": "JavascriptUMG",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux", "Android", "IOS" ]
+      "WhitelistPlatforms": [ "Win64", "Mac", "Linux", "Android", "IOS" ]
     },
     {
       "Name": "JavascriptHttp",
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
-      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux", "Android", "IOS" ]
+      "WhitelistPlatforms": [ "Win64", "Mac", "Linux", "Android", "IOS" ]
     },
     {
       "Name": "JavascriptWebSocket",
@@ -40,19 +40,19 @@
       "Name": "JavascriptGraphEditor",
       "Type": "Editor",
       "LoadingPhase": "PostDefault",
-      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux" ]
+      "WhitelistPlatforms": [ "Win64", "Mac", "Linux" ]
     },
     {
       "Name": "JavascriptEditor",
       "Type": "Editor",
       "LoadingPhase": "PostDefault",
-      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux" ]
+      "WhitelistPlatforms": [ "Win64", "Mac", "Linux" ]
     },
     {
       "Name": "JavascriptConsole",
       "Type": "Editor",
       "LoadingPhase": "PostDefault",
-      "WhitelistPlatforms": [ "Win64", "Win32", "Mac", "Linux" ]
+      "WhitelistPlatforms": [ "Win64", "Mac", "Linux" ]
     }
   ],
   "Plugins": [

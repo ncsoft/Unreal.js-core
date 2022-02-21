@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "EdGraph/EdGraph.h"
 
@@ -52,4 +52,17 @@ private:
 	TWeakObjectPtr<UJavascriptGraphEdGraph> Graph;
 	UJavascriptGraphEdNode* Node;
 	bool bPlaced;
+};
+
+class FCommentJavascriptGraphNodeCreator : public IJavascriptGraphNodeCreator
+{
+public:
+	FCommentJavascriptGraphNodeCreator(UJavascriptGraphEdGraph* InGraph);
+
+	virtual UJavascriptGraphEdNode* CreateNode(bool bSelectNewNode = true) override;
+	virtual UJavascriptGraphEdNode* CreateUserInvokedNode(bool bSelectNewNode = true) override;
+	virtual void Finalize() override;
+
+private:
+	TSharedPtr<FGraphNodeCreator<UJavascriptGraphEdNode_Comment>> Instance;
 };

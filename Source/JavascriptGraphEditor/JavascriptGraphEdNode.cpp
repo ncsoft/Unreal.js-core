@@ -30,7 +30,7 @@ UJavascriptGraphEdGraph* UJavascriptGraphEdNode::GetGenericGraphEdGraph()
 	return Cast<UJavascriptGraphEdGraph>(GetGraph());
 }
 
-TSharedPtr<SJavascriptGraphEdNode> UJavascriptGraphEdNode::GetNodeSlateWidget() const
+TSharedPtr<SGraphNode> UJavascriptGraphEdNode::GetNodeSlateWidget() const
 {
 	return SlateGraphNode.Pin();
 }
