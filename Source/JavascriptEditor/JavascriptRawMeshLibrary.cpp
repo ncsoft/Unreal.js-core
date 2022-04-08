@@ -22,7 +22,7 @@ bool UJavascriptRawMeshLibrary::IsValidOrFixable(const FJavascriptRawMesh& RawMe
 
 FVector UJavascriptRawMeshLibrary::GetWedgePosition(const FJavascriptRawMesh& RawMesh, int32 WedgeIndex)
 {
-	return (*RawMesh).GetWedgePosition(WedgeIndex);
+	return FVector((*RawMesh).GetWedgePosition(WedgeIndex));
 }
 
 void UJavascriptRawMeshLibrary::CompactMaterialIndices(FJavascriptRawMesh& RawMesh)

@@ -476,7 +476,7 @@ void UJavascriptEditorLibrary::DrawPolygon(const FJavascriptPDI& PDI, const TArr
 
 	for (const auto& V : Verts)
 	{
-		MeshBuilder.AddVertex(V, FVector2D(0, 0), FVector(1, 0, 0), FVector(0, 1, 0), FVector(0, 0, 1), Color);
+		MeshBuilder.AddVertex(FVector3f(V), FVector2f(0, 0), FVector3f(1, 0, 0), FVector3f(0, 1, 0), FVector3f(0, 0, 1), Color);
 	}
 
 	for (int32 Index = 0; Index < Verts.Num() - 2; ++Index)
