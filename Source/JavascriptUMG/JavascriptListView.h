@@ -47,9 +47,9 @@ public:
 	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
 	//~ End UVisual Interface
 
-	// UWidget interface
+	// UListViewBase interface
 	virtual TSharedRef<STableViewBase> RebuildListWidget() override;
-	// End of UWidget interface
+	// End of UListViewBase interface
 
 	TSharedRef<ITableRow> HandleOnGenerateRow(UObject* Item, const TSharedRef< STableViewBase >& OwnerTable);
 
@@ -58,7 +58,7 @@ public:
 
 	/** Refreshes the list */
 	UFUNCTION(BlueprintCallable, Category = "Behavior")
-	void RequestListRefresh();
+	void SetItems(const TArray<UObject*>& InListItems);
 
 	/** Event fired when a tutorial stage ends */
 	UFUNCTION(BlueprintImplementableEvent, Category = "Javascript")
@@ -92,20 +92,12 @@ protected:
 
 	TMultiMap<UObject*, TWeakPtr<SWidget>> CachedRows;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Javascript")
+	UPROPERTY(BlueprintReadWrite, Category = Javascript)
 	UJavascriptContext* JavascriptContext;
 
 	/** The list of items to generate widgets for */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Content)
-	TArray<UObject*> Items;
-
-	/** The selection method for the list */
-	UPROPERTY(EditAnywhere, Category = ListView)
-	TEnumAsByte<ESelectionMode::Type> SelectionMode = ESelectionMode::Single;;
-
-	/** The height of each widget */
-	UPROPERTY(EditAnywhere, Category = ListView)
-	float ItemHeight;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ListView)
+	TArray<UObject*> ListItems;
 
 	/** Called when a widget needs to be generated */
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
@@ -119,4 +111,22 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ListView)
 	FScrollBarStyle ScrollBarStyle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ListView)
+	TEnumAsByte<EOrientation> Orientation = EOrientation::Orient_Vertical;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ListView)
+	TEnumAsByte<ESelectionMode::Type> SelectionMode = ESelectionMode::Single;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ListView)
+	EConsumeMouseWheel ConsumeMouseWheel = EConsumeMouseWheel::WhenScrollingPossible;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ListView)
+	bool bClearSelectionOnClick = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ListView)
+	bool bIsFocusable = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ListView)
+	bool bReturnFocusToSelection = false;
 };

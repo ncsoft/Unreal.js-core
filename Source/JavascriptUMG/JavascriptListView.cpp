@@ -81,9 +81,13 @@ TSharedRef<STableViewBase> UJavascriptListView::RebuildListWidget()
 	SAssignNew(MyListView, SJavascriptListView)
 		.ListViewStyle(&WidgetStyle)
 		.ScrollBarStyle(&ScrollBarStyle)
+		.Orientation(Orientation)
 		.SelectionMode(SelectionMode)
-		.ListItemsSource(&Items)
-		.ItemHeight(ItemHeight)
+		.ConsumeMouseWheel(ConsumeMouseWheel)
+		.ClearSelectionOnClick(bClearSelectionOnClick)
+		.IsFocusable(bIsFocusable)
+		.ReturnFocusToSelection(bReturnFocusToSelection)
+		.ListItemsSource(&ListItems)
 		.OnGenerateRow(BIND_UOBJECT_DELEGATE(SListView<UObject*>::FOnGenerateRow, HandleOnGenerateRow))
 		.OnSelectionChanged_Lambda([this](UObject* Object, ESelectInfo::Type SelectInfo)
 			{
@@ -151,12 +155,10 @@ TSharedRef<ITableRow> UJavascriptListView::CreateItemRow(UWidget* Widget, const 
 		.Style(&_TableRowStyle);
 }
 
-void UJavascriptListView::RequestListRefresh()
+void UJavascriptListView::SetItems(const TArray<UObject*>& InListItems)
 {
-	if (MyListView.IsValid())
-	{
-		MyListView->RequestListRefresh();
-	}	
+	ListItems = InListItems;
+	RequestRefresh();
 }
 
 bool UJavascriptListView::GetSelectedItems_Implementation(TArray<UObject*>& OutItems)
