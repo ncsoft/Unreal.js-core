@@ -713,8 +713,9 @@ public:
 			// Create a blueprint
 			auto Blueprint = NewObject<UBlueprint>(Outer);
 			Blueprint->GeneratedClass = Class;
+#if WITH_EDITORONLY_DATA
 			Class->ClassGeneratedBy = Blueprint;
-
+#endif
 			auto ClassConstructor = [](const FObjectInitializer& ObjectInitializer){
 				auto Class = static_cast<UBlueprintGeneratedClass*>(CurrentClassUnderConstruction ? CurrentClassUnderConstruction : ObjectInitializer.GetClass());
 				CurrentClassUnderConstruction = nullptr;
@@ -1931,9 +1932,10 @@ public:
 		{
 			const UClass* ClassToExport = it.Key();
 
+#if WITH_EDITORONLY_DATA
 			// Skip a generated class
 			if (ClassToExport->ClassGeneratedBy) continue;
-
+#endif
 			auto ClassName = FV8Config::Safeify(ClassToExport->GetName());
 
 			// Function with default value
@@ -2319,13 +2321,14 @@ public:
 
 	virtual bool IsExcludeGCStructTarget(UStruct* TargetStruct) override
 	{
+#if WITH_EDITORONLY_DATA
 		UClass* Class = Cast<UClass>(TargetStruct);
 
 		if (Class && Class->ClassGeneratedBy && Cast<UBlueprint>(Class->ClassGeneratedBy)->BlueprintType == EBlueprintType::BPTYPE_LevelScript)
 		{
 			return true;
 		}
-
+#endif
 		return false;
 	}
 };

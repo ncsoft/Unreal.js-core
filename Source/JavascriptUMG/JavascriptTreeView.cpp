@@ -125,7 +125,7 @@ public:
 		check(InArgs._Style);
 		check(InArgs._ExpanderStyleSet);
 
-		this->BorderImage = TAttribute<const FSlateBrush*>(this, &SJavascriptItemRow::GetBorder);
+		this->SetBorderImage(TAttribute<const FSlateBrush*>(this, &SJavascriptItemRow::GetBorder));
 		this->DoubleClickBrush = FSlateColorBrush(FLinearColor::Blue);
 	}
 

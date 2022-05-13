@@ -960,7 +960,8 @@ TArray<UClass*> UJavascriptLibrary::GetSuperClasses(UClass* InClass)
 
 bool UJavascriptLibrary::IsGeneratedByBlueprint(UClass* InClass)
 {
-	return NULL != Cast<UBlueprint>(InClass->ClassGeneratedBy);
+	//return NULL != Cast<UBlueprint>(InClass->ClassGeneratedBy);
+	return InClass->HasAnyClassFlags(EClassFlags::CLASS_CompiledFromBlueprint);
 }
 
 bool UJavascriptLibrary::IsPendingKill(AActor* InActor)

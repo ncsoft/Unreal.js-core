@@ -1877,6 +1877,7 @@ public:
 			return 0;
 		}
 
+#if WITH_EDITORONLY_DATA
 		if (::IsValid(Class->ClassGeneratedBy) && Class->ClassGeneratedBy->IsValidLowLevelFast())
 		{
 			if (Cast<UBlueprint>(Class->ClassGeneratedBy)->BlueprintType == EBlueprintType::BPTYPE_LevelScript)
@@ -1884,7 +1885,7 @@ public:
 				return 0;
 			}
 		}
-
+#endif
 		return INDEX_NONE;
 	}
 
@@ -2312,8 +2313,12 @@ public:
 								auto BPGC = Cast<UBlueprintGeneratedClass>(Class);
 								if (BPGC)
 								{
+#if WITH_EDITORONLY_DATA
 									auto BP = Cast<UBlueprint>(BPGC->ClassGeneratedBy);
 									value = I.String(BP->GetPathName());
+#else
+									value = I.String(BPGC->GetPathName());
+#endif
 								}
 								else
 								{
@@ -2411,8 +2416,12 @@ public:
 								auto BPGC = Cast<UBlueprintGeneratedClass>(Class);
 								if (BPGC)
 								{
+#if WITH_EDITORONLY_DATA
 									auto BP = Cast<UBlueprint>(BPGC->ClassGeneratedBy);
 									value = I.String(BP->GetPathName());
+#else
+									value = I.String(BPGC->GetPathName());
+#endif
 								}
 								else
 								{
