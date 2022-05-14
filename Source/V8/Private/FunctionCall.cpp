@@ -11,7 +11,7 @@ PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 namespace v8
 {
-	void CallJavascriptFunction(Handle<Context> context, Handle<Value> This, UFunction* SignatureFunction, Handle<Function> func, void* Parms)
+	void CallJavascriptFunction(v8::Handle<Context> context, v8::Handle<Value> This, UFunction* SignatureFunction, v8::Handle<Function> func, void* Parms)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_JavascriptFunctionCallToJavascript);
 
@@ -23,7 +23,7 @@ namespace v8
 
 		enum { MaxArgs = 32 };
 
-		Handle<Value> argv[MaxArgs];
+		v8::Handle<Value> argv[MaxArgs];
 		int argc = 0;
 
 		TFieldIterator<FProperty> Iter(SignatureFunction);

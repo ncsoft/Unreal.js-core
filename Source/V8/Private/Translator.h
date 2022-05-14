@@ -98,7 +98,7 @@ namespace v8
 	Local<String> V8_KeywordString(Isolate* isolate, const FString& String);
 	Local<String> V8_KeywordString(Isolate* isolate, const char* String);
 	FString StringFromV8(Isolate* isolate, Local<Value> Value);
-	void CallJavascriptFunction(Handle<Context> context, Handle<Value> This, UFunction* SignatureFunction, Handle<Function> func, void* Parms);
+	void CallJavascriptFunction(v8::Handle<Context> context, v8::Handle<Value> This, UFunction* SignatureFunction, v8::Handle<Function> func, void* Parms);
 	UClass* UClassFromV8(Isolate* isolate_, Local<Value> Value);
 	UObject* UObjectFromV8(Local<Context> context, Local<Value> Value);
 	uint8* RawMemoryFromV8(Local<Context> context, Local<Value> Value);
