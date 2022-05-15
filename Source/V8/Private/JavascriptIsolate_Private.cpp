@@ -29,6 +29,7 @@
 #include "Internationalization/TextNamespaceUtil.h"
 #include "Internationalization/StringTableRegistry.h"
 #include "Misc/MessageDialog.h"
+#include "Serialization/PropertyLocalizationDataGathering.h"
 
 #if WITH_EDITOR
 #include "ScopedTransaction.h"
@@ -150,7 +151,7 @@ public:
 	IDelegateManager* Delegates;
 
 	FTickerDelegate TickDelegate;
-	FDelegateHandle TickHandle;
+	FTSTicker::FDelegateHandle TickHandle;
 	bool bIsEditor;
 	UnrealConsoleDelegate* _UnrealConsoleDelegate = nullptr;
 	const uint8 ZeroMemory[100] = {0,};
@@ -385,7 +386,7 @@ public:
 
 		OnWorldCleanupHandle = FWorldDelegates::OnWorldCleanup.AddRaw(this, &FJavascriptIsolateImplementation::OnWorldCleanup);
 		TickDelegate = FTickerDelegate::CreateRaw(this, &FJavascriptIsolateImplementation::HandleTicker);
-		TickHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);
+		TickHandle = FTSTicker::GetCoreTicker().AddTicker(TickDelegate);
 	}
 
 	void OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources)
@@ -453,7 +454,7 @@ public:
 		Delegates->Destroy();
 		Delegates = nullptr;
 
-		FTicker::GetCoreTicker().RemoveTicker(TickHandle);
+		FTSTicker::GetCoreTicker().RemoveTicker(TickHandle);
 		FWorldDelegates::OnWorldCleanup.Remove(OnWorldCleanupHandle);
 		v8::debug::SetConsoleDelegate(isolate_, nullptr);
 
@@ -659,10 +660,9 @@ public:
 				FName TableId;
 				if (Data.IsFromStringTable())
 				{
-					FStringTableRegistry::Get().FindTableIdAndKey(Data, TableId, Key);
+					FTextInspector::GetTableIdAndKey(Data, TableId, Key);
 				}
-				auto DisplayString = FTextInspector::GetSharedDisplayString(Data);
-				FTextLocalizationManager::Get().FindNamespaceAndKeyFromDisplayString(DisplayString, Namespace, Key);
+				FPropertyLocalizationDataGatherer::ExtractTextIdentity(Data, Namespace, Key, false);
 				FJavascriptText wrapper = { Data.ToString(), TextNamespaceUtil::StripPackageNamespace(Namespace), Key, TableId, Data };
 				auto Memory = FStructMemoryInstance::Create(FJavascriptText::StaticStruct(), FNoPropertyOwner(), (void*)&wrapper);
 				// set FJavascriptText's lifetime to Owner's;

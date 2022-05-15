@@ -38,7 +38,7 @@ OP_REFLECT(OnPreObjectPropertyChanged)\
 OP_REFLECT(OnObjectPropertyChanged)\
 OP_REFLECT(OnObjectModified)\
 OP_REFLECT(OnAssetLoaded)\
-OP_REFLECT(OnObjectSaved)
+OP_REFLECT(OnObjectPreSave)
 #else
 #define DO_REFLECT_EDITOR_ONLY()
 #endif
