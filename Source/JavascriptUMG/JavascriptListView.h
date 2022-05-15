@@ -87,6 +87,18 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Javascript")
 	void OnDoubleClick(UObject* Object);
 
+	/** Returns the item at the given index */
+	UFUNCTION(BlueprintCallable, Category = ListView)
+	UObject* GetItemAt(int32 Index) const;
+
+	/** Returns the total number of items */
+	UFUNCTION(BlueprintCallable, Category = ListView)
+	int32 GetNumItems() const;
+
+	/** Returns the index that the specified item is at. Will return the first found, or -1 for not found */
+	UFUNCTION(BlueprintCallable, Category = ListView)
+	int32 GetIndexForItem(const UObject* Item) const;
+
 protected:
 	TSharedPtr<SJavascriptListView> MyListView;
 

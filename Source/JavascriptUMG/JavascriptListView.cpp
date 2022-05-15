@@ -1,5 +1,6 @@
 ﻿#include "JavascriptListView.h"
 #include "JavascriptContext.h"
+#include "JavascriptUserObjectListEntry.h"
 
 FTableRowStyle _TableRowStyle;
 
@@ -8,6 +9,8 @@ UJavascriptListView::UJavascriptListView(const FObjectInitializer& ObjectInitial
 {
 	WidgetStyle = FUMGCoreStyle::Get().GetWidgetStyle<FTableViewStyle>("ListView");
 	ScrollBarStyle = FUMGCoreStyle::Get().GetWidgetStyle<FScrollBarStyle>("Scrollbar");
+
+	EntryWidgetClass = UJavascriptUserObjectListEntry::StaticClass();
 
 	// 清除RowItem的默认Style
 	FSlateBrush Brush;
@@ -200,4 +203,19 @@ void UJavascriptListView::RequestNavigateToItem(UObject* Item)
 	{
 		MyListView->RequestNavigateToItem(Item);
 	}
+}
+
+UObject* UJavascriptListView::GetItemAt(int32 Index) const
+{
+	return ListItems.IsValidIndex(Index) ? ListItems[Index] : nullptr;
+}
+
+int32 UJavascriptListView::GetNumItems() const
+{
+	return ListItems.Num();
+}
+
+int32 UJavascriptListView::GetIndexForItem(const UObject* Item) const
+{
+	return ListItems.IndexOfByKey(Item);
 }
