@@ -29,6 +29,7 @@
 #include "Internationalization/TextNamespaceUtil.h"
 #include "Internationalization/StringTableRegistry.h"
 #include "Misc/MessageDialog.h"
+#include "Serialization/PropertyLocalizationDataGathering.h"
 
 #if WITH_EDITOR
 #include "ScopedTransaction.h"
@@ -150,7 +151,7 @@ public:
 	IDelegateManager* Delegates;
 
 	FTickerDelegate TickDelegate;
-	FDelegateHandle TickHandle;
+	FTSTicker::FDelegateHandle TickHandle;
 	bool bIsEditor;
 	UnrealConsoleDelegate* _UnrealConsoleDelegate = nullptr;
 	const uint8 ZeroMemory[100] = {0,};
@@ -214,29 +215,29 @@ public:
 
 				auto ProxyObject = proxy->ToObject(context).ToLocalChecked();
 				{
-					auto clear_fn = Handle<Function>::Cast(ProxyObject->Get(context, I.Keyword("Clear")).ToLocalChecked());
+					auto clear_fn = v8::Handle<Function>::Cast(ProxyObject->Get(context, I.Keyword("Clear")).ToLocalChecked());
 					(void)clear_fn->Call(context, ProxyObject, 0, nullptr);
 				}
 
-				auto add_fn = Handle<Function>::Cast(ProxyObject->Get(context, I.Keyword("Add")).ToLocalChecked());
+				auto add_fn = v8::Handle<Function>::Cast(ProxyObject->Get(context, I.Keyword("Add")).ToLocalChecked());
 
 				// "whole array" can be set
 				if (value->IsArray())
 				{
-					auto arr = Handle<Array>::Cast(value);
+					auto arr = v8::Handle<Array>::Cast(value);
 					auto Length = arr->Length();
 					for (decltype(Length) Index = 0; Index < Length; ++Index)
 					{
 						auto elem = arr->Get(context, Index);
 						if (elem.IsEmpty()) continue;
-						Handle<Value> args[] = { elem.ToLocalChecked() };
+						v8::Handle<Value> args[] = { elem.ToLocalChecked() };
 						(void)add_fn->Call(context, ProxyObject, 1, args);
 					}
 				}
 				// only one delegate
 				else if (!value->IsNull())
 				{
-					Handle<Value> args[] = {value};
+					v8::Handle<Value> args[] = {value};
 					(void)add_fn->Call(context, ProxyObject, 1, args);
 				}
 			};
@@ -385,7 +386,7 @@ public:
 
 		OnWorldCleanupHandle = FWorldDelegates::OnWorldCleanup.AddRaw(this, &FJavascriptIsolateImplementation::OnWorldCleanup);
 		TickDelegate = FTickerDelegate::CreateRaw(this, &FJavascriptIsolateImplementation::HandleTicker);
-		TickHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);
+		TickHandle = FTSTicker::GetCoreTicker().AddTicker(TickDelegate);
 	}
 
 	void OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources)
@@ -412,7 +413,7 @@ public:
 		Isolate::Scope isolate_scope(isolate_);
 		HandleScope handle_scope(isolate_);
 
-		Handle<Context> context = Context::New(isolate_);
+		v8::Handle<Context> context = Context::New(isolate_);
 		Context::Scope ContextScope(context);
 
 		// Create a new object template
@@ -453,7 +454,7 @@ public:
 		Delegates->Destroy();
 		Delegates = nullptr;
 
-		FTicker::GetCoreTicker().RemoveTicker(TickHandle);
+		FTSTicker::GetCoreTicker().RemoveTicker(TickHandle);
 		FWorldDelegates::OnWorldCleanup.Remove(OnWorldCleanupHandle);
 		v8::debug::SetConsoleDelegate(isolate_, nullptr);
 
@@ -659,10 +660,9 @@ public:
 				FName TableId;
 				if (Data.IsFromStringTable())
 				{
-					FStringTableRegistry::Get().FindTableIdAndKey(Data, TableId, Key);
+					FTextInspector::GetTableIdAndKey(Data, TableId, Key);
 				}
-				auto DisplayString = FTextInspector::GetSharedDisplayString(Data);
-				FTextLocalizationManager::Get().FindNamespaceAndKeyFromDisplayString(DisplayString, Namespace, Key);
+				FPropertyLocalizationDataGatherer::ExtractTextIdentity(Data, Namespace, Key, false);
 				FJavascriptText wrapper = { Data.ToString(), TextNamespaceUtil::StripPackageNamespace(Namespace), Key, TableId, Data };
 				auto Memory = FStructMemoryInstance::Create(FJavascriptText::StaticStruct(), FNoPropertyOwner(), (void*)&wrapper);
 				// set FJavascriptText's lifetime to Owner's;
@@ -839,7 +839,7 @@ public:
 		}
 	}
 
-	void InternalWriteProperty(FProperty* Property, uint8* Buffer, Handle<Value> Value, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags)
+	void InternalWriteProperty(FProperty* Property, uint8* Buffer, v8::Handle<Value> Value, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags)
 	{
 		FIsolateHelper I(isolate_);
 
@@ -1044,7 +1044,7 @@ public:
 		{
 			if (Value->IsArray())
 			{
-				auto arr = Handle<Array>::Cast(Value);
+				auto arr = v8::Handle<Array>::Cast(Value);
 				auto len = arr->Length();
 
 				FScriptArrayHelper_InContainer helper(p, Buffer);
@@ -1117,7 +1117,7 @@ public:
 		{
 			if (Value->IsArray())
 			{
-				auto arr = Handle<Array>::Cast(Value);
+				auto arr = v8::Handle<Array>::Cast(Value);
 				auto len = arr->Length();
 
 				FScriptSetHelper_InContainer SetHelper(p, Buffer);
@@ -1326,7 +1326,7 @@ public:
 	struct FunctionTemplateHelper
 	{
 		FIsolateHelper I;
-		Handle<FunctionTemplate> Template;
+		v8::Handle<FunctionTemplate> Template;
 
 		template <typename T>
 		void Set(const char* name, T&& fn)
@@ -1384,7 +1384,7 @@ public:
 #else
 				GCurrentBackingStore = arr->GetBackingStore();
 #endif
-				Handle<Value> argv[1];
+				v8::Handle<Value> argv[1];
 				argv[0] = arr;
 				(void)function->Call(isolate->GetCurrentContext(), info.This(), 1, argv);
 
@@ -1707,7 +1707,7 @@ public:
 		return handle_scope.Escape(v8::Undefined(isolate));
 	}
 
-	void ExportFunction(Handle<FunctionTemplate> Template, UFunction* FunctionToExport)
+	void ExportFunction(v8::Handle<FunctionTemplate> Template, UFunction* FunctionToExport)
 	{
 		FIsolateHelper I(isolate_);
 
@@ -1763,7 +1763,7 @@ public:
 		Template->PrototypeTemplate()->Set(function_name, function);
 	}
 
-	void ExportBlueprintLibraryFunction(Handle<FunctionTemplate> Template, UFunction* FunctionToExport)
+	void ExportBlueprintLibraryFunction(v8::Handle<FunctionTemplate> Template, UFunction* FunctionToExport)
 	{
 		FIsolateHelper I(isolate_);
 
@@ -1808,7 +1808,7 @@ public:
 		Template->PrototypeTemplate()->Set(function_name, function);
 	}
 
-	void ExportBlueprintLibraryFactoryFunction(Handle<FunctionTemplate> Template, UFunction* FunctionToExport)
+	void ExportBlueprintLibraryFactoryFunction(v8::Handle<FunctionTemplate> Template, UFunction* FunctionToExport)
 	{
 		FIsolateHelper I(isolate_);
 
@@ -1877,6 +1877,7 @@ public:
 			return 0;
 		}
 
+#if WITH_EDITORONLY_DATA
 		if (::IsValid(Class->ClassGeneratedBy) && Class->ClassGeneratedBy->IsValidLowLevelFast())
 		{
 			if (Cast<UBlueprint>(Class->ClassGeneratedBy)->BlueprintType == EBlueprintType::BPTYPE_LevelScript)
@@ -1884,12 +1885,12 @@ public:
 				return 0;
 			}
 		}
-
+#endif
 		return INDEX_NONE;
 	}
 
 	template <typename PropertyAccessors>
-	void ExportProperty(Handle<FunctionTemplate> Template, FProperty* PropertyToExport, int32 PropertyIndex)
+	void ExportProperty(v8::Handle<FunctionTemplate> Template, FProperty* PropertyToExport, int32 PropertyIndex)
 	{
 		FIsolateHelper I(isolate_);
 
@@ -2312,8 +2313,12 @@ public:
 								auto BPGC = Cast<UBlueprintGeneratedClass>(Class);
 								if (BPGC)
 								{
+#if WITH_EDITORONLY_DATA
 									auto BP = Cast<UBlueprint>(BPGC->ClassGeneratedBy);
 									value = I.String(BP->GetPathName());
+#else
+									value = I.String(BPGC->GetPathName());
+#endif
 								}
 								else
 								{
@@ -2335,7 +2340,7 @@ public:
 						{
 							if (auto q = CastField<FObjectPropertyBase>(p->Inner))
 							{
-								auto arr = Handle<Array>::Cast(value);
+								auto arr = v8::Handle<Array>::Cast(value);
 								auto len = arr->Length();
 
 								auto out_arr = Array::New(isolate, len);
@@ -2411,8 +2416,12 @@ public:
 								auto BPGC = Cast<UBlueprintGeneratedClass>(Class);
 								if (BPGC)
 								{
+#if WITH_EDITORONLY_DATA
 									auto BP = Cast<UBlueprint>(BPGC->ClassGeneratedBy);
 									value = I.String(BP->GetPathName());
+#else
+									value = I.String(BPGC->GetPathName());
+#endif
 								}
 								else
 								{
@@ -2434,7 +2443,7 @@ public:
 						{
 							if (auto q = CastField<FObjectPropertyBase>(p->Inner))
 							{
-								auto arr = Handle<Array>::Cast(value);
+								auto arr = v8::Handle<Array>::Cast(value);
 								auto len = arr->Length();
 
 								auto out_arr = Array::New(isolate, len);
@@ -2499,7 +2508,7 @@ public:
 
 					if (FV8Config::CanExportProperty(Class, Property) && MatchPropertyName(Property,PropertyNameToAccess))
 					{
-						Handle<Value> argv[1];
+						v8::Handle<Value> argv[1];
 #if V8_MAJOR_VERSION < 9
 						argv[0] = ArrayBuffer::New(isolate, helper.GetRawPtr(), helper.Num() * p->Inner->GetSize());
 #else
@@ -2518,7 +2527,7 @@ public:
 	}
 
 	template <typename PropertyAccessor>
-	void AddMemberFunction_GetStructRefArray(Handle<FunctionTemplate> Template, FProperty* PropertyToExport)
+	void AddMemberFunction_GetStructRefArray(v8::Handle<FunctionTemplate> Template, FProperty* PropertyToExport)
 	{
 		auto fn = [](const FunctionCallbackInfo<Value>& info)
 		{
@@ -2926,7 +2935,7 @@ public:
 		auto v8_struct = ExportStruct(Struct);
 		auto arg = I.External(Buffer);
 		auto arg2 = I.External((void*)&Owner);
-		Handle<Value> args[] = { arg, arg2 };
+		v8::Handle<Value> args[] = { arg, arg2 };
 
 		auto maybe_func = v8_struct->GetFunction(isolate_->GetCurrentContext());
 
@@ -2955,7 +2964,7 @@ public:
 		{
 			auto v8_class = ExportUClass(Object->GetClass());
 			auto arg = I.External(Object);
-			Handle<Value> args[] = { arg };
+			v8::Handle<Value> args[] = { arg };
 
 			auto maybe_func = v8_class->GetFunction(isolate_->GetCurrentContext());
 
@@ -3034,7 +3043,7 @@ public:
 
 				auto v8_class = ExportUClass(Class);
 				auto arg = I.External(Object);
-				Handle<Value> args[] = { arg };
+				v8::Handle<Value> args[] = { arg };
 
 				auto maybe_func = v8_class->GetFunction(isolate_->GetCurrentContext());
 
@@ -3189,7 +3198,7 @@ Local<Value> FJavascriptIsolate::ReadProperty(Isolate* isolate, FProperty* Prope
 	return FJavascriptIsolateImplementation::GetSelf(isolate)->InternalReadProperty(Property, Buffer, Owner, Flags);
 }
 
-void FJavascriptIsolate::WriteProperty(Isolate* isolate, FProperty* Property, uint8* Buffer, Handle<Value> Value, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags)
+void FJavascriptIsolate::WriteProperty(Isolate* isolate, FProperty* Property, uint8* Buffer, v8::Handle<Value> Value, const IPropertyOwner& Owner, const FPropertyAccessorFlags& Flags)
 {
 	FJavascriptIsolateImplementation::GetSelf(isolate)->InternalWriteProperty(Property, Buffer, Value, Owner, Flags);
 }

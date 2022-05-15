@@ -455,7 +455,7 @@ void UJavascriptLibrary::GetAllActorsOfClassAndTags(UObject* WorldContextObject,
 		for (TActorIterator<AActor> It(World, ActorClass); It; ++It)
 		{
 			AActor* Actor = *It;
-			if (!Actor->IsPendingKill())
+			if (::IsValid(Actor))
 			{
 				bool bReject{ false };
 				bool bAccept{ false };
@@ -496,7 +496,7 @@ void UJavascriptLibrary::GetAllActorsOfClassAndTagsInCurrentLevel(UObject* World
 		for (TActorIterator<AActor> It(PersistentWorld, ActorClass); It; ++It)
 		{
 			AActor* Actor = *It;
-			if (!Actor->IsPendingKill() && Actor->GetLevel() == CurrentLevel)
+			if (IsValid(Actor) && Actor->GetLevel() == CurrentLevel)
 			{
 				bool bReject{ false };
 				bool bAccept{ false };
@@ -960,13 +960,14 @@ TArray<UClass*> UJavascriptLibrary::GetSuperClasses(UClass* InClass)
 
 bool UJavascriptLibrary::IsGeneratedByBlueprint(UClass* InClass)
 {
-	return NULL != Cast<UBlueprint>(InClass->ClassGeneratedBy);
+	//return NULL != Cast<UBlueprint>(InClass->ClassGeneratedBy);
+	return InClass->HasAnyClassFlags(EClassFlags::CLASS_CompiledFromBlueprint);
 }
 
 bool UJavascriptLibrary::IsPendingKill(AActor* InActor)
 {
 	if (InActor != nullptr)
-		return InActor->IsPendingKill();
+		return IsValid(InActor);
 	return true;
 }
 

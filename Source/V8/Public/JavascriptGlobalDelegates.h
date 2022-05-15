@@ -7,6 +7,7 @@
 #include "UObject/ScriptMacros.h"
 #include "UObject/UnrealType.h"
 #include "UObject/FieldPath.h"
+#include "UObject/ObjectSaveContext.h"
 #include "Engine/World.h"
 #include "JavascriptGlobalDelegates.generated.h"
 
@@ -73,7 +74,12 @@ public:
 	void OnAssetLoaded(UObject* Object);	
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-	void OnObjectSaved(UObject* Object);
+	void OnObjectPreSave_Friendly(UObject* ObjectSaved);
+
+	void OnObjectPreSave(UObject* ObjectSaved, FObjectPreSaveContext SaveContext)
+	{
+		OnObjectPreSave_Friendly(ObjectSaved);
+	}
 
 	/// WorldDelegates
 	///@todo : ELevelTick -> BT Type
