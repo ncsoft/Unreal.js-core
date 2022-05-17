@@ -62,8 +62,8 @@ OP_REFLECT(ResumePIE)\
 OP_REFLECT(SingleStepPIE)\
 OP_REFLECT(PropertySelectionChange)\
 OP_REFLECT(PostLandscapeLayerUpdated)\
-OP_REFLECT(PreSaveWorld)\
-OP_REFLECT(PostSaveWorld)\
+OP_REFLECT(PreSaveWorldWithContext)\
+OP_REFLECT(PostSaveWorldWithContext)\
 OP_REFLECT(OnFinishPickingBlueprintClass)\
 OP_REFLECT(OnConfigureNewAssetProperties)\
 OP_REFLECT(OnNewAssetCreated)\

@@ -262,11 +262,12 @@ void UJavascriptEditorTab::InsertTo(TSharedRef<FTabManager> TabManager, UObject*
 
 	const TSharedRef<SDockTab> MajorTab = SNew(SDockTab)
 		.TabRole(ETabRole(Role.GetValue()))
-		.Icon(Icon.GetSlateIcon().GetIcon())
 		.Label(DisplayName)
 		.OnTabClosed_Lambda([](TSharedRef<SDockTab> ClosedTab) {
 			GEditorTabTracker.OnTabClosed(ClosedTab);
 		});
+
+	MajorTab->SetTabIcon(Icon.GetSlateIcon().GetIcon());
 
 	GEditorTabTracker.Add(this, Widget, MajorTab);
 

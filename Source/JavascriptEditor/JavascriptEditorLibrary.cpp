@@ -72,6 +72,7 @@
 #include "SocketSubsystem.h"
 #include "Sockets.h"
 #include "IPAddress.h"
+#include "UObject/SavePackage.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -622,8 +623,7 @@ FName UJavascriptEditorLibrary::GetFolderPath(AActor* Actor)
 void UJavascriptEditorLibrary::BroadcastHotReload()
 {
 	// Register to have Populate called when doing a Hot Reload.
-	IHotReloadInterface& HotReloadSupport = FModuleManager::LoadModuleChecked<IHotReloadInterface>("HotReload");
-	HotReloadSupport.OnHotReload().Broadcast(false);
+	FCoreUObjectDelegates::ReloadCompleteDelegate.Broadcast(EReloadCompleteReason::HotReloadManual);
 }
 
 void UJavascriptEditorLibrary::BroadcastAssetCreated(UObject* NewAsset)
@@ -822,11 +822,15 @@ bool UJavascriptEditorLibrary::SavePackage(UPackage* Package, FString FileName)
 
 	if (World)
 	{
-		bSavedCorrectly = UPackage::SavePackage(Package, World, RF_NoFlags, *FileName, GError, NULL, false, true);
+		FSavePackageArgs SaveArgs = { NULL, RF_NoFlags, 0U, false,
+			true, true, FDateTime::MinValue(), GError };
+		bSavedCorrectly = UPackage::SavePackage(Package, World, *FileName, SaveArgs);
 	}
 	else
 	{
-		bSavedCorrectly =  UPackage::SavePackage(Package, NULL, RF_Standalone, *FileName, GError, NULL, false, true);
+		FSavePackageArgs SaveArgs = { NULL, RF_Standalone, 0U, false,
+			true, true, FDateTime::MinValue(), GError };
+		bSavedCorrectly =  UPackage::SavePackage(Package, NULL,  *FileName, SaveArgs);
 	}
 	return bSavedCorrectly;
 }
@@ -964,7 +968,7 @@ void UJavascriptEditorLibrary::RemoveLevelInstance(UWorld* World)
 
 void UJavascriptEditorLibrary::AddWhitelistedObject(UObject* InObject)
 {
-	FVisualLogger::Get().AddWhitelistedObject(*InObject);
+	FVisualLogger::Get().AddObjectToAllowList(*InObject);
 }
 
 void UJavascriptEditorLibrary::PostEditChange(UObject* InObject)
@@ -1312,7 +1316,7 @@ bool UJavascriptEditorLibrary::LoadImageFromDiskAsync(const FString& ImagePath, 
 						WriteRawToTexture_RenderThread(TextureResource, RawData);
 					});
 #else
-				FTexture2DDynamicResource* TextureResource = static_cast<FTexture2DDynamicResource*>(Texture->Resource);
+				FTexture2DDynamicResource* TextureResource = static_cast<FTexture2DDynamicResource*>(Texture->GetResource());
 				TArray64<uint8> RawDataCopy = RawData;
 				ENQUEUE_RENDER_COMMAND(FWriteRawDataToTexture)(
 					[TextureResource, RawDataCopy](FRHICommandListImmediate& RHICmdList)

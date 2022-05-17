@@ -59,13 +59,16 @@ static TSharedPtr<FJavascriptLogHistory> JavascriptLogHistory;
 
 TSharedRef<SDockTab> SpawnJavascriptLog( const FSpawnTabArgs& Args )
 {
-	return SNew(SDockTab)
-		.Icon(FEditorStyle::GetBrush("Log.TabIcon"))
+	auto NewTab = SNew(SDockTab)
 		.TabRole( ETabRole::NomadTab )
 		.Label( NSLOCTEXT("JavascriptConsole", "TabTitle", "Javascript Console") )
 		[
 			SNew(SJavascriptLog).Messages( JavascriptLogHistory->GetMessages() )
 		];
+
+	NewTab->SetTabIcon(FEditorStyle::GetBrush("Log.TabIcon"));
+
+	return NewTab;
 }
 
 void FJavascriptConsoleModule::StartupModule()

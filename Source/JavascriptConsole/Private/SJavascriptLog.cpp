@@ -18,6 +18,7 @@
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Widgets/Input/SSearchBox.h"
 #include "SlateOptMacros.h"
+#include "Logging/LogVerbosity.h"
 #include "../../Launch/Resources/Version.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptConsole"
@@ -960,7 +961,7 @@ bool SJavascriptLog::CreateLogMessages( const TCHAR* V, ELogVerbosity::Type Verb
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 13
 				Format += FString(VerbosityToString(Verbosity)) + TEXT(": ");
 #else
-				Format += FString(FOutputDeviceHelper::VerbosityToString(Verbosity)) + TEXT(": ");
+				Format += FString(::ToString(Verbosity)) + TEXT(": ");
 #endif
 			}			
 			

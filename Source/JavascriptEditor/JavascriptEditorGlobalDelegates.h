@@ -5,6 +5,7 @@
 #include "Editor/UnrealEdTypes.h"
 #include "Widgets/SWindow.h"
 #endif
+#include "UObject/ObjectSaveContext.h"
 #include "UObject/ScriptMacros.h"
 #include "JavascriptEditorGlobalDelegates.generated.h"
 
@@ -118,19 +119,19 @@ public:
 	void PostLandscapeLayerUpdated();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-	void PreSaveWorld_Friendly(int32 SaveFlags, UWorld* World);
+	void PreSaveWorldWithContext_Friendly(int32 SaveFlags, UWorld* World);
 
-	void PreSaveWorld(uint32 SaveFlags, UWorld* World)
+	void PreSaveWorldWithContext(UWorld* World, FObjectPreSaveContext ObjectSaveContext)
 	{
-		PreSaveWorld_Friendly((int32)SaveFlags, World);
+		PreSaveWorldWithContext_Friendly(ObjectSaveContext.GetSaveFlags(), World);
 	}
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-	void PostSaveWorld_Friendly(int32 SaveFlags, UWorld* World, bool bSuccess);
+	void PostSaveWorldWithContext_Friendly(int32 SaveFlags, UWorld* World, bool bSuccess);
 
-	void PostSaveWorld(uint32 SaveFlags, UWorld* World, bool bSuccess)
+	void PostSaveWorldWithContext(UWorld* World, FObjectPostSaveContext ObjectSaveContext)
 	{
-		PostSaveWorld_Friendly(SaveFlags, World, bSuccess);
+		PostSaveWorldWithContext_Friendly(ObjectSaveContext.GetSaveFlags(), World, ObjectSaveContext.SaveSucceeded());
 	}
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")

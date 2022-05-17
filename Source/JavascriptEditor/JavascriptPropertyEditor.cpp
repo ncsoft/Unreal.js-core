@@ -77,7 +77,13 @@ TSharedRef<SWidget> UPropertyEditor::RebuildWidget()
 	else
 	{
 		FPropertyEditorModule& EditModule = FModuleManager::Get().GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-		FDetailsViewArgs DetailsViewArgs(bUpdateFromSelection, bLockable, bAllowSearch, (FDetailsViewArgs::ENameAreaSettings)NameAreaSettings, bHideSelectionTip);
+		FDetailsViewArgs DetailsViewArgs;
+		DetailsViewArgs.bUpdatesFromSelection = bUpdateFromSelection;
+		DetailsViewArgs.bLockable = bLockable;
+		DetailsViewArgs.bAllowSearch = bAllowSearch;
+		DetailsViewArgs.NameAreaSettings = (FDetailsViewArgs::ENameAreaSettings)NameAreaSettings;
+		DetailsViewArgs.bHideSelectionTip = bHideSelectionTip;
+
 		View = EditModule.CreateDetailView(DetailsViewArgs);
 
 		{

@@ -49,7 +49,7 @@ UBodySetup* UJavascriptRawMeshLibrary::GetPhysicsBodySetupFromMesh(USkeletalMesh
 {
 	check(InSkeletalMesh);
 
-	UPhysicsAsset* const PhysicsAsset = InSkeletalMesh->PhysicsAsset;
+	UPhysicsAsset* const PhysicsAsset = InSkeletalMesh->GetPhysicsAsset();
 	if (::IsValid(PhysicsAsset))
 	{
 		int32 BodyIndex = PhysicsAsset->FindBodyIndex(FName(*InName));

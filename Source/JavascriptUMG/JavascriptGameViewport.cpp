@@ -91,7 +91,7 @@ FJavascriptUMGViewportClient::FJavascriptUMGViewportClient(FJavascriptInGameScen
 	, Viewport(nullptr)
 	, EngineShowFlags(ESFIM_Game)
 {
-	ViewState.Allocate();
+	ViewState.Allocate(GMaxRHIFeatureLevel);
 
 	BackgroundColor = FColor(55, 55, 55);
 }
@@ -159,7 +159,7 @@ void FJavascriptUMGViewportClient::Draw(FViewport* InViewport, FCanvas* Canvas)
 		Canvas->GetRenderTarget(),
 		GetScene(),
 		EngineShowFlags)
-		.SetWorldTimes(TimeSeconds, DeltaTimeSeconds, RealTimeSeconds)
+		.SetTime(FGameTime::CreateDilated(RealTimeSeconds, DeltaTimeSeconds, TimeSeconds, DeltaTimeSeconds))
 		.SetRealtimeUpdate(bIsRealTime));
 
 	ViewFamily.EngineShowFlags = EngineShowFlags;
