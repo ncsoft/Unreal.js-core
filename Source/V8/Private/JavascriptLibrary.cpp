@@ -761,7 +761,7 @@ void UJavascriptLibrary::V8_SetIdleTaskBudget(float BudgetInSeconds)
 
 UObject* UJavascriptLibrary::TryLoadByPath(FString Path)
 {
-	return FStringAssetReference(*Path).TryLoad();
+	return FSoftObjectPath(*Path).TryLoad();
 }
 
 void UJavascriptLibrary::GenerateNavigation(UWorld* InWorld, ARecastNavMesh* NavData )
