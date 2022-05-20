@@ -141,6 +141,11 @@ public:
 		return v8::platform::NewDefaultJobHandle(
 			this, priority, std::move(job_task), NumberOfWorkerThreads());
 	}
+
+	virtual ZoneBackingAllocator* GetZoneBackingAllocator() override
+	{
+		return platform_->GetZoneBackingAllocator();
+	}
 #endif
 
 	virtual void CallOnWorkerThread(std::unique_ptr<Task> task)
