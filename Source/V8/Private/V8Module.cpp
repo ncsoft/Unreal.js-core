@@ -55,9 +55,9 @@ UJavascriptSettings::UJavascriptSettings(const FObjectInitializer& ObjectInitial
 	: Super(ObjectInitializer)
 {
 #if PLATFORM_IOS
-	V8Flags = TEXT("--harmony --harmony-shipping --es-staging --expose-gc --jitless");
+	V8Flags = TEXT("--harmony --harmony-shipping --expose-gc --jitless");
 #else
-	V8Flags = TEXT("--harmony --harmony-shipping --es-staging --expose-gc");
+	V8Flags = TEXT("--harmony --harmony-shipping --expose-gc");
 #endif
 	bEnableHotReload = true;
 }
