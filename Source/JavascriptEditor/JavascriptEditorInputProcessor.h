@@ -1,8 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #include "Input/Events.h"
 #include "Framework/Application/IInputProcessor.h"
 #include "JavascriptEditorInputProcessor.generated.h"
+
+struct FPointerEvent;
 
 /**
  * 
@@ -25,6 +27,18 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting|Javascript")
 	bool HandleAnalogInputEvent(const FAnalogInputEvent& InKeyEvent);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting|Javascript")
+	bool HandleMouseButtonDownEvent(const FPointerEvent& InPointerEvent);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting|Javascript")
+	bool HandleMouseButtonUpEvent(const FPointerEvent& InPointerEvent);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting|Javascript")
+	bool HandleMouseButtonDoubleClickEvent(const FPointerEvent& InPointerEvent);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting|Javascript")
+	bool HandleMouseWheelOrGestureEvent(const FPointerEvent& InWheelEvent, const FPointerEvent& InGestureEvent);
 	
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void Activate(bool bEnable);

@@ -10,7 +10,7 @@ UJavascriptCurveTableEditor::UJavascriptCurveTableEditor(const FObjectInitialize
 {}
 
 #if WITH_EDITOR
-void UJavascriptCurveTableEditor::SetObject(UCurveTable* Object, bool bForceRefresh)
+void UJavascriptCurveTableEditor::SetObject(UCurveTable* Object, bool bCanEdit)
 {
 	if (Object == nullptr)
 		return;
@@ -22,7 +22,7 @@ void UJavascriptCurveTableEditor::SetObject(UCurveTable* Object, bool bForceRefr
 
 	if (CurveTableEditor.IsValid())
 	{
-		CurveTableEditor->SetCurveOwner(CurveTable.Get(), false);
+		CurveTableEditor->SetCurveOwner(CurveTable.Get(), bCanEdit);
 	}
 }
 
@@ -46,13 +46,7 @@ TSharedRef<SWidget> UJavascriptCurveTableEditor::RebuildWidget()
 			CurveTableEditor->SetCurveOwner(CurveTable.Get(), false);
 		}
 
-		return SNew(SHorizontalBox)
-			+SHorizontalBox::Slot()
-			.Padding(FMargin(4, 2, 4, 2))
-			.FillWidth(1.0f)
-			[
-				CurveTableEditor.ToSharedRef()
-			];
+		return CurveTableEditor.ToSharedRef();
 	}
 }
 

@@ -178,6 +178,39 @@ ULandscapeLayerInfoObject* UJavascriptEditorLibrary::GetLayerInfoByName(ULandsca
 	return LandscapeInfo ? LandscapeInfo->GetLayerInfoByName(LayerName, Owner) : nullptr;
 }
 
+void UJavascriptEditorLibrary::GetAllTagsByAssetData(const FAssetData& AssetData, TArray<FName>& OutArray)
+{
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27
+	AssetData.TagsAndValues.GetKeys(OutArray);
+#else
+	AssetData.TagsAndValues.CopyMap().GetKeys(OutArray);
+#endif
+}
+
+bool UJavascriptEditorLibrary::GetTagValueByAssetData(const FAssetData& AssetData, const FName& Name, FString& OutValue)
+{
+#if ENGINE_MAJOR_VERSION > 4
+	auto Value = AssetData.TagsAndValues.FindTag(Name);
+	if (Value.IsSet())
+	{
+		OutValue = Value.GetValue();
+		return true;
+	}
+#else
+	auto Value = AssetData.TagsAndValues.GetMap().Find(Name);
+	if (Value)
+	{
+		OutValue = *Value;
+		return true;
+	}
+#endif
+	else
+	{
+		return false;
+	}
+}
+
+
 void UJavascriptEditorLibrary::GetAllTags(const FJavascriptAssetData& AssetData, TArray<FName>& OutArray)
 {
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27
@@ -884,7 +917,11 @@ void UJavascriptEditorLibrary::CreateBrushForVolumeActor(AVolume* NewActor, UBru
 
 UWorld* UJavascriptEditorLibrary::FindWorldInPackage(UPackage* Package)
 {
-	return UWorld::FindWorldInPackage(Package);
+	if (::IsValid(Package))
+	{
+		return UWorld::FindWorldInPackage(Package);
+	}
+	return nullptr;
 }
 
 FString UJavascriptEditorLibrary::ExportNavigation(UWorld* InWorld, FString Name)
@@ -1276,6 +1313,12 @@ static void WriteRawToTexture_RenderThread(FTexture2DDynamicResource* TextureRes
 
 #endif
 
+
+void UJavascriptEditorLibrary::DownloadImageFromUrl(const FString& ImageUrl, class UAsyncTaskDownloadImage* Callback)
+{
+	Callback->Start(ImageUrl);
+}
+
 bool UJavascriptEditorLibrary::LoadImageFromDiskAsync(const FString& ImagePath, UAsyncTaskDownloadImage* Callback)
 {
 	IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(TEXT("ImageWrapper"));
@@ -1474,6 +1517,17 @@ void UJavascriptEditorLibrary::AddRichCurve(UCurveTable* InCurveTable, const FNa
 	NewCurve.PostInfinityExtrap = InCurve.PostInfinityExtrap;
 	NewCurve.DefaultValue = InCurve.DefaultValue;
 #endif
+}
+
+bool UJavascriptEditorLibrary::FindRichCurve(UCurveTable* InCurveTable, const FName& Key, FRichCurve& OutCurve)
+{
+	if (FRichCurve* FoundedCurve = InCurveTable->FindRichCurve(Key, TEXT("UJavascriptEditorLibrary::FindRichCurve"), false))
+	{
+		OutCurve = *FoundedCurve;
+		return true;
+	}
+
+	return false;
 }
 
 void UJavascriptEditorLibrary::NotifyUpdateCurveTable(UCurveTable* InCurveTable)

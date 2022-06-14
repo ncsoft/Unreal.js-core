@@ -458,14 +458,20 @@ public:
 		FWorldDelegates::OnWorldCleanup.Remove(OnWorldCleanupHandle);
 		v8::debug::SetConsoleDelegate(isolate_, nullptr);
 
+#if V8_MAJOR_VERSION > 8
+		auto platform = reinterpret_cast<v8::Platform*>(IV8::Get().GetV8Platform());
+		v8::platform::NotifyIsolateShutdown(platform, isolate_);
+#endif
 		isolate_->Dispose();
 	}
 
 	bool HandleTicker(float DeltaTime)
 	{
 		auto platform = reinterpret_cast<v8::Platform*>(IV8::Get().GetV8Platform());
-		v8::platform::PumpMessageLoop(platform,isolate_);
+		v8::platform::PumpMessageLoop(platform, isolate_);
+#if V8_MAJOR_VERSION > 8
 		v8::platform::RunIdleTasks(platform, isolate_, DeltaTime);
+#endif
 		return true;
 	}
 

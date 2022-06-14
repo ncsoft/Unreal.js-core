@@ -119,19 +119,19 @@ public:
 	void PostLandscapeLayerUpdated();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-	void PreSaveWorldWithContext_Friendly(int32 SaveFlags, UWorld* World);
+	void PreSaveWorld_Friendly(int32 SaveFlags, UWorld* World);
 
 	void PreSaveWorldWithContext(UWorld* World, FObjectPreSaveContext ObjectSaveContext)
 	{
-		PreSaveWorldWithContext_Friendly(ObjectSaveContext.GetSaveFlags(), World);
+		PreSaveWorld_Friendly(ObjectSaveContext.GetSaveFlags(), World);
 	}
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-	void PostSaveWorldWithContext_Friendly(int32 SaveFlags, UWorld* World, bool bSuccess);
+	void PostSaveWorld_Friendly(int32 SaveFlags, UWorld* World, bool bSuccess);
 
 	void PostSaveWorldWithContext(UWorld* World, FObjectPostSaveContext ObjectSaveContext)
 	{
-		PostSaveWorldWithContext_Friendly(ObjectSaveContext.GetSaveFlags(), World, ObjectSaveContext.SaveSucceeded());
+		PostSaveWorld_Friendly(ObjectSaveContext.GetSaveFlags(), World, ObjectSaveContext.SaveSucceeded());
 	}
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
@@ -245,6 +245,9 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void PostPIEStarted(const bool bIsSimulating);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void PrePIEEnded(const bool bIsSimulating);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void EndPIE(const bool bIsSimulating);

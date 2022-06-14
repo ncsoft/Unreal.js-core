@@ -354,7 +354,7 @@ void SJavascriptGraphNodeComment::GetOverlayBrushes(bool bSelected, const FVecto
 
 	HandleSelection(bSelected);
 
-	FOverlayBrushInfo HandleBrush = FEditorStyle::GetBrush(TEXT("Kismet.Comment.Handle"));
+	FOverlayBrushInfo HandleBrush = FEditorStyle::GetBrush(TEXT("Graph.Node.Comment.Handle"));
 
 	HandleBrush.OverlayOffset.X = WidgetSize.X - HandleBrush.Brush->ImageSize.X - Fudge;
 	HandleBrush.OverlayOffset.Y = WidgetSize.Y - HandleBrush.Brush->ImageSize.Y - Fudge;

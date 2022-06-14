@@ -1,4 +1,4 @@
-#include "JavascriptOutputDevice.h"
+﻿#include "JavascriptOutputDevice.h"
 #include "UObject/UObjectThreadContext.h"
 
 /** This class is to capture all log output even if the log window is closed */
@@ -69,7 +69,7 @@ void UJavascriptOutputDevice::Log(FName Category, ELogVerbosity_JS _Verbosity, c
 	FMsg::Logf_Internal(TCHAR_TO_ANSI(*Filename), LineNumber, Category, Verbosity, TEXT("%s"), *Message);
 	if (Verbosity == ELogVerbosity::Fatal)
 	{
-		_DebugBreakAndPromptForRemote();
+		UE_DEBUG_BREAK_AND_PROMPT_FOR_REMOTE();
 		FDebug::AssertFailed("", TCHAR_TO_ANSI(*Filename), LineNumber, TEXT("%s"), *Message);
 	}
 #endif

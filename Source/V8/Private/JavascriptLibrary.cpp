@@ -688,7 +688,7 @@ void UJavascriptLibrary::Log(const FJavascriptLogCategory& Category, ELogVerbosi
 		FMsg::Logf_Internal(TCHAR_TO_ANSI(*FileName), LineNumber, Category.Handle->GetCategoryName(), Verbosity, TEXT("%s"), *Message);
 		if (Verbosity == ELogVerbosity::Fatal)
 		{
-			_DebugBreakAndPromptForRemote();
+			UE_DEBUG_BREAK_AND_PROMPT_FOR_REMOTE();
 			FDebug::AssertFailed("", TCHAR_TO_ANSI(*FileName), LineNumber, *Message);
 		}
 	}
@@ -967,7 +967,7 @@ bool UJavascriptLibrary::IsGeneratedByBlueprint(UClass* InClass)
 bool UJavascriptLibrary::IsPendingKill(AActor* InActor)
 {
 	if (InActor != nullptr)
-		return IsValid(InActor);
+		return !IsValid(InActor);
 	return true;
 }
 

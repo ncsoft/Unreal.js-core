@@ -74,7 +74,7 @@ private:
 #if V8_MAJOR_VERSION < 9
 	TQueue<v8::IdleTask*> IdleTasks;
 	FTickerDelegate TickDelegate;
-	FDelegateHandle TickHandle;
+	FTSTicker::FDelegateHandle TickHandle;
 #endif
 	bool bActive{ true };
 
@@ -88,14 +88,14 @@ public:
 	{
 #if V8_MAJOR_VERSION < 9
 		TickDelegate = FTickerDelegate::CreateRaw(this, &FUnrealJSPlatform::HandleTicker);
-		TickHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);
+		TickHandle = FTSTicker::GetCoreTicker().AddTicker(TickDelegate);
 #endif
 	}
 
 	~FUnrealJSPlatform()
 	{
 #if V8_MAJOR_VERSION < 9
-		FTicker::GetCoreTicker().RemoveTicker(TickHandle);
+		FTSTicker::GetCoreTicker().RemoveTicker(TickHandle);
 #endif
 		platform_.release();
 	}
@@ -138,8 +138,7 @@ public:
 	std::unique_ptr<JobHandle> PostJob(
 		TaskPriority priority, std::unique_ptr<JobTask> job_task) override
 	{
-		return v8::platform::NewDefaultJobHandle(
-			this, priority, std::move(job_task), NumberOfWorkerThreads());
+		return platform_->PostJob(priority, std::move(job_task));
 	}
 
 	virtual ZoneBackingAllocator* GetZoneBackingAllocator() override
@@ -383,7 +382,7 @@ public:
 
 	virtual void SetFlagsFromString(const FString& V8Flags) override
 	{
-		v8::V8::SetFlagsFromString(TCHAR_TO_ANSI(*V8Flags));
+		V8::SetFlagsFromString(TCHAR_TO_ANSI(*V8Flags));
 	}
 
 	virtual bool IsEnableHotReload() const override

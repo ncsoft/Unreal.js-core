@@ -94,6 +94,8 @@ void SJavascriptGraphEdNode::UpdateGraphNode()
 	OutputPins.Empty();
 	RightNodeBox.Reset();
 	LeftNodeBox.Reset();
+	InvalidationPanel.Reset();
+	LastKnownLayoutScaleMultiplier = 0.0f;
 	
 	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GraphNode->GetSchema());
 	auto GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphNode);
@@ -112,7 +114,7 @@ void SJavascriptGraphEdNode::UpdateGraphNode()
 			.HAlign(HAlign_Fill)
 			.VAlign(VAlign_Fill)
 			[
-				SNew(SInvalidationPanel)
+				SAssignNew(InvalidationPanel, SInvalidationPanel)
 				[
 					SNew(SOverlay)
 					+SOverlay::Slot()
@@ -803,6 +805,19 @@ FCursorReply SJavascriptGraphEdNode::OnCursorQuery(const FGeometry & MyGeometry,
 	return FCursorReply::Unhandled();
 }
 
+void SJavascriptGraphEdNode::CacheDesiredSize(float InLayoutScaleMultiplier)
+{
+	SGraphNode::CacheDesiredSize(InLayoutScaleMultiplier);
+
+	if (InvalidationPanel.IsValid() && LastKnownLayoutScaleMultiplier != InLayoutScaleMultiplier)
+	{
+		LastKnownLayoutScaleMultiplier = InLayoutScaleMultiplier;
+
+		FTimerDelegate Delegate = FTimerDelegate::CreateSP(this, &SJavascriptGraphEdNode::InvalidateGraphNodeWidget);
+		GEditor->GetTimerManager()->SetTimerForNextTick(Delegate);
+	}
+}
+
 FVector2D SJavascriptGraphEdNode::ComputeDesiredSize(float LayoutScaleMultiplier) const
 {
 	const FVector2D& InDesiredSize = SNodePanel::SNode::ComputeDesiredSize(LayoutScaleMultiplier);
@@ -1007,4 +1022,12 @@ const FSlateBrush* SJavascriptGraphEdNode::GetAdvancedViewArrow() const
 {
 	const bool bAdvancedPinsHidden = GraphNode && (ENodeAdvancedPins::Hidden == GraphNode->AdvancedPinDisplay);
 	return FEditorStyle::GetBrush(bAdvancedPinsHidden ? TEXT("Icons.ChevronDown") : TEXT("Icons.ChevronUp"));
+}
+
+void SJavascriptGraphEdNode::InvalidateGraphNodeWidget()
+{
+	if (InvalidationPanel.IsValid())
+	{
+		InvalidationPanel->InvalidateRootLayout();
+	}
 }

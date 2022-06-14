@@ -4,6 +4,7 @@
 #include "SGraphPin.h"
 #include "GraphEditorDragDropAction.h"
 
+class SInvalidationPanel;
 class UJavascriptGraphEdNode;
 
 class FDragJavascriptGraphNode : public FGraphEditorDragDropAction
@@ -81,6 +82,8 @@ public:
 	virtual FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FCursorReply OnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent) const override;
+
+	virtual void CacheDesiredSize(float InLayoutScaleMultiplier) override;
 	//~ End SWidget Interface
 
 	virtual FText GetDescription() const;
@@ -111,6 +114,8 @@ private:
 	TSharedPtr<SWidget> ErrorReportingWidget();
 	void UpdatePinSlate();
 
+	void InvalidateGraphNodeWidget();
+
 public:
 	/** The non snapped size of the node for fluid resizing */
 	FVector2D DragSize;
@@ -120,4 +125,9 @@ public:
 	bool bUserIsDragging;
 	/** The current window zone the mouse is in */
 	EResizableWindowZone MouseZone;
+
+	TSharedPtr<SInvalidationPanel> InvalidationPanel;
+
+	// Used for tracking change of zoom level because SNodePanel::PostChangedZoom gives no chance to track it.
+	float LastKnownLayoutScaleMultiplier;
 };
