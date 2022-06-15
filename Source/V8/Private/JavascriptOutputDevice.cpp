@@ -69,7 +69,11 @@ void UJavascriptOutputDevice::Log(FName Category, ELogVerbosity_JS _Verbosity, c
 	FMsg::Logf_Internal(TCHAR_TO_ANSI(*Filename), LineNumber, Category, Verbosity, TEXT("%s"), *Message);
 	if (Verbosity == ELogVerbosity::Fatal)
 	{
+#ifdef UE_DEBUG_BREAK_AND_PROMPT_FOR_REMOTE
 		UE_DEBUG_BREAK_AND_PROMPT_FOR_REMOTE();
+#else
+		_DebugBreakAndPromptForRemote();
+#endif
 		FDebug::AssertFailed("", TCHAR_TO_ANSI(*Filename), LineNumber, TEXT("%s"), *Message);
 	}
 #endif

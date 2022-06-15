@@ -688,7 +688,11 @@ void UJavascriptLibrary::Log(const FJavascriptLogCategory& Category, ELogVerbosi
 		FMsg::Logf_Internal(TCHAR_TO_ANSI(*FileName), LineNumber, Category.Handle->GetCategoryName(), Verbosity, TEXT("%s"), *Message);
 		if (Verbosity == ELogVerbosity::Fatal)
 		{
+#ifdef UE_DEBUG_BREAK_AND_PROMPT_FOR_REMOTE
 			UE_DEBUG_BREAK_AND_PROMPT_FOR_REMOTE();
+#else
+			_DebugBreakAndPromptForRemote();
+#endif
 			FDebug::AssertFailed("", TCHAR_TO_ANSI(*FileName), LineNumber, *Message);
 		}
 	}
