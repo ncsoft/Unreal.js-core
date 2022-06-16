@@ -622,6 +622,30 @@ public:
 		{
 			return Int32::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
 		}
+		else if (auto p = CastField<FUInt32Property>(Property))
+		{
+			return Uint32::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+		}
+		else if (auto p = CastField<FInt64Property>(Property))
+		{
+			return Integer::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+		}
+		else if (auto p = CastField<FUInt64Property>(Property))
+		{
+			return BigInt::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+		}
+		else if (auto p = CastField<FInt8Property>(Property))
+		{
+			return Int32::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+		}
+		else if (auto p = CastField<FInt16Property>(Property))
+		{
+			return Int32::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+		}
+		else if (auto p = CastField<FUInt16Property>(Property))
+		{
+			return Uint32::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+		}
 		else if (auto p = CastField<FFloatProperty>(Property))
 		{
 			return Number::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
@@ -888,6 +912,31 @@ public:
 		if (auto p = CastField<FIntProperty>(Property))
 		{
 			p->SetPropertyValue_InContainer(Buffer, Value->Int32Value(isolate_->GetCurrentContext()).ToChecked());
+		}
+		else if (auto p = CastField<FInt64Property>(Property))
+		{
+			p->SetPropertyValue_InContainer(Buffer, Value->IntegerValue(isolate_->GetCurrentContext()).ToChecked());
+		}
+		else if (auto p = CastField<FUInt32Property>(Property))
+		{
+			p->SetPropertyValue_InContainer(Buffer, Value->Uint32Value(isolate_->GetCurrentContext()).ToChecked());
+		}
+		else if (auto p = CastField<FInt8Property>(Property))
+		{
+			p->SetPropertyValue_InContainer(Buffer, Value->Int32Value(isolate_->GetCurrentContext()).ToChecked());
+		}
+		else if (auto p = CastField<FInt16Property>(Property))
+		{
+			p->SetPropertyValue_InContainer(Buffer, Value->Int32Value(isolate_->GetCurrentContext()).ToChecked());
+		}
+		else if (auto p = CastField<FUInt16Property>(Property))
+		{
+			p->SetPropertyValue_InContainer(Buffer, Value->Uint32Value(isolate_->GetCurrentContext()).ToChecked());
+		}
+		else if (auto p = CastField<FUInt64Property>(Property))
+		{
+			auto v = Value->ToBigInt(isolate_->GetCurrentContext()).ToLocalChecked();
+			p->SetPropertyValue_InContainer(Buffer, v->Uint64Value());
 		}
 		else if (auto p = CastField<FFloatProperty>(Property))
 		{
