@@ -41,7 +41,6 @@ void UJavascriptEditorGlobalDelegates::BeginDestroy()
 
 #define DO_REFLECT() \
 OP_REFLECT(NewCurrentLevel)\
-OP_REFLECT(NewCurrentLevelForEditLevelInstance)\
 OP_REFLECT(MapChange)\
 OP_REFLECT(LayerChange)\
 OP_REFLECT(ChangeEditorMode)\

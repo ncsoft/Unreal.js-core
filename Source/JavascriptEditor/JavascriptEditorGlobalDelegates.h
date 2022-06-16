@@ -67,9 +67,6 @@ public:
 	void NewCurrentLevel();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
-	void NewCurrentLevelForEditLevelInstance();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void MapChange_Friendly(int32 MapChangeFlags);
 
 	void MapChange(uint32 MapChangeFlags)
