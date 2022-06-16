@@ -110,6 +110,10 @@ struct TokenWriter
 		{
 			push("number");
 		}
+		else if (auto p = CastField<FDoubleProperty>(Property))
+		{
+			push("number");
+		}
 		else if (auto p = CastField<FBoolProperty>(Property))
 		{
 			push("boolean");
