@@ -53,7 +53,13 @@
       "Type": "Editor",
       "LoadingPhase": "PostDefault",
       "WhitelistPlatforms": [ "Win64", "Mac", "Linux" ]
-    }
+    },
+    {
+      "Name": "JavascriptWebSocketV2",
+      "Type": "Runtime",
+      "LoadingPhase": "PreDefault",
+      "WhitelistPlatforms": [ "Win64", "Mac", "Linux", "Android", "IOS" ]
+    },
   ],
   "Plugins": [
 	{

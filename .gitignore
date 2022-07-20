@@ -4,3 +4,4 @@ ThirdParty/**/lib/*
 ThirdParty/v8/*libs.zip
 .DS_Store
 
+Build/
