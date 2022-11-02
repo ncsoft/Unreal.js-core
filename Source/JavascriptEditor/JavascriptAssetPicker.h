@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Components/Widget.h"
 #include "JavascriptAssetPicker.generated.h"
@@ -33,7 +33,7 @@ private:
 
 public:
 
-	DECLARE_DYNAMIC_DELEGATE_RetVal(UObject*, FOnGetDefaultValue);
+	DECLARE_DYNAMIC_DELEGATE_RetVal(FString, FOnGetDefaultValue);
 	
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnSetDefaultValue, FText, Value);
 	
@@ -56,5 +56,5 @@ protected:
 	
 	TSharedPtr< class SMenuAnchor > AssetPickerAnchor;
 
-	class UObject* DefaultObject;
+	FString DefaultObjectPath;
 };

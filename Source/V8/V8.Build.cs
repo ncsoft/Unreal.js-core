@@ -103,7 +103,7 @@ public class V8 : ModuleRules
         int[] v8_version = GetV8Version();
         bool ShouldLink_libsampler = !(v8_version[0] == 5 && v8_version[1] < 3);
         bool ShouldLink_lib_v8_compiler = (v8_version[0] > 6 && v8_version[1] > 6);
-        bool SholdLink_lib_monolith = v8_version[0] > 8;
+        bool ShouldLink_lib_monolith = v8_version[0] > 8;
 
         if (Target.IsInPlatformGroup(UnrealPlatformGroup.Windows))
         {
@@ -118,7 +118,7 @@ public class V8 : ModuleRules
                 LibrariesPath = Path.Combine(LibrariesPath, "Win32");
             }
 
-            if (SholdLink_lib_monolith)
+            if (ShouldLink_lib_monolith)
             {
                 PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "v8_monolith.lib"));
             }
@@ -173,7 +173,7 @@ public class V8 : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "ARM64"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "ARMv7"));
 
-            if (SholdLink_lib_monolith)
+            if (ShouldLink_lib_monolith)
             {
                 PublicAdditionalLibraries.Add("v8_monolith");
             }
@@ -210,7 +210,7 @@ public class V8 : ModuleRules
         else if (Target.Platform == UnrealTargetPlatform.Linux)
         {
             string LibrariesPath = Path.Combine(ThirdPartyPath, "v8", "lib", "Linux");
-            if (SholdLink_lib_monolith)
+            if (ShouldLink_lib_monolith)
             {
                 PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_monolith.a"));
             }
@@ -257,7 +257,7 @@ public class V8 : ModuleRules
         else if (Target.Platform == UnrealTargetPlatform.Mac)
         {
             string LibrariesPath = Path.Combine(ThirdPartyPath, "v8", "lib", "Mac");
-            if (SholdLink_lib_monolith)
+            if (ShouldLink_lib_monolith)
             {
                 PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_monolith.a"));
             }
@@ -306,7 +306,7 @@ public class V8 : ModuleRules
         {
             string LibrariesPath = Path.Combine(ThirdPartyPath, "v8", "lib", "IOS");
 
-            if (SholdLink_lib_monolith)
+            if (ShouldLink_lib_monolith)
             {
                 PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libv8_monolith.a"));
             }

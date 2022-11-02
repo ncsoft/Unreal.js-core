@@ -688,7 +688,11 @@ void UJavascriptLibrary::Log(const FJavascriptLogCategory& Category, ELogVerbosi
 		FMsg::Logf_Internal(TCHAR_TO_ANSI(*FileName), LineNumber, Category.Handle->GetCategoryName(), Verbosity, TEXT("%s"), *Message);
 		if (Verbosity == ELogVerbosity::Fatal)
 		{
+#ifdef UE_DEBUG_BREAK_AND_PROMPT_FOR_REMOTE
+			UE_DEBUG_BREAK_AND_PROMPT_FOR_REMOTE();
+#else
 			_DebugBreakAndPromptForRemote();
+#endif
 			FDebug::AssertFailed("", TCHAR_TO_ANSI(*FileName), LineNumber, *Message);
 		}
 	}
@@ -761,7 +765,7 @@ void UJavascriptLibrary::V8_SetIdleTaskBudget(float BudgetInSeconds)
 
 UObject* UJavascriptLibrary::TryLoadByPath(FString Path)
 {
-	return FStringAssetReference(*Path).TryLoad();
+	return FSoftObjectPath(*Path).TryLoad();
 }
 
 void UJavascriptLibrary::GenerateNavigation(UWorld* InWorld, ARecastNavMesh* NavData )
@@ -967,7 +971,7 @@ bool UJavascriptLibrary::IsGeneratedByBlueprint(UClass* InClass)
 bool UJavascriptLibrary::IsPendingKill(AActor* InActor)
 {
 	if (InActor != nullptr)
-		return IsValid(InActor);
+		return !IsValid(InActor);
 	return true;
 }
 

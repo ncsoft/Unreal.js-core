@@ -201,7 +201,7 @@ TSharedRef<SWidget> UJavascriptClassViewer::GeneratePathPicker()
 	{
 		Filter->AllowedChildrenOfClasses.Add(AllowedChildrenOfClass);
 	}
-	Options.ClassFilter = Filter;
+	Options.ClassFilters.Add(Filter.ToSharedRef());
 
 	return
 		SNew(SBox)

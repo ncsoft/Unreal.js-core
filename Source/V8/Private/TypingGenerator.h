@@ -102,31 +102,30 @@ struct TokenWriter
 	
 	void push(FProperty* Property)
 	{
-		if (auto p = CastField<FIntProperty>(Property))
-		{
-			push("number");
+#define PUSH_PROPERTY_TYPE(TYPE, VALUE)				\
+		if (CastField<const TYPE>(Property) != nullptr)	\
+		{											\
+			push(VALUE);							\
+			return;									\
 		}
-		else if (auto p = CastField<FFloatProperty>(Property))
-		{
-			push("number");
-		}
-		else if (auto p = CastField<FBoolProperty>(Property))
-		{
-			push("boolean");
-		}
-		else if (auto p = CastField<FNameProperty>(Property))
-		{
-			push("string");
-		}
-		else if (auto p = CastField<FStrProperty>(Property))
-		{
-			push("string");
-		}
-		else if (auto p = CastField<FTextProperty>(Property))
-		{
-			push("string");
-		}
-		else if (auto p = CastField<FClassProperty>(Property))
+
+		PUSH_PROPERTY_TYPE(FInt8Property, "number");
+		PUSH_PROPERTY_TYPE(FInt16Property, "number");
+		PUSH_PROPERTY_TYPE(FUInt16Property, "number");
+		PUSH_PROPERTY_TYPE(FIntProperty, "number");
+		PUSH_PROPERTY_TYPE(FUInt32Property, "number");
+		PUSH_PROPERTY_TYPE(FInt64Property, "number");
+		PUSH_PROPERTY_TYPE(FUInt64Property, "number");
+		PUSH_PROPERTY_TYPE(FFloatProperty, "number");
+		PUSH_PROPERTY_TYPE(FDoubleProperty, "number");
+		PUSH_PROPERTY_TYPE(FBoolProperty, "boolean");
+		PUSH_PROPERTY_TYPE(FNameProperty, "string");
+		PUSH_PROPERTY_TYPE(FStrProperty, "string");
+		PUSH_PROPERTY_TYPE(FTextProperty, "string");
+
+#undef PUSH_PROPERTY_TYPE
+
+		if (auto p = CastField<FClassProperty>(Property))
 		{
 			generator.Export(p->MetaClass);
 
@@ -144,6 +143,25 @@ struct TokenWriter
 
 			push(p->Inner);
 			push("[]");
+		}
+		else if (auto p = CastField<FSetProperty>(Property))
+		{
+			generator.Export(p->ElementProp);
+
+			push("Set<");
+			push(p->ElementProp);
+			push(">");
+		}
+		else if (auto p = CastField<FMapProperty>(Property))
+		{
+			generator.Export(p->KeyProp);
+			generator.Export(p->ValueProp);
+
+			push("Map<");
+			push(p->KeyProp);
+			push(", ");
+			push(p->ValueProp);
+			push(">");
 		}
 		else if (auto p = CastField<FByteProperty>(Property))
 		{
@@ -174,15 +192,15 @@ struct TokenWriter
 			push(p->SignatureFunction);
 			push(">");
 		}
-		else if (auto p = CastField<FObjectProperty>(Property))
+		else if (auto p = CastField<FObjectPropertyBase>(Property))
 		{
 			generator.Export(p->PropertyClass);
 			push(FV8Config::Safeify(p->PropertyClass->GetName()));
 		}
-		else if (auto p = CastField<FSoftObjectProperty>(Property))
+		else if (auto p = CastField<FInterfaceProperty>(Property))
 		{
-			generator.Export(p->PropertyClass);
-			push(FV8Config::Safeify(p->PropertyClass->GetName()));
+			generator.Export(p->InterfaceClass);
+			push(FV8Config::Safeify(p->InterfaceClass->GetName()));
 		}
 		else
 		{

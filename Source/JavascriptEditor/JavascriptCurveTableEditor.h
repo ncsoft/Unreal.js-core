@@ -42,7 +42,7 @@ class JAVASCRIPTEDITOR_API UJavascriptCurveTableEditor : public UWidget
 	void Destruct();
 
 	UFUNCTION(BlueprintCallable, Category = "CurveTable")
-	void SetObject(UCurveTable* Object, bool bForceRefresh);
+	void SetObject(UCurveTable* Object, bool bCanEdit);
 
 public:
 	// UVisual interface

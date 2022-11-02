@@ -72,6 +72,7 @@
 #include "SocketSubsystem.h"
 #include "Sockets.h"
 #include "IPAddress.h"
+#include "UObject/SavePackage.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -176,6 +177,39 @@ ULandscapeLayerInfoObject* UJavascriptEditorLibrary::GetLayerInfoByName(ULandsca
 {
 	return LandscapeInfo ? LandscapeInfo->GetLayerInfoByName(LayerName, Owner) : nullptr;
 }
+
+void UJavascriptEditorLibrary::GetAllTagsByAssetData(const FAssetData& AssetData, TArray<FName>& OutArray)
+{
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27
+	AssetData.TagsAndValues.GetKeys(OutArray);
+#else
+	AssetData.TagsAndValues.CopyMap().GetKeys(OutArray);
+#endif
+}
+
+bool UJavascriptEditorLibrary::GetTagValueByAssetData(const FAssetData& AssetData, const FName& Name, FString& OutValue)
+{
+#if ENGINE_MAJOR_VERSION > 4
+	auto Value = AssetData.TagsAndValues.FindTag(Name);
+	if (Value.IsSet())
+	{
+		OutValue = Value.GetValue();
+		return true;
+	}
+#else
+	auto Value = AssetData.TagsAndValues.GetMap().Find(Name);
+	if (Value)
+	{
+		OutValue = *Value;
+		return true;
+	}
+#endif
+	else
+	{
+		return false;
+	}
+}
+
 
 void UJavascriptEditorLibrary::GetAllTags(const FJavascriptAssetData& AssetData, TArray<FName>& OutArray)
 {
@@ -622,8 +656,7 @@ FName UJavascriptEditorLibrary::GetFolderPath(AActor* Actor)
 void UJavascriptEditorLibrary::BroadcastHotReload()
 {
 	// Register to have Populate called when doing a Hot Reload.
-	IHotReloadInterface& HotReloadSupport = FModuleManager::LoadModuleChecked<IHotReloadInterface>("HotReload");
-	HotReloadSupport.OnHotReload().Broadcast(false);
+	FCoreUObjectDelegates::ReloadCompleteDelegate.Broadcast(EReloadCompleteReason::HotReloadManual);
 }
 
 void UJavascriptEditorLibrary::BroadcastAssetCreated(UObject* NewAsset)
@@ -822,11 +855,15 @@ bool UJavascriptEditorLibrary::SavePackage(UPackage* Package, FString FileName)
 
 	if (World)
 	{
-		bSavedCorrectly = UPackage::SavePackage(Package, World, RF_NoFlags, *FileName, GError, NULL, false, true);
+		FSavePackageArgs SaveArgs = { NULL, RF_NoFlags, 0U, false,
+			true, true, FDateTime::MinValue(), GError };
+		bSavedCorrectly = UPackage::SavePackage(Package, World, *FileName, SaveArgs);
 	}
 	else
 	{
-		bSavedCorrectly =  UPackage::SavePackage(Package, NULL, RF_Standalone, *FileName, GError, NULL, false, true);
+		FSavePackageArgs SaveArgs = { NULL, RF_Standalone, 0U, false,
+			true, true, FDateTime::MinValue(), GError };
+		bSavedCorrectly =  UPackage::SavePackage(Package, NULL,  *FileName, SaveArgs);
 	}
 	return bSavedCorrectly;
 }
@@ -880,7 +917,11 @@ void UJavascriptEditorLibrary::CreateBrushForVolumeActor(AVolume* NewActor, UBru
 
 UWorld* UJavascriptEditorLibrary::FindWorldInPackage(UPackage* Package)
 {
-	return UWorld::FindWorldInPackage(Package);
+	if (::IsValid(Package))
+	{
+		return UWorld::FindWorldInPackage(Package);
+	}
+	return nullptr;
 }
 
 FString UJavascriptEditorLibrary::ExportNavigation(UWorld* InWorld, FString Name)
@@ -964,7 +1005,7 @@ void UJavascriptEditorLibrary::RemoveLevelInstance(UWorld* World)
 
 void UJavascriptEditorLibrary::AddWhitelistedObject(UObject* InObject)
 {
-	FVisualLogger::Get().AddWhitelistedObject(*InObject);
+	FVisualLogger::Get().AddObjectToAllowList(*InObject);
 }
 
 void UJavascriptEditorLibrary::PostEditChange(UObject* InObject)
@@ -1272,6 +1313,12 @@ static void WriteRawToTexture_RenderThread(FTexture2DDynamicResource* TextureRes
 
 #endif
 
+
+void UJavascriptEditorLibrary::DownloadImageFromUrl(const FString& ImageUrl, class UAsyncTaskDownloadImage* Callback)
+{
+	Callback->Start(ImageUrl);
+}
+
 bool UJavascriptEditorLibrary::LoadImageFromDiskAsync(const FString& ImagePath, UAsyncTaskDownloadImage* Callback)
 {
 	IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(TEXT("ImageWrapper"));
@@ -1312,7 +1359,7 @@ bool UJavascriptEditorLibrary::LoadImageFromDiskAsync(const FString& ImagePath, 
 						WriteRawToTexture_RenderThread(TextureResource, RawData);
 					});
 #else
-				FTexture2DDynamicResource* TextureResource = static_cast<FTexture2DDynamicResource*>(Texture->Resource);
+				FTexture2DDynamicResource* TextureResource = static_cast<FTexture2DDynamicResource*>(Texture->GetResource());
 				TArray64<uint8> RawDataCopy = RawData;
 				ENQUEUE_RENDER_COMMAND(FWriteRawDataToTexture)(
 					[TextureResource, RawDataCopy](FRHICommandListImmediate& RHICmdList)
@@ -1470,6 +1517,17 @@ void UJavascriptEditorLibrary::AddRichCurve(UCurveTable* InCurveTable, const FNa
 	NewCurve.PostInfinityExtrap = InCurve.PostInfinityExtrap;
 	NewCurve.DefaultValue = InCurve.DefaultValue;
 #endif
+}
+
+bool UJavascriptEditorLibrary::FindRichCurve(UCurveTable* InCurveTable, const FName& Key, FRichCurve& OutCurve)
+{
+	if (FRichCurve* FoundedCurve = InCurveTable->FindRichCurve(Key, TEXT("UJavascriptEditorLibrary::FindRichCurve"), false))
+	{
+		OutCurve = *FoundedCurve;
+		return true;
+	}
+
+	return false;
 }
 
 void UJavascriptEditorLibrary::NotifyUpdateCurveTable(UCurveTable* InCurveTable)

@@ -458,14 +458,20 @@ public:
 		FWorldDelegates::OnWorldCleanup.Remove(OnWorldCleanupHandle);
 		v8::debug::SetConsoleDelegate(isolate_, nullptr);
 
+#if V8_MAJOR_VERSION > 8
+		auto platform = reinterpret_cast<v8::Platform*>(IV8::Get().GetV8Platform());
+		v8::platform::NotifyIsolateShutdown(platform, isolate_);
+#endif
 		isolate_->Dispose();
 	}
 
 	bool HandleTicker(float DeltaTime)
 	{
 		auto platform = reinterpret_cast<v8::Platform*>(IV8::Get().GetV8Platform());
-		v8::platform::PumpMessageLoop(platform,isolate_);
+		v8::platform::PumpMessageLoop(platform, isolate_);
+#if V8_MAJOR_VERSION > 8
 		v8::platform::RunIdleTasks(platform, isolate_, DeltaTime);
+#endif
 		return true;
 	}
 
@@ -615,6 +621,30 @@ public:
 		if (auto p = CastField<FIntProperty>(Property))
 		{
 			return Int32::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+		}
+		else if (auto p = CastField<FUInt32Property>(Property))
+		{
+			return Uint32::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+		}
+		else if (auto p = CastField<FInt64Property>(Property))
+		{
+			return Integer::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+		}
+		else if (auto p = CastField<FUInt64Property>(Property))
+		{
+			return BigInt::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+		}
+		else if (auto p = CastField<FInt8Property>(Property))
+		{
+			return Int32::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+		}
+		else if (auto p = CastField<FInt16Property>(Property))
+		{
+			return Int32::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
+		}
+		else if (auto p = CastField<FUInt16Property>(Property))
+		{
+			return Uint32::New(isolate_, p->GetPropertyValue_InContainer(Buffer));
 		}
 		else if (auto p = CastField<FFloatProperty>(Property))
 		{
@@ -882,6 +912,31 @@ public:
 		if (auto p = CastField<FIntProperty>(Property))
 		{
 			p->SetPropertyValue_InContainer(Buffer, Value->Int32Value(isolate_->GetCurrentContext()).ToChecked());
+		}
+		else if (auto p = CastField<FInt64Property>(Property))
+		{
+			p->SetPropertyValue_InContainer(Buffer, Value->IntegerValue(isolate_->GetCurrentContext()).ToChecked());
+		}
+		else if (auto p = CastField<FUInt32Property>(Property))
+		{
+			p->SetPropertyValue_InContainer(Buffer, Value->Uint32Value(isolate_->GetCurrentContext()).ToChecked());
+		}
+		else if (auto p = CastField<FInt8Property>(Property))
+		{
+			p->SetPropertyValue_InContainer(Buffer, Value->Int32Value(isolate_->GetCurrentContext()).ToChecked());
+		}
+		else if (auto p = CastField<FInt16Property>(Property))
+		{
+			p->SetPropertyValue_InContainer(Buffer, Value->Int32Value(isolate_->GetCurrentContext()).ToChecked());
+		}
+		else if (auto p = CastField<FUInt16Property>(Property))
+		{
+			p->SetPropertyValue_InContainer(Buffer, Value->Uint32Value(isolate_->GetCurrentContext()).ToChecked());
+		}
+		else if (auto p = CastField<FUInt64Property>(Property))
+		{
+			auto v = Value->ToBigInt(isolate_->GetCurrentContext()).ToLocalChecked();
+			p->SetPropertyValue_InContainer(Buffer, v->Uint64Value());
 		}
 		else if (auto p = CastField<FFloatProperty>(Property))
 		{

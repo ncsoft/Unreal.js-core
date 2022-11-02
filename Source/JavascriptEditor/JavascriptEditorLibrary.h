@@ -228,6 +228,12 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static bool GetLandscapeExtent(ULandscapeInfo* LandscapeInfo, int32& MinX, int32& MinY, int32& MaxX, int32& MaxY);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void GetAllTagsByAssetData(const FAssetData& AssetData, TArray<FName>& OutArray);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static bool GetTagValueByAssetData(const FAssetData& AssetData, const FName& Name, FString& OutValue);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static void GetAllTags(const FJavascriptAssetData& AssetData, TArray<FName>& OutArray);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -517,6 +523,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static int32 ReplaceAnimNotifyClass(class UAnimSequenceBase* Sequence, FString NotifyName, FString NewNotifyName, UObject* NewNotifyClass);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void DownloadImageFromUrl(const FString& ImageUrl, class UAsyncTaskDownloadImage* Callback);
+
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool LoadImageFromDiskAsync(const FString& ImagePath, class UAsyncTaskDownloadImage* Callback);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
@@ -551,6 +560,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION()
 	static void AddRichCurve(UCurveTable* InCurveTable, const FName& Key, const FRichCurve& InCurve);
+
+	UFUNCTION()
+	static bool FindRichCurve(UCurveTable* InCurveTable, const FName& Key, FRichCurve& OutCurve);
 
 	UFUNCTION()
 	static void NotifyUpdateCurveTable(UCurveTable* InCurveTable);

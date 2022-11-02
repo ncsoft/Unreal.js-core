@@ -44,8 +44,7 @@ TSharedRef<SWidget> UJavascriptAssetPicker::RebuildWidget()
 	{
 		if (OnGetDefaultValue.IsBound())
 		{
-			UObject* InDefaultObject = OnGetDefaultValue.Execute();
-			DefaultObject = InDefaultObject;
+			DefaultObjectPath = OnGetDefaultValue.Execute();
 		}
 
 		return SNew(SHorizontalBox)
@@ -126,7 +125,7 @@ FReply UJavascriptAssetPicker::OnClickUse()
 		UObject* SelectedObject = GEditor->GetSelectedObjects()->GetTop(ObjectClass);
 		if (SelectedObject != NULL)
 		{
-			DefaultObject = SelectedObject;
+			DefaultObjectPath = SelectedObject->GetPathName();
 
 			if (OnSetDefaultValue.IsBound())
 			{
@@ -141,9 +140,9 @@ FReply UJavascriptAssetPicker::OnClickUse()
 FText UJavascriptAssetPicker::GetValue() const
 {
 	FText Value;
-	if (DefaultObject != NULL)
+	if (!DefaultObjectPath.IsEmpty())
 	{
-		Value = FText::FromString(DefaultObject->GetFullName());
+		Value = FText::FromString(DefaultObjectPath);
 	}
 	else
 	{
@@ -160,12 +159,17 @@ FText UJavascriptAssetPicker::GetObjectToolTip() const
 
 FReply UJavascriptAssetPicker::OnClickBrowse()
 {
-	if (DefaultObject != NULL)
+	if (!DefaultObjectPath.IsEmpty() && FPackageName::DoesPackageExist(DefaultObjectPath))
 	{
-		TArray<UObject*> Objects;
-		Objects.Add(DefaultObject);
+		FSoftObjectPath SoftObjectPath(DefaultObjectPath);
+		UObject* DefaultObject = SoftObjectPath.TryLoad();
+		if (DefaultObject != NULL)
+		{
+			TArray<UObject*> Objects;
+			Objects.Add(DefaultObject);
 
-		GEditor->SyncBrowserToObjects(Objects);
+			GEditor->SyncBrowserToObjects(Objects);
+		}
 	}
 
 	return FReply::Handled();
@@ -177,13 +181,25 @@ FText UJavascriptAssetPicker::OnGetComboTextValue() const
 
 	if (CategoryObject != NULL)
 	{
-		if (UField* Field = Cast<UField>(DefaultObject))
+		if (!DefaultObjectPath.IsEmpty())
 		{
-			Value = Field->GetDisplayNameText();
-		}
-		else if (DefaultObject != NULL)
-		{
-			Value = FText::FromString(DefaultObject->GetName());
+			FString LeftS, RightS;
+			if (DefaultObjectPath.Split(TEXT("/"), &LeftS, &RightS, ESearchCase::IgnoreCase, ESearchDir::FromEnd))
+			{
+				FString PackS, AssetS;
+				if (RightS.Split(TEXT("."), &PackS, &AssetS, ESearchCase::IgnoreCase, ESearchDir::FromEnd))
+				{
+					Value = FText::FromString(AssetS);
+				}
+				else
+				{
+					Value = FText::FromString(RightS);
+				}
+			}
+			else
+			{
+				Value = FText::FromString(DefaultObjectPath);
+			}
 		}
 	}
 
@@ -206,16 +222,22 @@ TSharedRef<SWidget> UJavascriptAssetPicker::GenerateAssetPicker()
 	AssetPickerConfig.Filter.ClassNames.Add(AllowedClass->GetFName());
 	AssetPickerConfig.bAllowNullSelection = true;
 	AssetPickerConfig.Filter.bRecursiveClasses = true;
-	AssetPickerConfig.OnAssetSelected = FOnAssetSelected::CreateLambda([this](const FAssetData& AssetData) { 
-		UObject* AssetObject = AssetData.GetAsset();
-		if (DefaultObject != AssetObject)
+	AssetPickerConfig.OnAssetSelected = FOnAssetSelected::CreateLambda([this](const FAssetData& AssetData) {
+		if (*DefaultObjectPath != AssetData.ObjectPath)
 		{
 			const FScopedTransaction Transaction(NSLOCTEXT("GraphEditor", "ChangeObjectPinValue", "Change Object Pin Value"));
 
 			// Close the asset picker
 			AssetPickerAnchor->SetIsOpen(false);
 
-			DefaultObject = AssetObject;
+			if (AssetData.ObjectPath.IsNone())
+			{
+				DefaultObjectPath.Empty();
+			}
+			else
+			{
+				DefaultObjectPath = AssetData.ObjectPath.ToString();
+			}
 
 			if (OnSetDefaultValue.IsBound())
 			{

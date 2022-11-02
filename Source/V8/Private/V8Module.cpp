@@ -55,9 +55,9 @@ UJavascriptSettings::UJavascriptSettings(const FObjectInitializer& ObjectInitial
 	: Super(ObjectInitializer)
 {
 #if PLATFORM_IOS
-	V8Flags = TEXT("--harmony --harmony-shipping --es-staging --expose-gc --jitless");
+	V8Flags = TEXT("--harmony --harmony-shipping --expose-gc --jitless");
 #else
-	V8Flags = TEXT("--harmony --harmony-shipping --es-staging --expose-gc");
+	V8Flags = TEXT("--harmony --harmony-shipping --expose-gc");
 #endif
 	bEnableHotReload = true;
 }
@@ -74,7 +74,7 @@ private:
 #if V8_MAJOR_VERSION < 9
 	TQueue<v8::IdleTask*> IdleTasks;
 	FTickerDelegate TickDelegate;
-	FDelegateHandle TickHandle;
+	FTSTicker::FDelegateHandle TickHandle;
 #endif
 	bool bActive{ true };
 
@@ -88,14 +88,14 @@ public:
 	{
 #if V8_MAJOR_VERSION < 9
 		TickDelegate = FTickerDelegate::CreateRaw(this, &FUnrealJSPlatform::HandleTicker);
-		TickHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);
+		TickHandle = FTSTicker::GetCoreTicker().AddTicker(TickDelegate);
 #endif
 	}
 
 	~FUnrealJSPlatform()
 	{
 #if V8_MAJOR_VERSION < 9
-		FTicker::GetCoreTicker().RemoveTicker(TickHandle);
+		FTSTicker::GetCoreTicker().RemoveTicker(TickHandle);
 #endif
 		platform_.release();
 	}
@@ -138,8 +138,12 @@ public:
 	std::unique_ptr<JobHandle> PostJob(
 		TaskPriority priority, std::unique_ptr<JobTask> job_task) override
 	{
-		return v8::platform::NewDefaultJobHandle(
-			this, priority, std::move(job_task), NumberOfWorkerThreads());
+		return platform_->PostJob(priority, std::move(job_task));
+	}
+
+	virtual ZoneBackingAllocator* GetZoneBackingAllocator() override
+	{
+		return platform_->GetZoneBackingAllocator();
 	}
 #endif
 
@@ -378,7 +382,7 @@ public:
 
 	virtual void SetFlagsFromString(const FString& V8Flags) override
 	{
-		V8::SetFlagsFromString(TCHAR_TO_ANSI(*V8Flags), strlen(TCHAR_TO_ANSI(*V8Flags)));
+		V8::SetFlagsFromString(TCHAR_TO_ANSI(*V8Flags));
 	}
 
 	virtual bool IsEnableHotReload() const override

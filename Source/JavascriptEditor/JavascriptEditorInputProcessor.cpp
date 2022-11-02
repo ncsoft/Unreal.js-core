@@ -1,4 +1,4 @@
-#include "JavascriptEditorInputProcessor.h"
+﻿#include "JavascriptEditorInputProcessor.h"
 #include "Framework/Application/IInputProcessor.h"
 #include "Framework/Application/SlateApplication.h"
 #include "UObject/UObjectThreadContext.h"
@@ -41,6 +41,39 @@ public:
 	{
 		return !FUObjectThreadContext::Get().IsRoutingPostLoad
 			&& Processor.IsValid() && Processor->HandleAnalogInputEvent(InAnalogInputEvent);
+	}
+
+	/** Mouse button press */
+	virtual bool HandleMouseButtonDownEvent(FSlateApplication& SlateApp, const FPointerEvent& MouseEvent)
+	{
+		return !FUObjectThreadContext::Get().IsRoutingPostLoad
+			&& Processor.IsValid() && Processor->HandleMouseButtonDownEvent(MouseEvent);
+	}
+
+	/** Mouse button release */
+	virtual bool HandleMouseButtonUpEvent(FSlateApplication& SlateApp, const FPointerEvent& MouseEvent)
+	{
+		return !FUObjectThreadContext::Get().IsRoutingPostLoad
+			&& Processor.IsValid() && Processor->HandleMouseButtonUpEvent(MouseEvent);
+	}
+
+	/** Mouse button double clicked. */
+	virtual bool HandleMouseButtonDoubleClickEvent(FSlateApplication& SlateApp, const FPointerEvent& MouseEvent)
+	{
+		return !FUObjectThreadContext::Get().IsRoutingPostLoad
+			&& Processor.IsValid() && Processor->HandleMouseButtonDoubleClickEvent(MouseEvent);
+	}
+
+	/** Mouse wheel input */
+	virtual bool HandleMouseWheelOrGestureEvent(FSlateApplication& SlateApp, const FPointerEvent& InWheelEvent, const FPointerEvent* InGestureEvent)
+	{
+		FPointerEvent GestureEvent = FPointerEvent();
+		if (InGestureEvent)
+		{
+			GestureEvent = *InGestureEvent;
+		}
+		return !FUObjectThreadContext::Get().IsRoutingPostLoad
+			&& Processor.IsValid() && Processor->HandleMouseWheelOrGestureEvent(InWheelEvent, GestureEvent);
 	}
 };
 

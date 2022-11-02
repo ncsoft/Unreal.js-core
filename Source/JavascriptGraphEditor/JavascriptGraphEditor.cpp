@@ -12,15 +12,24 @@ class FGraphPanelNodeFactory_GenericGraph : public FGraphPanelNodeFactory
 {
 	virtual TSharedPtr<class SGraphNode> CreateNode(UEdGraphNode* Node) const override
 	{
-		if (UJavascriptGraphEdNode_Comment* GraphEdNode = Cast<UJavascriptGraphEdNode_Comment>(Node))
+		TSharedPtr<SGraphNode> GraphNode;
+
+		if (UJavascriptGraphEdNode_Comment* GraphEdCommentNode = Cast<UJavascriptGraphEdNode_Comment>(Node))
 		{
-				return SNew(SJavascriptGraphNodeComment, GraphEdNode);
+			SAssignNew(GraphNode, SJavascriptGraphNodeComment, GraphEdCommentNode);
 		}
-		if (UJavascriptGraphEdNode* GraphEdNode = Cast<UJavascriptGraphEdNode>(Node))
+		else if (UJavascriptGraphEdNode* GraphEdNode = Cast<UJavascriptGraphEdNode>(Node))
 		{
-			return SNew(SJavascriptGraphEdNode, GraphEdNode);
+			SAssignNew(GraphNode, SJavascriptGraphEdNode, GraphEdNode);
 		}
-		return nullptr;
+		else
+		{
+			return nullptr;
+		}
+
+		GraphNode->SlatePrepass();
+
+		return GraphNode;
 	}
 };
 
