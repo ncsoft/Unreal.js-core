@@ -3166,7 +3166,7 @@ public:
 
 	void OnGarbageCollectedByV8(FJavascriptContext* Context, UObject* Object)
 	{
-		if (auto klass = Cast<UClass>(Object))
+		if (auto klass = static_cast<UClass*>(Object))
 		{
 			v8::UniquePersistent<v8::FunctionTemplate> Template;
 			if (ClassToFunctionTemplateMap.RemoveAndCopyValue(klass, Template))
