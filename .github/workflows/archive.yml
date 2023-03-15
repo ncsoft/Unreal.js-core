@@ -6,22 +6,18 @@ name: Archive
 # or API.
 on:
   workflow_dispatch:
-    # Inputs the workflow accepts.
-    inputs:
-      perform_archive:
-        required: true
-        type: boolean
-    
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   download_3rd_party:
     runs-on: ubuntu-latest
-    if: ${{ inputs.perform_archive }}
     steps:
     - uses: actions/checkout@v3.3.0
     - name: download-v8-libs
-      run: install-v8-libs.sh
+      run: |
+        chmod +x ./install-v8-libs.sh
+        ./install-v8-libs.sh
+      shell: bash
     - name: archive
       uses: montudor/action-zip@v1.0.0
       with:
