@@ -2,9 +2,9 @@
   "FileVersion": 3,
   "FriendlyName": "Unreal.js - Javascript Runtime",
   "Version": 2,
-  "VersionName": "0.6.1",
-  "FriendlyVersion": "0.6.1",
-  "EngineVersion": "5.0.0",
+  "VersionName": "0.6.3",
+  "FriendlyVersion": "0.6.3",
+  "EngineVersion": "5.1.0",
   "Description": "Javascript powered UnrealEngine",
   "Category": "Programming",
   "CreatedBy": "NCSOFT Corporation",
@@ -51,7 +51,7 @@
     {
       "Name": "JavascriptConsole",
       "Type": "Editor",
-      "LoadingPhase": "PostDefault",
+      "LoadingPhase": "PostEngineInit",
       "WhitelistPlatforms": [ "Win64", "Mac", "Linux" ]
     }
   ],

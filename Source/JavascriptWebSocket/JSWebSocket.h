@@ -1,4 +1,4 @@
-// Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
+﻿// Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
 //
 // libwebsocket client wrapper.
 //
@@ -48,7 +48,7 @@ public:
 public:
 
 	void HandlePacket();
-	void OnRawRecieve(void* Data, uint32 Size);
+	void OnRawRecieve(void* Data, uint32 Size, uint32 Remaining);
 	void OnRawWebSocketWritable(WebSocketInternal* wsi);
 
 	/************************************************************************/
@@ -60,6 +60,7 @@ public:
 
 	/**  Recv and Send Buffers, serviced during the Tick */
 	TArray<uint8> RecievedBuffer;
+	uint32 RecievedBufferSize = 0;
 	TArray<TArray<uint8>> OutgoingBuffer;
 
 #if WITH_JSWEBSOCKET

@@ -6,7 +6,7 @@
 #include "SJavascriptGraphNodeComment.h"
 #include "JavascriptGraphEdNode_Comment.h"
 
-DEFINE_LOG_CATEGORY(JavascriptGraphEditor)
+DEFINE_LOG_CATEGORY(LogJavascriptGraphEditor)
 
 class FGraphPanelNodeFactory_GenericGraph : public FGraphPanelNodeFactory
 {

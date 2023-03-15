@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "JavascriptEditorGlobalDelegates.h"
 #include "LandscapeProxy.h"
@@ -207,6 +207,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static FVector GetDirection(const FJavascriptViewportClick& Click);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static bool GetWorldPositionFromViewportClick(const AActor* Actor, const FJavascriptViewportClick& Click, FHitResult& OutHitResult);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static ULandscapeInfo* GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
@@ -222,7 +225,7 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static void GetAlphamapDataToMemory(ULandscapeInfo* LandscapeInfo, ULandscapeLayerInfoObject* LayerInfo, int32 MinX, int32 MinY, int32 MaxX, int32 MaxY);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
-	static ULandscapeLayerInfoObject* GetLayerInfoByName(ULandscapeInfo* LandscapeInfo, FName LayerName, ALandscapeProxy* Owner = NULL);
+	static ULandscapeLayerInfoObject* GetLayerInfoByName(ULandscapeInfo* LandscapeInfo, FName LayerName, ALandscapeProxy* Owner = nullptr);
 
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	static bool GetLandscapeExtent(ULandscapeInfo* LandscapeInfo, int32& MinX, int32& MinY, int32& MaxX, int32& MaxY);
@@ -276,7 +279,7 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 	static void ToggleSelect(USelection* Selection, UObject* InObject);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
-	static void DeselectAll(USelection* Selection, UClass* InClass = NULL);
+	static void DeselectAll(USelection* Selection, UClass* InClass = nullptr);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static int32 GetSelectedObjects(USelection* Selection, TArray<UObject*>& Out);
@@ -533,6 +536,9 @@ class JAVASCRIPTEDITOR_API UJavascriptEditorLibrary : public UBlueprintFunctionL
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool OpenDirectoryDialog(const class UJavascriptWindow* WindowHandle, const FString& DialogTitle, const FString& DefaultPath, FString& OutFolderName);
+	
+	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
+	static void OpenCreateBlueprintFromActorDialog(AActor* Actor);
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	static bool SaveFileDialog(const class UJavascriptWindow* WindowHandle, const FString& DialogTitle, const FString& DefaultPath, const FString& DefaultFile, const FString& FileTypes, int32 Flags, TArray<FString>& OutFilenames);

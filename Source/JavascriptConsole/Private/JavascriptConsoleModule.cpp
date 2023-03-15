@@ -1,165 +1,90 @@
 #include "JavascriptConsoleModule.h"
-#include "SJavascriptConsole.h"
-#include "SJavascriptLog.h"
-#include "Editor/WorkspaceMenuStructure/Public/WorkspaceMenuStructure.h"
-#include "Editor/WorkspaceMenuStructure/Public/WorkspaceMenuStructureModule.h"
-#include "Widgets/Docking/SDockTab.h"
-#include "EditorStyleSet.h"
+
+#include "IV8.h"
 #include "Framework/Application/SlateApplication.h"
 
 IMPLEMENT_MODULE( FJavascriptConsoleModule, JavascriptConsole );
 
-namespace JavascriptConsoleModule
+FJavascriptConsoleModule::FJavascriptConsoleModule()
+	: bModuleIsRunning(false)
 {
-	static const FName JavascriptLogTabName = FName(TEXT("JavascriptLog"));
-}
-
-/** This class is to capture all log output even if the log window is closed */
-class FJavascriptLogHistory : public FOutputDevice
-{
-public:
-
-	FJavascriptLogHistory()
-	{
-		GLog->AddOutputDevice(this);
-		GLog->SerializeBacklog(this);
-	}
-
-	~FJavascriptLogHistory()
-	{
-		// At shutdown, GLog may already be null
-		if( GLog != NULL )
-		{
-			GLog->RemoveOutputDevice(this);
-		}
-	}
-
-	/** Gets all captured messages */
-	const TArray< TSharedPtr<FLogMessage> >& GetMessages() const
-	{
-		return Messages;
-	}
-
-protected:
-
-	virtual void Serialize( const TCHAR* V, ELogVerbosity::Type Verbosity, const class FName& Category ) override
-	{
-		// Capture all incoming messages and store them in history
-		SJavascriptLog::CreateLogMessages(V, Verbosity, Category, Messages);
-	}
-
-private:
-
-	/** All log messsges since this module has been started */
-	TArray< TSharedPtr<FLogMessage> > Messages;
-};
-
-/** Our global output log app spawner */
-static TSharedPtr<FJavascriptLogHistory> JavascriptLogHistory;
-
-TSharedRef<SDockTab> SpawnJavascriptLog( const FSpawnTabArgs& Args )
-{
-	auto NewTab = SNew(SDockTab)
-		.TabRole( ETabRole::NomadTab )
-		.Label( NSLOCTEXT("JavascriptConsole", "TabTitle", "Javascript Console") )
-		[
-			SNew(SJavascriptLog).Messages( JavascriptLogHistory->GetMessages() )
-		];
-
-	NewTab->SetTabIcon(FEditorStyle::GetBrush("Log.TabIcon"));
-
-	return NewTab;
 }
 
 void FJavascriptConsoleModule::StartupModule()
 {
-	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(JavascriptConsoleModule::JavascriptLogTabName, FOnSpawnTab::CreateStatic( &SpawnJavascriptLog ) )
-		.SetDisplayName(NSLOCTEXT("UnrealEditor", "JavascriptLogTab", "Javascript Console"))
-		.SetTooltipText(NSLOCTEXT("UnrealEditor", "JavascriptLogTooltipText", "Open the Javascript Console tab."))
-		.SetGroup( WorkspaceMenu::GetMenuStructure().GetDeveloperToolsLogCategory() )
-		.SetIcon( FSlateIcon(FEditorStyle::GetStyleSetName(), "Log.TabIcon") );
+	const auto EditorExecutor = MakeShared<FJavascriptCommandExecutor>();
+	CommandExecutors.Add(EditorExecutor->GetTargetContext(), EditorExecutor);
 	
-	JavascriptLogHistory = MakeShareable(new FJavascriptLogHistory);
+	IModularFeatures::Get().RegisterModularFeature(IConsoleCommandExecutor::ModularFeatureName(), &EditorExecutor.Get());
+	
+	bModuleIsRunning = true;
 }
 
 void FJavascriptConsoleModule::ShutdownModule()
 {
-	if (FSlateApplication::IsInitialized())
+	bModuleIsRunning = false;
+
+	for (auto [ContextId, CmdExec] : CommandExecutors)
 	{
-		FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(JavascriptConsoleModule::JavascriptLogTabName);
+		IModularFeatures::Get().UnregisterModularFeature(IConsoleCommandExecutor::ModularFeatureName(), CmdExec.Get());
 	}
 }
 
-TSharedRef< SWidget > FJavascriptConsoleModule::MakeConsoleInputBox( TSharedPtr< SEditableTextBox >& OutExposedEditableTextBox ) const
+void FJavascriptConsoleModule::Tick(float DeltaTime)
 {
-	TSharedRef< SJavascriptConsoleInputBox > NewConsoleInputBox = SNew( SJavascriptConsoleInputBox );
-	OutExposedEditableTextBox = NewConsoleInputBox->GetEditableTextBox();
-	return NewConsoleInputBox;
-}
+	TArray<TSharedPtr<FString>> ContextArray;
+	IV8::Get().GetContextIds(ContextArray);
 
-
-void FJavascriptConsoleModule::ToggleJavascriptConsoleForWindow( const TSharedRef< SWindow >& Window, const EJavascriptConsoleStyle::Type InStyle, const FJavascriptConsoleDelegates& JavascriptConsoleDelegates )
-{
-	bool bShouldOpen = true;
-	// Close an existing console box, if there is one
-	TSharedPtr< SWidget > PinnedJavascriptConsole( JavascriptConsole.Pin() );
-	if( PinnedJavascriptConsole.IsValid() )
+	if (ContextArray.Num() == CommandExecutors.Num())
 	{
-		// If the console is already open close it unless it is in a different window.  In that case reopen it on that window
-		bShouldOpen = false;
-		TSharedPtr< SWindow > WindowForExistingConsole = FSlateApplication::Get().FindWidgetWindow(PinnedJavascriptConsole.ToSharedRef());
-		if (WindowForExistingConsole.IsValid())
+		bool bEquals = true;
+
+		for (auto ContextId : ContextArray)
 		{
-			WindowForExistingConsole->RemoveOverlaySlot(PinnedJavascriptConsole.ToSharedRef());
-			JavascriptConsole.Reset();
+			if (!CommandExecutors.Contains(ContextId))
+			{
+				bEquals = false;
+				break;
+			}
 		}
 
-		if( WindowForExistingConsole != Window )
+		if (bEquals)
 		{
-			// Console is being opened on another window
-			bShouldOpen = true;
+			return;
 		}
 	}
-	
-	TSharedPtr<SDockTab> ActiveTab = FGlobalTabmanager::Get()->GetActiveTab();
-	if (ActiveTab.IsValid() && ActiveTab->GetLayoutIdentifier() == FTabId(JavascriptConsoleModule::JavascriptLogTabName))
+
+	auto OldExecutors = CommandExecutors;
+	CommandExecutors.Empty();
+
+	for (auto ContextId : ContextArray)
 	{
-		FGlobalTabmanager::Get()->DrawAttention(ActiveTab.ToSharedRef());
-		bShouldOpen = false;
+		const auto Executor = OldExecutors.Find(ContextId);
+		if (Executor == nullptr)
+		{
+			const auto NewExecutor = MakeShared<FJavascriptCommandExecutor>(ContextId);
+			CommandExecutors.Add(NewExecutor->GetTargetContext(), NewExecutor);
+			IModularFeatures::Get().RegisterModularFeature(IConsoleCommandExecutor::ModularFeatureName(), &NewExecutor.Get());
+		}
+		else
+		{
+			CommandExecutors.Add(ContextId, *Executor);
+			OldExecutors.Remove(ContextId);
+		}
 	}
 
-	if( bShouldOpen )
+	for (auto [ContextId, Executor] : OldExecutors)
 	{
-		const EJavascriptConsoleStyle::Type JavascriptConsoleStyle = InStyle;
-		TSharedRef< SJavascriptConsole > JavascriptConsoleRef = SNew( SJavascriptConsole, JavascriptConsoleStyle, this, &JavascriptConsoleDelegates );
-		JavascriptConsole = JavascriptConsoleRef;
-
-		const int32 MaximumZOrder = MAX_int32;
-		Window->AddOverlaySlot( MaximumZOrder )
-		.VAlign(VAlign_Bottom)
-		.HAlign(HAlign_Center)
-		.Padding( 10.0f )
-		[
-			JavascriptConsoleRef
-		];
-
-		// Force keyboard focus
-		JavascriptConsoleRef->SetFocusToEditableText();
+		IModularFeatures::Get().UnregisterModularFeature(IConsoleCommandExecutor::ModularFeatureName(), Executor.Get());
 	}
 }
 
-
-void FJavascriptConsoleModule::CloseJavascriptConsole()
+TStatId FJavascriptConsoleModule::GetStatId() const
 {
-	TSharedPtr< SWidget > PinnedJavascriptConsole( JavascriptConsole.Pin() );
+	RETURN_QUICK_DECLARE_CYCLE_STAT(FJavascriptConsoleModule, STATGROUP_Tickables);
+}
 
-	if( PinnedJavascriptConsole.IsValid() )
-	{
-		TSharedPtr< SWindow > WindowForExistingConsole = FSlateApplication::Get().FindWidgetWindow(PinnedJavascriptConsole.ToSharedRef());
-		if (WindowForExistingConsole.IsValid())
-		{
-			WindowForExistingConsole->RemoveOverlaySlot( PinnedJavascriptConsole.ToSharedRef() );
-			JavascriptConsole.Reset();
-		}
-	}
+bool FJavascriptConsoleModule::IsAllowedToTick() const
+{
+	return bModuleIsRunning;
 }

@@ -67,10 +67,10 @@ bool FJavascriptWebSocketServer::Init(uint32 Port, FJavascriptWebSocketClientCon
 	Info.port = Port;
 	ServerPort = Port;
 	// we listen on all available interfaces.
-	Info.iface = NULL;
+	Info.iface = nullptr;
 	Info.protocols = &Protocols[0];
 	// no extensions
-	Info.extensions = NULL;
+	Info.extensions = nullptr;
 	Info.gid = -1;
 	Info.uid = -1;
 	// tack on this object.
@@ -79,11 +79,11 @@ bool FJavascriptWebSocketServer::Init(uint32 Port, FJavascriptWebSocketClientCon
 	Info.options |= LWS_SERVER_OPTION_DISABLE_IPV6;
 	Context = lws_create_context(&Info);
 
-	if (Context == NULL)
+	if (Context == nullptr)
 	{
 		ServerPort = 0;
 		delete Protocols;
-		Protocols = NULL;
+		Protocols = nullptr;
 		IsAlive = false;
 		return false; // couldn't create a server.
 	}
@@ -111,11 +111,11 @@ FJavascriptWebSocketServer::~FJavascriptWebSocketServer()
 	if (Context)
 	{
 		lws_context_destroy(Context);
-		Context = NULL;
+		Context = nullptr;
 	}
 
 	 delete Protocols;
-	 Protocols = NULL;
+	 Protocols = nullptr;
 
 	 IsAlive = false;
 }
@@ -152,7 +152,8 @@ static int unreal_networking_server
 	case LWS_CALLBACK_RECEIVE:
 		if (BufferInfo->Socket->Context == Context) // UE-74107 -- bandaid until this file is removed in favor of using LwsWebSocketsManager.cpp & LwsWebSocket.cpp
 		{
-			BufferInfo->Socket->OnRawRecieve(In, Len);
+			auto Remaining = lws_remaining_packet_payload(Wsi);
+			BufferInfo->Socket->OnRawRecieve(In, (uint32)Len, (uint32)Remaining);
 		}
 		lws_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
 		break;

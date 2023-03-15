@@ -38,8 +38,6 @@ typedef FTickableGameObject FTickableAnyObject;
 #endif
 
 #include "Helpers.h"
-#include "Translator.h"
-#include "IV8.h"
 #include "Config.h"
 #include "Containers/Queue.h"
 
@@ -212,7 +210,7 @@ namespace {
 		virtual void installAdditionalCommandLineAPI(v8::Local<v8::Context>,
 			v8::Local<v8::Object>)
 		{
-			UE_LOG(Javascript, Log, TEXT("Received command line api"));
+			UE_LOG(LogJavascript, Log, TEXT("Received command line api"));
 		}
 
 		void sendMessage(const void* Data, uint32 Size)
@@ -249,12 +247,12 @@ namespace {
 						int Sent = lws_write(Wsi, Packet.GetData() + LWS_PRE + (DataToSend - TotalDataSize), DataToSend, (lws_write_protocol)LWS_WRITE_TEXT);
 						if (Sent < 0)
 						{
-							UE_LOG(Javascript, Warning, TEXT("Could not write any bytes to socket"));
+							UE_LOG(LogJavascript, Warning, TEXT("Could not write any bytes to socket"));
 							return;
 						}
 						if ((uint32)Sent < DataToSend)
 						{
-							UE_LOG(Javascript, Warning, TEXT("Could not write all '%d' bytes to socket"), DataToSend);
+							UE_LOG(LogJavascript, Warning, TEXT("Could not write all '%d' bytes to socket"), DataToSend);
 						}
 						DataToSend -= Sent;
 					}
@@ -366,12 +364,12 @@ namespace {
 					int Sent = lws_write_http(Wsi, Packet.GetData() + LWS_PRE + (DataToSend - TotalDataSize), DataToSend);
 					if (Sent < 0)
 					{
-						UE_LOG(Javascript, Warning, TEXT("Could not write any response to socket"));
+						UE_LOG(LogJavascript, Warning, TEXT("Could not write any response to socket"));
 						return;
 					}
 					if ((uint32)Sent < DataToSend)
 					{
-						UE_LOG(Javascript, Warning, TEXT("Could not write all '%d' bytes to socket"), DataToSend);
+						UE_LOG(LogJavascript, Warning, TEXT("Could not write all '%d' bytes to socket"), DataToSend);
 					}
 					DataToSend -= Sent;
 				}
@@ -442,7 +440,7 @@ public:
 
 		Install(InPort);
 
-		UE_LOG(Javascript, Log, TEXT("open %s"), *DevToolsFrontEndUrl());
+		UE_LOG(LogJavascript, Log, TEXT("open %s"), *DevToolsFrontEndUrl());
 
 		InstallRelay();
 	}
@@ -465,7 +463,7 @@ public:
 	void UninstallRelay()
 	{
 		// At shutdown, GLog may already be null
-		if (GLog != NULL)
+		if (GLog != nullptr)
 		{
 			GLog->RemoveOutputDevice(this);
 		}
@@ -605,7 +603,7 @@ public:
 				auto request = (char*)In;
 
 				FString Uri = UTF8_TO_TCHAR(request);
-				UE_LOG(Javascript, Log, TEXT("requested URI: '%s'"), *Uri);
+				UE_LOG(LogJavascript, Log, TEXT("requested URI: '%s'"), *Uri);
 
 				auto RequestUriType = HttpResponseChannelImpl::GetRequestedUriType(Uri);
 				if (RequestUriType == HttpResponseChannelImpl::ERequestedUriType::Unknown)
@@ -751,7 +749,7 @@ public:
 
 	static void lws_debugLog(int level, const char *line)
 	{
-		UE_LOG(Javascript, Log, TEXT("websocket server: %s"), ANSI_TO_TCHAR(line));
+		UE_LOG(LogJavascript, Log, TEXT("websocket server: %s"), ANSI_TO_TCHAR(line));
 	}
 
 	void Install(int32 Port)
@@ -774,10 +772,10 @@ public:
 		// look up libwebsockets.h for details.
 		Info.port = Port;
 		// we listen on all available interfaces.
-		Info.iface = NULL;
+		Info.iface = nullptr;
 		Info.protocols = WebSocketProtocols;
 		// no extensions
-		Info.extensions = NULL;
+		Info.extensions = nullptr;
 		Info.gid = -1;
 		Info.uid = -1;
 		Info.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
@@ -790,7 +788,7 @@ public:
 		if (WebSocketContext == nullptr)
 		{
 			delete[] WebSocketProtocols;
-			WebSocketProtocols = NULL;
+			WebSocketProtocols = nullptr;
 		}
 		else
 		{
@@ -803,10 +801,10 @@ public:
 		if (WebSocketContext)
 		{
 			lws_context_destroy(WebSocketContext);
-			WebSocketContext = NULL;
+			WebSocketContext = nullptr;
 		}
 		delete[] WebSocketProtocols;
-		WebSocketProtocols = NULL;
+		WebSocketProtocols = nullptr;
 
 		IsAlive = false;
 	}

@@ -126,7 +126,35 @@ public:
 		}
 	}
 
-	virtual bool InputKey(FViewport* Viewport, int32 ControllerId, FKey Key, EInputEvent Event, float AmountDepressed = 1.f, bool bGamepad = false)
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+	virtual bool InputKey(const FInputKeyEventArgs& EventArgs) override
+	{
+		FEditorViewportClient::InputKey(EventArgs);
+
+		if (Widget.IsValid() && Widget->OnInputKey.IsBound())
+		{
+			return Widget->OnInputKey.Execute(EventArgs.ControllerId, EventArgs.Key, EventArgs.Event, Widget.Get());
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	virtual bool InputAxis(FViewport* Viewport, FInputDeviceId DeviceID, FKey Key, float Delta, float DeltaTime, int32 NumSamples = 1, bool bGamepad = false) override
+	{
+		FEditorViewportClient::InputAxis(Viewport, DeviceID, Key, Delta, DeltaTime, NumSamples, bGamepad);
+		if (Widget.IsValid() && Widget->OnInputAxis.IsBound())
+		{
+			return Widget->OnInputAxis.Execute(DeviceID.GetId(), Key, Delta, DeltaTime, Widget.Get());
+		}
+		else
+		{
+			return false;
+		}
+	}
+#else
+	virtual bool InputKey(FViewport* Viewport, int32 ControllerId, FKey Key, EInputEvent Event, float AmountDepressed = 1.f, bool bGamepad = false) override
 	{
 		FEditorViewportClient::InputKey(Viewport, ControllerId, Key, Event, AmountDepressed, bGamepad);
 		if (Widget.IsValid() && Widget->OnInputKey.IsBound())
@@ -151,7 +179,8 @@ public:
 			return false;
 		}
 	}
-
+#endif
+	
 	virtual void MouseEnter(FViewport* Viewport, int32 x, int32 y) override
 	{
 
@@ -418,7 +447,7 @@ class SAutoRefreshEditorViewport : public SEditorViewport
 	void SetLightLocation(const FVector& InLightPos)
 	{
 #if WITH_EDITOR
-		PreviewScene.DirectionalLight->PreEditChange(NULL);
+		PreviewScene.DirectionalLight->PreEditChange(nullptr);
 #endif // WITH_EDITOR
 		PreviewScene.DirectionalLight->SetAbsolute(true, true, true);
 		PreviewScene.DirectionalLight->SetRelativeLocation(InLightPos);

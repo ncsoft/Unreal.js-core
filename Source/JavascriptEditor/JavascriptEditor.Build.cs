@@ -39,10 +39,10 @@ public class JavascriptEditor : ModuleRules
                     "NavigationSystem",
                     "WebBrowser",
                     "AppFramework",
+                    "EditorWidgets",
                     "KismetWidgets",
                     "EditorStyle",
                     "UnrealEd",
-                    "JavascriptUMG",
                     "DetailCustomizations"
                 }
             );  // @todo Mac: for some reason CoreUObject and Engine are needed to link in debug on Mac
@@ -94,6 +94,7 @@ public class JavascriptEditor : ModuleRules
                         "UMG",
                         "Foliage",
                         "LandscapeEditor",
+                        "EditorWidgets",
                         "KismetWidgets",
                         "Kismet",
                         "AnimationBlueprintEditor",

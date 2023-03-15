@@ -204,18 +204,18 @@ FSceneInterface* FJavascriptUMGViewportClient::GetScene() const
 		return World->Scene;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 UWorld* FJavascriptUMGViewportClient::GetWorld() const
 {
-	UWorld* OutWorldPtr = NULL;
+	UWorld* OutWorldPtr = nullptr;
 	// If we have a valid scene get its world
 	if (GameScene)
 	{
 		OutWorldPtr = GameScene->GetWorld();
 	}
-	if (OutWorldPtr == NULL)
+	if (OutWorldPtr == nullptr)
 	{
 		OutWorldPtr = GWorld;
 	}
@@ -422,7 +422,7 @@ UWorld* UJavascriptGameViewport::GetViewportWorld() const
 		return MyViewportWidget->GameScene->GetWorld();
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 FVector UJavascriptGameViewport::GetViewLocation() const
@@ -474,7 +474,7 @@ AActor* UJavascriptGameViewport::Spawn(TSubclassOf<AActor> ActorClass)
 
 	// TODO UMG Report spawning actor error before the world is ready.
 
-	return NULL;
+	return nullptr;
 }
 
 #if WITH_EDITOR

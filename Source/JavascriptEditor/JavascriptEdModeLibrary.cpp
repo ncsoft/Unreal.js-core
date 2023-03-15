@@ -91,5 +91,30 @@ void UJavascriptEdModeLibrary::SelectNone(FJavascriptEditorMode Mode)
 	Mode->SelectNone();
 }
 
+void UJavascriptEdModeLibrary::SetSelectionLock(bool bValue)
+{
+	GEdSelectionLock = bValue;
+}
+
+bool UJavascriptEdModeLibrary::GetWorldPositionFromJavascriptEdViewport(const AActor* Actor, FJavascriptEdViewport Viewport, FVector& OutVector)
+{
+	if (::IsValid(Actor))
+	{
+		if (Viewport.ViewportClient)
+		{
+			FViewportCursorLocation ViewportCursorLocation = Viewport.ViewportClient->GetCursorWorldLocationFromMousePos();
+			FVector Start = ViewportCursorLocation.GetOrigin();
+			FVector End = Start + ViewportCursorLocation.GetDirection() * HALF_WORLD_MAX;
+			FHitResult HitResult;
+			if (Actor->ActorLineTraceSingle(HitResult, Start, End, ECollisionChannel::ECC_Visibility, FCollisionQueryParams()))
+			{
+				OutVector = HitResult.Location;
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
 
 #endif

@@ -1,15 +1,12 @@
 ﻿PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptContext_Private.h"
+#include "CoreMinimal.h"
 #include "JavascriptIsolate.h"
-#include "JavascriptContext.h"
-#include "JavascriptComponent.h"
 #include "HAL/FileManager.h"
 #include "Config.h"
 #include "Translator.h"
 #include "Exception.h"
-#include "IV8.h"
-#include "V8PCH.h"
 #include "Engine/Blueprint.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -310,11 +307,15 @@ static FProperty* CreateProperty(T* Outer, FName Name, const TArray<FString>& De
 				UObject* TypeObject = nullptr;
 				for (auto PackageToSearch : PackagesToSearch)
 				{
-					TypeObject = StaticFindObject(UObject::StaticClass(), (UObject*)ANY_PACKAGE, *FString::Printf(TEXT("/Script/%s.%s"), PackageToSearch, ObjectName));
+					TypeObject = StaticFindObject(UObject::StaticClass(), nullptr, *FString::Printf(TEXT("/Script/%s.%s"), PackageToSearch, ObjectName));
 					if (TypeObject) return TypeObject;
 				}
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+				TypeObject = StaticFindFirstObject(UObject::StaticClass(), ObjectName);
+#else
 				TypeObject = StaticFindObject(UObject::StaticClass(), (UObject*)ANY_PACKAGE, ObjectName);
+#endif
 				if (TypeObject) return TypeObject;
 
 				TypeObject = StaticLoadObject(UObject::StaticClass(), nullptr, ObjectName);
@@ -822,7 +823,7 @@ public:
 					Function->JavascriptContext = Context->AsShared();
 					//Function->RepOffset = MAX_uint16;
 					Function->ReturnValueOffset = MAX_uint16;
-					Function->FirstPropertyToInit = NULL;
+					Function->FirstPropertyToInit = nullptr;
 
 					Function->Script.Add(EX_EndFunctionParms);
 				};
@@ -1100,7 +1101,7 @@ public:
 			}
 #endif
 			auto end = FPlatformTime::Seconds();
-			UE_LOG(Javascript, Warning, TEXT("Create UClass(%s) Elapsed: %.6f"), *Name, end - start);
+			UE_LOG(LogJavascript, Warning, TEXT("Create UClass(%s) Elapsed: %.6f"), *Name, end - start);
 		};
 
 		auto fn1 = [](const FunctionCallbackInfo<Value>& info) {
@@ -1120,7 +1121,7 @@ public:
 			// Recreate the CDO after rebind properties.
 			TMap<UClass*, UClass*> OldToNewMap;
 			FBlueprintCompileReinstancer::MoveCDOToNewClass(Class, OldToNewMap, true);
-			Class->ClassDefaultObject = NULL;
+			Class->ClassDefaultObject = nullptr;
 
 			Class->Children = nullptr;
 			auto maybe_PropertyDecls = Opts->Get(context, I.Keyword("Properties"));
@@ -1193,7 +1194,7 @@ public:
 			Class->AssembleReferenceTokenStream(true);
 #endif
 			auto end = FPlatformTime::Seconds();
-			UE_LOG(Javascript, Warning, TEXT("Rebind UClass(%s) Elapsed: %.6f"), *Class->GetName(), end - start);
+			UE_LOG(LogJavascript, Warning, TEXT("Rebind UClass(%s) Elapsed: %.6f"), *Class->GetName(), end - start);
 #endif
 		};
 
@@ -1277,7 +1278,7 @@ public:
 			info.GetReturnValue().Set(FinalClass);
 
 			auto end = FPlatformTime::Seconds();
-			UE_LOG(Javascript, Warning, TEXT("Create UStruct(%s) Elapsed: %.6f"), *Name, end - start);
+			UE_LOG(LogJavascript, Warning, TEXT("Create UStruct(%s) Elapsed: %.6f"), *Name, end - start);
 		};
 
 		auto fn1 = [](const FunctionCallbackInfo<Value>& info) {
@@ -1331,7 +1332,7 @@ public:
 			auto aftr_v8_template = Context->ExportObject(Struct);
 			(void)(aftr_v8_template->ToObject(context).ToLocalChecked()->Set(context, I.Keyword("proxy"), ProxyFunctions));
 			auto end = FPlatformTime::Seconds();
-			UE_LOG(Javascript, Warning, TEXT("Rebind UStruct(%s) Elapsed: %.6f"), *Struct->GetName(), end - start);
+			UE_LOG(LogJavascript, Warning, TEXT("Rebind UStruct(%s) Elapsed: %.6f"), *Struct->GetName(), end - start);
 #endif
 		};
 
@@ -1403,7 +1404,7 @@ public:
 					auto exports = Self->RunScript(full_path, Text, 0);
 					if (exports.IsEmpty())
 					{
-						UE_LOG(Javascript, Log, TEXT("Invalid script for require"));
+						UE_LOG(LogJavascript, Log, TEXT("Invalid script for require"));
 					}
 					Self->Modules.Add(full_path, UniquePersistent<Value>(isolate, exports));
 					info.GetReturnValue().Set(exports);
@@ -1565,7 +1566,7 @@ public:
 
 			if (!found)
 			{
-				UE_LOG(Javascript, Warning, TEXT("Undefined required script '%s'"), *required_module);
+				UE_LOG(LogJavascript, Warning, TEXT("Undefined required script '%s'"), *required_module);
 				info.GetReturnValue().Set(v8::Undefined(isolate));
 			}
 		};
@@ -1765,7 +1766,7 @@ public:
 
 		if (!FFileHelper::LoadFileToString(Text, *Path))
 		{
-			UE_LOG(Javascript, Warning, TEXT("Failed to read script file '%s'"), *Filename);
+			UE_LOG(LogJavascript, Warning, TEXT("Failed to read script file '%s'"), *Filename);
 		}
 
 		return Text;
@@ -1817,7 +1818,7 @@ public:
 
 		if (bOutput && !ret.IsEmpty())
 		{
-			UE_LOG(Javascript, Log, TEXT("%s"), *str);
+			UE_LOG(LogJavascript, Log, TEXT("%s"), *str);
 		}
 		return str;
 	}
@@ -1963,7 +1964,13 @@ public:
 						{
 							const uint32 ExportFlags = PPF_None;
 							auto Buffer = It->ContainerPtrToValuePtr<uint8>(Parms);
-							const TCHAR* Result = It->ImportText(*MetadataCppDefaultValue, Buffer, ExportFlags, NULL);
+							
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+							const TCHAR* Result = It->ImportText_Direct(*MetadataCppDefaultValue, Buffer, nullptr, ExportFlags);
+#else
+							const TCHAR* Result = It->ImportText(*MetadataCppDefaultValue, Buffer, ExportFlags, nullptr);
+#endif
+
 							if (Result)
 							{
 								bHasDefault = true;
@@ -2279,7 +2286,7 @@ public:
 
 	virtual bool IsExcludeGCObjectTarget(UObject* TargetObj) override
 	{
-		if (TargetObj == NULL)
+		if (TargetObj == nullptr)
 		{
 			return true;
 		}
@@ -2360,7 +2367,7 @@ inline void FJavascriptContextImplementation::AddReferencedObjects(UObject * InT
 	// All objects
 	for (auto It = ObjectToObjectMap.CreateIterator(); It; ++It)
 	{
-//		UE_LOG(Javascript, Log, TEXT("JavascriptContext referencing %s %s"), *(It.Key()->GetClass()->GetName()), *(It.Key()->GetName()));
+//		UE_LOG(LogJavascript, Log, TEXT("JavascriptContext referencing %s %s"), *(It.Key()->GetClass()->GetName()), *(It.Key()->GetName()));
 		auto Object = It.Key();
 		if (!(::IsValid(Object)) || !Object->IsValidLowLevelFast() || Object->HasAnyFlags(RF_BeginDestroyed) || Object->HasAnyFlags(RF_FinishDestroyed))
 		{

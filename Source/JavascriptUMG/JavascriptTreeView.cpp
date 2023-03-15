@@ -255,7 +255,7 @@ TSharedRef<ITableRow> UJavascriptTreeView::HandleOnGenerateRow(UObject* Item, co
 		else
 		{
 			UWidget* Widget = OnGenerateRowEvent.Execute(Item, FName(), this);
-			if (Widget != NULL)
+			if (Widget != nullptr)
 			{
 				return CreateItemRow(Widget, OwnerTable);
 			}

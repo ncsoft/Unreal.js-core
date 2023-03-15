@@ -23,6 +23,8 @@ protected:
 	virtual const FSlateBrush* GetPinIcon() const override;
 	virtual FSlateColor GetPinColor() const override;
 	virtual FSlateColor GetPinTextColor() const override;
+	virtual FReply OnPinMouseDown(const FGeometry& SenderGeometry, const FPointerEvent& MouseEvent) override;
+	
 	// SWidget interface
 	virtual void OnMouseLeave(const FPointerEvent& MouseEvent) override;
 	// End of SWidget interface

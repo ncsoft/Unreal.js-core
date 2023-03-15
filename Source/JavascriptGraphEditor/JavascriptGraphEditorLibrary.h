@@ -197,7 +197,7 @@ struct FJavascriptGraphMenuBuilder : public FJavascriptMenuBuilder
 	FJavascriptEdGraphPin GraphPin;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Javascript | Editor")
-	bool bIsDebugging = false;
+	UGraphNodeContextMenuContext* Context = nullptr;
 };
 
 USTRUCT(BlueprintType)

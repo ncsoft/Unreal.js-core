@@ -1,4 +1,4 @@
-﻿#include "JavascriptGraphAssetGraphSchema.h"
+#include "JavascriptGraphAssetGraphSchema.h"
 #include "JavascriptGraphEdNode.h"
 #include "JavascriptGraphConnectionDrawingPolicy.h"
 
@@ -59,7 +59,7 @@ void UJavascriptGraphAssetGraphSchema::BreakNodeLinks(UEdGraphNode* TargetNode)
 
 void UJavascriptGraphAssetGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const
 {
-	const bool bNoParent = (ContextMenuBuilder.FromPin == NULL);
+	const bool bNoParent = (ContextMenuBuilder.FromPin == nullptr);
 
 	FJavascriptEdGraphPin FromPin = FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(ContextMenuBuilder.FromPin) };
 
@@ -104,10 +104,10 @@ void UJavascriptGraphAssetGraphSchema::GetContextMenuActions(class UToolMenu* Me
 	{
 		FJavascriptGraphMenuBuilder Builder;
 		Builder.ToolMenu = Menu;
+		Builder.Context = Context;
 		Builder.Graph = Context->Graph;
 		Builder.GraphNode = Context->Node;
 		Builder.GraphPin.GraphPin = const_cast<UEdGraphPin*>(Context->Pin);
-		Builder.bIsDebugging = Context->bIsDebugging;
 
 		OnBuildMenu.Execute(Builder);
 		return;

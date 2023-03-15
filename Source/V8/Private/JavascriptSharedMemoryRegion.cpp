@@ -62,7 +62,7 @@ FPlatformMemory::FSharedMemoryRegion* FWindowsPlatformMemory_Local::MapNamedShar
 		OpenMappingAccess = FILE_MAP_ALL_ACCESS;
 	}
 
-	HANDLE Mapping = NULL;
+	HANDLE Mapping = nullptr;
 	if (bCreate)
 	{
 		DWORD CreateMappingAccess = PAGE_READONLY;
@@ -89,12 +89,12 @@ FPlatformMemory::FSharedMemoryRegion* FWindowsPlatformMemory_Local::MapNamedShar
 #endif // PLATFORM_64BITS
 			;
 
-		Mapping = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, CreateMappingAccess, MaxSizeHigh, MaxSizeLow, *Name);
+		Mapping = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, CreateMappingAccess, MaxSizeHigh, MaxSizeLow, *Name);
 
-		if (Mapping == NULL)
+		if (Mapping == nullptr)
 		{
 			DWORD ErrNo = GetLastError();
-			UE_LOG(LogHAL, Warning, TEXT("CreateFileMapping(file=INVALID_HANDLE_VALUE, security=NULL, protect=0x%x, MaxSizeHigh=%d, MaxSizeLow=%d, name='%s') failed with GetLastError() = %d"),
+			UE_LOG(LogHAL, Warning, TEXT("CreateFileMapping(file=INVALID_HANDLE_VALUE, security=nullptr, protect=0x%x, MaxSizeHigh=%d, MaxSizeLow=%d, name='%s') failed with GetLastError() = %d"),
 				CreateMappingAccess, MaxSizeHigh, MaxSizeLow, *Name,
 				ErrNo
 				);
@@ -104,7 +104,7 @@ FPlatformMemory::FSharedMemoryRegion* FWindowsPlatformMemory_Local::MapNamedShar
 	{
 		Mapping = OpenFileMapping(OpenMappingAccess, FALSE, *Name);
 
-		if (Mapping == NULL)
+		if (Mapping == nullptr)
 		{
 			DWORD ErrNo = GetLastError();
 			UE_LOG(LogHAL, Warning, TEXT("OpenFileMapping(access=0x%x, inherit=false, name='%s') failed with GetLastError() = %d"),
@@ -114,13 +114,13 @@ FPlatformMemory::FSharedMemoryRegion* FWindowsPlatformMemory_Local::MapNamedShar
 		}
 	}
 
-	if (Mapping == NULL)
+	if (Mapping == nullptr)
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	void* Ptr = MapViewOfFile(Mapping, OpenMappingAccess, 0, 0, Size);
-	if (Ptr == NULL)
+	if (Ptr == nullptr)
 	{
 		DWORD ErrNo = GetLastError();
 		UE_LOG(LogHAL, Warning, TEXT("MapViewOfFile(mapping=0x%x, access=0x%x, OffsetHigh=0, OffsetLow=0, NumBytes=%u) failed with GetLastError() = %d"),
@@ -129,7 +129,7 @@ FPlatformMemory::FSharedMemoryRegion* FWindowsPlatformMemory_Local::MapNamedShar
 			);
 
 		CloseHandle(Mapping);
-		return NULL;
+		return nullptr;
 	}
 
 	return new FWindowsSharedMemoryRegion_Local(Name, AccessMode, Ptr, Size, Mapping);

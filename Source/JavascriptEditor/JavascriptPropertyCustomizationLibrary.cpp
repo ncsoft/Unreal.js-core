@@ -42,9 +42,9 @@ bool UJavascriptPropertyCustomizationLibrary::IsValidHandle(FJavascriptPropertyH
 	return Handle.IsValid();
 }
 
-FJavascriptSlateWidget UJavascriptPropertyCustomizationLibrary::CreatePropertyNameWidget(FJavascriptPropertyHandle Handle, const FText& NameOverride, const FText& ToolTipOverride, bool bDisplayResetToDefault, bool bHideText, bool bHideThumbnail)
+FJavascriptSlateWidget UJavascriptPropertyCustomizationLibrary::CreatePropertyNameWidget(FJavascriptPropertyHandle Handle, const FText& NameOverride, const FText& ToolTipOverride)
 {
-	return{ Handle->CreatePropertyNameWidget(NameOverride, ToolTipOverride, bDisplayResetToDefault, !bHideText, !bHideThumbnail) };
+	return{ Handle->CreatePropertyNameWidget(NameOverride, ToolTipOverride) };
 }
 
 FJavascriptSlateWidget UJavascriptPropertyCustomizationLibrary::CreatePropertyValueWidget(FJavascriptPropertyHandle Handle, bool bHideDefaultPropertyButtons)

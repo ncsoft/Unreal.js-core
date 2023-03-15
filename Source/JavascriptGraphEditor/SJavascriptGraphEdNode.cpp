@@ -1,4 +1,4 @@
-﻿#include "SJavascriptGraphEdNode.h"
+#include "SJavascriptGraphEdNode.h"
 #include "SJavascriptGraphEdNodePin.h"
 
 #include "Blueprint/UserWidget.h"
@@ -28,14 +28,14 @@ void FDragJavascriptGraphNode::HoverTargetChanged()
 	TArray<FPinConnectionResponse> UniqueMessages;
 	UEdGraphNode* TargetNodeObj = GetHoveredNode();
 
-	if (TargetNodeObj != NULL)
+	if (TargetNodeObj != nullptr)
 	{
 		TSharedRef<SVerticalBox> FeedbackBox = SNew(SVerticalBox);
-		const FSlateBrush* StatusSymbol = NULL;
+		const FSlateBrush* StatusSymbol = nullptr;
 		const FText Message = FText::FromString(TEXT("TEST"));
 
-		StatusSymbol = FEditorStyle::GetBrush(TEXT("Graph.ConnectorFeedback.OK"));
-		// StatusSymbol = FEditorStyle::GetBrush(TEXT("Graph.ConnectorFeedback.Error"));
+		StatusSymbol = FAppStyle::Get().GetBrush(TEXT("Graph.ConnectorFeedback.OK"));
+		// StatusSymbol = FAppStyle::Get().GetBrush(TEXT("Graph.ConnectorFeedback.Error"));
 		FeedbackBox->AddSlot()
 			.AutoHeight()
 			[
@@ -59,7 +59,7 @@ void FDragJavascriptGraphNode::HoverTargetChanged()
 	else
 	{
 		SetSimpleFeedbackMessage(
-			FEditorStyle::GetBrush(TEXT("Graph.ConnectorFeedback.Error")),
+			FAppStyle::Get().GetBrush(TEXT("Graph.ConnectorFeedback.Error")),
 			FLinearColor::White,
 			NSLOCTEXT("GraphEditor.Feedback", "DragNode", "This node cannot be placed here."));
 	}
@@ -121,7 +121,7 @@ void SJavascriptGraphEdNode::UpdateGraphNode()
 					.Padding(Settings->GetNonPinNodeBodyPadding())
 					[
 						SNew(SImage)
-						.Image(FEditorStyle::GetBrush("Graph.Node.Body"))
+						.Image(FAppStyle::Get().GetBrush("Graph.Node.Body"))
 						.ColorAndOpacity(this, &SGraphNode::GetNodeBodyColor)
 					]
 					+SOverlay::Slot()
@@ -433,7 +433,7 @@ EVisibility SJavascriptGraphEdNode::GetDescriptionVisibility() const
 
 const FSlateBrush* SJavascriptGraphEdNode::GetNameIcon() const
 {
-	return FEditorStyle::GetBrush(TEXT("BTEditor.Graph.BTNode.Icon"));
+	return FAppStyle::Get().GetBrush(TEXT("BTEditor.Graph.BTNode.Icon"));
 }
 
 SJavascriptGraphEdNode::EResizableWindowZone SJavascriptGraphEdNode::FindMouseZone(const FVector2D & LocalMouseCoordinates) const
@@ -591,7 +591,7 @@ void SJavascriptGraphEdNode::OnDragEnter(const FGeometry & MyGeometry, const FDr
 			}
 			else
 			{
-				DragOp->SetHoveredNode(TSharedPtr<SGraphNode>(NULL));
+				DragOp->SetHoveredNode(TSharedPtr<SGraphNode>(nullptr));
 			}
 		}
 		return;
@@ -611,7 +611,7 @@ void SJavascriptGraphEdNode::OnDragLeave(const FDragDropEvent & DragDropEvent)
 		{
 			if (Schema->OnDragLeave.Execute(GraphEdNode)) 
 			{
-				DragOp->SetHoveredNode(TSharedPtr<SGraphNode>(NULL));
+				DragOp->SetHoveredNode(TSharedPtr<SGraphNode>(nullptr));
 			}
 		}
 		return;
@@ -635,7 +635,7 @@ FReply SJavascriptGraphEdNode::OnDragOver(const FGeometry & MyGeometry, const FD
 			}
 			else
 			{
-				DragOp->SetHoveredNode(TSharedPtr<SGraphNode>(NULL));
+				DragOp->SetHoveredNode(TSharedPtr<SGraphNode>(nullptr));
 			}
 		}
 		return FReply::Handled();
@@ -900,7 +900,16 @@ FString SJavascriptGraphEdNode::GetNodeComment() const
 
 void SJavascriptGraphEdNode::OnCommentTextCommitted(const FText& NewComment, ETextCommit::Type CommitInfo)
 {
-	GetNodeObj()->OnUpdateCommentText(NewComment.ToString());
+	const FString& TmpNewComment = NewComment.ToString();
+
+	auto GraphEdNode = CastChecked<UJavascriptGraphEdNode>(GraphNode);
+	auto Schema = CastChecked<UJavascriptGraphAssetGraphSchema>(GraphNode->GetSchema());
+	if (GraphEdNode && !GraphEdNode->NodeComment.Equals(TmpNewComment) && Schema->OnCommitedBubbleComment.IsBound())
+	{
+		Schema->OnCommitedBubbleComment.Execute(TmpNewComment);
+	}
+
+	GetNodeObj()->OnUpdateCommentText(TmpNewComment);
 }
 
 int32 SJavascriptGraphEdNode::GetSortDepth() const
@@ -981,7 +990,7 @@ void SJavascriptGraphEdNode::CreateAdvancedViewArrow(TSharedPtr<SVerticalBox> Ma
 			.OnCheckStateChanged(this, &SJavascriptGraphEdNode::OnAdvancedViewChanged)
 			.IsChecked(this, &SJavascriptGraphEdNode::IsAdvancedViewChecked)
 			.Cursor(EMouseCursor::Default)
-			.Style(FEditorStyle::Get(), "Graph.Node.AdvancedView")
+			.Style(FAppStyle::Get(), "Graph.Node.AdvancedView")
 			[
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot()
@@ -1021,7 +1030,7 @@ ECheckBoxState SJavascriptGraphEdNode::IsAdvancedViewChecked() const
 const FSlateBrush* SJavascriptGraphEdNode::GetAdvancedViewArrow() const
 {
 	const bool bAdvancedPinsHidden = GraphNode && (ENodeAdvancedPins::Hidden == GraphNode->AdvancedPinDisplay);
-	return FEditorStyle::GetBrush(bAdvancedPinsHidden ? TEXT("Icons.ChevronDown") : TEXT("Icons.ChevronUp"));
+	return FAppStyle::Get().GetBrush(bAdvancedPinsHidden ? TEXT("Icons.ChevronDown") : TEXT("Icons.ChevronUp"));
 }
 
 void SJavascriptGraphEdNode::InvalidateGraphNodeWidget()

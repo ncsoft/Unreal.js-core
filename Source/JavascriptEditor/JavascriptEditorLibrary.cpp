@@ -1,4 +1,4 @@
-﻿#include "JavascriptEditorLibrary.h"
+#include "JavascriptEditorLibrary.h"
 #include "LandscapeComponent.h"
 
 // WORKAROUND for 4.15
@@ -7,7 +7,7 @@
 #endif
 
 #include "JavascriptEditorModule.h"
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "Editor/LandscapeEditor/Private/LandscapeEdModeTools.h"
 #include "JavascriptContext.h"
 #include "DynamicMeshBuilder.h"
@@ -34,7 +34,7 @@
 #include "Components/BrushComponent.h"
 
 #include "../../Launch/Resources/Version.h"
-#include "HAL/PlatformFilemanager.h"
+#include "HAL/PlatformFileManager.h"
 #include "HAL/FileManager.h"
 #include "AI/NavDataGenerator.h"
 #include "Framework/Application/SlateApplication.h"
@@ -73,6 +73,7 @@
 #include "Sockets.h"
 #include "IPAddress.h"
 #include "UObject/SavePackage.h"
+#include "CreateBlueprintFromActorDialog.h"
 
 #if WITH_EDITOR
 ULandscapeInfo* UJavascriptEditorLibrary::GetLandscapeInfo(ALandscape* Landscape, bool bSpawnNewActor)
@@ -426,6 +427,18 @@ FVector UJavascriptEditorLibrary::GetDirection(const FJavascriptViewportClick& C
 	return Click.Click->GetDirection();
 }
 
+bool UJavascriptEditorLibrary::GetWorldPositionFromViewportClick(const AActor* Actor, const FJavascriptViewportClick& Click, FHitResult& OutHitResult)
+{
+	if (::IsValid(Actor))
+	{
+		FVector Start = GetOrigin(Click);
+		FVector End = Start + GetDirection(Click) * HALF_WORLD_MAX;
+		return Actor->ActorLineTraceSingle(OutHitResult, Start, End, ECollisionChannel::ECC_Visibility, FCollisionQueryParams());
+	}
+
+	return false;
+}
+
 void UJavascriptEditorLibrary::DrawWireBox(const FJavascriptPDI& PDI, const FBox& Box, const FLinearColor& Color, ESceneDepthPriorityGroup DepthPriority, float Thickness, float DepthBias, bool bScreenSpace)
 {
 	::DrawWireBox(PDI.PDI, Box, Color, DepthPriority, Thickness, DepthBias, bScreenSpace);
@@ -518,7 +531,7 @@ void UJavascriptEditorLibrary::DrawPolygon(const FJavascriptPDI& PDI, const TArr
 		MeshBuilder.AddTriangle(0, Index + 1, Index + 2);
 	}
 
-	static auto TransparentPlaneMaterialXY = (UMaterial*)StaticLoadObject(UMaterial::StaticClass(), NULL, TEXT("/Engine/EditorMaterials/WidgetVertexColorMaterial.WidgetVertexColorMaterial"), NULL, LOAD_None, NULL);
+	static auto TransparentPlaneMaterialXY = (UMaterial*)StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("/Engine/EditorMaterials/WidgetVertexColorMaterial.WidgetVertexColorMaterial"), nullptr, LOAD_None, nullptr);
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 22
 	MeshBuilder.Draw(PDI.PDI, FMatrix::Identity, TransparentPlaneMaterialXY->GetRenderProxy(false), DepthPriority, 0.f);
 #else
@@ -575,7 +588,7 @@ AActor* UJavascriptEditorLibrary::GetActor(const FJavascriptHitProxy& Proxy)
 	if (Proxy.HitProxy && Proxy.HitProxy->IsA(HActor::StaticGetType()))
 	{
 		HActor* ActorHit = static_cast<HActor*>(Proxy.HitProxy);
-		if (ActorHit->Actor != NULL)
+		if (ActorHit->Actor != nullptr)
 		{
 			return ActorHit->Actor;
 		}
@@ -855,15 +868,23 @@ bool UJavascriptEditorLibrary::SavePackage(UPackage* Package, FString FileName)
 
 	if (World)
 	{
-		FSavePackageArgs SaveArgs = { NULL, RF_NoFlags, 0U, false,
+		const FSavePackageArgs SaveArgs = { nullptr,
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+			nullptr,
+#endif
+			RF_NoFlags, 0U, false,
 			true, true, FDateTime::MinValue(), GError };
 		bSavedCorrectly = UPackage::SavePackage(Package, World, *FileName, SaveArgs);
 	}
 	else
 	{
-		FSavePackageArgs SaveArgs = { NULL, RF_Standalone, 0U, false,
+		const FSavePackageArgs SaveArgs = { nullptr,
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+			nullptr,
+#endif
+			RF_Standalone, 0U, false,
 			true, true, FDateTime::MinValue(), GError };
-		bSavedCorrectly =  UPackage::SavePackage(Package, NULL,  *FileName, SaveArgs);
+		bSavedCorrectly =  UPackage::SavePackage(Package, nullptr,  *FileName, SaveArgs);
 	}
 	return bSavedCorrectly;
 }
@@ -881,10 +902,10 @@ bool UJavascriptEditorLibrary::DeletePackage(UPackage* Package)
 
 void UJavascriptEditorLibrary::CreateBrushForVolumeActor(AVolume* NewActor, UBrushBuilder* BrushBuilder)
 {
-	if (NewActor != NULL)
+	if (NewActor != nullptr)
 	{
 		// this code builds a brush for the new actor
-		NewActor->PreEditChange(NULL);
+		NewActor->PreEditChange(nullptr);
 
 		NewActor->PolyFlags = 0;
 		NewActor->Brush = NewObject<UModel>(NewActor, NAME_None, RF_Transactional);
@@ -900,14 +921,14 @@ void UJavascriptEditorLibrary::CreateBrushForVolumeActor(AVolume* NewActor, UBru
 
 		FBSPOps::csgPrepMovingBrush(NewActor);
 
-		// Set the texture on all polys to NULL.  This stops invisible textures
+		// Set the texture on all polys to nullptr.  This stops invisible textures
 		// dependencies from being formed on volumes.
 		if (NewActor->Brush)
 		{
 			for (int32 poly = 0; poly < NewActor->Brush->Polys->Element.Num(); ++poly)
 			{
 				FPoly* Poly = &(NewActor->Brush->Polys->Element[poly]);
-				Poly->Material = NULL;
+				Poly->Material = nullptr;
 			}
 		}
 
@@ -938,7 +959,7 @@ FString UJavascriptEditorLibrary::ExportNavigation(UWorld* InWorld, FString Name
 		InWorld->PersistentLevel->UpdateModelComponents();
 		InWorld->UpdateWorldComponents(true, false);
 		InWorld->UpdateLevelStreaming();
-		//InWorld->LoadSecondaryLevels(true, NULL);
+		//InWorld->LoadSecondaryLevels(true, nullptr);
 	}
 
 	FWorldContext &WorldContext = GEditor->GetEditorWorldContext(true);
@@ -1121,13 +1142,13 @@ bool UJavascriptEditorLibrary::OpenEditorForAsset(UObject* Asset)
 void UJavascriptEditorLibrary::OpenEditorForAssetByPath(const FString& AssetPathName, const FString& ObjectName)
 {
 	// An asset needs loading
-	UPackage* Package = LoadPackage(NULL, *AssetPathName, LOAD_NoRedirects);
+	UPackage* Package = LoadPackage(nullptr, *AssetPathName, LOAD_NoRedirects);
 	if (Package)
 	{
 		Package->FullyLoad();
 
 		UObject* Object = FindObject<UObject>(Package, *ObjectName);
-		if (Object != NULL)
+		if (Object != nullptr)
 		{
 			if (auto* SubSystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>())
 			{
@@ -1144,7 +1165,11 @@ TArray<FAssetData> UJavascriptEditorLibrary::GetAssetsByType(const TArray<FStrin
 	FARFilter Filter;
 	for (auto& Type : Types)
 	{
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+		Filter.ClassPaths.Add(FTopLevelAssetPath(Type));
+#else
 		Filter.ClassNames.Add(FName(*Type));
+#endif
 	}
 	Filter.bRecursiveClasses = bRecursiveClasses;
 	TArray<FAssetData> AssetList;
@@ -1184,8 +1209,8 @@ FAnimNotifyEvent& CreateNewNotify(UAnimSequenceBase* Sequence, FString NewNotify
 	}
 	else
 	{
-		NewEvent.Notify = NULL;
-		NewEvent.NotifyStateClass = NULL;
+		NewEvent.Notify = nullptr;
+		NewEvent.NotifyStateClass = nullptr;
 	}
 
 	if (NewEvent.Notify)
@@ -1462,6 +1487,14 @@ bool UJavascriptEditorLibrary::SaveFileDialog(const UJavascriptWindow* SubWindow
 	return false;
 }
 
+void UJavascriptEditorLibrary::OpenCreateBlueprintFromActorDialog(AActor* Actor)
+{
+	if (::IsValid(Actor))
+	{
+		FCreateBlueprintFromActorDialog::OpenDialog(ECreateBlueprintFromActorMode::Subclass, Actor);
+	}
+}
+
 bool UJavascriptEditorLibrary::LoadFileToIntArray(FString Path, TArray<uint8>& FileData)
 {
 	return FFileHelper::LoadFileToArray(FileData, *Path);
@@ -1570,7 +1603,7 @@ bool UJavascriptEditorLibrary::GetIsExecuteTestModePIE()
 
 int32 UJavascriptEditorLibrary::GetUniqueID(UObject * InObject)
 {
-	if (InObject != NULL)
+	if (InObject != nullptr)
 	{
 		return InObject->GetUniqueID();
 	}

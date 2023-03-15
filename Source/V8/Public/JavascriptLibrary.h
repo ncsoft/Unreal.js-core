@@ -652,7 +652,7 @@ public:
 		Stack.MostRecentPropertyAddress = nullptr;
 		Stack.MostRecentProperty = nullptr;
 
-		Stack.StepCompiledIn<FStructProperty>(NULL);
+		Stack.StepCompiledIn<FStructProperty>(nullptr);
 		void* SrcStructAddr = Stack.MostRecentPropertyAddress;
 		auto SrcStructProperty = CastField<FStructProperty>(Stack.MostRecentProperty);
 

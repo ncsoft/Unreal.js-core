@@ -11,11 +11,7 @@
 #include "Materials/MaterialInterface.h"
 #include "Materials/MaterialExpressionMaterialFunctionCall.h"
 #include "Materials/MaterialExpressionTextureSample.h"
-#include "Materials/MaterialExpressionTextureSampleParameter2D.h"
 #include "Materials/MaterialFunction.h"
-#include "Factories/MaterialFactoryNew.h"
-#include "AssetRegistryModule.h"
-#include "PackageHelperFunctions.h"
 #endif
 
 #define LOCTEXT_NAMESPACE "JavascriptWebBrowser"

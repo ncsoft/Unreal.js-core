@@ -139,7 +139,7 @@ protected:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 	// End of UWidget interface
 
-	EActiveTimerReturnType HandleOnInitialGraphPanelUpdated(double InCurrentTime, float InDeltaTime);
+	void HandleOnInitialGraphPanelUpdated();
 
 	void HandleOnSelectedNodesChanged(const FGraphPanelSelectionSet& Selection);
 	void HandleOnNodeDoubleClicked(UEdGraphNode* Node);

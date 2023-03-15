@@ -30,12 +30,12 @@
 #include "Internationalization/StringTableRegistry.h"
 #include "Misc/MessageDialog.h"
 #include "Serialization/PropertyLocalizationDataGathering.h"
+#include "HAL/FileManager.h"
 
 #if WITH_EDITOR
 #include "ScopedTransaction.h"
 #endif
 #include "JavascriptStats.h"
-#include "IV8.h"
 #include "ConsoleDelegate.h"
 
 THIRD_PARTY_INCLUDES_START
@@ -397,7 +397,7 @@ public:
 		for (auto It = ClassToFunctionTemplateMap.CreateIterator(); It; ++It)
 		{
 			UClass* Class = It.Key();
-			//UE_LOG(Javascript, Log, TEXT("JavascriptIsolate referencing %s / %s %s (gen by %s %s)"), *(Class->GetOuter()->GetName()), *(Class->GetClass()->GetName()), *(Class->GetName()), Class->ClassGeneratedBy ? *(Class->ClassGeneratedBy->GetClass()->GetName()) : TEXT("none"), Class->ClassGeneratedBy ? *(Class->ClassGeneratedBy->GetName()) : TEXT("none"));
+			//UE_LOG(LogJavascript, Log, TEXT("JavascriptIsolate referencing %s / %s %s (gen by %s %s)"), *(Class->GetOuter()->GetName()), *(Class->GetClass()->GetName()), *(Class->GetName()), Class->ClassGeneratedBy ? *(Class->ClassGeneratedBy->GetClass()->GetName()) : TEXT("none"), Class->ClassGeneratedBy ? *(Class->ClassGeneratedBy->GetName()) : TEXT("none"));
 			int ValidIndex = IsExcludeGCUClassTarget(Class);
 
 			if (ValidIndex == 0)
@@ -559,7 +559,7 @@ public:
 		for (auto It = ClassToFunctionTemplateMap.CreateIterator(); It; ++It)
 		{
 			UClass* Class = It.Key();
-			//UE_LOG(Javascript, Log, TEXT("JavascriptIsolate referencing %s / %s %s (gen by %s %s)"), *(Class->GetOuter()->GetName()), *(Class->GetClass()->GetName()), *(Class->GetName()), Class->ClassGeneratedBy ? *(Class->ClassGeneratedBy->GetClass()->GetName()) : TEXT("none"), Class->ClassGeneratedBy ? *(Class->ClassGeneratedBy->GetName()) : TEXT("none"));
+			//UE_LOG(LogJavascript, Log, TEXT("JavascriptIsolate referencing %s / %s %s (gen by %s %s)"), *(Class->GetOuter()->GetName()), *(Class->GetClass()->GetName()), *(Class->GetName()), Class->ClassGeneratedBy ? *(Class->ClassGeneratedBy->GetClass()->GetName()) : TEXT("none"), Class->ClassGeneratedBy ? *(Class->ClassGeneratedBy->GetName()) : TEXT("none"));
 			if (!::IsValid(Class) || !Class->IsValidLowLevel())
 			{
 				It.RemoveCurrent();
@@ -595,7 +595,11 @@ public:
 			{
 				if (p->IsInteger())
 				{
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+					const UEnum* BitmaskEnum = FindFirstObject<UEnum>(*BitmaskEnumName);
+#else
 					const UEnum* BitmaskEnum = FindObject<UEnum>(ANY_PACKAGE, *BitmaskEnumName);
+#endif
 					if (::IsValid(BitmaskEnum))
 					{
 						int32 EnumCount = BitmaskEnum->NumEnums();
@@ -721,7 +725,7 @@ public:
 			}
 			else
 			{
-				UE_LOG(Javascript, Warning, TEXT("Non ScriptStruct found : %s"), *p->Struct->GetName());
+				UE_LOG(LogJavascript, Warning, TEXT("Non ScriptStruct found : %s"), *p->Struct->GetName());
 
 				return v8::Undefined(isolate_);
 			}
@@ -889,7 +893,12 @@ public:
 			{
 				if (p->IsInteger())
 				{
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+					const UEnum* BitmaskEnum = FindFirstObject<UEnum>(*BitmaskEnumName);
+#else
 					const UEnum* BitmaskEnum = FindObject<UEnum>(ANY_PACKAGE, *BitmaskEnumName);
+#endif
+
 					if (::IsValid(BitmaskEnum))
 					{
 						auto Str = StringFromV8(isolate_, Value);
@@ -1243,28 +1252,28 @@ public:
 		//// console.log
 		//add_fn("log", [](const FunctionCallbackInfo<Value>& info)
 		//{
-		//	UE_LOG(Javascript, Log, TEXT("%s"), *StringFromArgs(info));
+		//	UE_LOG(LogJavascript, Log, TEXT("%s"), *StringFromArgs(info));
 		//	info.GetReturnValue().Set(info.Holder());
 		//});
 
 		//// console.warn
 		//add_fn("warn", [](const FunctionCallbackInfo<Value>& info)
 		//{
-		//	UE_LOG(Javascript, Warning, TEXT("%s"), *StringFromArgs(info));
+		//	UE_LOG(LogJavascript, Warning, TEXT("%s"), *StringFromArgs(info));
 		//	info.GetReturnValue().Set(info.Holder());
 		//});
 
 		//// console.info
 		//add_fn("info", [](const FunctionCallbackInfo<Value>& info)
 		//{
-		//	UE_LOG(Javascript, Display, TEXT("%s"), *StringFromArgs(info));
+		//	UE_LOG(LogJavascript, Display, TEXT("%s"), *StringFromArgs(info));
 		//	info.GetReturnValue().Set(info.Holder());
 		//});
 
 		//// console.error
 		//add_fn("error", [](const FunctionCallbackInfo<Value>& info)
 		//{
-		//	UE_LOG(Javascript, Error, TEXT("%s"), *StringFromArgs(info));
+		//	UE_LOG(LogJavascript, Error, TEXT("%s"), *StringFromArgs(info));
 		//	info.GetReturnValue().Set(info.Holder());
 		//});
 
@@ -1278,7 +1287,7 @@ public:
 		//		auto filename = stack_frame->GetScriptName();
 		//		auto line_number = stack_frame->GetLineNumber();
 
-		//		UE_LOG(Javascript, Error, TEXT("Assertion:%s:%d %s"), *StringFromV8(filename), line_number, *StringFromArgs(info, 1));
+		//		UE_LOG(LogJavascript, Error, TEXT("Assertion:%s:%d %s"), *StringFromV8(filename), line_number, *StringFromArgs(info, 1));
 		//	}
 
 		//	info.GetReturnValue().Set(info.Holder());
@@ -1464,7 +1473,7 @@ public:
 		// memory.bind
 		FnHelper.Set("bind", [](const FunctionCallbackInfo<Value>& info)
 		{
-			UE_LOG(Javascript, Warning, TEXT("memory.bind is deprecated. use memory.exec(ab,fn) instead."));
+			UE_LOG(LogJavascript, Warning, TEXT("memory.bind is deprecated. use memory.exec(ab,fn) instead."));
 			auto isolate = info.GetIsolate();
 			FIsolateHelper I(isolate);
 
@@ -2178,7 +2187,20 @@ public:
 			if (info.Length() == 2 && info[1]->IsString())
 			{
 				auto Outer = UObjectFromV8(isolate->GetCurrentContext(), info[0]);
-				auto obj = StaticFindObject(ClassToExport, Outer ? Outer : ANY_PACKAGE, *StringFromV8(isolate, info[1]->ToString(isolate->GetCurrentContext()).ToLocalChecked()));
+				auto ObjectName = StringFromV8(isolate, info[1]->ToString(isolate->GetCurrentContext()).ToLocalChecked());
+				UObject* obj = nullptr;
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+				if (Outer != nullptr)
+				{
+					obj = StaticFindObject(ClassToExport, Outer, *ObjectName);
+				}
+				else
+				{
+					obj = StaticFindFirstObject(ClassToExport, *ObjectName);
+				}
+#else
+				obj = StaticFindObject(ClassToExport, Outer ? Outer : ANY_PACKAGE, *ObjectName);
+#endif
 				auto out = GetSelf(isolate)->ExportObject(obj);
 				info.GetReturnValue().Set(out);
 			}

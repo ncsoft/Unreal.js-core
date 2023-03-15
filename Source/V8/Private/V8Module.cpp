@@ -1,5 +1,4 @@
-﻿#include "IV8.h"
-#include "V8PCH.h"
+﻿#include "V8PCH.h"
 
 PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
@@ -33,6 +32,8 @@ DEFINE_STAT(STAT_CodeSpace);
 DEFINE_STAT(STAT_MapSpace);
 DEFINE_STAT(STAT_LoSpace);
 
+DEFINE_LOG_CATEGORY(LogJavascript);
+
 using namespace v8;
 
 static float GV8IdleTaskBudget = 1 / 60.0f;
@@ -45,8 +46,8 @@ static FAutoConsoleCommand ToggleEnableV8Hotreload(
 		{
 			bool bFlag = !IV8::Get().IsEnableHotReload();
 			IV8::Get().SetEnableHotReload(bFlag);
-			FName NAME_JavascriptCmd("JavascriptCmd");
-			GLog->Log(NAME_JavascriptCmd, ELogVerbosity::Log, *FString::Printf(TEXT("v8 hotreload %s"), bFlag ? TEXT("on") : TEXT("off")));
+			FName NAME_Javascript("LogJavascript");
+			GLog->Log(NAME_Javascript, ELogVerbosity::Log, *FString::Printf(TEXT("v8 hotreload %s"), bFlag ? TEXT("on") : TEXT("off")));
 		}
 	)
 );
@@ -240,8 +241,8 @@ public:
 		V8::InitializePlatform(&platform_);
 		V8::Initialize();
 
-		FName NAME_JavascriptCmd("JavascriptCmd");
-		GLog->Log(NAME_JavascriptCmd, ELogVerbosity::Log, *FString::Printf(TEXT("Unreal.js started. V8 %d.%d.%d"), V8_MAJOR_VERSION, V8_MINOR_VERSION, V8_BUILD_NUMBER));
+		FName NAME_Javascript("LogJavascript");
+		GLog->Log(NAME_Javascript, ELogVerbosity::Log, *FString::Printf(TEXT("Unreal.js started. V8 %d.%d.%d"), V8_MAJOR_VERSION, V8_MINOR_VERSION, V8_BUILD_NUMBER));
 	}
 
 	virtual void ShutdownModule() override
@@ -345,8 +346,8 @@ public:
 
 			if (Context->ContextId == TargetContext || (!TargetContext.IsValid() && Context->IsDebugContext()))
 			{
-				static FName NAME_JavascriptCmd("JavascriptCmd");
-				GLog->Log(NAME_JavascriptCmd, ELogVerbosity::Log, Command);
+				static FName NAME_Javascript("LogJavascript");
+				GLog->Log(NAME_Javascript, ELogVerbosity::Log, Command);
 				Context->RunScript(Command);
 			}
 		}

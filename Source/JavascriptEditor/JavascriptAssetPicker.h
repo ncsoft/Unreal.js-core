@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Components/Widget.h"
 #include "JavascriptAssetPicker.generated.h"
@@ -16,6 +16,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Content)
 	void SetAllowedClasses(const FString& InAllowedClasses) { AllowedClasses = InAllowedClasses; }
+
+	UFUNCTION(BlueprintCallable, Category = Content)
+	void SetDefaultObjectPath(const FString& InDefaultObjectPath) { DefaultObjectPath = InDefaultObjectPath; }
 
 private:
 
@@ -56,5 +59,9 @@ protected:
 	
 	TSharedPtr< class SMenuAnchor > AssetPickerAnchor;
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+	FTopLevelAssetPath DefaultObjectPath;
+#else
 	FString DefaultObjectPath;
+#endif
 };

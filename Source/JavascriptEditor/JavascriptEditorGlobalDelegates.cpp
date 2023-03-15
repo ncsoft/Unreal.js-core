@@ -1,5 +1,5 @@
-﻿#include "JavascriptEditorGlobalDelegates.h"
-#include "AssetRegistryModule.h"
+#include "JavascriptEditorGlobalDelegates.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "Interfaces/IMainFrameModule.h"
 #include "EditorSupportDelegates.h"
 #include "Editor/EditorEngine.h"
@@ -138,8 +138,24 @@ OP_REFLECT_SELECTION(SelectNoneEvent)\
 #define DO_REFLECT_JAVASCRIPT() \
 OP_REFLECT_JAVASCRIPT(OnConsoleCommandJS) \
 
+#define DO_REFLECT_SLATEAPPLICATION() \
+OP_REFLECT_SLATEAPPLICATION(OnApplicationPreInputKeyDownListener)\
+
 FJavascriptAssetData::FJavascriptAssetData(const FAssetData& Source)
-	: ObjectPath(Source.ObjectPath), PackageName(Source.PackageName), PackagePath(Source.PackagePath), AssetName(Source.AssetName), AssetClass(Source.AssetClass), ChunkIDs(Source.ChunkIDs), PackageFlags((int32)Source.PackageFlags), SourceAssetData(Source)
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+	: ObjectPath(*Source.GetSoftObjectPath().ToString())
+#else
+	: ObjectPath(Source.ObjectPath)
+#endif
+	, PackageName(Source.PackageName), PackagePath(Source.PackagePath), AssetName(Source.AssetName)
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+	, AssetClass(*Source.AssetClassPath.ToString())
+	, ChunkIDs(Source.GetChunkIDs())
+#else
+	, AssetClass(Source.AssetClass)
+	, ChunkIDs(Source.ChunkIDs)
+#endif
+	, PackageFlags((int32)Source.PackageFlags), SourceAssetData(Source)
 {
 }
 
@@ -159,6 +175,7 @@ void UJavascriptEditorGlobalDelegates::Bind(FString Key)
 #define OP_REFLECT_GAME(x) else if (Key == #x) { Handle = FGameDelegates::Get().Get##x().AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
 #define OP_REFLECT_SELECTION(x) else if (Key == #x) { Handle = USelection::x.AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
 #define OP_REFLECT_JAVASCRIPT(x) else if (Key == #x) { Handle = FJavascriptSupportDelegates::x.AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
+#define OP_REFLECT_SLATEAPPLICATION(x) else if (Key == #x) { Handle = FSlateApplication::Get().x().AddUObject(this, &UJavascriptEditorGlobalDelegates::x); }
 	if (false) {}
 		DO_REFLECT()
 		DO_REFLECT_IMPORT_SUBSYS()
@@ -169,6 +186,7 @@ void UJavascriptEditorGlobalDelegates::Bind(FString Key)
 		DO_REFLECT_GAME()
 		DO_REFLECT_SELECTION()
 		DO_REFLECT_JAVASCRIPT()
+		DO_REFLECT_SLATEAPPLICATION()
 		;
 
 	if (Handle.IsValid())
@@ -184,6 +202,8 @@ void UJavascriptEditorGlobalDelegates::Bind(FString Key)
 #undef OP_REFLECT_SUPPORT
 #undef OP_REFLECT_GAME
 #undef OP_REFLECT_SELECTION
+#undef OP_REFLECT_JAVASCRIPT
+#undef OP_REFLECT_SLATEAPPLICATION
 }
 
 void UJavascriptEditorGlobalDelegates::UnbindAll()
@@ -207,6 +227,8 @@ void UJavascriptEditorGlobalDelegates::Unbind(FString Key)
 #define OP_REFLECT_SUPPORT(x) else if (Key == #x) { FEditorSupportDelegates::x.Remove(Handle); }
 #define OP_REFLECT_GAME(x) else if (Key == #x) { FGameDelegates::Get().Get##x().Remove(Handle); }
 #define OP_REFLECT_SELECTION(x) else if (Key == #x) { USelection::x.Remove(Handle); }
+#define OP_REFLECT_JAVASCRIPT(x) else if (Key == #x) { FJavascriptSupportDelegates::x.Remove(Handle); }
+#define OP_REFLECT_SLATEAPPLICATION(x) else if (Key == #x) { if (FSlateApplication::IsInitialized()) { FSlateApplication::Get().x().Remove(Handle); } }
 	if (false) {}
 		DO_REFLECT()
 		DO_REFLECT_IMPORT_SUBSYS()
@@ -216,6 +238,8 @@ void UJavascriptEditorGlobalDelegates::Unbind(FString Key)
 		DO_REFLECT_SUPPORT()
 		DO_REFLECT_GAME()
 		DO_REFLECT_SELECTION()
+		DO_REFLECT_JAVASCRIPT()
+		DO_REFLECT_SLATEAPPLICATION()
 		;
 
 	Handles.Remove(Key);
@@ -228,5 +252,7 @@ void UJavascriptEditorGlobalDelegates::Unbind(FString Key)
 #undef OP_REFLECT_SUPPORT
 #undef OP_REFLECT_GAME
 #undef OP_REFLECT_SELECTION
+#undef OP_REFLECT_JAVASCRIPT
+#undef OP_REFLECT_SLATEAPPLICATION
 }
 #endif

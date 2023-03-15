@@ -1,4 +1,4 @@
-﻿#include "JavascriptFTextBox.h"
+#include "JavascriptFTextBox.h"
 #include "JavascriptLibrary.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptFTextBox"
@@ -89,9 +89,11 @@ public:
 		EditableTextBox->HandleOnNamespaceKeyChanged(OutStableNamespace, OutStableKey);
 	}
 
+#if ENGINE_MAJOR_VERSION < 5 || ENGINE_MINOR_VERSION < 1
 	virtual void RequestRefresh() override
 	{
 	}
+#endif
 
 private:
 	UJavascriptFTextBox* EditableTextBox;
@@ -168,25 +170,8 @@ TSharedRef<SWidget> UJavascriptFTextBox::RebuildWidget()
 	{
 		if (OnGetDefaultValue.IsBound())
 		{
-			MyTextProperty = OnGetDefaultValue.Execute();
-
-			if (!MyTextProperty.TableId.IsNone())
-			{
-				TextValue = FText::FromStringTable(MyTextProperty.TableId, MyTextProperty.Key);
-				DefaultTextValue = TextValue;
-			}
-			else if (!MyTextProperty.Value.IsEmpty())
-			{
-				if (MyTextProperty.Key.IsEmpty())
-				{
-					MyTextProperty.Key = FGuid::NewGuid().ToString();
-
-					OnTextCommitted.Broadcast(MyTextProperty);
-				}
-
-				TextValue = FText::ChangeKey(MyTextProperty.Namespace, MyTextProperty.Key, FText::FromString(MyTextProperty.Value));
-				DefaultTextValue = TextValue;
-			}
+			FJavascriptTextProperty TextProperty = OnGetDefaultValue.Execute();
+			SetText(TextProperty);
 		}
 
 		MyEditableTextProperty = MakeShareable(new FJavascriptEditableText(this));
@@ -199,6 +184,34 @@ TSharedRef<SWidget> UJavascriptFTextBox::RebuildWidget()
 			.MaxDesiredHeight(MaximumDesiredHeight);
 
 		return MyEditableTextBlock.ToSharedRef();
+	}
+}
+
+void UJavascriptFTextBox::SetText(FJavascriptTextProperty& JavascriptTextProperty)
+{
+	MyTextProperty = JavascriptTextProperty;
+
+	if (!MyTextProperty.TableId.IsNone())
+	{
+		TextValue = FText::FromStringTable(MyTextProperty.TableId, MyTextProperty.Key);
+		DefaultTextValue = TextValue;
+	}
+	else if (!MyTextProperty.Value.IsEmpty())
+	{
+		if (MyTextProperty.Key.IsEmpty())
+		{
+			MyTextProperty.Key = FGuid::NewGuid().ToString();
+
+			OnTextCommitted.Broadcast(MyTextProperty);
+		}
+
+		TextValue = FText::ChangeKey(MyTextProperty.Namespace, MyTextProperty.Key, FText::FromString(MyTextProperty.Value));
+		DefaultTextValue = TextValue;
+	}
+	else
+	{
+		TextValue = FText::GetEmpty();
+		DefaultTextValue = TextValue;
 	}
 }
 #endif

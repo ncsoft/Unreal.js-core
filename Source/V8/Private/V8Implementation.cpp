@@ -1,17 +1,12 @@
 ﻿#include "V8PCH.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
-#include "JavascriptComponent.h"
-#include "Config.h"
-#include "Translator.h"
-#include "Exception.h"
+#include "IV8.h"
 
 #include "JavascriptIsolate_Private.h"
 #include "JavascriptContext_Private.h"
 
 using namespace v8;
-
-DEFINE_LOG_CATEGORY(Javascript);
 
 UJavascriptIsolate::UJavascriptIsolate(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -173,7 +168,7 @@ void UJavascriptContext::RegisterConsoleCommand(FString Command, FString Help, F
 
 		if (ConsoleManager.IsNameRegistered(*Command) || JavascriptConsoleCommands.Contains(*Command))
 		{
-			UE_LOG(Javascript, Warning, TEXT("RegisterConsoleCommand: Command '%s' is already registered."), *Command);
+			UE_LOG(LogJavascript, Warning, TEXT("RegisterConsoleCommand: Command '%s' is already registered."), *Command);
 			return;
 		}
 

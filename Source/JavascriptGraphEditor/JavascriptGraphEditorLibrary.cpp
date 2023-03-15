@@ -284,7 +284,7 @@ FJavascriptArrangedWidget UJavascriptGraphEditorLibrary::GetArrangedNodes(FJavas
 	FJavascriptArrangedWidget Widget = FJavascriptArrangedWidget();
 
 	int32* Index = Container.NodeWidgetMap->Find(Node);
-	if (Index != NULL)
+	if (Index != nullptr)
 	{
 		Widget.Handle = &(*Container.ArrangedNodes)[*Index];
 	}

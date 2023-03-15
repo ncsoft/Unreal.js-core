@@ -9,7 +9,7 @@ UJavascriptLogSubscriber::UJavascriptLogSubscriber()
 
 UJavascriptLogSubscriber::~UJavascriptLogSubscriber()
 {
-	if (GLog != NULL)
+	if (GLog != nullptr)
 	{
 		GLog->RemoveOutputDevice(this);
 	}

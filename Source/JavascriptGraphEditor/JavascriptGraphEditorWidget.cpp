@@ -31,19 +31,9 @@ TSharedRef<SWidget> UJavascriptGraphEditorWidget::RebuildWidget()
 		.AutoExpandActionMenu(true)
 		.ShowGraphStateOverlay(false);
 
-	/** @NOTE The above code(SGraphEditorImpl) reserves the graph refresh. Therefore, graph nodes can be created twice if we add new nodes right after it.
-	 *        (It can make performance issues, or may work abnormally) That is, we need to know the graph refresh completion.
-	 *        It's safe to add/remove nodes after the completion.
-	 *        I wanted to use SGraphEditorImpl::OnUpdateGraphPanel, but it's completely hidden(also related all stuffs).
-	 *        Therefore, I chose the same way with SGraphEditorImpl::TriggerRefresh.
-	 *        It's not good but safe because widget active timers are hold in the TArray(First in, First evaluated).
-	 *  @REF SGraphEditorImpl::OnUpdateGraphPanel
-	 *  @REF SGraphEditorImpl::TriggerRefresh (SGraphEditorImpl::OnGraphChanged)
-	 *  @REF SWidget::ActiveTimers
-	 */
 	if (OnInitialGraphPanelUpdated.IsBound())
 	{
-		GraphEditor->RegisterActiveTimer(0.0f, BIND_UOBJECT_DELEGATE(FWidgetActiveTimerDelegate, HandleOnInitialGraphPanelUpdated));
+		GEditor->GetTimerManager()->SetTimerForNextTick(FTimerDelegate::CreateUObject(this, &ThisClass::HandleOnInitialGraphPanelUpdated));
 	}
 
 	return GraphEditor;
@@ -66,10 +56,9 @@ UJavascriptGraphEdGraph* UJavascriptGraphEditorWidget::NewGraph(UObject* ParentS
 	return EdGraph;
 }
 
-EActiveTimerReturnType UJavascriptGraphEditorWidget::HandleOnInitialGraphPanelUpdated(double InCurrentTime, float InDeltaTime)
+void UJavascriptGraphEditorWidget::HandleOnInitialGraphPanelUpdated()
 {
 	OnInitialGraphPanelUpdated.ExecuteIfBound();
-	return EActiveTimerReturnType::Stop;
 }
 
 void UJavascriptGraphEditorWidget::HandleOnSelectedNodesChanged(const FGraphPanelSelectionSet& Selection)

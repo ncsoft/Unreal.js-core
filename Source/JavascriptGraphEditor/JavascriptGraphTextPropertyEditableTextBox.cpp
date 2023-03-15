@@ -75,6 +75,11 @@ public:
 
 	virtual bool IsValidText(const FText& InText, FText& OutErrorMsg) const override
 	{
+		if (EditableTextBox->OnIsValidText.IsBound())
+		{
+			OutErrorMsg = FText::FromString(EditableTextBox->OnIsValidText.Execute(InText.ToString()));
+			return OutErrorMsg.IsEmpty();
+		}
 		return true;
 	}
 
@@ -96,9 +101,11 @@ public:
 		EditableTextBox->HandleOnNamespaceKeyChanged(OutStableNamespace, OutStableKey);
 	}
 
+#if ENGINE_MAJOR_VERSION < 5 || ENGINE_MINOR_VERSION < 1
 	virtual void RequestRefresh() override
 	{
 	}
+#endif
 
 private:
 	UEdGraphPin* GraphPinObj;

@@ -4,8 +4,6 @@
 #include "JavascriptStats.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
-#include "V8PCH.h"
-#include "IV8.h"
 
 
 DECLARE_CYCLE_STAT(TEXT("Javascript Component Tick Time"), STAT_JavascriptComponentTickTime, STATGROUP_Javascript);

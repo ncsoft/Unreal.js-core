@@ -21,6 +21,7 @@ class JAVASCRIPTGRAPHEDITOR_API UJavascriptGraphTextPropertyEditableTextBox : pu
 public:
 	DECLARE_DYNAMIC_DELEGATE_RetVal(FJavascriptEdGraphPin, FOnGetGraphPin);
 	DECLARE_DYNAMIC_DELEGATE_RetVal(FJavascriptTextProperty, FOnGetDefaultValue);
+	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FString, FOnIsValidText, const FString&, TextValue);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEditableTextBoxCommittedEvent, const FJavascriptTextProperty&, TextProperty);
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
@@ -28,6 +29,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetDefaultValue OnGetDefaultValue;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnIsValidText OnIsValidText;
 
 	UPROPERTY(BlueprintAssignable, Category = "TextBox|Event")
 	FOnEditableTextBoxCommittedEvent OnTextCommitted;

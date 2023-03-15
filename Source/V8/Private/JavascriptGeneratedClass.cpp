@@ -11,9 +11,15 @@ void UJavascriptGeneratedClass::InitPropertiesFromCustomList(uint8* DataPtr, con
 	}
 }
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+void UJavascriptGeneratedClass::PostInitInstance(UObject* InObj, FObjectInstancingGraph* InstanceGraph)
+{
+	Super::PostInitInstance(InObj, InstanceGraph);
+#else
 void UJavascriptGeneratedClass::PostInitInstance(UObject* InObj)
 {
 	Super::PostInitInstance(InObj);
+#endif
 
 	auto Context = JavascriptContext.Pin();
 	if (Context.IsValid())
@@ -22,10 +28,16 @@ void UJavascriptGeneratedClass::PostInitInstance(UObject* InObj)
 	}
 }
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+void UJavascriptGeneratedClass_Native::PostInitInstance(UObject* InObj, FObjectInstancingGraph* InstanceGraph)
+{
+	Super::PostInitInstance(InObj, InstanceGraph);
+#else
 void UJavascriptGeneratedClass_Native::PostInitInstance(UObject* InObj)
 {
 	Super::PostInitInstance(InObj);
-
+#endif
+	
 	auto Context = JavascriptContext.Pin();
 	if (Context.IsValid())
 	{

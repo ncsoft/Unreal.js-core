@@ -3,6 +3,8 @@
 #include "Modules/ModuleInterface.h"
 #include "Modules/ModuleManager.h"
 
+V8_API DECLARE_LOG_CATEGORY_EXTERN(LogJavascript, Log, All);
+
 /**
 * The public interface to this module. 
 */
