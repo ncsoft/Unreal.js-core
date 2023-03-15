@@ -1,0 +1,32 @@
+# Archive source code with third party library
+
+name: Archive
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      perform_archive:
+        required: true
+        type: boolean
+    
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  download_3rd_party:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.perform_archive }}
+    steps:
+    - uses: actions/checkout@v3.3.0
+    - name: download-v8-libs
+      run: install-v8-libs.sh
+    - name: archive
+      uses: montudor/action-zip@v1.0.0
+      with:
+        args: zip -qq -r source-code.zip .
+    - name: upload
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: source-code.zip
