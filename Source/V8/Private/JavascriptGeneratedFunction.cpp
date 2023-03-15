@@ -78,11 +78,11 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 	const bool bIsVMVirtual = Function->GetSuperFunction() && Cast<UBlueprintGeneratedClass>(Function->GetSuperFunction()->GetOuter()) != nullptr;
 	if (bIsVMVirtual && *Stack.Code != EX_EndFunctionParms)
 	{
-		uint8* Frame = NULL;
+		uint8* Frame = nullptr;
 		/*#if USE_UBER_GRAPH_PERSISTENT_FRAME
 				Frame = GetClass()->GetPersistentUberGraphFrame(this, Function);
 		#endif*/
-		const bool bUsePersistentFrame = (NULL != Frame);
+		const bool bUsePersistentFrame = (nullptr != Frame);
 		if (!bUsePersistentFrame)
 		{
 			Frame = (uint8*)FMemory_Alloca(Function->PropertiesSize);
@@ -106,7 +106,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 					FOutParmRec* RetVal = (FOutParmRec*)FMemory_Alloca(sizeof(FOutParmRec));
 
 					// Our context should be that we're in a variable assignment to the return value, so ensure that we have a valid property to return to
-					check(RESULT_PARAM != NULL);
+					check(RESULT_PARAM != nullptr);
 					RetVal->PropAddr = (uint8*)RESULT_PARAM;
 					RetVal->Property = Property;
 					NewStack.OutParms = RetVal;
@@ -121,7 +121,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 		{
 			checkfSlow(Property, TEXT("NULL Property in Function %s"), *Function->GetPathName());
 
-			Stack.MostRecentPropertyAddress = NULL;
+			Stack.MostRecentPropertyAddress = nullptr;
 
 			// Skip the return parameter case, as we've already handled it above
 			const bool bIsReturnParam = ((Property->PropertyFlags & CPF_ReturnParm) != 0);
@@ -133,7 +133,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 			if (Property->PropertyFlags & CPF_OutParm)
 			{
 				// evaluate the expression for this parameter, which sets Stack.MostRecentPropertyAddress to the address of the property accessed
-				Stack.Step(Stack.Object, NULL);
+				Stack.Step(Stack.Object, nullptr);
 
 				CA_SUPPRESS(6263)
 				FOutParmRec* Out = (FOutParmRec*)FMemory_Alloca(sizeof(FOutParmRec));
@@ -142,7 +142,7 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 				// if that's the case, we use the extra memory allocated for the out param in the function's locals
 				// so there's always a valid address
 				ensure(Stack.MostRecentPropertyAddress); // possible problem - output param values on local stack are neither initialized nor cleaned.
-				Out->PropAddr = (Stack.MostRecentPropertyAddress != NULL) ? Stack.MostRecentPropertyAddress : Property->ContainerPtrToValuePtr<uint8>(NewStack.Locals);
+				Out->PropAddr = (Stack.MostRecentPropertyAddress != nullptr) ? Stack.MostRecentPropertyAddress : Property->ContainerPtrToValuePtr<uint8>(NewStack.Locals);
 				Out->Property = Property;
 
 				// add the new out param info to the stack frame's linked list
@@ -172,14 +172,14 @@ DEFINE_FUNCTION(UJavascriptGeneratedFunction::Thunk)
 		// set the next pointer of the last item to NULL so we'll properly assert if something goes wrong
 		if (*LastOut)
 		{
-			(*LastOut)->NextOutParm = NULL;
+			(*LastOut)->NextOutParm = nullptr;
 		}
 #endif
 
 		if (!bUsePersistentFrame)
 		{
 			// Initialize any local struct properties with defaults
-			for (FProperty* LocalProp = Function->FirstPropertyToInit; LocalProp != NULL; LocalProp = (FProperty*)LocalProp->Next)
+			for (FProperty* LocalProp = Function->FirstPropertyToInit; LocalProp != nullptr; LocalProp = (FProperty*)LocalProp->Next)
 			{
 				LocalProp->InitializeValue_InContainer(NewStack.Locals);
 			}

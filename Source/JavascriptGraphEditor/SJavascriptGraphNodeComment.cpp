@@ -144,8 +144,7 @@ void SJavascriptGraphNodeComment::UpdateGraphNode()
 	FGraphNodeMetaData TagMeta(TEXT("Graphnode"));
 	PopulateMetaTag(&TagMeta);
 
-	CommentStyle = FEditorStyle::Get().GetWidgetStyle<FInlineEditableTextBlockStyle>("Graph.CommentBlock.TitleInlineEditableText");
-	CommentStyle.EditableTextBoxStyle.Font.Size = CommentNode->FontSize;
+	CommentStyle = FAppStyle::Get().GetWidgetStyle<FInlineEditableTextBlockStyle>("Graph.CommentBlock.TitleInlineEditableText");
 	CommentStyle.TextStyle.Font.Size = CommentNode->FontSize;
 	CachedFontSize = CommentNode->FontSize;
 
@@ -156,7 +155,7 @@ void SJavascriptGraphNodeComment::UpdateGraphNode()
 		.VAlign(VAlign_Fill)
 		[
 			SNew(SBorder)
-			.BorderImage(FEditorStyle::GetBrush("Kismet.Comment.Background"))
+			.BorderImage(FAppStyle::Get().GetBrush("Kismet.Comment.Background"))
 			.ColorAndOpacity(FLinearColor::White)
 			.BorderBackgroundColor(this, &SJavascriptGraphNodeComment::GetCommentBodyColor)
 			.Padding(FMargin(3.0f))
@@ -170,7 +169,7 @@ void SJavascriptGraphNodeComment::UpdateGraphNode()
 				.VAlign(VAlign_Top)
 				[
 					SAssignNew(TitleBar, SBorder)
-					.BorderImage(FEditorStyle::GetBrush("Graph.Node.TitleBackground"))
+					.BorderImage(FAppStyle::Get().GetBrush("Graph.Node.TitleBackground"))
 					.BorderBackgroundColor(this, &SJavascriptGraphNodeComment::GetCommentTitleBarColor)
 					.Padding(FMargin(10, 5, 5, 3))
 					.HAlign(HAlign_Fill)
@@ -201,7 +200,7 @@ void SJavascriptGraphNodeComment::UpdateGraphNode()
 				[
 					// NODE CONTENT AREA
 					SNew(SBorder)
-					.BorderImage(FEditorStyle::GetBrush("NoBorder"))
+					.BorderImage(FAppStyle::Get().GetBrush("NoBorder"))
 				]
 			]
 		];
@@ -354,7 +353,7 @@ void SJavascriptGraphNodeComment::GetOverlayBrushes(bool bSelected, const FVecto
 
 	HandleSelection(bSelected);
 
-	FOverlayBrushInfo HandleBrush = FEditorStyle::GetBrush(TEXT("Graph.Node.Comment.Handle"));
+	FOverlayBrushInfo HandleBrush = FAppStyle::Get().GetBrush(TEXT("Graph.Node.Comment.Handle"));
 
 	HandleBrush.OverlayOffset.X = WidgetSize.X - HandleBrush.Brush->ImageSize.X - Fudge;
 	HandleBrush.OverlayOffset.Y = WidgetSize.Y - HandleBrush.Brush->ImageSize.Y - Fudge;

@@ -9,7 +9,7 @@
 #include "../../Launch/Resources/Version.h"
 
 FJavascriptInGameScene::FJavascriptInGameScene(FJavascriptInGameScene::ConstructionValues CVS)
-	: PreviewWorld(NULL)
+	: PreviewWorld(nullptr)
 	, bForceAllUsedMipsResident(CVS.bForceMipsResident)
 {
 	PreviewWorld = NewObject<UWorld>();
@@ -73,7 +73,7 @@ void FJavascriptInGameScene::Destroy()
 		{
 			// Remove the mip streaming override on the mesh to be removed
 			UMeshComponent* pMesh = Cast<UMeshComponent>(Component);
-			if (pMesh != NULL)
+			if (pMesh != nullptr)
 			{
 				pMesh->SetTextureForceResidentFlag(false);
 			}
@@ -95,7 +95,7 @@ void FJavascriptInGameScene::AddComponent(UActorComponent* Component, const FTra
 	Components.AddUnique(Component);
 
 	USceneComponent* SceneComp = Cast<USceneComponent>(Component);
-	if (SceneComp && SceneComp->GetAttachParent() == NULL)
+	if (SceneComp && SceneComp->GetAttachParent() == nullptr)
 	{
 		SceneComp->SetRelativeTransform(LocalToWorld);
 	}
@@ -106,7 +106,7 @@ void FJavascriptInGameScene::AddComponent(UActorComponent* Component, const FTra
 	{
 		// Add a mip streaming override to the new mesh
 		UMeshComponent* pMesh = Cast<UMeshComponent>(Component);
-		if (pMesh != NULL)
+		if (pMesh != nullptr)
 		{
 			pMesh->SetTextureForceResidentFlag(true);
 		}
@@ -124,7 +124,7 @@ void FJavascriptInGameScene::RemoveComponent(UActorComponent* Component)
 	{
 		// Remove the mip streaming override on the old mesh
 		UMeshComponent* pMesh = Cast<UMeshComponent>(Component);
-		if (pMesh != NULL)
+		if (pMesh != nullptr)
 		{
 			pMesh->SetTextureForceResidentFlag(false);
 		}

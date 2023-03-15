@@ -19,7 +19,7 @@
 #include "EngineFontServices.h"
 #endif
 
-DEFINE_LOG_CATEGORY(JavascriptOnEditor);
+DEFINE_LOG_CATEGORY(LogJavascriptOnEditor);
 
 #define LOCTEXT_NAMESPACE "UnrealJSEditor"
 
@@ -121,7 +121,7 @@ int32 UJavascriptOnEditorCommandlet::Main(const FString& Params)
 		double start = FPlatformTime::Seconds();		
 		Bootstrap();
 		double end = FPlatformTime::Seconds();
-		UE_LOG(JavascriptOnEditor, Warning, TEXT("JS bootstrap Elapsed: %.6f"), end - start);
+		UE_LOG(LogJavascriptOnEditor, Warning, TEXT("JS bootstrap Elapsed: %.6f"), end - start);
 
 		{
 			FEditorScriptExecutionGuard ScriptGuard;

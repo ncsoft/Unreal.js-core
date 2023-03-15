@@ -1,4 +1,4 @@
-﻿#include "SJavascriptGraphEdNodePin.h"
+#include "SJavascriptGraphEdNodePin.h"
 #include "SLevelOfDetailBranchNode.h"
 #include "JavascriptGraphAssetGraphSchema.h"
 #include "Widgets/Layout/SWrapBox.h"
@@ -20,7 +20,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 	SetVisibility(TAttribute<EVisibility>(this, &SJavascriptGraphPin::GetPinVisiblity));
 
 	GraphPinObj = InPin;
-	check(GraphPinObj != NULL);
+	check(GraphPinObj != nullptr);
 
 	const UEdGraphSchema* Schema = GraphPinObj->GetSchema();
 	check(Schema);
@@ -65,7 +65,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 	static const FName NAME_NoBorder("NoBorder");
 	TSharedRef<SWidget> PinStatusIndicator =
 		SNew(SButton)
-		.ButtonStyle(FEditorStyle::Get(), NAME_NoBorder)
+		.ButtonStyle(FAppStyle::Get(), NAME_NoBorder)
 		.Visibility(this, &ThisClass::GetPinStatusIconVisibility)
 		.ContentPadding(0)
 		.OnClicked(this, &ThisClass::ClickedOnPinStatusIcon)
@@ -84,7 +84,7 @@ void SJavascriptGraphPin::Construct(const FArguments& InArgs, UEdGraphPin* InPin
 
 	TSharedRef<SWidget> InLabelWidget = SNew(STextBlock)
 		.Text(this, &ThisClass::GetPinLabel)
-		.TextStyle(FEditorStyle::Get(), InArgs._PinLabelStyle)
+		.TextStyle(FAppStyle::Get(), InArgs._PinLabelStyle)
 		.Visibility(this, &ThisClass::GetPinLabelVisibility)
 		.ColorAndOpacity(this, &ThisClass::GetPinTextColor);
 	TSharedRef<SWidget> InValueWidget = SNew(SBox);
@@ -261,7 +261,7 @@ const FSlateBrush* SJavascriptGraphPin::GetPinBorder() const
 		FName SlateBrushName = GraphSchema->OnGetSlateBrushName.Execute(IsHovered(), FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) });
 		if (SlateBrushName.IsNone() == false)
 		{
-			return FEditorStyle::GetBrush(SlateBrushName);
+			return FAppStyle::Get().GetBrush(SlateBrushName);
 		}
 	}
 
@@ -321,6 +321,26 @@ FSlateColor SJavascriptGraphPin::GetPinTextColor() const
 	return FLinearColor::White;
 }
 
+FReply SJavascriptGraphPin::OnPinMouseDown(const FGeometry& SenderGeometry, const FPointerEvent& MouseEvent)
+{
+	bool NeedSupportMovingPin = true;
+
+	const UEdGraphSchema* Schema = GraphPinObj->GetSchema();
+	check(Schema);
+	auto GraphSchema = CastChecked<UJavascriptGraphAssetGraphSchema>(Schema);
+	if (GraphSchema->OnMouseDownGraphPin.IsBound())
+	{
+		NeedSupportMovingPin = GraphSchema->OnMouseDownGraphPin.Execute(FJavascriptEdGraphPin{ const_cast<UEdGraphPin*>(GraphPinObj) }, SenderGeometry, MouseEvent);
+	}
+
+	if (!NeedSupportMovingPin)
+	{
+		return FReply::Unhandled();
+	}
+
+	return SGraphPin::OnPinMouseDown(SenderGeometry, MouseEvent);
+}
+
 void SJavascriptGraphPin::OnMouseLeave(const FPointerEvent& MouseEvent)
 {
 	if (OwnerNodePtr.IsValid())
@@ -345,11 +365,11 @@ const FSlateBrush* SJavascriptGraphPin::GetPinIcon() const
 	{
 		if (IsConnected())
 		{
-			return IsHovered() ? FEditorStyle::GetBrush(TEXT("Graph.ExecPin.ConnectedHovered")) : FEditorStyle::GetBrush(TEXT("Graph.ExecPin.Connected"));
+			return IsHovered() ? FAppStyle::Get().GetBrush(TEXT("Graph.ExecPin.ConnectedHovered")) : FAppStyle::Get().GetBrush(TEXT("Graph.ExecPin.Connected"));
 		}
 		else
 		{
-			return IsHovered() ? FEditorStyle::GetBrush(TEXT("Graph.ExecPin.DisconnectedHovered")) : FEditorStyle::GetBrush(TEXT("Graph.ExecPin.Disconnected"));
+			return IsHovered() ? FAppStyle::Get().GetBrush(TEXT("Graph.ExecPin.DisconnectedHovered")) : FAppStyle::Get().GetBrush(TEXT("Graph.ExecPin.Disconnected"));
 		}
 	}
 

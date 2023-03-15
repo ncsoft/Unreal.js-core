@@ -12,7 +12,7 @@ struct FV8Exception
 	static auto GuardLambda(T&& f)
 	{
 		static T fn = std::forward<T>(f); //@hack: exploiting lambda signature's uniqueness
-		return [](const FunctionCallbackInfo<Value>& info)
+		return [](const v8::FunctionCallbackInfo<v8::Value>& info)
 		{
 #if PLATFORM_WINDOWS && !PLATFORM_SEH_EXCEPTIONS_DISABLED
 			__try
@@ -39,7 +39,7 @@ struct FV8Exception
 		auto message = try_catch.Message();
 		if (message.IsEmpty())
 		{
-			UE_LOG(Javascript, Error, TEXT("%s"), *exception);
+			UE_LOG(LogJavascript, Error, TEXT("%s"), *exception);
 			return *exception;
 		}
 		else
@@ -50,13 +50,13 @@ struct FV8Exception
 				auto linenum = message->GetLineNumber(isolate->GetCurrentContext()).ToChecked();
 				auto sourceline = StringFromV8(isolate, message->GetSourceLine(isolate->GetCurrentContext()).ToLocalChecked());
 
-				UE_LOG(Javascript, Error, TEXT("%s:%d: %s"), *filename, linenum, *exception);
+				UE_LOG(LogJavascript, Error, TEXT("%s:%d: %s"), *filename, linenum, *exception);
 
 				auto maybe_stack_trace = try_catch.StackTrace(isolate->GetCurrentContext());
 
 				if (maybe_stack_trace.IsEmpty())
 				{
-					UE_LOG(Javascript, Error, TEXT("%s"), *exception);
+					UE_LOG(LogJavascript, Error, TEXT("%s"), *exception);
 					return *exception;
 				}
 
@@ -67,7 +67,7 @@ struct FV8Exception
 					stack_trace.ParseIntoArrayLines(Lines);
 					for (const auto& line : Lines)
 					{
-						UE_LOG(Javascript, Error, TEXT("%s"), *line);
+						UE_LOG(LogJavascript, Error, TEXT("%s"), *line);
 					}
 
 					return stack_trace;

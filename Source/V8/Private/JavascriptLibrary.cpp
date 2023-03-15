@@ -1,13 +1,14 @@
 ﻿#include "JavascriptLibrary.h"
+#include "CoreMinimal.h"
 #include "Engine/DynamicBlueprintBinding.h"
 #include "JavascriptContext.h"
-#include "IV8.h"
 #include "SocketSubsystem.h"
 #include "Sockets.h"
 #include "NavigationSystem.h"
 #include "HAL/PlatformApplicationMisc.h"
 #include "Launch/Resources/Version.h"
 #include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 #include "UObject/MetaData.h"
 #include "Engine/Engine.h"
 #include "V8PCH.h"
@@ -126,13 +127,13 @@ UWorld* UJavascriptLibrary::Actor_GetWorld(AActor* Actor)
 
 UClass* UJavascriptLibrary::GetBlueprintGeneratedClass(UBlueprint* Blueprint)
 {
-	UE_LOG(Javascript, Warning, TEXT("GetBlueprintGeneratedClass will be deprecated : Use instead Blueprint.GeneratedClass"));
+	UE_LOG(LogJavascript, Warning, TEXT("GetBlueprintGeneratedClass will be deprecated : Use instead Blueprint.GeneratedClass"));
 	return Blueprint ? Blueprint->GeneratedClass : nullptr;
 }
 
 UClass* UJavascriptLibrary::GetBlueprintGeneratedClassFromPath(FString Path)
 {
-	UE_LOG(Javascript, Warning, TEXT("GetBlueprintGeneratedClassFromPath will be deprecated : Use instead Blueprint.Load(Path).GeneratedClass"));
+	UE_LOG(LogJavascript, Warning, TEXT("GetBlueprintGeneratedClassFromPath will be deprecated : Use instead Blueprint.Load(Path).GeneratedClass"));
 	return GetBlueprintGeneratedClass(Cast<UBlueprint>(StaticLoadObject(UBlueprint::StaticClass(), nullptr, *Path)));
 }
 
@@ -282,7 +283,7 @@ public:
 		: Filename(InFilename), Thread(nullptr), Function(InFunction)
 	{
 		Start();
-		UE_LOG(Javascript, Warning, TEXT("ReadStringFromFileAsync Thread, started %s"), *Filename);
+		UE_LOG(LogJavascript, Warning, TEXT("ReadStringFromFileAsync Thread, started %s"), *Filename);
 	}
 
 	~FReadStringFromFileThread()
@@ -291,7 +292,7 @@ public:
 		{
 			Thread->Kill();
 			delete Thread;
-			UE_LOG(Javascript, Warning, TEXT("ReadStringFromFileAsync Thread, killed %s"), *Filename);
+			UE_LOG(LogJavascript, Warning, TEXT("ReadStringFromFileAsync Thread, killed %s"), *Filename);
 		}
 	}
 
@@ -450,7 +451,7 @@ void UJavascriptLibrary::GetAllActorsOfClassAndTags(UObject* WorldContextObject,
 	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::ReturnNull);
 
 	// We do nothing if not class provided, rather than giving ALL actors!
-	if (ActorClass != NULL && World != nullptr)
+	if (ActorClass != nullptr && World != nullptr)
 	{
 		for (TActorIterator<AActor> It(World, ActorClass); It; ++It)
 		{
@@ -487,7 +488,7 @@ void UJavascriptLibrary::GetAllActorsOfClassAndTagsInCurrentLevel(UObject* World
 	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::ReturnNull);
 
 	// We do nothing if not class provided, rather than giving ALL actors!
-	if (ActorClass != NULL && World != nullptr)
+	if (ActorClass != nullptr && World != nullptr)
 	{
 		ULevel* CurrentLevel = World->GetCurrentLevel();
 
@@ -585,7 +586,7 @@ UEnum* UJavascriptLibrary::CreateEnum(UObject* Outer, FName Name, TArray<FName> 
 {
 	UEnum* Enum = NewObject<UEnum>(Outer,Name,RF_Public);
 
-	if (NULL != Enum)
+	if (nullptr != Enum)
 	{
 		TArray<TPair<FName, int64>> Names;
 		int32 Index = 0;
@@ -805,7 +806,11 @@ TArray<FJavscriptProperty> UJavascriptLibrary::GetStructProperties(const FString
 {
 	TArray<FJavscriptProperty> Properties;
 
-	UStruct* Struct = FindObjectFast<UStruct>(NULL, *StructName, false, true);
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+	UStruct* Struct = FindFirstObject<UStruct>(*StructName);
+#else
+	UStruct* Struct = FindObjectFast<UStruct>(nullptr, *StructName, false, true);
+#endif
 	if (Struct != nullptr)
 	{
 		// Make sure each field gets allocated into the array
@@ -841,7 +846,11 @@ TArray<FJavscriptProperty> UJavascriptLibrary::GetStructProperties(const FString
 TArray<FString> UJavascriptLibrary::GetEnumListByEnumName(const FString EnumName)
 {
 	TArray<FString> EnumList;
-	UEnum* Enum = FindObjectFast<UEnum>(NULL, *EnumName, false, true);
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+	UEnum* Enum = FindFirstObject<UEnum>(*EnumName);
+#else
+	UEnum* Enum = FindObjectFast<UEnum>(nullptr, *EnumName, false, true);
+#endif
 	if (Enum != nullptr)
 	{
 		int32 length = Enum->NumEnums();
@@ -964,7 +973,7 @@ TArray<UClass*> UJavascriptLibrary::GetSuperClasses(UClass* InClass)
 
 bool UJavascriptLibrary::IsGeneratedByBlueprint(UClass* InClass)
 {
-	//return NULL != Cast<UBlueprint>(InClass->ClassGeneratedBy);
+	//return nullptr != Cast<UBlueprint>(InClass->ClassGeneratedBy);
 	return InClass->HasAnyClassFlags(EClassFlags::CLASS_CompiledFromBlueprint);
 }
 

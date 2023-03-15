@@ -4,9 +4,11 @@
 #include "Components/ContentWidget.h"
 #include "Styling/SlateTypes.h"
 #include "Styling/CoreStyle.h"
+#include "Widgets/Layout/SBorder.h"
 #include "JavascriptComboButton.generated.h"
 
 class SComboButton;
+class SBorder;
 
 UCLASS(Experimental)
 class JAVASCRIPTUMG_API UJavascriptComboButton : public UContentWidget
@@ -73,5 +75,12 @@ public:
 	void HandleMenuOpenChanged(bool bOpen);
 
 protected:
+	TSharedRef<SWidget> GetComboBox();
+
+	// UPanelWidget
+	virtual void OnSlotAdded(UPanelSlot* Slot) override;
+	// End UPanelWidget
+
+	TSharedPtr<SBorder> MyContentContainer;
 	TSharedPtr<SComboButton> MyComboButton;
 };

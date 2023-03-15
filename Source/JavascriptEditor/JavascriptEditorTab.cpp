@@ -1,4 +1,4 @@
-﻿PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
+PRAGMA_DISABLE_SHADOW_VARIABLE_WARNINGS
 
 #include "JavascriptEditorTab.h"
 #if WITH_EDITOR
@@ -213,7 +213,7 @@ void UJavascriptEditorTab::Register(TSharedRef<FTabManager> TabManager, UObject*
 {
 	if (Icon.StyleSetName.IsNone())
 	{
-		Icon.StyleSetName = FEditorStyle::GetStyleSetName();
+		Icon.StyleSetName = FAppStyle::Get().GetStyleSetName();
 		Icon.StyleName = "DeviceDetails.Tabs.ProfileEditor";
 	}
 
@@ -254,7 +254,7 @@ void UJavascriptEditorTab::InsertTo(TSharedRef<FTabManager> TabManager, UObject*
 {
 	if (Icon.StyleSetName.IsNone())
 	{
-		Icon.StyleSetName = FEditorStyle::GetStyleSetName();
+		Icon.StyleSetName = FAppStyle::Get().GetStyleSetName();
 		Icon.StyleName = "DeviceDetails.Tabs.ProfileEditor";
 	}
 
@@ -302,6 +302,16 @@ void UJavascriptEditorTab::ActivateInParent()
 	if (ThisTabPtr.IsValid())
 	{
 		ThisTabPtr->ActivateInParent(ETabActivationCause::SetDirectly);
+	}
+}
+
+void UJavascriptEditorTab::SetTabLabel(const FString& InLabelName)
+{
+	TSharedPtr<SDockTab> ThisTabPtr = ThisTab.Pin();
+	if (ThisTabPtr.IsValid())
+	{
+		FText Text = FText::FromString(InLabelName);
+		ThisTabPtr->SetLabel(Text);
 	}
 }
 

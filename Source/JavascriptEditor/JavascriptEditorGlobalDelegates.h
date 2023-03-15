@@ -1,12 +1,10 @@
-﻿#pragma once
+#pragma once
 #if WITH_EDITOR
-#include "AssetData.h"
-#include "IAssetRegistry.h"
+#include "AssetRegistry/IAssetRegistry.h"
 #include "Editor/UnrealEdTypes.h"
 #include "Widgets/SWindow.h"
 #endif
 #include "UObject/ObjectSaveContext.h"
-#include "UObject/ScriptMacros.h"
 #include "JavascriptEditorGlobalDelegates.generated.h"
 
 USTRUCT(BlueprintType)
@@ -354,6 +352,9 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
 	void SelectNoneEvent();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")
+	void OnApplicationPreInputKeyDownListener(const FKeyEvent& KeyEvent);
 
 	// FJavascriptSupportDelegates
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scripting | Javascript")

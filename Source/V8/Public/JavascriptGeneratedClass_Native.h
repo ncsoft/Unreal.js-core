@@ -21,7 +21,11 @@ public:
 	virtual void Serialize(FArchive& Ar) override { UClass::Serialize(Ar);  }
 	virtual void PostLoad() override { UClass::PostLoad(); }
 	virtual void PostInitProperties() override { UClass::PostInitProperties(); }
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+	virtual void PostInitInstance(UObject* InObj, FObjectInstancingGraph* InstanceGraph) override;
+#else
 	virtual void PostInitInstance(UObject* InObj) override;
+#endif
 	// End UObject interface
 
 	// UClass interface

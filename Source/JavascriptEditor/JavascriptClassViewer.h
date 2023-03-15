@@ -16,6 +16,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Content)
 	void SetAllowedChildrenOfClasses(TArray<UClass*> InAllowedChildrenOfClasses) { AllowedChildrenOfClasses = InAllowedChildrenOfClasses; }
 
+	UFUNCTION(BlueprintCallable, Category = Content)
+	void SetDefaultClass(UClass* InDefaultClass) { DefaultClass = InDefaultClass; }
+
 private:
 
 	FReply OnClickUse();

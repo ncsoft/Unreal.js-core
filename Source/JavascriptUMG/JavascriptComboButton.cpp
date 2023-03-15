@@ -10,6 +10,19 @@ UJavascriptComboButton::UJavascriptComboButton(const FObjectInitializer& ObjectI
 
 TSharedRef<SWidget> UJavascriptComboButton::RebuildWidget()
 {
+	auto ContentContainer = SNew(SBorder)
+		.BorderImage(FStyleDefaults::GetNoBrush())
+		.Padding(0.0f)
+		[
+			GetComboBox()
+		];
+
+	MyContentContainer = ContentContainer;
+	return ContentContainer;
+}
+
+TSharedRef<SWidget> UJavascriptComboButton::GetComboBox()
+{
 	auto Content = (GetChildrenCount() > 0) ? GetContentSlot()->Content : nullptr;
 	
 	auto ComboButton = SNew(SComboButton)
@@ -43,6 +56,14 @@ TSharedRef<SWidget> UJavascriptComboButton::RebuildWidget()
 
 	MyComboButton = ComboButton;
 	return ComboButton;
+}
+
+void UJavascriptComboButton::OnSlotAdded(UPanelSlot* InSlot)
+{
+	if (MyContentContainer.IsValid())
+	{
+		MyContentContainer->SetContent(GetComboBox());
+	}
 }
 
 void UJavascriptComboButton::HandleComboBoxOpened()

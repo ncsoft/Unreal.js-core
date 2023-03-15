@@ -89,6 +89,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
 	void ActivateInParent();
 
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	void SetTabLabel(const FString& InLabelName);
+
 	bool bRegistered;
 
 	UWidget* TakeWidget(UObject* Context);

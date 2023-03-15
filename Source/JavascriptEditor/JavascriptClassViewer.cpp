@@ -1,8 +1,10 @@
-﻿
+
 #include "JavascriptClassViewer.h"
 #include "Modules/ModuleManager.h"
 #include "ClassViewerModule.h"
 #include "ClassViewerFilter.h"
+
+#include "Widgets/Layout/SWrapBox.h"
 
 #define LOCTEXT_NAMESPACE "JavascriptClassViewer"
 
@@ -79,7 +81,7 @@ TSharedRef<SWidget> UJavascriptClassViewer::RebuildWidget()
 						.ButtonContent()
 						[
 							SNew(STextBlock)
-							.Font(FEditorStyle::GetFontStyle("PropertyWindow.NormalFont"))
+							.Font(FAppStyle::Get().GetFontStyle("PropertyWindow.NormalFont"))
 							.Text(TAttribute<FText>::Create([this]() { return OnGetComboTextValue(); }))
 							.ToolTipText(TAttribute<FText>::Create([this]() { return GetObjectToolTip(); }))
 						]
@@ -92,13 +94,13 @@ TSharedRef<SWidget> UJavascriptClassViewer::RebuildWidget()
 					.VAlign(VAlign_Center)
 					[
 						SNew(SButton)
-						.ButtonStyle(FEditorStyle::Get(), "SimpleButton")
+					.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 						.OnClicked(FOnClicked::CreateLambda([this]() { return OnClickUse(); }))
 						.ContentPadding(1.f)
 						.ToolTipText(NSLOCTEXT("GraphEditor", "ObjectGraphPin_Use_Tooltip", "Use asset browser selection"))
 						[
 							SNew(SImage)
-							.Image(FEditorStyle::GetBrush(TEXT("Icons.Use")))
+							.Image(FAppStyle::Get().GetBrush(TEXT("Icons.Use")))
 						]
 					]
 					// Browse button
@@ -108,13 +110,13 @@ TSharedRef<SWidget> UJavascriptClassViewer::RebuildWidget()
 					.VAlign(VAlign_Center)
 					[
 						SNew(SButton)
-						.ButtonStyle(FEditorStyle::Get(), "SimpleButton")
+						.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 						.OnClicked(FOnClicked::CreateLambda([this]() { return OnClickBrowse(); }))
 						.ContentPadding(0)
 						.ToolTipText(NSLOCTEXT("GraphEditor", "ObjectGraphPin_Browse_Tooltip", "Browse"))
 						[
 							SNew(SImage)
-							.Image(FEditorStyle::GetBrush(TEXT("Icons.BrowseContent")))
+							.Image(FAppStyle::Get().GetBrush(TEXT("Icons.BrowseContent")))
 						]
 					]
 				]
@@ -127,7 +129,7 @@ FReply UJavascriptClassViewer::OnClickUse()
 	FEditorDelegates::LoadSelectedAssetsIfNeeded.Broadcast();
 
 	const UClass* SelectedClass = GEditor->GetFirstSelectedClass(CategoryClass);
-	if (SelectedClass != NULL)
+	if (SelectedClass != nullptr)
 	{
 		DefaultClass = const_cast<UClass*>(SelectedClass);
 
@@ -143,7 +145,7 @@ FReply UJavascriptClassViewer::OnClickUse()
 FText UJavascriptClassViewer::GetValue() const
 {
 	FText Value;
-	if (DefaultClass != NULL)
+	if (DefaultClass != nullptr)
 	{
 		Value = FText::FromString(DefaultClass->GetFullName());
 	}
@@ -162,7 +164,7 @@ FText UJavascriptClassViewer::GetObjectToolTip() const
 
 FReply UJavascriptClassViewer::OnClickBrowse()
 {
-	if (DefaultClass != NULL)
+	if (DefaultClass != nullptr)
 	{
 		TArray<UObject*> Objects;
 		Objects.Add(DefaultClass);
@@ -177,7 +179,7 @@ FText UJavascriptClassViewer::OnGetComboTextValue() const
 {
 	FText Value = LOCTEXT("DefaultComboText", "Select Class");
 
-	if (CategoryClass != NULL)
+	if (CategoryClass != nullptr)
 	{
 		if (UField* Field = Cast<UField>(DefaultClass))
 		{
@@ -209,7 +211,7 @@ TSharedRef<SWidget> UJavascriptClassViewer::GeneratePathPicker()
 		.WidthOverride(300)
 		[
 			SNew(SBorder)
-			.BorderImage(FEditorStyle::GetBrush("Menu.Background"))
+			.BorderImage(FAppStyle::Get().GetBrush("Menu.Background"))
 			[
 				ClassViewerModule.CreateClassViewer(Options,
 					FOnClassPicked::CreateLambda([&](UClass* InChosenClass)

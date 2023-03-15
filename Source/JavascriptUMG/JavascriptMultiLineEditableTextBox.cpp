@@ -39,12 +39,16 @@ TSharedRef<SWidget> UJavascriptMultiLineEditableTextBox::RebuildWidget()
 	auto Marshaller = MakeShareable(new FJavascriptTextLayoutMarshaller(this));
 	MyEditableTextBlock = SNew(SMultiLineEditableTextBox)
 		.Style(&WidgetStyle)
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+		.IsReadOnly(GetIsReadOnly())
+#else
 		.TextStyle(&TextStyle)
+		.IsReadOnly(bIsReadOnly)
+#endif
 		.Justification(Justification)
 		.WrapTextAt(WrapTextAt)
 		.AutoWrapText(!!AutoWrapText)
 		.Marshaller(Marshaller)
-		.IsReadOnly(bIsReadOnly)
 		.AlwaysShowScrollbars(bAlwaysShowScrollbars)
 		//		.MinDesiredWidth(MinimumDesiredWidth)
 		//		.Padding(Padding)

@@ -81,7 +81,7 @@ public:
 					}
 				}
 
-				UE_LOG(Javascript, Log, TEXT("Invalid argument for delegate"));
+				UE_LOG(LogJavascript, Log, TEXT("Invalid argument for delegate"));
 				break;
 			}
 		};
@@ -100,7 +100,7 @@ public:
 					}
 				}
 
-				UE_LOG(Javascript, Log, TEXT("Invalid argument for delegate"));
+				UE_LOG(LogJavascript, Log, TEXT("Invalid argument for delegate"));
 				break;
 			}
 		};
@@ -210,7 +210,7 @@ public:
 		}
 		else
 		{
-			UE_LOG(Javascript, Log, TEXT("No match for removing delegate"));
+			UE_LOG(LogJavascript, Log, TEXT("No match for removing delegate"));
 		}
 	}
 

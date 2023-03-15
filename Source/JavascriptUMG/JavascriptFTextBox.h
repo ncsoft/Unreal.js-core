@@ -47,6 +47,9 @@ public:
 	FOptionalSize MaximumDesiredHeight;
 
 public:
+	UFUNCTION(BlueprintCallable, Category = Content)
+	void SetText(FJavascriptTextProperty& JavascriptTextProperty);
+
 	//~ Begin UWidget interface
 	virtual void SynchronizeProperties() override;
 	// End UWidget interface

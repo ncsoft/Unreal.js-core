@@ -81,7 +81,7 @@ FJavascriptWebSocket::FJavascriptWebSocket(
 	int32 SizeOfRemoteAddr = sizeof(RemoteAddr);
 
 	// Force ServerAddress into non-const array. API doesn't modify contents but old API still requires non-const string
-	if (WSAStringToAddress(ServerAddress.ToString(false).GetCharArray().GetData(), AF_INET, NULL, (sockaddr*)&RemoteAddr, &SizeOfRemoteAddr) != 0)
+	if (WSAStringToAddress(ServerAddress.ToString(false).GetCharArray().GetData(), AF_INET, nullptr, (sockaddr*)&RemoteAddr, &SizeOfRemoteAddr) != 0)
 	{
 		UE_LOG(LogWebsocket, Warning, TEXT("WSAStringToAddress failed "));
 		return;
@@ -122,8 +122,6 @@ bool FJavascriptWebSocket::Send(uint8* Data, uint32 Size)
 #if WITH_JSWEBSOCKET
 	Buffer.AddDefaulted(LWS_PRE); // Reserve space for WS header data
 #endif
-
-	Buffer.Append((uint8*)&Size, sizeof(uint32)); // insert size.
 	Buffer.Append((uint8*)Data, Size);
 	OutgoingBuffer.Add(Buffer);
 
@@ -147,7 +145,7 @@ FString FJavascriptWebSocket::RemoteEndPoint(bool bAppendPort)
 	{
 		AddressToConvert.sin_port = 0;
 	}
-	if (WSAAddressToString((sockaddr*)&AddressToConvert, sizeof(AddressToConvert), NULL, Buffer, &BufferSize) == 0)
+	if (WSAAddressToString((sockaddr*)&AddressToConvert, sizeof(AddressToConvert), nullptr, Buffer, &BufferSize) == 0)
 	{
 		remote = Buffer;
 	}
@@ -180,7 +178,7 @@ FString FJavascriptWebSocket::LocalEndPoint(bool bAppendPort)
 	{
 		addr.sin_port = 0;
 	}
-	if (WSAAddressToString((sockaddr*)&addr, sizeof(addr), NULL, Buffer, &BufferSize) == 0)
+	if (WSAAddressToString((sockaddr*)&addr, sizeof(addr), nullptr, Buffer, &BufferSize) == 0)
 	{
 		remote = Buffer;
 	}
@@ -225,7 +223,7 @@ void FJavascriptWebSocket::HandlePacket()
 	FD_ZERO(&Fdw);
 	FD_SET(SockFd, &Fdr);
 	FD_SET(SockFd, &Fdw);
-	Res = select(64, &Fdr, &Fdw, NULL, NULL);
+	Res = select(64, &Fdr, &Fdw, nullptr, nullptr);
 
 	if (Res == -1) {
 		UE_LOG(LogWebsocket, Warning, TEXT("Select Failed!"));
@@ -234,12 +232,12 @@ void FJavascriptWebSocket::HandlePacket()
 
 	if (FD_ISSET(SockFd, &Fdr)) {
 		// we can read!
-		OnRawRecieve(NULL, NULL);
+		OnRawRecieve(nullptr, nullptr);
 	}
 
 	if (FD_ISSET(SockFd, &Fdw)) {
 		// we can write
-		OnRawWebSocketWritable(NULL);
+		OnRawWebSocketWritable(nullptr);
 	}
 
 #endif
@@ -292,30 +290,22 @@ void FJavascriptWebSocket::SetErrorCallBack(FJavascriptWebSocketInfoCallBack Cal
 	ErrorCallBack = CallBack;
 }
 
-void FJavascriptWebSocket::OnRawRecieve(void* Data, uint32 Size)
+void FJavascriptWebSocket::OnRawRecieve(void* Data, uint32 Size, uint32 Remaining)
 {
 #if WITH_JSWEBSOCKET
-
 	RecievedBuffer.Append((uint8*)Data, Size); // consumes all of Data
-	while (RecievedBuffer.Num() > sizeof(uint32))
+	RecievedBufferSize += Size;
+	if (Remaining == 0)
 	{
-		uint32 BytesToBeRead = *(uint32*)RecievedBuffer.GetData();
-		if (BytesToBeRead <= ((uint32)RecievedBuffer.Num() - sizeof(uint32)))
-		{
-			RecievedCallBack.ExecuteIfBound((void*)((uint8*)RecievedBuffer.GetData() + sizeof(uint32)), BytesToBeRead);
-			RecievedBuffer.RemoveAt(0, sizeof(uint32) + BytesToBeRead);
-		}
-		else
-		{
-			break;
-		}
+		RecievedCallBack.ExecuteIfBound((void*)((uint8*)RecievedBuffer.GetData()), RecievedBufferSize);
+		RecievedBuffer.Empty();
+		RecievedBufferSize = 0;
 	}
-
 #else // ! USE_LIBWEBSOCKET -- HTML5 uses BSD network API
 
 	// browser was crashing when using RecievedBuffer...
 
-	check(Data == NULL); // jic this is not obvious, Data will be resigned to Buffer below
+	check(Data == nullptr); // jic this is not obvious, Data will be resigned to Buffer below
 
 	uint8 Buffer[1024]; // should be at MAX PACKET SIZE.
 	Size = recv(SockFd, Buffer, sizeof(Buffer), 0);
@@ -412,9 +402,9 @@ FJavascriptWebSocket::~FJavascriptWebSocket()
 	if (!IsServerSide)
 	{
 		lws_context_destroy(Context);
-		Context = NULL;
+		Context = nullptr;
 		delete Protocols;
-		Protocols = NULL;
+		Protocols = nullptr;
 	}
 
 #else // ! USE_LIBWEBSOCKET -- HTML5 uses BSD network API
@@ -451,8 +441,9 @@ static int unreal_networking_client(
 	break;
 	case LWS_CALLBACK_CLIENT_RECEIVE:
 	{
+		auto Remaining = lws_remaining_packet_payload(Wsi);
 		// push it on the socket.
-		Socket->OnRawRecieve(In, (uint32)Len);
+		Socket->OnRawRecieve(In, (uint32)Len, (uint32)Remaining);
 		check(Socket->Wsi == Wsi);
 		lws_set_timeout(Wsi, NO_PENDING_TIMEOUT, 0);
 		break;

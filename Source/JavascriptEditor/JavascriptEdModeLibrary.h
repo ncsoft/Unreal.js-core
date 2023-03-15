@@ -112,5 +112,10 @@ class JAVASCRIPTEDITOR_API UJavascriptEdModeLibrary : public UBlueprintFunctionL
 	static void SetCurrentWidgetAxis(FJavascriptEditorMode Mode, int32 InAxis);
 	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
 	static void SelectNone(FJavascriptEditorMode Mode);
+	UFUNCTION(BlueprintCallable, Category = "Javascript | Editor")
+	static void SetSelectionLock(bool bValue);
+
+	UFUNCTION(BlueprintCallable, Category = "Javascript | EdMode")
+	static bool GetWorldPositionFromJavascriptEdViewport(const AActor* Actor, FJavascriptEdViewport Viewport, FVector& OutVector);
 #endif
 };

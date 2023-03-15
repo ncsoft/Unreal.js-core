@@ -5,6 +5,7 @@
 #include "UObject/Object.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/ScriptMacros.h"
+#include "IV8.h"
 
 #pragma warning( push )
 #pragma warning( disable : 4946 )
@@ -27,8 +28,6 @@ PRAGMA_ENABLE_SHADOW_VARIABLE_WARNINGS
 PRAGMA_ENABLE_UNDEFINED_IDENTIFIER_WARNINGS
 
 #pragma warning( pop )
-
-DECLARE_LOG_CATEGORY_EXTERN(Javascript, Log, All);
 
 struct IJavascriptDebugger
 {

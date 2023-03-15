@@ -18,7 +18,7 @@ public:
 	~FJavascriptOutputDevice()
 	{
 		// At shutdown, GLog may already be null
-		if (GLog != NULL)
+		if (GLog != nullptr)
 		{
 			GLog->RemoveOutputDevice(this);
 		}

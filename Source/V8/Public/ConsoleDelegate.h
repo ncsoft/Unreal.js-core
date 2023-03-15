@@ -49,23 +49,23 @@ namespace v8
 
 	void UnrealConsoleDelegate::Debug(const debug::ConsoleCallArguments& args, const debug::ConsoleContext& context)
 	{
-		UE_LOG(Javascript, Log, TEXT("%s"), *StringFromConsoleCallArgs(args));
+		UE_LOG(LogJavascript, Log, TEXT("%s"), *StringFromConsoleCallArgs(args));
 	}
 	void UnrealConsoleDelegate::Error(const debug::ConsoleCallArguments& args, const debug::ConsoleContext& context)
 	{
-		UE_LOG(Javascript, Error, TEXT("%s"), *StringFromConsoleCallArgs(args));
+		UE_LOG(LogJavascript, Error, TEXT("%s"), *StringFromConsoleCallArgs(args));
 	}
 	void UnrealConsoleDelegate::Info(const debug::ConsoleCallArguments& args, const debug::ConsoleContext& context)
 	{
-		UE_LOG(Javascript, Display, TEXT("%s"), *StringFromConsoleCallArgs(args));
+		UE_LOG(LogJavascript, Display, TEXT("%s"), *StringFromConsoleCallArgs(args));
 	}
 	void UnrealConsoleDelegate::Log(const debug::ConsoleCallArguments& args, const debug::ConsoleContext& context)
 	{
-		UE_LOG(Javascript, Log, TEXT("%s"), *StringFromConsoleCallArgs(args));
+		UE_LOG(LogJavascript, Log, TEXT("%s"), *StringFromConsoleCallArgs(args));
 	}
 	void UnrealConsoleDelegate::Warn(const debug::ConsoleCallArguments& args, const debug::ConsoleContext& context)
 	{
-		UE_LOG(Javascript, Warning, TEXT("%s"), *StringFromConsoleCallArgs(args));
+		UE_LOG(LogJavascript, Warning, TEXT("%s"), *StringFromConsoleCallArgs(args));
 	}
 	void UnrealConsoleDelegate::Assert(const debug::ConsoleCallArguments& args, const debug::ConsoleContext& context)
 	{
@@ -76,7 +76,7 @@ namespace v8
 			auto filename = stack_frame->GetScriptName();
 			auto line_number = stack_frame->GetLineNumber();
 
-			UE_LOG(Javascript, Error, TEXT("Assertion:%s:%d %s"), *StringFromV8(isolate_, filename), line_number, *StringFromConsoleCallArgs(args, 1));
+			UE_LOG(LogJavascript, Error, TEXT("Assertion:%s:%d %s"), *StringFromV8(isolate_, filename), line_number, *StringFromConsoleCallArgs(args, 1));
 		}
 	}
 

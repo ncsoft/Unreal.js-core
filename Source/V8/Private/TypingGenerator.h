@@ -21,7 +21,7 @@ struct TypingGeneratorBase
 
 	void Export(FProperty* source)
 	{
-		//UE_LOG(Javascript, Log, TEXT("Export %s"), *(source->GetName()));
+		//UE_LOG(LogJavascript, Log, TEXT("Export %s"), *(source->GetName()));
 
 		if (auto s = CastField<FClassProperty>(source))
 		{
@@ -54,7 +54,7 @@ struct TypingGeneratorBase
 		if (has_visited(source)) return;
 		mark_visited(source);
 
-		//UE_LOG(Javascript, Log, TEXT("Export %s"), *(source->GetName()));
+		//UE_LOG(LogJavascript, Log, TEXT("Export %s"), *(source->GetName()));
 
 		if (auto s = Cast<UClass>(source))
 		{

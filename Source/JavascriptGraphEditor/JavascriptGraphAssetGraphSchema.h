@@ -93,6 +93,8 @@ public:
 
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnEdNodeAction, UJavascriptGraphEdNode*, Node);
 
+	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnCommitedBubbleComment, const FString&, Comment);
+
 	DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FOnCreateAutomaticConversionNodeAndConnections, FJavascriptEdGraphPin, A, FJavascriptEdGraphPin, B);
 
 	/** Delegate for constructing a UWidget based on a UObject */
@@ -117,6 +119,8 @@ public:
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnPinConnectionListChanged, FJavascriptEdGraphPin, Pin);
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnGetBoolean_GraphPin, FJavascriptEdGraphPin, Pin);
+
+	DECLARE_DYNAMIC_DELEGATE_RetVal_ThreeParams(bool, FOnMouseEvent_GraphPin, FJavascriptEdGraphPin, Pin, const FGeometry&, MyGeometry, const FPointerEvent&, PointerEvent);
 
 	DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(FJavascriptSlateWidget, FOnGetCustomPinBoxWidget, FJavascriptEdGraphPin, Pin);
 
@@ -289,6 +293,12 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnGetSideMarginInPin OnGetSideMarginInPin;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnCommitedBubbleComment OnCommitedBubbleComment;
+
+	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
+	FOnMouseEvent_GraphPin OnMouseDownGraphPin;
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting | Javascript")
 	void BreakPinLinks(FJavascriptEdGraphPin TargetPin, bool bSendsNodeNotifcation);

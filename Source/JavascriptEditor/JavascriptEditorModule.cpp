@@ -1,15 +1,12 @@
 ﻿#include "JavascriptEditorModule.h"
-#include "AssetToolsModule.h"
 #include "JavascriptSettings.h"
 #include "JavascriptIsolate.h"
 #include "JavascriptContext.h"
 #include "JavascriptEditorTick.h"
-#include "IV8.h"
 #include "ScopedTransaction.h"
 #include "Misc/CoreDelegates.h"
 #if WITH_EDITOR
 // Settings
-#include "JavascriptSettings.h"
 #include "ISettingsModule.h"
 #include "Settings/EditorLoadingSavingSettings.h"
 #endif

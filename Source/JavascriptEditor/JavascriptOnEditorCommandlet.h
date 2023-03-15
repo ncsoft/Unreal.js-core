@@ -5,7 +5,7 @@
 #include "JavascriptContext.h"
 #include "JavascriptOnEditorCommandlet.generated.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(JavascriptOnEditor, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogJavascriptOnEditor, Log, All);
 
 UCLASS()
 class UJavascriptOnEditorCommandlet : public UCommandlet
