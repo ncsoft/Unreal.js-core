@@ -1,28 +1,45 @@
 # Archive source code with third party library
 
-name: Archive
+name: Archive Source Code
 
-# Controls when the action will run. Workflow runs when manually triggered using the UI
-# or API.
 on:
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  archive:
+  archive-source-code:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3.3.0
-    - name: download-v8-libs
+    - name: Checkout code
+      uses: actions/checkout@v3.3.0
+    - name: Read Plugin Version
+      run: |
+        VERSION=`cat UnrealJS.uplugin | jq -r '.VersionName'`
+        echo "UNREALJS_VERSION=v$VERSION" >> $GITHUB_ENV
+      shell: bash
+    - name: Download 3rd party library
       run: |
         chmod +x ./install-v8-libs.sh
         ./install-v8-libs.sh
       shell: bash
-    - name: archive
-      uses: montudor/action-zip@v1.0.0
+    - name: Compress Source Code
+      run: zip -r unrealjs-plugin-full.zip . -x ".git/*" ".github/*" "*.zip"
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        args: zip -qq -r source-code.zip .
-    - name: upload
-      uses: actions/upload-artifact@v3.1.2
+        tag_name: ${{ env.UNREALJS_VERSION }}
+        release_name: Full Source Code of ${{ env.UNREALJS_VERSION }}
+        draft: false
+        prerelease: false
+    - name: Upload Compressed Source Code
+      id: upload-source-code
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: source-code.zip
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./unrealjs-plugin-full.zip
+        asset_name: unrealjs-plugin-full.zip
+        asset_content_type: application/zip
