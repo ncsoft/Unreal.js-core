@@ -2,7 +2,7 @@
 #include "UObject/UObjectThreadContext.h"
 
 /** This class is to capture all log output even if the log window is closed */
-class FJavascriptOutputDevice : public FOutputDevice
+class FJavascriptOutputDevice : public FOutputDevice, public FTickableGameObject
 {
 public:
 	UJavascriptOutputDevice* OutputDevice;
@@ -23,20 +23,74 @@ public:
 			GLog->RemoveOutputDevice(this);
 		}
 	}
+
+	virtual void Tick(float DeltaTime) override
+	{
+		SubmitPendingMessages();
+	}
+
+	virtual TStatId GetStatId() const override
+	{
+		RETURN_QUICK_DECLARE_CYCLE_STAT(FJavascriptOutputDevice, STATGROUP_Tickables);
+	}
 	
 protected:
+	struct FLogMessage
+	{
+		TSharedRef<FString> Message;
+		ELogVerbosity::Type Verbosity;
+		FName Category;
+
+		FLogMessage(const TSharedRef<FString>& NewMessage, ELogVerbosity::Type NewVerbosity, FName NewCategory)
+			: Message(NewMessage)
+			, Verbosity(NewVerbosity)
+			, Category(NewCategory)
+		{
+		}
+	};
 
 	virtual void Serialize(const TCHAR* V, ELogVerbosity::Type Verbosity, const class FName& Category) override
 	{		
+		FScopeLock PendingMessagesAccess(&PendingMessagesCriticalSection);
+		PendingMessages.Add(MakeShared<FLogMessage>(MakeShared<FString>(V), Verbosity, Category));
+	}
+
+	void SubmitPendingMessages()
+	{
+		TArray<TSharedPtr<FLogMessage>> Messages;
+
+		if (PendingMessagesCriticalSection.TryLock())
+		{
+			Messages = MoveTemp(PendingMessages);
+			PendingMessages.Reset();
+			PendingMessagesCriticalSection.Unlock();
+		}
+		else
+		{
+			return;
+		}
+
+		for (const auto Message : Messages)
+		{
+			SubmitPendingMessage(Message->Message, Message->Verbosity, Message->Category);
+		}
+	}
+
+	void SubmitPendingMessage(TSharedPtr<FString> Message, ELogVerbosity::Type Verbosity, const class FName& Category)
+	{
 		static bool bIsReentrant = false;
 		if (bIsReentrant) return;
 
 		TGuardValue<bool> ReentrantGuard(bIsReentrant, true);
 		if (!OutputDevice->IsUnreachable() && !FUObjectThreadContext::Get().IsRoutingPostLoad)
 		{
-			OutputDevice->OnMessage(V, (ELogVerbosity_JS)Verbosity, Category);
-		}		
+			OutputDevice->OnMessage(*Message, (ELogVerbosity_JS)Verbosity, Category);
+		}
 	}
+
+private:
+	TArray<TSharedPtr<FLogMessage>> PendingMessages;
+	FCriticalSection PendingMessagesCriticalSection;
 };
 
 UJavascriptOutputDevice::UJavascriptOutputDevice(const FObjectInitializer& ObjectInitializer)
