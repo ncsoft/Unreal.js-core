@@ -9,8 +9,9 @@
 #include "Input/Reply.h"
 #include "SNodePanel.h"
 #include "SGraphNodeResizable.h"
+#include "JavascriptGraphEdNode_Comment.h"
 
-class UJavascriptGraphEdNode_Comment;
+
 class SCommentBubble;
 
 class SJavascriptGraphNodeComment : public SGraphNodeResizable

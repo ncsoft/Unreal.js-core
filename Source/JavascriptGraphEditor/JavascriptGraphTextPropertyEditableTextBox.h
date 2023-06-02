@@ -5,6 +5,7 @@
 #include "Components/Widget.h"
 #include "Types/SlateStructs.h"
 #include "JavascriptUMG/JavascriptUMGLibrary.h"
+#include "JavascriptGraphEditorLibrary.h"
 #include "JavascriptGraphTextPropertyEditableTextBox.generated.h"
 
 class FJavascriptEditableTextGraphPin;

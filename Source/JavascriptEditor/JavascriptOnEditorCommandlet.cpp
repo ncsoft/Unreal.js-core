@@ -23,6 +23,40 @@ DEFINE_LOG_CATEGORY(LogJavascriptOnEditor);
 
 #define LOCTEXT_NAMESPACE "UnrealJSEditor"
 
+#if WITH_EDITOR
+static void PatchReimportRule()
+{
+	FAutoReimportWildcard WildcardToInject;
+	WildcardToInject.Wildcard = TEXT("Scripts/**.json");
+	WildcardToInject.bInclude = false;
+
+	auto Default = GetMutableDefault<UEditorLoadingSavingSettings>();
+	bool bHasChanged = false;
+	for (auto& Setting : Default->AutoReimportDirectorySettings)
+	{
+		bool bFound = false;
+		for (const auto& Wildcard : Setting.Wildcards)
+		{
+			if (Wildcard.Wildcard == WildcardToInject.Wildcard)
+			{
+				bFound = true;
+				break;
+			}
+		}
+		if (!bFound)
+		{
+			Setting.Wildcards.Add(WildcardToInject);
+			bHasChanged = true;
+		}
+	}
+	if (bHasChanged)
+	{
+		Default->PostEditChange();
+	}
+}
+#endif
+
+
 UJavascriptOnEditorCommandlet::UJavascriptOnEditorCommandlet(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {}

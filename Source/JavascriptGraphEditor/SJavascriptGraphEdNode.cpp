@@ -9,6 +9,7 @@
 #include "JavascriptUMG/JavascriptUMGLibrary.h"
 #include "SCommentBubble.h"
 #include "SlateOptMacros.h"
+#include "SGraphPanel.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/SBoxPanel.h"
