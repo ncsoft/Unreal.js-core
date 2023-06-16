@@ -473,6 +473,13 @@ public:
 	{
 		static FName NAME_Javascript("Javascript");
 
+		/*
+		* Crash at if (!maybe_console.IsEmpty())
+		* when inspector is enabled!
+		*/ 
+		return;
+
+
 		if (Category != NAME_Javascript)
 		{
 			HandleScope handle_scope(isolate_);

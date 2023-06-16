@@ -31,6 +31,7 @@
 
 #include "../../Launch/Resources/Version.h"
 
+
 using namespace v8;
 
 static const int kContextEmbedderDataIndex = 0;
@@ -1947,8 +1948,11 @@ public:
 					auto Function = *FuncIt;
 
 					// Parse all function parameters.
-					uint8* Parms = (uint8*)FMemory_Alloca(Function->ParmsSize);
-					FMemory::Memzero(Parms, Function->ParmsSize);
+					TArray<uint8> Parms = TArray<uint8>();// = (uint8*)FMemory_Alloca(Function->ParmsSize);
+					//FMemory::Memzero(Parms, Function->ParmsSize);
+					Parms.SetNumUninitialized(Function->ParmsSize);
+					FMemory::Memzero(Parms.GetData(), Parms.Num());
+
 
 					bool bHasDefault = false;
 					TArray<FString> Parameters, ParametersWithDefaults;
@@ -1963,7 +1967,7 @@ public:
 						if (!MetadataCppDefaultValue.IsEmpty())
 						{
 							const uint32 ExportFlags = PPF_None;
-							auto Buffer = It->ContainerPtrToValuePtr<uint8>(Parms);
+							auto Buffer = It->ContainerPtrToValuePtr<uint8>(Parms.GetData());
 							
 #if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
 							const TCHAR* Result = It->ImportText_Direct(*MetadataCppDefaultValue, Buffer, nullptr, ExportFlags);
@@ -1974,7 +1978,7 @@ public:
 							if (Result)
 							{
 								bHasDefault = true;
-								auto DefaultValue = Environment->ReadProperty(isolate(), Property, Parms, FNoPropertyOwner());
+								auto DefaultValue = Environment->ReadProperty(isolate(), Property, Parms.GetData(), FNoPropertyOwner());
 								{
 									auto ctx = context();
 									Context::Scope context_scope(ctx);
@@ -1989,7 +1993,7 @@ public:
 									}
 								}
 
-								It->DestroyValue_InContainer(Parms);
+								//It->DestroyValue_InContainer(Parms);
 							}
 						}
 						Parameters.Add(Parameter);
