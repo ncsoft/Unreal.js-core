@@ -378,13 +378,7 @@ public:
 		params.array_buffer_allocator = &AllocatorInstance;
 
 		// Bind this instance to newly created V8 isolate
-		// Bind this instance to newly created V8 isolate
-		Isolate* iso = nullptr;
-		iso = Isolate::New(params);
-		if (iso)
-		{
-			RegisterSelf(iso);
-		}
+		RegisterSelf(Isolate::New(params));
 
 		GenerateBlueprintFunctionLibraryMapping();
 
