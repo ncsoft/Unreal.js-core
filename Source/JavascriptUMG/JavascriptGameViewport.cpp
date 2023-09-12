@@ -8,7 +8,7 @@
 #include "SceneView.h"
 #include "CanvasTypes.h"
 #include "Widgets/SViewport.h"
-#include "Launch/Resources/Version.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 #define LOCTEXT_NAMESPACE "UMG"
 
