@@ -112,7 +112,10 @@ bool FJavascriptCommandExecutor::CacheJavascriptContext()
 	{
 		// Use Editor context only 
 		const auto JavascriptContext = IJavascriptEditorModule::Get().GetJavascriptContext();
-		TargetContext = JavascriptContext->ContextId;
+		if (JavascriptContext)
+		{
+			TargetContext = JavascriptContext->ContextId;
+		}
 	}
 
 	if (TargetContext.IsValid())

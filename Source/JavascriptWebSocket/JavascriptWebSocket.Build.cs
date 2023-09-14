@@ -46,10 +46,10 @@ public class JavascriptWebSocket : ModuleRules
             bHasZlib = true;
 
         }        
-		else if (Target.Platform == UnrealTargetPlatform.Linux)
-        {
-            PlatformSubdir = Path.Combine(PlatformSubdir, Target.Architecture);
-        }
+		// else if (Target.Platform == UnrealTargetPlatform.Linux)
+        // {
+        //     PlatformSubdir = Path.Combine(PlatformSubdir, Target.Architecture);
+        // }
 
         PrivateDependencyModuleNames.Add("libWebSockets");
 

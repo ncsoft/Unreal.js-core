@@ -6,7 +6,7 @@
 #include "Sockets.h"
 #include "NavigationSystem.h"
 #include "HAL/PlatformApplicationMisc.h"
-#include "Launch/Resources/Version.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "UObject/MetaData.h"
