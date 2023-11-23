@@ -1784,7 +1784,10 @@ public:
 
 		auto ScriptPath = GetScriptFileFullPath(Filename);
 		FString Text;
-		if (Args.Num() > 0)
+		if (Filename.EndsWith(".mjs")){ // imports cannto be wrapped
+			// no argument support atm
+			Text = Script;
+		} else if (Args.Num() > 0)
 		{
 			FString strArgs = FString::Printf(TEXT("\'%s\'"), *Args[0]);
 			for (int32 i = 1; i < Args.Num(); ++i)

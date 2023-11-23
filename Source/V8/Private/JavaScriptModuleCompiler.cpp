@@ -6,7 +6,7 @@ namespace module_compiler
 	 * char* readFile
 	 * Reads file contents to a null-terminated string.
 	 *****************************************************************************/
-	char* readFile(char filename[]) {
+	char* readFile(const char filename[]) {
 
 		// Opening file; ifstream::ate is use to determine file size
 		std::ifstream file;
@@ -120,6 +120,8 @@ namespace module_compiler
 									v8::Local<v8::Context> cx,
 									bool nsObject) {
 
+		cx->GetIsolate()->SetHostImportModuleDynamicallyCallback(callDynamic);
+
 		// Executing module with return value
 		v8::Local<v8::Value> retValue;
 		if (!mod->Evaluate(cx).ToLocal(&retValue)) {
@@ -144,9 +146,13 @@ namespace module_compiler
 										   v8::Local<v8::Module> referrer) {
 
 		v8::String::Utf8Value str(context->GetIsolate(), specifier);
-
+		v8::String::Utf8Value fileroot(context->GetIsolate(),
+			context->GetEmbedderData(0));
+		std::string fqn(*fileroot);
+		fqn = fqn+std::string("/")+std::string(*str);
+    
 		// Return unchecked module
-		return loadModule(readFile(*str), *str, context);
+		return loadModule(readFile(fqn.c_str()), *str, context);
 	}
 
 	/*****************************************************************************
