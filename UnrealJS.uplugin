@@ -1,14 +1,14 @@
 ﻿{
   "FileVersion": 3,
-  "FriendlyName": "Unreal.js - Javascript Runtime",
+  "FriendlyName": "Unreal.js.jpk - Fork of Javascript Runtime",
   "Version": 2,
   "VersionName": "0.6.4",
   "FriendlyVersion": "0.6.4",
   "EngineVersion": "5.1.0",
   "Description": "Javascript powered UnrealEngine",
   "Category": "Programming",
-  "CreatedBy": "NCSOFT Corporation",
-  "CreatedByURL": "http://github.com/ncsoft",
+  "CreatedBy": "Professor K",
+  "CreatedByURL": "http://github.com/profk",
   "EnabledByDefault": true,
   "MarketplaceURL" : "com.epicgames.launcher://ue/marketplace/content/be751eedc4a14cc09e39945bc5a531c4",
   "Modules": [

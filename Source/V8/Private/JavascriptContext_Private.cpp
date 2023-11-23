@@ -30,8 +30,10 @@
 #include "JavascriptStats.h"
 
 #include "../../Launch/Resources/Version.h"
+#include "JavaScriptModuleCompiler.h"
 
 using namespace v8;
+using namespace module_compiler;
 
 static const int kContextEmbedderDataIndex = 0;
 static const int32 MagicNumber = 0x2852abd3;
@@ -1797,8 +1799,14 @@ public:
 		{
 			Text = FString::Printf(TEXT("(function (global,__filename,__dirname) { %s\n;}(this,'%s','%s'));"), *Script, *ScriptPath, *FPaths::GetPath(ScriptPath));
 		}
-
-		auto ret = RunScript(ScriptPath, Text, 0);
+		Local<Value> ret;
+		if (Filename.EndsWith(".mjs"))
+		{
+			ret = RunModule(ScriptPath, Text, 0);
+		} else
+		{
+			ret = RunScript(ScriptPath, Text, 0);
+		}
 		return ret.IsEmpty()? TEXT("(empty)") : StringFromV8(isolate(), ret);
 	}
 
@@ -1868,6 +1876,57 @@ public:
 				return result.ToLocalChecked();
 			}
 		}
+	}
+
+	Local<Value> RunModule(const FString& Filename, const FString& Script, int line_offset = 0)
+	{
+		Isolate::Scope isolate_scope(isolate());
+		Context::Scope context_scope(context());
+
+		TryCatch try_catch(isolate());
+		try_catch.SetVerbose(true);
+
+		auto Path = Filename;
+#if PLATFORM_WINDOWS
+		// HACK for Visual Studio Code
+		if (Path.Len() && Path[1] == ':')
+		{
+			Path = Path.Mid(0, 1).ToLower() + Path.Mid(1);
+		}
+#endif
+		
+		int lastDotIndex;
+		Filename.FindLastChar('/',lastDotIndex);
+		FString filename = Filename.Right(Filename.Len()-(lastDotIndex+1));
+		FString filePath = Filename.Left(lastDotIndex);
+		auto ctx = context();
+		ctx->SetEmbedderData(0,
+			String::NewFromUtf8(
+				ctx->GetIsolate(),TCHAR_TO_ANSI(*filename)).ToLocalChecked());
+		ctx->SetEmbedderData(1,
+			String::NewFromUtf8(
+				ctx->GetIsolate(),TCHAR_TO_ANSI(*filePath)).ToLocalChecked());
+		MaybeLocal<Module> MaybeMod =
+		  	JSModuleCompiler::loadModule( TCHAR_TO_ANSI(*Script),
+		  		TCHAR_TO_ANSI(*Filename),ctx);
+		if (MaybeMod.IsEmpty())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Script load failed"));
+			return Local<Value>();
+		} else
+		{
+			MaybeMod = JSModuleCompiler::checkModule(MaybeMod,ctx);
+			if (MaybeMod.IsEmpty())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Script check failed"));
+				return Local<Value>();
+			} else
+			{
+				return JSModuleCompiler::execModule(MaybeMod.ToLocalChecked(), ctx);
+			}
+		}
+		  		
+		
 	}
 
     void FindPathFile(FString TargetRootPath, FString TargetFileName, TArray<FString>& OutFiles)
