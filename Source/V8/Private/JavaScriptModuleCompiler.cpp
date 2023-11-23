@@ -1,5 +1,8 @@
 ﻿#include "JavaScriptModuleCompiler.h"
 
+#include "IV8.h"
+#include "Misc/FileHelper.h"
+
 namespace module_compiler
 {
 	/*****************************************************************************
@@ -145,14 +148,24 @@ namespace module_compiler
 										   v8::Local<v8::String> specifier,
 										   v8::Local<v8::Module> referrer) {
 
-		v8::String::Utf8Value str(context->GetIsolate(), specifier);
+		v8::String::Utf8Value filename(context->GetIsolate(), specifier);
 		v8::String::Utf8Value fileroot(context->GetIsolate(),
-			context->GetEmbedderData(0));
-		std::string fqn(*fileroot);
-		fqn = fqn+std::string("/")+std::string(*str);
-    
+			context->GetEmbedderData(1));
+		FString fqn(*fileroot);
+		fqn = fqn.Append(FString("/"))+FString(*filename);
+		auto foo = *fileroot;
 		// Return unchecked module
-		return loadModule(readFile(fqn.c_str()), *str, context);
+		FString Text;
+		if (!FFileHelper::LoadFileToString(Text, *fqn))
+		{
+			std::string sfilename(*filename);
+			FString msg = TEXT("Failed to read script file '%s'");
+			UE_LOG(LogJavascript, Warning,
+				TEXT("Failed to read script file '%s'"),
+					sfilename.c_str());
+		}
+		
+		return loadModule(TCHAR_TO_ANSI(*Text), *filename, context);
 	}
 
 	/*****************************************************************************
