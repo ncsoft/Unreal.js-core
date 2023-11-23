@@ -3,6 +3,14 @@
 #include "IV8.h"
 #include "Misc/FileHelper.h"
 
+/********************************************************************
+ * A static class that handles loading and execution EC6 module files
+ * to the V8 engine in the UE5 environment.
+ * Written by Professor Jeff Kesselman MS MFA
+ * Purdue University
+ * 11/23/2023
+ * jpkessel@purdue.edu
+ * ***********************************/
 namespace module_compiler
 {
 	/*****************************************************************************
@@ -153,7 +161,7 @@ namespace module_compiler
 			context->GetEmbedderData(1));
 		FString fqn(*fileroot);
 		fqn = fqn.Append(FString("/"))+FString(*filename);
-		auto foo = *fileroot;
+
 		// Return unchecked module
 		FString Text;
 		if (!FFileHelper::LoadFileToString(Text, *fqn))
