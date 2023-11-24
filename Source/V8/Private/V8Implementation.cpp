@@ -159,6 +159,15 @@ FString UJavascriptContext::RunScript(FString Script, bool bOutput)
 	return TEXT("");
 }
 
+FString UJavascriptContext::RunModule(FString Script, bool bOutput)
+{
+	if (JavascriptContext.IsValid())
+	{
+		return JavascriptContext->Public_RunModule(Script, bOutput);
+	}
+	return TEXT("");
+}
+
 void UJavascriptContext::RegisterConsoleCommand(FString Command, FString Help, FJavascriptFunction Function)
 {
 #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)

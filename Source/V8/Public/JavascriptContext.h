@@ -73,6 +73,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	FString RunScript(FString Script, bool bOutput = true);
 
+	// Added by JPK on 11/24/2023
+	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
+	FString RunModule(FString Script, bool bOutput = true);
+
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	void RegisterConsoleCommand(FString Command, FString Help, FJavascriptFunction Function);
 

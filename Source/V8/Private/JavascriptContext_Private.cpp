@@ -1834,6 +1834,22 @@ public:
 		return str;
 	}
 
+	FString Public_RunModule(const FString& Script, bool bOutput = true)
+	{
+		Isolate::Scope isolate_scope(isolate());
+		HandleScope handle_scope(isolate());
+		Context::Scope context_scope(context());
+
+		auto ret = RunModule(TEXT("(inline)"), Script);
+		auto str = ret.IsEmpty() ? TEXT("(empty)") : StringFromV8(isolate(), ret);
+
+		if (bOutput && !ret.IsEmpty())
+		{
+			UE_LOG(LogJavascript, Log, TEXT("%s"), *str);
+		}
+		return str;
+	}
+
 	void RequestV8GarbageCollection()
 	{
 		isolate()->LowMemoryNotification();
