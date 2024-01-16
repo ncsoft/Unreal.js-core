@@ -103,7 +103,7 @@ struct V8_API FJavascriptHeapStatistics
 	bool bDoesZapGarbage = false;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class V8_API UJavascriptIsolate : public UObject
 {
 	GENERATED_UCLASS_BODY()
@@ -112,6 +112,8 @@ public:
 	virtual void BeginDestroy() override;
 
 	TSharedPtr<FJavascriptIsolate> JavascriptIsolate;
+
+	
 
 	UFUNCTION(BlueprintCallable, Category = "Scripting|Javascript")
 	void Init(bool bIsEditor);
