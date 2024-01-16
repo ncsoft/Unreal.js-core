@@ -6,7 +6,7 @@
 #include "Engine/Canvas.h"
 #include "Components/OverlaySlot.h"
 #include "AssetViewerSettings.h"
-#include "Launch/Resources/Version.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "Components/DirectionalLightComponent.h"
 #if ENGINE_MAJOR_VERSION > 4
 	#include "UnrealWidget.h"

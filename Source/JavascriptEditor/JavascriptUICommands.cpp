@@ -1,7 +1,7 @@
 #include "JavascriptUICommands.h"
 #include "JavascriptMenuLibrary.h"
 #include "Framework/Commands/Commands.h"
-#include "Launch/Resources/Version.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 //PRAGMA_DISABLE_OPTIMIZATION
 
